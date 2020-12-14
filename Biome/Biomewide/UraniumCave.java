@@ -36,7 +36,10 @@ import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
+import Reika.Satisforestry.OreClusterType;
+import Reika.Satisforestry.ResourceItem;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.BiomeConfig;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 
 public class UraniumCave {
@@ -44,6 +47,8 @@ public class UraniumCave {
 	public static final UraniumCave instance = new UraniumCave();
 
 	private final WeightedRandom<SpawnListEntry> caveSpawns = new WeightedRandom();
+	private final WeightedRandom<OreClusterType> oreSpawns = new WeightedRandom();
+	private final WeightedRandom<ResourceItem> nodeOutput = new WeightedRandom();
 
 	private UraniumCave() {
 		List<SpawnListEntry> li = Satisforestry.pinkforest.getSpawnableList(EnumCreatureType.monster);
@@ -51,6 +56,12 @@ public class UraniumCave {
 			if (EntitySpider.class.isAssignableFrom(e.entityClass)) {
 				caveSpawns.addEntry(e, e.itemWeight);
 			}
+		}
+		for (OreClusterType ore : BiomeConfig.instance.getOreTypes()) {
+			oreSpawns.addEntry(ore, ore.spawnWeight);
+		}
+		for (ResourceItem ri : BiomeConfig.instance.getResourceDrops()) {
+			nodeOutput.addEntry(ri, ri.spawnWeight);
 		}
 	}
 
@@ -203,7 +214,10 @@ public class UraniumCave {
 	}
 
 	private void generateOreClumpAt(World world, int x, int y, int z, Random rand) {
+		OreClusterType type = oreSpawns.getRandomEntry();
 		int depth = rand.nextInt(2)+rand.nextInt(2)+rand.nextInt(2);
+		depth *= type.sizeScale;
+		depth = Math.min(depth, 4);
 		HashSet<Coordinate> place = new HashSet();
 		HashSet<Coordinate> set = new HashSet();
 		set.add(new Coordinate(x, y, z));
@@ -224,8 +238,8 @@ public class UraniumCave {
 			set = next;
 		}
 
+		BlockKey ore = type.oreBlock;
 		for (Coordinate c : place) {
-			BlockKey ore = new BlockKey(Blocks.glowstone);
 			c.setBlock(world, ore.blockID, ore.metadata);
 		}
 

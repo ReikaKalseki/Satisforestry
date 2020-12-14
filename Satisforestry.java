@@ -50,6 +50,7 @@ import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Instantiable.IO.ControlledConfig;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
+import Reika.Satisforestry.Biome.BiomeConfig;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
@@ -140,6 +141,8 @@ public class Satisforestry extends DragonAPIMod {
 	public void load(FMLInitializationEvent event) {
 		this.startTiming(LoadPhase.LOAD);
 		proxy.registerRenderers();
+
+		BiomeConfig.instance.load();
 
 		pinkforest = new BiomePinkForest(SFOptions.BIOMEID.getValue());
 		BiomeManager.addBiome(BiomeType.COOL, new BiomeEntry(pinkforest, 4));
