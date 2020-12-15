@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
@@ -25,6 +26,8 @@ import Reika.DragonAPI.Instantiable.IO.CustomRecipeList;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
+import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CaveSection;
+import Reika.Satisforestry.Biome.Biomewide.UraniumCave.OreClusterType;
 
 
 public class BiomeConfig {
@@ -178,6 +181,7 @@ public class BiomeConfig {
 
 	private void parseOreEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
 		ArrayList<String> blocks = new ArrayList();
+		HashMap<CaveSection, LuaBlock> sections = new HashMap();
 
 		LuaBlock set = b.getChild("blocks");
 		if (set != null) {
@@ -189,21 +193,32 @@ public class BiomeConfig {
 			blocks.add(b.getString("block"));
 		}
 
+		LuaBlock spawn = b.getChild("spawnLocations");
+		for (CaveSection s : CaveSection.values()) {
+			LuaBlock lb = spawn.getChild(s.name());
+			if (lb != null) {
+				sections.put(s, lb);
+			}
+		}
+
+		entryAttemptsCount += blocks.size()*sections.size();
+
 		for (String s : blocks) {
-			entryAttemptsCount++;
 			BlockKey bk = this.parseBlockKey(s);
 			if (bk == null) {
 				Satisforestry.logger.logError("Could not load block type '"+s+"' for ore type '"+type+"'; skipping.");
 				continue;
 			}
-			String id = type+"_"+s;
-			OreClusterType ore = new OreClusterType(id, bk, b.getInt("spawnWeight"));
-			ore.sizeScale = (float)b.getDouble("sizeScale");
-			ore.maxDepth = b.getInt("maxSize");
-			ore.canSpawnInMainRing = b.getBoolean("ringSpawn");
-			oreEntries.put(type, ore);
-			Satisforestry.logger.log("Registered ore type '"+type+"' with block '"+bk);
-			entryCount++;
+			for (Entry<CaveSection, LuaBlock> e : sections.entrySet()) {
+				LuaBlock data = e.getValue();
+				String id = type+"_"+s+"_"+e.getKey().name();
+				OreClusterType ore = new OreClusterType(id, bk, e.getKey(), b.getInt("spawnWeight"));
+				ore.sizeScale = (float)data.getDouble("sizeScale");
+				ore.maxDepth = data.getInt("maxSize");
+				oreEntries.put(type, ore);
+				Satisforestry.logger.log("Registered ore type '"+type+"' with block '"+bk);
+				entryCount++;
+			}
 		}
 	}
 

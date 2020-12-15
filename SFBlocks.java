@@ -24,10 +24,13 @@ import Reika.GeoStrata.Base.RockBlock;
 import Reika.GeoStrata.Blocks.BlockShapedRock;
 import Reika.GeoStrata.Blocks.BlockSmooth;
 import Reika.Satisforestry.Blocks.BlockCaveShield;
+import Reika.Satisforestry.Blocks.BlockCaveSpawner;
+import Reika.Satisforestry.Blocks.BlockGasEmitter;
 import Reika.Satisforestry.Blocks.BlockPinkGrass;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
 import Reika.Satisforestry.Blocks.BlockRedBamboo;
+import Reika.Satisforestry.Blocks.BlockResourceNode;
 
 public enum SFBlocks implements BlockEnum {
 
@@ -36,6 +39,9 @@ public enum SFBlocks implements BlockEnum {
 	LEAVES(BlockPinkLeaves.class, null, "Pink Birch Leaves"),
 	GRASS(BlockPinkGrass.class, MetadataItemBlock.class, "Pink Grass"),
 	CAVESHIELD(BlockCaveShield.class, null, "Cave Stone"),
+	SPAWNER(BlockCaveSpawner.class, null, "Cracked Cave Stone"),
+	GASEMITTER(BlockGasEmitter.class, null, "Gas Vent"),
+	RESOURCENODE(BlockResourceNode.class, null, "Resource Node"),
 	;
 
 	private final Class blockClass;

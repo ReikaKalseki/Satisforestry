@@ -294,7 +294,7 @@ public class Satisforestry extends DragonAPIMod {
 		if (isPinkForest(evt.world, evt.x, evt.z)) {
 			if (BiomewideFeatureGenerator.instance.isInCave(evt.world, evt.x, evt.y, evt.z)) {
 				evt.list.clear();
-				evt.list.add(UraniumCave.instance.getRandomSpawn());
+				evt.list.add(UraniumCave.instance.getRandomSpawn(evt.world.rand));
 			}
 		}
 	}
