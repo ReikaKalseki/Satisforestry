@@ -20,18 +20,23 @@ import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 
 public class PinkTreeGenerator extends ModifiableBigTree {
 
-	public PinkTreeGenerator() {
+	private final boolean forceGen;
+
+	public PinkTreeGenerator(boolean force) {
 		super(false);
+		forceGen = force;
 	}
 
 	@Override
 	public boolean generate(World world, Random rand, int x, int y, int z) {
-		if (y < 96) //was 90
-			return false;
-		if (Satisforestry.pinkforest.isRoad(world, x, z))
-			return false;
-		if (!ReikaPlantHelper.SAPLING.canPlantAt(world, x, y, z))
-			return false;
+		if (!forceGen) {
+			if (y < 96) //was 90
+				return false;
+			if (Satisforestry.pinkforest.isRoad(world, x, z))
+				return false;
+			if (!ReikaPlantHelper.SAPLING.canPlantAt(world, x, y, z))
+				return false;
+		}
 		int h = ReikaRandomHelper.getRandomBetween(10, 16, rand)-2;
 		int hl = Math.min(h-4, ReikaRandomHelper.getRandomBetween(6, 9, rand));
 		this.resetHeight();

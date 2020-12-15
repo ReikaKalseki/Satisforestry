@@ -1,6 +1,5 @@
 package Reika.Satisforestry.Blocks;
 
-import java.util.Locale;
 import java.util.Random;
 
 import net.minecraft.creativetab.CreativeTabs;
@@ -23,7 +22,7 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 		private static final LeafTypes[] list = values();
 
 		private LeafTypes() {
-			String base = "satisforestry:pinkleaf_"+this.name().toLowerCase(Locale.ENGLISH);
+			String base = "satisforestry:pinkleaf";//_"+this.name().toLowerCase(Locale.ENGLISH);
 			fancyIcon = base+"_fancy";
 			fastIcon = base+"_fast";
 		}
@@ -37,6 +36,7 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 		super();
 		this.setLightOpacity(0);
 		this.setCreativeTab(Satisforestry.tabCreative);
+		this.setStepSound(soundTypeGrass);
 	}
 
 	@Override

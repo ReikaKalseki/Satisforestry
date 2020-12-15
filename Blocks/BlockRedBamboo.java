@@ -26,11 +26,12 @@ public class BlockRedBamboo extends Block implements IPlantable {
 	private static final IIcon[] leaves = new IIcon[8];
 
 	public BlockRedBamboo() {
-		super(Material.plants);
+		super(Material.leaves);
 		float s = 0.125F;
 		this.setBlockBounds(0.5F-s, 0, 0.5F-s, 0.5F+s, 1, 0.5F+s);
 		this.setTickRandomly(true);
 		this.setCreativeTab(Satisforestry.tabCreative);
+		this.setStepSound(soundTypeGrass);
 	}
 
 	public static IIcon getRandomLeaf(Random rand) {

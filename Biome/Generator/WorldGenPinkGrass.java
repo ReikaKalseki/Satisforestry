@@ -12,6 +12,7 @@ import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom.DynamicWeight;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 
@@ -23,10 +24,11 @@ public class WorldGenPinkGrass extends WorldGenerator {
 
 	public WorldGenPinkGrass() {
 		grassTypes.addDynamicEntry(BASE);
-		grassTypes.addDynamicEntry(new GrassType(Satisforestry.grass, GrassTypes.PEACH_FRINGE.ordinal(), new Interpolation(false).addPoint(60, 0).addPoint(80, 10).addPoint(100, 40).addPoint(128, 20)));
-		grassTypes.addDynamicEntry(new GrassType(Satisforestry.grass, GrassTypes.RED_STRANDS_1.ordinal(), new Interpolation(false).addPoint(55, 0).addPoint(70, 20).addPoint(96, 40).addPoint(144, 25)));
-		grassTypes.addDynamicEntry(new GrassType(Satisforestry.grass, GrassTypes.RED_STRANDS_2.ordinal(), new Interpolation(false).addPoint(55, 0).addPoint(60, 20).addPoint(90, 30).addPoint(112, 10)));
-		grassTypes.addDynamicEntry(new GrassType(Satisforestry.grass, GrassTypes.TINY_PINK_LUMPS.ordinal(), new Interpolation(false).addPoint(72, 0).addPoint(80, 10).addPoint(144, 50)));
+		Block b = SFBlocks.GRASS.getBlockInstance();
+		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.PEACH_FRINGE.ordinal(), new Interpolation(false).addPoint(60, 0).addPoint(80, 10).addPoint(100, 40).addPoint(128, 20)));
+		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.RED_STRANDS_1.ordinal(), new Interpolation(false).addPoint(55, 0).addPoint(70, 20).addPoint(96, 40).addPoint(144, 25)));
+		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.RED_STRANDS_2.ordinal(), new Interpolation(false).addPoint(55, 0).addPoint(60, 20).addPoint(90, 30).addPoint(112, 10)));
+		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.TINY_PINK_LUMPS.ordinal(), new Interpolation(false).addPoint(72, 0).addPoint(80, 10).addPoint(144, 50)));
 	}
 
 	@Override

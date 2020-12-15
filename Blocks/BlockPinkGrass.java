@@ -59,6 +59,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 
 	public BlockPinkGrass() {
 		this.setCreativeTab(Satisforestry.tabCreative);
+		this.setStepSound(soundTypeGrass);
 	}
 
 	@Override

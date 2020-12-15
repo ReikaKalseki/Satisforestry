@@ -376,7 +376,7 @@ public class UraniumCave {
 				while (c == null) {
 					c = ReikaJavaLibrary.getRandomCollectionEntry(rand, carve.keySet());
 					if (c.yCoord >= 60 || this.hasAdjacentHorizontalCarve(c))
-						c = null;
+						;//c = null;
 				}
 				Coordinate below = c.offset(0, -1, 0);
 				while (carve.containsKey(below)) {
@@ -630,7 +630,7 @@ public class UraniumCave {
 		}
 
 		protected final boolean hasAdjacentHorizontalCarve(Coordinate c) {
-			for (int i = 2; i < 6; i++) {
+			for (int i = 0; i < 4; i++) {
 				ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i+2];
 				if (carve.containsKey(c.offset(dir, 1)))
 					return true;

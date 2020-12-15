@@ -24,6 +24,7 @@ public class BlockPinkLog extends BlockOldLog {
 		super();
 		this.setResistance(120);
 		this.setCreativeTab(Satisforestry.tabCreative);
+		this.setStepSound(soundTypeWood);
 	}
 
 	@Override

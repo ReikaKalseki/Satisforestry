@@ -11,6 +11,7 @@ import net.minecraft.entity.monster.EntitySkeleton;
 import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.monster.EntityZombie;
+import net.minecraft.entity.passive.EntityOcelot;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
@@ -77,6 +78,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 			ModSpawnEntry msp = new ModSpawnEntry(ModList.TWILIGHT, "twilightforest.entity.EntityTFHedgeSpider", 80, 4, 4); //elite stinger stand-in
 			spawnableMonsterList.add(msp.getEntry());
 		}
+		spawnableCreatureList.add(new BiomeGenBase.SpawnListEntry(EntityOcelot.class, 5, 2, 2)); //arachnophobia mode
 	}
 
 	@Override
@@ -119,7 +121,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 	@Override
 	public WorldGenAbstractTree func_150567_a(Random rand) {
-		return rand.nextInt(4) == 0 ? new GiantPinkTreeGenerator(false) : new PinkTreeGenerator();
+		return rand.nextInt(4) == 0 ? new GiantPinkTreeGenerator(false) : new PinkTreeGenerator(false);
 	}
 
 	@Override

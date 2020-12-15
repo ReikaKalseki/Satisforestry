@@ -277,9 +277,9 @@ public class BiomeConfig {
 	public Collection<OreClusterType> getOreTypes() {
 		return oreEntries.values();
 	}
-		return resourceEntries.values();
-	public Collection<ResourceItem> getResourceDrops() {
 
+	public Collection<ResourceItem> getResourceDrops() {
+		return resourceEntries.values();
 	}
 
 	private static class OreLuaBlock extends LuaBlock {

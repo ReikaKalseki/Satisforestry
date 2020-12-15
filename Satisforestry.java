@@ -38,6 +38,7 @@ import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.DragonAPIMod.LoadProfiler.LoadPhase;
 import Reika.DragonAPI.Instantiable.Event.BlockStopsPrecipitationEvent;
 import Reika.DragonAPI.Instantiable.Event.BlockTickEvent;
+import Reika.DragonAPI.Instantiable.Event.GenLayerBeachEvent.BeachTypeEvent;
 import Reika.DragonAPI.Instantiable.Event.GenLayerRiverEvent;
 import Reika.DragonAPI.Instantiable.Event.GetYToSpawnMobEvent;
 import Reika.DragonAPI.Instantiable.Event.IceFreezeEvent;
@@ -51,16 +52,15 @@ import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Instantiable.IO.ControlledConfig;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
+import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkRiver;
 import Reika.Satisforestry.Biome.Generator.WorldGenUraniumCave;
-import Reika.Satisforestry.Blocks.BlockPinkGrass;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
-import Reika.Satisforestry.Blocks.BlockRedBamboo;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
@@ -75,8 +75,6 @@ import cpw.mods.fml.common.eventhandler.Event.Result;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -90,9 +88,7 @@ public class Satisforestry extends DragonAPIMod {
 	public static final ControlledConfig config = new ControlledConfig(instance, SFOptions.optionList, null);
 
 	public static BlockPinkLog log;
-	public static BlockRedBamboo bamboo;
 	public static BlockPinkLeaves leaves;
-	public static BlockPinkGrass grass;
 
 	public static BiomePinkForest pinkforest;
 	//public static BiomePinkRiver pinkriver;
@@ -105,6 +101,8 @@ public class Satisforestry extends DragonAPIMod {
 	public static CreativeTabs tabCreative = new SatisforestryTab("Satisforestry");
 
 	public static ModLogger logger;
+
+	public static Block[] blocks = new Block[SFBlocks.blockList.length];
 
 	@SidedProxy(clientSide="Reika.Satisforestry.SFClient", serverSide="Reika.Satisforestry.SFCommon")
 	public static SFCommon proxy;
@@ -120,18 +118,10 @@ public class Satisforestry extends DragonAPIMod {
 		if (DragonOptions.FILELOG.getState())
 			logger.setOutput("**_Loading_Log.log");
 
-		log = new BlockPinkLog();
-		GameRegistry.registerBlock(log, null, "pinklog");
-		LanguageRegistry.addName(log, "Pink Birch Log");
-		bamboo = new BlockRedBamboo();
-		GameRegistry.registerBlock(bamboo, null, "redbamboo");
-		LanguageRegistry.addName(bamboo, "Red Bamboo");
-		leaves = new BlockPinkLeaves();
-		GameRegistry.registerBlock(leaves, null, "pinkleaves");
-		LanguageRegistry.addName(leaves, "Pink Birch Leaves");
-		grass = new BlockPinkGrass();
-		GameRegistry.registerBlock(grass, null, "pinkgrass");
-		LanguageRegistry.addName(grass, "Pink Grass");
+		ReikaRegistryHelper.instantiateAndRegisterBlocks(instance, SFBlocks.blockList, blocks);
+
+		log = (BlockPinkLog)SFBlocks.LOG.getBlockInstance();
+		leaves = (BlockPinkLeaves)SFBlocks.LEAVES.getBlockInstance();
 
 		proxy.registerSounds();
 
@@ -369,6 +359,14 @@ public class Satisforestry extends DragonAPIMod {
 	public void snowThroughPinkLeaves(BlockStopsPrecipitationEvent evt) {
 		if (evt.block == leaves) {
 			evt.setResult(Result.DENY);
+		}
+	}
+
+	@SubscribeEvent
+	public void preventCliffBeaches(BeachTypeEvent evt) {
+		if (this.isPinkForest(BiomeGenBase.biomeList[evt.sourceBiomeID])) {
+			//evt.deleteBeach();
+			evt.biomeID = BiomeGenBase.beach.biomeID;
 		}
 	}
 
