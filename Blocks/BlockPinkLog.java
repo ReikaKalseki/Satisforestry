@@ -12,6 +12,8 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.Satisforestry.Satisforestry;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -21,6 +23,7 @@ public class BlockPinkLog extends BlockOldLog {
 	public BlockPinkLog() {
 		super();
 		this.setResistance(120);
+		this.setCreativeTab(Satisforestry.tabCreative);
 	}
 
 	@Override

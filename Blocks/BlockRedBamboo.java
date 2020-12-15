@@ -30,6 +30,7 @@ public class BlockRedBamboo extends Block implements IPlantable {
 		float s = 0.125F;
 		this.setBlockBounds(0.5F-s, 0, 0.5F-s, 0.5F+s, 1, 0.5F+s);
 		this.setTickRandomly(true);
+		this.setCreativeTab(Satisforestry.tabCreative);
 	}
 
 	public static IIcon getRandomLeaf(Random rand) {

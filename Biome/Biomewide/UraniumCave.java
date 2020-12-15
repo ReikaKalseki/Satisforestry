@@ -36,10 +36,10 @@ import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
+import Reika.Satisforestry.BiomeConfig;
 import Reika.Satisforestry.OreClusterType;
 import Reika.Satisforestry.ResourceItem;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Biome.BiomeConfig;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 
 public class UraniumCave {

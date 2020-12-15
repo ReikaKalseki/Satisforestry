@@ -17,9 +17,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import net.minecraft.block.Block;
+import net.minecraft.item.ItemStack;
 
 import Reika.DragonAPI.IO.ReikaFileReader;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
+import Reika.DragonAPI.Instantiable.IO.CustomRecipeList;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
@@ -29,7 +31,8 @@ public class BiomeConfig {
 
 	public static final BiomeConfig instance = new BiomeConfig();
 
-	private LuaBlockDatabase data;
+	private LuaBlockDatabase oreData;
+	private LuaBlockDatabase itemData;
 
 	private int definitionCount;
 	private int entryAttemptsCount;
@@ -39,8 +42,8 @@ public class BiomeConfig {
 	private final HashMap<String, ResourceItem> resourceEntries = new HashMap();
 
 	private BiomeConfig() {
-		data = new LuaBlockDatabase();
-		OreLuaBlock base = new OreLuaBlock("base", null, data);
+		oreData = new LuaBlockDatabase();
+		OreLuaBlock base = new OreLuaBlock("base", null, oreData);
 		base.putData("type", "base");
 		base.putData("sizeScale", "1");
 		base.putData("maxSize", "4");
@@ -48,8 +51,19 @@ public class BiomeConfig {
 		base.putData("spawnWeight", "10");
 		base.putData("block", "some_mod:some_ore");
 		//base.putData("generate", "true");
-		OreLuaBlock ores = new OreLuaBlock("blocks", base, data);
-		data.addBlock("base", base);
+		OreLuaBlock ores = new OreLuaBlock("blocks", base, oreData);
+		oreData.addBlock("base", base);
+
+		itemData = new LuaBlockDatabase();
+		ResourceLuaBlock base2 = new ResourceLuaBlock("base", null, itemData);
+		base2.putData("type", "base");
+		base2.putData("minCount", "1");
+		base2.putData("maxCount", "1");
+		base2.putData("spawnWeight", "10");
+		base2.putData("item", "some_item_identifier");
+		//base.putData("generate", "true");
+		ResourceLuaBlock items = new ResourceLuaBlock("items", base2, itemData);
+		itemData.addBlock("base", base2);
 	}
 
 	/** Returns the number of entries that loaded! */
@@ -62,11 +76,15 @@ public class BiomeConfig {
 			this.loadFiles(f);
 			this.parseConfigs();
 
-			Satisforestry.logger.log("Configs loaded; files contained "+definitionCount+" definitions, for a total of "+entryAttemptsCount+" entries, of which "+entryCount+" loaded.");
+			Satisforestry.logger.log("Configs loaded.");
 		}
 		else {
 			try {
 				f.mkdirs();
+				File f1 = new File(f, "ores.lua");
+				File f2 = new File(f, "resources.lua");
+				f1.createNewFile();
+				f2.createNewFile();
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -87,38 +105,45 @@ public class BiomeConfig {
 		if (out.exists())
 			out.delete();
 		out.createNewFile();
-		ArrayList<String> li = data.getBlock("base").writeToStrings();
+		ArrayList<String> li = oreData.getBlock("base").writeToStrings();
+		li.set(li.size()-1, li.get(li.size()-1)+",");
+		li.addAll(itemData.getBlock("base").writeToStrings());
 		ReikaFileReader.writeLinesToFile(out, li, true);
 	}
 
 	private void reset() {
-		LuaBlock base = data.getBlock("base");
-		data = new LuaBlockDatabase();
+		LuaBlock base = oreData.getBlock("base");
+		LuaBlock base2 = itemData.getBlock("base");
+		oreData = new LuaBlockDatabase();
+		itemData = new LuaBlockDatabase();
+
 		oreEntries.clear();
 
 		definitionCount = 0;
 		entryAttemptsCount = 0;
 		entryCount = 0;
 
-		data.addBlock("base", base);
+		oreData.addBlock("base", base);
+		itemData.addBlock("base", base2);
 	}
 
 	private void loadFiles(File parent) {
-		ArrayList<File> files = ReikaFileReader.getAllFilesInFolder(parent, ".lua", ".ini", ".cfg", ".txt", ".yml");
-		for (File f : files) {
-			if (!f.getName().equals("base.lua"))
-				data.loadFromFile(f);
-		}
+		File f = new File(parent, "ores.lua");
+		File f2 = new File(parent, "resources.lua");
+		if (f.exists())
+			oreData.loadFromFile(f);
+		if (f2.exists())
+			itemData.loadFromFile(f2);
 	}
 
 	private void parseConfigs() {
-		LuaBlock root = data.getRootBlock();
+		LuaBlock root = oreData.getRootBlock();
 		for (LuaBlock b : root.getChildren()) {
 			try {
 				definitionCount++;
 				String type = b.getString("type");
-				data.addBlock(type, b);
-				this.parseEntry(type, b);
+				oreData.addBlock(type, b);
+				this.parseOreEntry(type, b);
 			}
 			catch (Exception e) {
 				Satisforestry.logger.logError("Could not parse config section "+b.getString("type")+": ");
@@ -127,10 +152,31 @@ public class BiomeConfig {
 				e.printStackTrace();
 			}
 		}
-		Satisforestry.logger.log("All config entries parsed.");
+		Satisforestry.logger.log("All ore config entries parsed; files contained "+definitionCount+" definitions, for a total of "+entryAttemptsCount+" entries, of which "+entryCount+" loaded.");
+
+		definitionCount = 0;
+		entryAttemptsCount = 0;
+		entryCount = 0;
+
+		root = itemData.getRootBlock();
+		for (LuaBlock b : root.getChildren()) {
+			try {
+				definitionCount++;
+				String type = b.getString("type");
+				itemData.addBlock(type, b);
+				this.parseResourceEntry(type, b);
+			}
+			catch (Exception e) {
+				Satisforestry.logger.logError("Could not parse config section "+b.getString("type")+": ");
+				ReikaJavaLibrary.pConsole(b);
+				ReikaJavaLibrary.pConsole("----------------------Cause------------------------");
+				e.printStackTrace();
+			}
+		}
+		Satisforestry.logger.log("All resource config entries parsed; files contained "+definitionCount+" definitions, for a total of "+entryAttemptsCount+" entries, of which "+entryCount+" loaded.");
 	}
 
-	private void parseEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
+	private void parseOreEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
 		ArrayList<String> blocks = new ArrayList();
 
 		LuaBlock set = b.getChild("blocks");
@@ -157,6 +203,36 @@ public class BiomeConfig {
 			ore.canSpawnInMainRing = b.getBoolean("ringSpawn");
 			oreEntries.put(type, ore);
 			Satisforestry.logger.log("Registered ore type '"+type+"' with block '"+bk);
+			entryCount++;
+		}
+	}
+
+	private void parseResourceEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
+		ArrayList<LuaBlock> items = new ArrayList();
+
+		LuaBlock set = b.getChild("items");
+		if (set != null) {
+			for (LuaBlock s : set.getChildren()) {
+				items.add(s);
+			}
+		}
+		else {
+			items.add(b.getChild("item"));
+		}
+
+		for (LuaBlock s : items) {
+			entryAttemptsCount++;
+			ItemStack is = CustomRecipeList.parseItemString(s.getString("key"), s.getChild("nbt"), true);
+			if (is == null) {
+				Satisforestry.logger.logError("Could not load item type '"+s+"' for resource type '"+type+"'; skipping.");
+				continue;
+			}
+			String id = type+"_"+s;
+			ResourceItem ore = new ResourceItem(id, is, b.getInt("spawnWeight"));
+			ore.minCount = b.getInt("minCount");
+			ore.maxCount = b.getInt("maxCount");
+			resourceEntries.put(type, ore);
+			Satisforestry.logger.log("Registered resource type '"+type+"' with item '"+CustomRecipeList.fullID(is));
 			entryCount++;
 		}
 	}
@@ -195,13 +271,13 @@ public class BiomeConfig {
 	}
 
 	private final String getSaveFolder() {
-		return Satisforestry.config.getConfigFolder().getAbsolutePath()+"/";//+"/Satisforestry_Files/";
+		return Satisforestry.config.getConfigFolder().getAbsolutePath()+"/Satisforestry_Files/";
 	}
 
 	public Collection<OreClusterType> getOreTypes() {
 		return oreEntries.values();
 	}
-
+		return resourceEntries.values();
 	public Collection<ResourceItem> getResourceDrops() {
 
 	}
@@ -209,6 +285,18 @@ public class BiomeConfig {
 	private static class OreLuaBlock extends LuaBlock {
 
 		protected OreLuaBlock(String n, LuaBlock lb, LuaBlockDatabase db) {
+			super(n, lb, db);
+
+			requiredElements.add("inherit");
+			requiredElements.add("name");
+			requiredElements.add("spawnWeight");
+		}
+
+	}
+
+	private static class ResourceLuaBlock extends LuaBlock {
+
+		protected ResourceLuaBlock(String n, LuaBlock lb, LuaBlockDatabase db) {
 			super(n, lb, db);
 
 			requiredElements.add("inherit");

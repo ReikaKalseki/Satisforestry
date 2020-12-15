@@ -12,6 +12,8 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.EnumPlantType;
 
+import Reika.Satisforestry.Satisforestry;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -53,6 +55,10 @@ public class BlockPinkGrass extends BlockTallGrass {
 					return false;
 			}
 		}
+	}
+
+	public BlockPinkGrass() {
+		this.setCreativeTab(Satisforestry.tabCreative);
 	}
 
 	@Override

@@ -13,6 +13,7 @@ import java.io.File;
 import java.net.URL;
 
 import net.minecraft.block.Block;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.DamageSource;
@@ -35,6 +36,7 @@ import Reika.DragonAPI.DragonOptions;
 import Reika.DragonAPI.Auxiliary.Trackers.CommandableUpdateChecker;
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.DragonAPIMod.LoadProfiler.LoadPhase;
+import Reika.DragonAPI.Instantiable.Event.BlockStopsPrecipitationEvent;
 import Reika.DragonAPI.Instantiable.Event.BlockTickEvent;
 import Reika.DragonAPI.Instantiable.Event.GenLayerRiverEvent;
 import Reika.DragonAPI.Instantiable.Event.GetYToSpawnMobEvent;
@@ -50,7 +52,6 @@ import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Instantiable.IO.ControlledConfig;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
-import Reika.Satisforestry.Biome.BiomeConfig;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
@@ -69,6 +70,7 @@ import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.eventhandler.Event.Result;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -78,7 +80,7 @@ import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-@Mod( modid = "Satisforestry", name="Satisforestry", version = "v@MAJOR_VERSION@@MINOR_VERSION@", certificateFingerprint = "@GET_FINGERPRINT@", dependencies="required-after:DragonAPI;after-CritterPet")
+@Mod( modid = "Satisforestry", name="Satisforestry", version = "v@MAJOR_VERSION@@MINOR_VERSION@", certificateFingerprint = "@GET_FINGERPRINT@", dependencies="required-after:DragonAPI;after:CritterPet")
 
 public class Satisforestry extends DragonAPIMod {
 
@@ -99,6 +101,8 @@ public class Satisforestry extends DragonAPIMod {
 	private IIcon biomeGrassIconSide;
 	private IIcon biomeWaterIcon;
 	private IIcon biomeWaterIconFlow;
+
+	public static CreativeTabs tabCreative = new SatisforestryTab("Satisforestry");
 
 	public static ModLogger logger;
 
@@ -142,8 +146,6 @@ public class Satisforestry extends DragonAPIMod {
 		this.startTiming(LoadPhase.LOAD);
 		proxy.registerRenderers();
 
-		BiomeConfig.instance.load();
-
 		pinkforest = new BiomePinkForest(SFOptions.BIOMEID.getValue());
 		BiomeManager.addBiome(BiomeType.COOL, new BiomeEntry(pinkforest, 4));
 		BiomeManager.addSpawnBiome(pinkforest);
@@ -161,7 +163,15 @@ public class Satisforestry extends DragonAPIMod {
 	@EventHandler
 	public void postload(FMLPostInitializationEvent evt) {
 		this.startTiming(LoadPhase.POSTLOAD);
+
+		BiomeConfig.instance.loadConfigs();
+
 		this.finishTiming();
+	}
+
+	@EventHandler
+	public void lastLoad(FMLServerAboutToStartEvent evt) {
+		BiomeConfig.instance.loadConfigs();
 	}
 
 	@Override
@@ -352,6 +362,13 @@ public class Satisforestry extends DragonAPIMod {
 			if (false && evt.world.rand.nextInt(2) == 0) {
 				evt.yToTry = top;
 			}*/
+		}
+	}
+
+	@SubscribeEvent
+	public void snowThroughPinkLeaves(BlockStopsPrecipitationEvent evt) {
+		if (evt.block == leaves) {
+			evt.setResult(Result.DENY);
 		}
 	}
 
