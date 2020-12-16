@@ -40,6 +40,11 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 	}
 
 	@Override
+	public int getLightOpacity(IBlockAccess world, int x, int y, int z) {
+		return 0;
+	}
+
+	@Override
 	public int getRenderColor(int mta) {
 		return Satisforestry.pinkforest.getBiomeFoliageColor(0, 64, 0);
 	}

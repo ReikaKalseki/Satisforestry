@@ -19,8 +19,8 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
-import Reika.ChromatiCraft.Registry.ChromaIcons;
-import Reika.ChromatiCraft.Render.Particle.EntityFloatingSeedsFX;
+import Reika.DragonAPI.Extras.IconPrefabs;
+import Reika.DragonAPI.Instantiable.Effects.EntityFloatingSeedsFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
@@ -104,18 +104,16 @@ public class BlockGasEmitter extends BlockContainer {
 			double py = ReikaRandomHelper.getRandomBetween(activeArea.minY, activeArea.maxY);
 			double pz = ReikaRandomHelper.getRandomBetween(activeArea.minZ, activeArea.maxZ);
 			int c = 0xBAFF21;//0xC9FF21;
-			EntityFloatingSeedsFX fx = new EntityFloatingSeedsFX(worldObj, px, py, pz, 0, 90);
+			EntityFloatingSeedsFX fx = new EntityFloatingSeedsFX(worldObj, px, py, pz, 0, 90, IconPrefabs.FADE.getIcon());
 			fx.setRapidExpand().setAlphaFading();
 			fx.angleVelocity *= 1.85;
 			fx.particleVelocity *= 0.3;
 			fx.freedom *= 1.5;
-			fx.setIcon(ChromaIcons.FADE);
 			fx.setColor(c);
 			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 
-			EntityFloatingSeedsFX fx2 = new EntityFloatingSeedsFX(worldObj, px, py, pz, 0, 90);
+			EntityFloatingSeedsFX fx2 = new EntityFloatingSeedsFX(worldObj, px, py, pz, 0, 90, IconPrefabs.FADE_GENTLE.getIcon());
 			fx2.setRapidExpand().setAlphaFading();
-			fx2.setIcon(ChromaIcons.FADE_GENTLE);
 			fx2.setScale((float)ReikaRandomHelper.getRandomBetween(12D, 25D));
 			fx2.setColor(ReikaColorAPI.getColorWithBrightnessMultiplier(c, 0.25F));
 			fx2.lockTo(fx);
