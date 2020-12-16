@@ -48,13 +48,16 @@ public class BiomeConfig {
 		oreData = new LuaBlockDatabase();
 		OreLuaBlock base = new OreLuaBlock("base", null, oreData);
 		base.putData("type", "base");
-		base.putData("sizeScale", "1");
-		base.putData("maxSize", "4");
-		base.putData("ringSpawn", "true");
-		base.putData("spawnWeight", "10");
 		base.putData("block", "some_mod:some_ore");
 		//base.putData("generate", "true");
 		OreLuaBlock ores = new OreLuaBlock("blocks", base, oreData);
+		OreLuaBlock spawns = new OreLuaBlock("spawnLocations", base, oreData);
+		for (CaveSection s : CaveSection.values()) {
+			OreLuaBlock sec = new OreLuaBlock(s.name(), spawns, oreData);
+			sec.putData("sizeScale", "1");
+			sec.putData("maxSize", "4");
+			sec.putData("spawnWeight", "10");
+		}
 		oreData.addBlock("base", base);
 
 		itemData = new LuaBlockDatabase();
@@ -210,13 +213,14 @@ public class BiomeConfig {
 				continue;
 			}
 			for (Entry<CaveSection, LuaBlock> e : sections.entrySet()) {
+				CaveSection cs = e.getKey();
 				LuaBlock data = e.getValue();
-				String id = type+"_"+s+"_"+e.getKey().name();
-				OreClusterType ore = new OreClusterType(id, bk, e.getKey(), b.getInt("spawnWeight"));
+				String id = type+"_"+s+"_"+cs.name();
+				OreClusterType ore = new OreClusterType(id, bk, cs, b.getInt("spawnWeight"));
 				ore.sizeScale = (float)data.getDouble("sizeScale");
 				ore.maxDepth = data.getInt("maxSize");
-				oreEntries.put(type, ore);
-				Satisforestry.logger.log("Registered ore type '"+type+"' with block '"+bk);
+				oreEntries.put(id, ore);
+				Satisforestry.logger.log("Registered ore type '"+type+"' with block '"+bk+" for area "+cs);
 				entryCount++;
 			}
 		}

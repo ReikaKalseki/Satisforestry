@@ -10,6 +10,7 @@ import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -61,6 +62,10 @@ public class BlockCaveSpawner extends BlockContainer {
 		private IEntitySelector selector;
 
 		private AxisAlignedBB activeArea;
+
+		public TileCaveSpawner() {
+			this.setMobType(EntitySpider.class);
+		}
 
 		public void setMobType(Class<? extends EntityMob> c) {
 			mobClass = c;
@@ -119,8 +124,10 @@ public class BlockCaveSpawner extends BlockContainer {
 			NBT.setInteger("activeRadius", activeRadius);
 			NBT.setInteger("spawnRadius", spawnRadius);
 
-			NBT.setString("mob", mobType);
-			NBT.setString("type", mobClass.getName());
+			if (mobType != null) {
+				NBT.setString("mob", mobType);
+				NBT.setString("type", mobClass.getName());
+			}
 		}
 
 		@Override

@@ -19,6 +19,7 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.Effects.EntityFloatingSeedsFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
@@ -50,7 +51,9 @@ public class BlockGasEmitter extends BlockContainer {
 
 	@Override
 	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
-		return s == 1 ? blockIcon : SFBlocks.CAVESHIELD.getBlockInstance().getIcon(iba, x, y, z, s);
+		if (s == 1)
+			return blockIcon;
+		return iba.getBlockMetadata(x, y, z) > 0 ? Blocks.stone.blockIcon : SFBlocks.CAVESHIELD.getBlockInstance().getIcon(iba, x, y, z, s);
 	}
 
 	@Override
@@ -100,24 +103,30 @@ public class BlockGasEmitter extends BlockContainer {
 
 		@SideOnly(Side.CLIENT)
 		private void doFX() {
-			double px = ReikaRandomHelper.getRandomBetween(activeArea.minX, activeArea.maxX);
-			double py = ReikaRandomHelper.getRandomBetween(activeArea.minY, activeArea.maxY);
-			double pz = ReikaRandomHelper.getRandomBetween(activeArea.minZ, activeArea.maxZ);
-			int c = 0xBAFF21;//0xC9FF21;
-			EntityFloatingSeedsFX fx = new EntityFloatingSeedsFX(worldObj, px, py, pz, 0, 90, IconPrefabs.FADE.getIcon());
-			fx.setRapidExpand().setAlphaFading();
-			fx.angleVelocity *= 1.85;
-			fx.particleVelocity *= 0.3;
-			fx.freedom *= 1.5;
-			fx.setColor(c);
-			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+			EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
+			double dd = Math.sqrt(this.getDistanceFrom(ep.posX, ep.posY, ep.posZ));
+			int n = 1;
+			n += Math.max(0, (dd-32)/16D);
+			if (dd <= 256 && DragonAPICore.rand.nextInt(n) == 0) {
+				double px = ReikaRandomHelper.getRandomBetween(activeArea.minX, activeArea.maxX);
+				double py = ReikaRandomHelper.getRandomBetween(activeArea.minY, activeArea.maxY);
+				double pz = ReikaRandomHelper.getRandomBetween(activeArea.minZ, activeArea.maxZ);
+				int c = 0xBAFF21;//0xC9FF21;
+				EntityFloatingSeedsFX fx = new EntityFloatingSeedsFX(worldObj, px, py, pz, 0, 90, IconPrefabs.FADE.getIcon());
+				fx.setRapidExpand().setAlphaFading().forceIgnoreLimits();
+				fx.angleVelocity *= 1.85;
+				fx.particleVelocity *= 0.3;
+				fx.freedom *= 1.5;
+				fx.setColor(c);
+				Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 
-			EntityFloatingSeedsFX fx2 = new EntityFloatingSeedsFX(worldObj, px, py, pz, 0, 90, IconPrefabs.FADE_GENTLE.getIcon());
-			fx2.setRapidExpand().setAlphaFading();
-			fx2.setScale((float)ReikaRandomHelper.getRandomBetween(12D, 25D));
-			fx2.setColor(ReikaColorAPI.getColorWithBrightnessMultiplier(c, 0.25F));
-			fx2.lockTo(fx);
-			Minecraft.getMinecraft().effectRenderer.addEffect(fx2);
+				EntityFloatingSeedsFX fx2 = new EntityFloatingSeedsFX(worldObj, px, py, pz, 0, 90, IconPrefabs.FADE_GENTLE.getIcon());
+				fx2.setRapidExpand().setAlphaFading().forceIgnoreLimits();
+				fx2.setScale((float)ReikaRandomHelper.getRandomBetween(12D, 25D));
+				fx2.setColor(ReikaColorAPI.getColorWithBrightnessMultiplier(c, 0.25F));
+				fx2.lockTo(fx);
+				Minecraft.getMinecraft().effectRenderer.addEffect(fx2);
+			}
 		}
 
 		@Override
