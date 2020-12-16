@@ -17,7 +17,8 @@ public class BlockCaveShield extends Block {
 		this.setBlockUnbreakable();
 	}
 
-	public IIcon getIcon(IBlockAccess iba, int x, int y, int z) {
+	@Override
+	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
 		return blockIcon;
 	}
 

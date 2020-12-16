@@ -9,13 +9,11 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 import net.minecraft.block.Block;
-import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.monster.EntityCaveSpider;
+import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.init.Blocks;
-import net.minecraft.tileentity.MobSpawnerBaseLogic;
-import net.minecraft.tileentity.TileEntityMobSpawner;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
@@ -31,7 +29,6 @@ import Reika.DragonAPI.Instantiable.Math.Spline;
 import Reika.DragonAPI.Instantiable.Math.Spline.BasicSplinePoint;
 import Reika.DragonAPI.Instantiable.Math.Spline.SplineType;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
-import Reika.DragonAPI.Libraries.ReikaSpawnerHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
@@ -40,6 +37,7 @@ import Reika.Satisforestry.ResourceItem;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
+import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 
 public class UraniumCave {
 
@@ -149,7 +147,7 @@ public class UraniumCave {
 				if (carveSet.contains(c2))
 					continue;
 				Block b = c2.getBlock(world);
-				if (b == Blocks.mob_spawner)
+				if (this.isSpecialCaveBlock(b))
 					continue;
 				if (c2.yCoord <= DecoratorPinkForest.getTrueTopAt(world, c2.xCoord, c2.zCoord)-15) {
 					/*
@@ -185,14 +183,11 @@ public class UraniumCave {
 			}
 			this.generateOreClumpAt(world, c.xCoord, y, c.zCoord, rand, CaveSection.MAIN_RING);
 
-			MobSpawnerBaseLogic lgc = this.generateSpawnerAt(world, c.xCoord, y, c.zCoord, rand);
-			lgc.activatingRangeFromPlayer = 8;
-			lgc.maxNearbyEntities = 6;
-			lgc.spawnCount = 4;
-			lgc.spawnDelay = 1;
-			lgc.maxSpawnDelay = 12;
-			lgc.minSpawnDelay = 1;
-			lgc.spawnRange = 8;
+			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, y-1, c.zCoord, rand);
+			lgc.activeRadius = 8;
+			lgc.spawnRadius = 8;
+			lgc.respawnTime = 12;
+			lgc.mobLimit = 6;
 		}
 
 		for (Entry<DecimalPosition, Integer> e : rm.disks.entrySet()) {
@@ -204,42 +199,42 @@ public class UraniumCave {
 		}
 
 		for (int i = 0; i < 6; i++) {
-			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, rm.adjacent);
+			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, rm.adjacentFloor);
+			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord, c.zCoord, rand);
+			lgc.activeRadius = 6;
+			lgc.spawnRadius = 5;
+			lgc.respawnTime = 4;
+			lgc.mobLimit = 8;
 
-			MobSpawnerBaseLogic lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord, c.zCoord, rand);
-			lgc.activatingRangeFromPlayer = 5;
-			lgc.maxNearbyEntities = 8;
-			lgc.spawnCount = 6;
-			lgc.spawnDelay = 1;
-			lgc.maxSpawnDelay = 4;
-			lgc.minSpawnDelay = 1;
-			lgc.spawnRange = 4;
-
+			/*
 			for (Coordinate c2 : c.getAdjacentCoordinates()) {
 				if (!carveSet.contains(c2)) {
 					c2.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
 				}
-			}
+			}*/
 		}
 
 		return cc;
 	}
 
-	private MobSpawnerBaseLogic generateSpawnerAt(World world, int x, int y, int z, Random rand) {
+	private boolean isSpecialCaveBlock(Block b) {
+		return b == SFBlocks.CAVESHIELD.getBlockInstance() || b == SFBlocks.RESOURCENODE.getBlockInstance() || b == SFBlocks.SPAWNER.getBlockInstance() || b == SFBlocks.GASEMITTER.getBlockInstance();
+	}
+
+	private TileCaveSpawner generateSpawnerAt(World world, int x, int y, int z, Random rand) {
 		return this.generateSpawnerAt(world, x, y, z, rand, null);
 	}
 
-	private MobSpawnerBaseLogic generateSpawnerAt(World world, int x, int y, int z, Random rand, String mob) {
+	private TileCaveSpawner generateSpawnerAt(World world, int x, int y, int z, Random rand, Class<? extends EntityMob> mob) {
 		if (mob == null) {
 			caveSpawns.setRNG(rand);
 			SpawnListEntry e = caveSpawns.getRandomEntry();
-			mob = (String)EntityList.classToStringMapping.get(e.entityClass);
+			mob = e.entityClass;
 		}
-		world.setBlock(x, y, z, Blocks.mob_spawner);
-		TileEntityMobSpawner te = (TileEntityMobSpawner)world.getTileEntity(x, y, z);
-		ReikaSpawnerHelper.setMobSpawnerMob(te, mob);
-		MobSpawnerBaseLogic lgc = te.func_145881_a();
-		return lgc;
+		world.setBlock(x, y, z, SFBlocks.SPAWNER.getBlockInstance());
+		TileCaveSpawner te = (TileCaveSpawner)world.getTileEntity(x, y, z);
+		te.setMobType(mob);
+		return te;
 	}
 
 	private void generateOreClumpAt(World world, int x, int y, int z, Random rand, CaveSection sec) {
@@ -408,15 +403,11 @@ public class UraniumCave {
 					c = below;
 					below = c.offset(0, -1, 0);
 				}
-				MobSpawnerBaseLogic lgc = instance.generateSpawnerAt(world, below.xCoord, below.yCoord, below.zCoord, rand);
-				lgc.setEntityName((String)EntityList.classToStringMapping.get(EntityCaveSpider.class));
-				lgc.activatingRangeFromPlayer = 10;
-				lgc.maxNearbyEntities = 6;
-				lgc.spawnCount = 6;
-				lgc.spawnDelay = 1;
-				lgc.maxSpawnDelay = 4;
-				lgc.minSpawnDelay = 1;
-				lgc.spawnRange = 3;
+				TileCaveSpawner lgc = instance.generateSpawnerAt(world, below.xCoord, below.yCoord, below.zCoord, rand, EntityCaveSpider.class);
+				lgc.activeRadius = 10;
+				lgc.spawnRadius = 3;
+				lgc.respawnTime = 4;
+				lgc.mobLimit = 6;
 
 				OreClusterType ore = (isToBiomeEdge ? CaveSection.ENTRY_TUNNEL : CaveSection.NODE_TUNNEL).oreSpawns.getRandomEntry();
 
@@ -567,6 +558,7 @@ public class UraniumCave {
 
 		private final HashMap<DecimalPosition, Integer> disks = new HashMap();
 		private final HashSet<Coordinate> adjacent = new HashSet();
+		private final HashSet<Coordinate> adjacentFloor = new HashSet();
 
 		protected ResourceNodeRoom(DecimalPosition p) {
 			super(p);
@@ -614,6 +606,11 @@ public class UraniumCave {
 						carve.put(c, c.yCoord);
 						flag = true;
 					}
+				}
+			}
+			for (Coordinate c : adjacent) {
+				if (carve.containsKey(c.offset(0, 1, 0))) {
+					adjacentFloor.add(c);
 				}
 			}
 		}

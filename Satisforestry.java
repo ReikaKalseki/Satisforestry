@@ -10,12 +10,14 @@
 package Reika.Satisforestry;
 
 import java.io.File;
+import java.lang.reflect.Modifier;
 import java.net.URL;
 
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.init.Blocks;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
@@ -75,6 +77,7 @@ import cpw.mods.fml.common.eventhandler.Event.Result;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
+import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -122,6 +125,21 @@ public class Satisforestry extends DragonAPIMod {
 
 		log = (BlockPinkLog)SFBlocks.LOG.getBlockInstance();
 		leaves = (BlockPinkLeaves)SFBlocks.LEAVES.getBlockInstance();
+
+		for (int i = 0; i < SFBlocks.blockList.length; i++) {
+			SFBlocks b = SFBlocks.blockList[i];
+			Class c = b.getObjectClass();
+			Class[] cs = c.getClasses();
+			if (cs != null) {
+				for (int k = 0; k < cs.length; k++) {
+					Class in = cs[k];
+					if (TileEntity.class.isAssignableFrom(in) && (in.getModifiers() & Modifier.ABSTRACT) == 0) {
+						String s = "CC"+in.getSimpleName();
+						GameRegistry.registerTileEntity(in, s);
+					}
+				}
+			}
+		}
 
 		proxy.registerSounds();
 

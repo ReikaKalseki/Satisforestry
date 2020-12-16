@@ -8,6 +8,7 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 
 public class BlockResourceNode extends BlockContainer {
@@ -24,8 +25,9 @@ public class BlockResourceNode extends BlockContainer {
 		return null;
 	}
 
-	public IIcon getIcon(IBlockAccess iba, int x, int y, int z) {
-		return blockIcon;
+	@Override
+	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
+		return s == 1 ? blockIcon : SFBlocks.CAVESHIELD.getBlockInstance().getIcon(iba, x, y, z, s);
 	}
 
 	@Override
