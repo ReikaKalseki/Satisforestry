@@ -5,9 +5,7 @@ import java.util.List;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
-import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySpider;
@@ -20,8 +18,6 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
-import Reika.DragonAPI.Libraries.ReikaEntityHelper;
-import Reika.DragonAPI.Libraries.ReikaEntityHelper.ClassEntitySelector;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
@@ -50,7 +46,7 @@ public class BlockCaveSpawner extends BlockContainer {
 		blockIcon = ico.registerIcon("satisforestry:cavespawner");
 	}
 
-	public class TileCaveSpawner extends TileEntity {
+	public static class TileCaveSpawner extends TileEntity {
 
 		public int activeRadius = 6;
 		public int spawnRadius = 6;
@@ -59,7 +55,6 @@ public class BlockCaveSpawner extends BlockContainer {
 
 		private String mobType;
 		private Class mobClass;
-		private IEntitySelector selector;
 
 		private AxisAlignedBB activeArea;
 
@@ -70,26 +65,25 @@ public class BlockCaveSpawner extends BlockContainer {
 		public void setMobType(Class<? extends EntityMob> c) {
 			mobClass = c;
 			mobType = (String)EntityList.classToStringMapping.get(c);
-			selector = ReikaEntityHelper.combineEntitySelectors(false, ReikaEntityHelper.playerSelector, new ClassEntitySelector(mobClass, false));
 		}
 
 		@Override
 		public void updateEntity() {
-			if (!worldObj.isRemote && worldObj.rand.nextInt(1+respawnTime) == 0) {
-				activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 0, activeRadius).addCoord(0, 4, 0);
-				List<EntityLivingBase> li = worldObj.selectEntitiesWithinAABB(EntityLivingBase.class, activeArea, selector);
-				boolean player = false;
-				int entities = 0;
-				for (EntityLivingBase e : li) {
-					if (e instanceof EntityPlayer)
-						player = true;
-					else
-						entities++;
+			activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 0, activeRadius).addCoord(0, 4, 0);
+			boolean player = false;
+			for (EntityPlayer ep : (List<EntityPlayer>)worldObj.playerEntities) {
+				if (ep.boundingBox.intersectsWith(activeArea)) {
+					player = true;
+					break;
 				}
-				if (player && entities < mobLimit) {
-					for (int i = entities; i < mobLimit; i++) {
-						if (this.trySpawnMob())
-							break;
+			}
+			if (!worldObj.isRemote && worldObj.rand.nextInt(5+respawnTime*respawnTime) == 0) {
+				if (player) {
+					List<EntityMob> li = worldObj.getEntitiesWithinAABB(mobClass, activeArea);
+					//ReikaJavaLibrary.pConsole(li);
+					if (li.size() < mobLimit) {
+						this.trySpawnMob();
+						//ReikaJavaLibrary.pConsole("Spawn @ "+xCoord+", "+yCoord+", "+zCoord);
 					}
 				}
 			}

@@ -98,7 +98,7 @@ public class WorldGenPoisonRocks extends WorldGenerator {
 			}
 		}
 		int dy = y+h-1;
-		world.setBlock(x, dy, z, SFBlocks.GASEMITTER.getBlockInstance(), 1, 3);
+		world.setBlock(x, dy, z, SFBlocks.GASEMITTER.getBlockInstance(), 0, 3);
 		TileGasVent te = (TileGasVent)world.getTileEntity(x, dy, z);
 		te.activeRadius = 4;
 		te.yOffset = 1-h;

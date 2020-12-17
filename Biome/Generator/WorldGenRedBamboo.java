@@ -56,13 +56,13 @@ public class WorldGenRedBamboo extends WorldGenerator {
 	public void setFrequency(BiomeSection sub) {
 		switch(sub) {
 			case FOREST:
-				generationRate = 32;
+				generationRate = 48;
 				break;
 			case STREAMS:
-				generationRate = 240;
+				generationRate = 400;
 				break;
 			case SWAMP:
-				generationRate = 72;
+				generationRate = 100;
 				break;
 		}
 	}

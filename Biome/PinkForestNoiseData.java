@@ -1,5 +1,9 @@
 package Reika.Satisforestry.Biome;
 
+import net.minecraft.world.World;
+import net.minecraft.world.WorldType;
+import net.minecraft.world.gen.layer.GenLayer;
+
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Instantiable.Math.Noise.VoronoiNoiseGenerator;
 
@@ -18,9 +22,13 @@ public class PinkForestNoiseData {
 	//final SimplexNoiseGenerator riverNoise;
 	final VoronoiNoiseGenerator riverNoise;
 
-	PinkForestNoiseData(long s) {
-		seed = s;
-		sectionNoise = (VoronoiNoiseGenerator)new VoronoiNoiseGenerator(seed*3/2).setFrequency(1/72D);//.addOctave(3.6, 0.05).addOctave(8.5, 0.02).addOctave(13, 0.005);
+	PinkForestNoiseData(World world) {
+		seed = world.getSeed();
+		double f = 1/90D;//1/72D;
+		WorldType type = world.getWorldInfo().getTerrainType();
+		float biomeScale = GenLayer.getModdedBiomeSize(type, (byte)(type == WorldType.LARGE_BIOMES ? 6 : 4))/4F;
+		f /= biomeScale;
+		sectionNoise = (VoronoiNoiseGenerator)new VoronoiNoiseGenerator(seed*3/2).setFrequency(f);//.addOctave(3.6, 0.05).addOctave(8.5, 0.02).addOctave(13, 0.005);
 		sectionNoise.randomFactor = 0.8;
 		sectionNoise.clampEdge = false;
 		double df = 1/15D;//1/12D;//1/12D;

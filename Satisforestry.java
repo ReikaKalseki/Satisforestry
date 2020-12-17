@@ -15,6 +15,7 @@ import java.net.URL;
 
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
@@ -293,7 +294,7 @@ public class Satisforestry extends DragonAPIMod {
 		WorldGenUraniumCave.clearCaveCache();
 	}
 
-	@SubscribeEvent(priority = EventPriority.LOWEST)
+	//@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void clearBiomeRiver(ClientDisconnectionFromServerEvent evt) {
 		WorldGenPinkRiver.clearLakeCache();
 		WorldGenUraniumCave.clearCaveCache();
@@ -309,10 +310,11 @@ public class Satisforestry extends DragonAPIMod {
 
 	@SubscribeEvent
 	public void caveSpawns(WorldEvent.PotentialSpawns evt) {
-		if (isPinkForest(evt.world, evt.x, evt.z)) {
+		if (evt.type == EnumCreatureType.monster && isPinkForest(evt.world, evt.x, evt.z)) {
 			if (BiomewideFeatureGenerator.instance.isInCave(evt.world, evt.x, evt.y, evt.z)) {
 				evt.list.clear();
 				evt.list.add(UraniumCave.instance.getRandomSpawn(evt.world.rand));
+				//ReikaJavaLibrary.pConsole(evt.list.get(0).entityClass+" @ "+evt.world.getTotalWorldTime());
 			}
 		}
 	}
@@ -320,14 +322,14 @@ public class Satisforestry extends DragonAPIMod {
 	@SubscribeEvent
 	public void brighterDarkness(LightVisualBrightnessEvent evt) {
 		if (isPinkForest(evt.getBiome())) {
-			//evt.brightness = evt.getBrightnessFor(Math.min(15, evt.lightLevel+1));
+			evt.brightness = evt.getBrightnessFor(Math.max(1, evt.lightLevel));
 		}
 	}
 
 	@SubscribeEvent
 	public void brighterDarkness(LightMixedBrightnessEvent evt) {
 		if (isPinkForest(evt.getBiome())) {
-			//evt.value = evt.getBrightnessFor(Math.min(15, evt.blockLight+1), Math.min(15, evt.skyLight+2));
+			evt.value = evt.getBrightnessFor(evt.blockLight, Math.max(1, evt.skyLight));
 		}
 	}
 

@@ -10,6 +10,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.Satisforestry.Biome.BiomeFootprint;
@@ -30,9 +31,10 @@ public class BiomewideFeatureGenerator {
 	public void generateUniqueCenterFeatures(World world, int x, int z, Random rand, BiomeFootprint bf) {
 		Collection<Coordinate> rivers = PinkRivers.instance.generateRivers(world, x, z, rand, bf);
 		if (!rivers.isEmpty()) {
-			CentralCave cc = UraniumCave.instance.generate(world, rand, x, z, rivers);
+			CachedCave at = caveNetworks.get(new WorldLocation(world, x, 0, z));
+			CentralCave cc = UraniumCave.instance.generate(world, rand, x, z, rivers, at);
 			if (cc != null) {
-				caveNetworks.put(new WorldLocation(world, cc.center), new CachedCave(cc));
+				caveNetworks.put(new WorldLocation(world, cc.center.to2D()), new CachedCave(cc));
 				PinkForestPersistentData.initNetworkData(world).setDirty(true);
 			}
 		}
@@ -55,7 +57,8 @@ public class BiomewideFeatureGenerator {
 		for (Object o : li.tagList) {
 			NBTTagCompound tag = (NBTTagCompound)o;
 			Coordinate center = Coordinate.readTag(tag.getCompoundTag("center"));
-			Coordinate node = Coordinate.readTag(tag.getCompoundTag("node"));
+			DecimalPosition node = DecimalPosition.readTag(tag.getCompoundTag("node"));
+			DecimalPosition off = DecimalPosition.readTag(tag.getCompoundTag("offset"));
 			double radius = tag.getDouble("radius");
 			double inner = tag.getDouble("inner");
 			HashMap<Coordinate, Double> map = new HashMap();
@@ -67,7 +70,7 @@ public class BiomewideFeatureGenerator {
 				map.put(end, ang);
 			}
 			WorldLocation key = WorldLocation.readTag(tag);
-			caveNetworks.put(key, new CachedCave(center, node, radius, inner, map));
+			caveNetworks.put(key, new CachedCave(center, node, radius, inner, off, map));
 		}
 	}
 
@@ -79,6 +82,7 @@ public class BiomewideFeatureGenerator {
 			cave.setTag("key", e.getKey().writeToTag());
 			cave.setTag("center", cv.center.writeToTag());
 			cave.setTag("node", cv.nodeRoom.writeToTag());
+			cave.setTag("offset", cv.innerOffset.writeToTag());
 			cave.setDouble("radius", cv.outerRadius);
 			cave.setDouble("inner", cv.innerRadius);
 			NBTTagList tunnels = new NBTTagList();

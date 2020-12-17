@@ -41,7 +41,7 @@ public class BlockGasEmitter extends BlockContainer {
 
 	@Override
 	public float getBlockHardness(World world, int x, int y, int z) {
-		return world.getBlockMetadata(x, y, z) == 1 ? 4 : -1;
+		return world.getBlockMetadata(x, y, z) == 0 ? 4 : -1;
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class BlockGasEmitter extends BlockContainer {
 	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
 		if (s == 1)
 			return blockIcon;
-		SFBlocks sf = iba.getBlockMetadata(x, y, z) > 0 ? SFBlocks.TERRAIN : SFBlocks.CAVESHIELD;
+		SFBlocks sf = iba.getBlockMetadata(x, y, z) == 0 ? SFBlocks.TERRAIN : SFBlocks.CAVESHIELD;
 		int meta = 0;
 		return sf.getBlockInstance().getIcon(s, meta);
 	}
@@ -73,7 +73,7 @@ public class BlockGasEmitter extends BlockContainer {
 		return true;
 	}
 
-	public class TileGasVent extends TileEntity {
+	public static class TileGasVent extends TileEntity {
 
 		public int activeRadius = 4;
 		public int yOffset = 0;

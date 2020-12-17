@@ -61,48 +61,61 @@ public class UraniumCave {
 		}
 	}
 
-	public CentralCave generate(World world, Random rand, int x, int z, Collection<Coordinate> rivers) {
+	public CentralCave generate(World world, Random rand, int x, int z, Collection<Coordinate> rivers, CachedCave cache) {
 		caveSpawns.setRNG(rand);
 		for (CaveSection s : CaveSection.values()) {
 			s.oreSpawns.setRNG(rand);
 		}
 
 		int top = DecoratorPinkForest.getTrueTopAt(world, x, z);
-		CentralCave cc = new CentralCave(x, ReikaRandomHelper.getRandomBetween(40, Math.min(72, top-50), rand), z);
+		CentralCave cc = cache != null ? cache.reconstruct() : new CentralCave(x, ReikaRandomHelper.getRandomBetween(40, Math.min(72, top-50), rand), z);
+
+		Satisforestry.logger.log("Generating biome cave @ "+cc.center+", from cache "+cache);
+
 		cc.calculate(world, rand);
 
 		Collection<Tunnel> tunnels = new ArrayList();
 		Vec3 avg = Vec3.createVectorHelper(0, 0, 0);
-		for (Coordinate c : rivers) {
-			if (tunnels.size() >= 5)
-				continue;
-			double dx = c.xCoord-cc.center.xCoord;
-			double dz = c.zCoord-cc.center.zCoord;
-			double dd = ReikaMathLibrary.py3d(dx, 0, dz);
-			double dr = 9;
-			Coordinate endpoint = c.offset((int)(dx/dd*dr), 0, (int)(dz/dd*dr));
-			double rootAngle = (Math.toDegrees(Math.atan2(endpoint.yCoord-cc.center.yCoord, endpoint.xCoord-cc.center.xCoord))%360+360)%360;
-			double nearestLow = -99999;
-			double nearestHigh = 99999;
-			boolean flag = false;
-			for (Tunnel t : tunnels) {
-				double da = (Math.abs(t.startingAngle-rootAngle)%360+360)%360;
-				if (rootAngle-da > nearestLow)
-					nearestLow = t.startingAngle;
-				if (rootAngle+da < nearestHigh)
-					nearestHigh = t.startingAngle;
-				flag |= da < 30;
+		double d = cc.outerCircleRadius*ReikaRandomHelper.getRandomBetween(1.35, 1.75, rand);
+		if (cache != null) {
+			for (Entry<Coordinate, Double> e : cache.tunnels.entrySet()) {
+				Tunnel add = new Tunnel(cc, e.getKey(), d, e.getValue());
+				tunnels.add(add);
+				avg.xCoord += add.startingDX;
+				avg.zCoord += add.startingDZ;
 			}
-			if (flag) {
-				if (nearestHigh-nearestLow < 45)
+		}
+		else {
+			for (Coordinate c : rivers) {
+				if (tunnels.size() >= 5)
 					continue;
-				rootAngle = (nearestHigh+nearestLow)/2D;
+				double dx = c.xCoord-cc.center.xCoord;
+				double dz = c.zCoord-cc.center.zCoord;
+				double dd = ReikaMathLibrary.py3d(dx, 0, dz);
+				double dr = 9;
+				Coordinate endpoint = c.offset((int)(dx/dd*dr), 0, (int)(dz/dd*dr));
+				double rootAngle = (Math.toDegrees(Math.atan2(endpoint.yCoord-cc.center.yCoord, endpoint.xCoord-cc.center.xCoord))%360+360)%360;
+				double nearestLow = -99999;
+				double nearestHigh = 99999;
+				boolean flag = false;
+				for (Tunnel t : tunnels) {
+					double da = (Math.abs(t.startingAngle-rootAngle)%360+360)%360;
+					if (rootAngle-da > nearestLow)
+						nearestLow = t.startingAngle;
+					if (rootAngle+da < nearestHigh)
+						nearestHigh = t.startingAngle;
+					flag |= da < 30;
+				}
+				if (flag) {
+					if (nearestHigh-nearestLow < 45)
+						continue;
+					rootAngle = (nearestHigh+nearestLow)/2D;
+				}
+				Tunnel add = new Tunnel(cc, endpoint, d, rootAngle);
+				tunnels.add(add);
+				avg.xCoord += add.startingDX;
+				avg.zCoord += add.startingDZ;
 			}
-			double d = cc.outerCircleRadius*ReikaRandomHelper.getRandomBetween(1.35, 1.75, rand);
-			Tunnel add = new Tunnel(cc, endpoint, d, rootAngle);
-			tunnels.add(add);
-			avg.xCoord += add.startingDX;
-			avg.zCoord += add.startingDZ;
 		}
 		//avg.xCoord /= tunnels.size();
 		//avg.zCoord /= tunnels.size();
@@ -117,7 +130,7 @@ public class UraniumCave {
 		}
 
 		double dr = cc.outerCircleRadius+5;
-		ResourceNodeRoom rm = new ResourceNodeRoom(cc.center.offset(-avg.xCoord*dr, 0, -avg.zCoord*dr));
+		ResourceNodeRoom rm = cache != null ? cache.reconstructNode() : new ResourceNodeRoom(cc.center.offset(-avg.xCoord*dr, 0, -avg.zCoord*dr));
 		rm.calculate(world, rand);
 
 		carveSet.addAll(rm.carve.keySet());
@@ -184,7 +197,7 @@ public class UraniumCave {
 			this.generateOreClumpAt(world, c.xCoord, y, c.zCoord, rand, CaveSection.MAIN_RING);
 
 			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, y-1, c.zCoord, rand);
-			lgc.activeRadius = 8;
+			lgc.activeRadius = 10;//8;
 			lgc.spawnRadius = 8;
 			lgc.respawnTime = 12;
 			lgc.mobLimit = 6;
@@ -383,7 +396,7 @@ public class UraniumCave {
 
 		@Override
 		protected boolean skipCarve(Coordinate c) {
-			return cave.footprint.containsKey(c.to2D());
+			return c.to2D().getDistanceTo(cave.center.xCoord, 0, cave.center.zCoord) <= cave.innerCircleRadius+4;//cave.footprint.containsKey(c.to2D());
 		}
 
 		@Override
@@ -404,10 +417,10 @@ public class UraniumCave {
 					below = c.offset(0, -1, 0);
 				}
 				TileCaveSpawner lgc = instance.generateSpawnerAt(world, below.xCoord, below.yCoord, below.zCoord, rand, EntityCaveSpider.class);
-				lgc.activeRadius = 10;
+				lgc.activeRadius = isToBiomeEdge ? 12 : 8;
 				lgc.spawnRadius = 3;
-				lgc.respawnTime = 4;
-				lgc.mobLimit = 6;
+				lgc.respawnTime = isToBiomeEdge ? 2 : 4;
+				lgc.mobLimit = isToBiomeEdge ? 4 : 6;
 
 				OreClusterType ore = (isToBiomeEdge ? CaveSection.ENTRY_TUNNEL : CaveSection.NODE_TUNNEL).oreSpawns.getRandomEntry();
 
@@ -463,25 +476,27 @@ public class UraniumCave {
 			xOffset2 = (SimplexNoiseGenerator)new SimplexNoiseGenerator(rand.nextLong()).setFrequency(f);
 			zOffset2 = (SimplexNoiseGenerator)new SimplexNoiseGenerator(rand.nextLong()).setFrequency(f);
 
-			int dr = 10;
-			//outerCircleOffset = new DecimalPosition(ReikaRandomHelper.getRandomPlusMinus(0, dr, rand), 0, ReikaRandomHelper.getRandomPlusMinus(0, dr, rand));
-			/*do {
+			if (innerCircleOffset == null) {
+				int dr = 10;
+				//outerCircleOffset = new DecimalPosition(ReikaRandomHelper.getRandomPlusMinus(0, dr, rand), 0, ReikaRandomHelper.getRandomPlusMinus(0, dr, rand));
+				/*do {
 				outerCircleRadius = ReikaRandomHelper.getRandomBetween(24D, 36D, rand);
 				innerCircleRadius = ReikaRandomHelper.getRandomBetween(6D, 15D, rand);
 			} while(outerCircleRadius-innerCircleRadius >= 9);
-			 */
-			outerCircleRadius = ReikaRandomHelper.getRandomBetween(24D, 36D, rand);
-			innerCircleRadius = ReikaRandomHelper.getRandomBetween(Math.max(6D, outerCircleRadius-MIN_TUNNEL_WIDTH*6), outerCircleRadius-MIN_TUNNEL_WIDTH*4, rand);
-			double maxr = outerCircleRadius-innerCircleRadius-MIN_TUNNEL_WIDTH-3;
-			double offr = ReikaRandomHelper.getRandomBetween(maxr*0.75, maxr, rand);
-			double offa = rand.nextDouble()*360;
-			double offX = offr*Math.cos(Math.toRadians(offa));
-			double offZ = offr*Math.sin(Math.toRadians(offa));
-			//innerCircleCenter = center.offset(ReikaRandomHelper.getRandomPlusMinus(0, maxr, rand), 0, ReikaRandomHelper.getRandomPlusMinus(0, maxr, rand));
-			innerCircleOffset = new DecimalPosition(offX, 0, offZ);
+				 */
+				outerCircleRadius = ReikaRandomHelper.getRandomBetween(24D, 36D, rand);
+				innerCircleRadius = ReikaRandomHelper.getRandomBetween(Math.max(6D, outerCircleRadius-MIN_TUNNEL_WIDTH*6), outerCircleRadius-MIN_TUNNEL_WIDTH*4, rand);
+				double maxr = outerCircleRadius-innerCircleRadius-MIN_TUNNEL_WIDTH-3;
+				double offr = ReikaRandomHelper.getRandomBetween(maxr*0.75, maxr, rand);
+				double offa = rand.nextDouble()*360;
+				double offX = offr*Math.cos(Math.toRadians(offa));
+				double offZ = offr*Math.sin(Math.toRadians(offa));
+				//innerCircleCenter = center.offset(ReikaRandomHelper.getRandomPlusMinus(0, maxr, rand), 0, ReikaRandomHelper.getRandomPlusMinus(0, maxr, rand));
+				innerCircleOffset = new DecimalPosition(offX, 0, offZ);
+				//outerCircleCenter = center.offset(outerCircleOffset);
+			}
 
 			innerCircleCenter = center.offset(innerCircleOffset);
-			//outerCircleCenter = center.offset(outerCircleOffset);
 
 			double r = outerCircleRadius;//+outerCircleOffset.xCoord+outerCircleOffset.zCoord;
 
@@ -692,7 +707,7 @@ public class UraniumCave {
 							if (this.skipCarve(c))
 								continue;
 							Block b = c.getBlock(world);
-							if (c.isEmpty(world) || b == Blocks.cobblestone || b == Blocks.mossy_cobblestone || b == Blocks.brick_block || DecoratorPinkForest.isTerrain(world, c.xCoord, c.yCoord, c.zCoord)) {
+							if (c.isEmpty(world) || instance.isSpecialCaveBlock(b) || DecoratorPinkForest.isTerrain(world, c.xCoord, c.yCoord, c.zCoord)) {
 								if (!carve.containsKey(c)) {
 									flag = true;
 								}
@@ -715,29 +730,49 @@ public class UraniumCave {
 		public final Coordinate center;
 		public final double outerRadius;
 		public final double innerRadius;
-		public final Coordinate nodeRoom;
-		public final HashMap<Coordinate, Double> tunnels = new HashMap();
+		final DecimalPosition innerOffset;
+		public final DecimalPosition nodeRoom;
+		final HashMap<Coordinate, Double> tunnels = new HashMap();
 
 		CachedCave(CentralCave cc) {
 			center = new Coordinate(cc.center);
 			outerRadius = cc.outerCircleRadius;
 			innerRadius = cc.innerCircleRadius;
-			nodeRoom = new Coordinate(cc.nodeRoom.center);
+			innerOffset = cc.innerCircleOffset;
+			nodeRoom = cc.nodeRoom.center;
 			for (Tunnel t : cc.tunnels) {
 				tunnels.put(t.endpoint, t.startingAngle);
 			}
 		}
 
-		public CachedCave(Coordinate ctr, Coordinate node, double radius, double inner, HashMap<Coordinate, Double> map) {
+		public ResourceNodeRoom reconstructNode() {
+			return new ResourceNodeRoom(nodeRoom);
+		}
+
+		public CentralCave reconstruct() {
+			CentralCave ret = new CentralCave(center.xCoord, center.yCoord, center.zCoord);
+			ret.outerCircleRadius = outerRadius;
+			ret.innerCircleRadius = innerRadius;
+			ret.innerCircleOffset = innerOffset;
+			return ret;
+		}
+
+		public CachedCave(Coordinate ctr, DecimalPosition node, double radius, double inner, DecimalPosition off, HashMap<Coordinate, Double> map) {
 			center = ctr;
 			nodeRoom = node;
 			outerRadius = radius;
 			innerRadius = inner;
+			innerOffset = off;
 			tunnels.putAll(map);
 		}
 
 		public boolean isInside(int x, int y, int z) {
-			return center.getDistanceTo(x, y, z) <= outerRadius || nodeRoom.getDistanceTo(x, y, z) <= 9;
+			return (center.getDistanceTo(x, y, z) <= outerRadius && Math.abs(center.yCoord-y) <= 10) || nodeRoom.getDistanceTo(x, y, z) <= 9;
+		}
+
+		@Override
+		public String toString() {
+			return center+" @ R = ["+innerRadius+", "+outerRadius+"] + "+innerOffset+" & "+nodeRoom+" via "+tunnels;
 		}
 
 	}

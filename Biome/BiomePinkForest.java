@@ -328,7 +328,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 	private void initNoise(World world) {
 		if (noise == null || noise.seed != world.getSeed() | true) {
-			noise = new PinkForestNoiseData(world.getSeed());
+			noise = new PinkForestNoiseData(world);
 		}
 	}
 
