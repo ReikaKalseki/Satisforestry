@@ -297,7 +297,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		return b.isReplaceableOreGen(world, x, y, z, Blocks.stone) || b.isReplaceableOreGen(world, x, y, z, Blocks.sandstone) || b.getMaterial() == Material.ground || b.getMaterial() == Material.clay || b.getMaterial() == Material.sand || b.isReplaceableOreGen(world, x, y, z, Blocks.grass) || ReikaBlockHelper.isOre(b, world.getBlockMetadata(x, y, z));
 	}
 
-	public static void generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize) {
+	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize) {
 		OreClusterType type = sec.getRandomOreSpawn();
 		int depth = rand.nextInt(2)+rand.nextInt(2)+rand.nextInt(2);
 		depth *= type.sizeScale;
@@ -326,6 +326,8 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		for (Coordinate c : place) {
 			c.setBlock(world, ore.blockID, ore.metadata);
 		}
+
+		return type;
 
 	}
 

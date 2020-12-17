@@ -25,6 +25,7 @@ import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
+import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 
@@ -138,12 +139,25 @@ public class WorldGenPonds extends WorldGenerator {
 						}
 					}
 				}
+				HashSet<Coordinate> channels = new HashSet();
 				for (int i2 = 0; i2 < seams.size()/4; i2++) {
 					Coordinate c2 = ReikaJavaLibrary.getRandomCollectionEntry(rand, seams);
 					c2.setBlock(world, Blocks.flowing_water);
+					channels.add(c2);
 					for (Coordinate c3 : c2.getAdjacentCoordinates()) {
 						if (c3.yCoord == c2.yCoord && DecoratorPinkForest.isTerrain(world, c3.xCoord, c3.yCoord, c3.zCoord)) {
 							c3.setBlock(world, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal());
+						}
+					}
+				}
+				for (Coordinate c2 : channels) {
+					for (Coordinate c3 : c2.getAdjacentCoordinates()) {
+						if (c3.getBlock(world) == SFBlocks.TERRAIN.getBlockInstance()) {
+							if (c3.offset(1, 0, 0).getBlock(world).getMaterial() == Material.water && c3.offset(-1, 0, 0).getBlock(world).getMaterial() == Material.water) {
+								if (c3.offset(0, 0, 1).getBlock(world).getMaterial() == Material.water && c3.offset(0, 0, -1).getBlock(world).getMaterial() == Material.water) {
+									c3.setBlock(world, Blocks.flowing_water);
+								}
+							}
 						}
 					}
 				}
@@ -169,10 +183,23 @@ public class WorldGenPonds extends WorldGenerator {
 				world.setBlock(ctr.xCoord, maxy+1, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 
 				OreSpawnLocation.PONDS.setRNG(rand);
-				for (int i2 = 0; i2 < 6; i2++) {
-					Coordinate c2 = ReikaJavaLibrary.getRandomCollectionEntry(rand, waterLevel.keySet());
-					c2 = c2.setY(waterLevel.get(c2));
-					DecoratorPinkForest.generateOreClumpAt(world, c2.xCoord, c2.yCoord, c2.zCoord, rand, OreSpawnLocation.PONDS, 2);
+				int n = ReikaRandomHelper.getRandomBetween(3, 7, rand);
+				double da = 360D/n;
+				for (int i2 = 0; i2 < n; i2++) {
+					double ang = da*i2;
+					double rang = Math.toRadians(ReikaRandomHelper.getRandomPlusMinus(ang, da/2.4D, rand));
+					double dx = Math.cos(rang);
+					double dz = Math.sin(rang);
+					for (int tries = 0; tries < 3; tries++) {
+						double dr = ReikaRandomHelper.getRandomBetween(4D, 9D);
+						Coordinate c2 = new Coordinate(ctr.xCoord+dx*dr, 0, ctr.zCoord+dz*dr);
+						Integer level = waterLevel.get(c2);
+						if (level != null) {
+							OreClusterType ore = DecoratorPinkForest.generateOreClumpAt(world, c2.xCoord, level, c2.zCoord, rand, OreSpawnLocation.PONDS, 2);
+							world.setBlock(c2.xCoord, level+1, c2.zCoord, ore.oreBlock.blockID, ore.oreBlock.metadata, 2);
+							break;
+						}
+					}
 				}
 				ReikaJavaLibrary.pConsole("Generated a swamp pond at "+x+", "+y+", "+z);
 				return true;
