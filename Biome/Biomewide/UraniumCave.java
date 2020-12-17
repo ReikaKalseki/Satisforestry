@@ -21,7 +21,6 @@ import net.minecraft.world.biome.BiomeGenBase.SpawnListEntry;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
-import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Effects.LightningBolt;
@@ -37,6 +36,8 @@ import Reika.Satisforestry.ResourceItem;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
+import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
+import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 
 public class UraniumCave {
@@ -53,9 +54,6 @@ public class UraniumCave {
 				caveSpawns.addEntry(e, e.itemWeight);
 			}
 		}
-		for (OreClusterType ore : BiomeConfig.instance.getOreTypes()) {
-			ore.spawnArea.oreSpawns.addEntry(ore, ore.spawnWeight);
-		}
 		for (ResourceItem ri : BiomeConfig.instance.getResourceDrops()) {
 			nodeOutput.addEntry(ri, ri.spawnWeight);
 		}
@@ -63,9 +61,7 @@ public class UraniumCave {
 
 	public CentralCave generate(World world, Random rand, int x, int z, Collection<Coordinate> rivers, CachedCave cache) {
 		caveSpawns.setRNG(rand);
-		for (CaveSection s : CaveSection.values()) {
-			s.oreSpawns.setRNG(rand);
-		}
+		OreSpawnLocation.setRNG(rand);
 
 		int top = DecoratorPinkForest.getTrueTopAt(world, x, z);
 		CentralCave cc = cache != null ? cache.reconstruct() : new CentralCave(x, ReikaRandomHelper.getRandomBetween(40, Math.min(72, top-50), rand), z);
@@ -192,7 +188,7 @@ public class UraniumCave {
 				c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.carve.keySet());
 				y = cc.footprint.get(c.to2D());
 			}
-			this.generateOreClumpAt(world, c.xCoord, y, c.zCoord, rand, CaveSection.MAIN_RING);
+			DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, y, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4);
 
 			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, y-1, c.zCoord, rand);
 			lgc.activeRadius = 10;//8;
@@ -206,7 +202,7 @@ public class UraniumCave {
 			int px = MathHelper.floor_double(p.xCoord);
 			int py = MathHelper.floor_double(p.yCoord);
 			int pz = MathHelper.floor_double(p.zCoord);
-			this.generateOreClumpAt(world, px, py-1, pz, rand, CaveSection.NODE);
+			DecoratorPinkForest.generateOreClumpAt(world, px, py-1, pz, rand, OreSpawnLocation.CAVE_RESOURCE_NODE, 3);
 		}
 
 		for (int i = 0; i < 6; i++) {
@@ -246,38 +242,6 @@ public class UraniumCave {
 		TileCaveSpawner te = (TileCaveSpawner)world.getTileEntity(x, y, z);
 		te.setMobType(mob);
 		return te;
-	}
-
-	private void generateOreClumpAt(World world, int x, int y, int z, Random rand, CaveSection sec) {
-		OreClusterType type = sec.oreSpawns.getRandomEntry();
-		int depth = rand.nextInt(2)+rand.nextInt(2)+rand.nextInt(2);
-		depth *= type.sizeScale;
-		depth = Math.min(depth, 4);
-		HashSet<Coordinate> place = new HashSet();
-		HashSet<Coordinate> set = new HashSet();
-		set.add(new Coordinate(x, y, z));
-		for (int i = 0; i <= depth; i++) {
-			HashSet<Coordinate> next = new HashSet();
-			for (Coordinate c : set) {
-				if (c.softBlock(world)) {
-					place.add(c);
-					Coordinate c2 = c.offset(0, -1, 0);
-					while (c2.yCoord >= 0 && c2.softBlock(world)) {
-						place.add(c2);
-						c2 = c2.offset(0, -1, 0);
-					}
-					if (i < depth)
-						next.addAll(c.getAdjacentCoordinates());
-				}
-			}
-			set = next;
-		}
-
-		BlockKey ore = type.oreBlock;
-		for (Coordinate c : place) {
-			c.setBlock(world, ore.blockID, ore.metadata);
-		}
-
 	}
 
 	public SpawnListEntry getRandomSpawn(Random rand) {
@@ -420,7 +384,7 @@ public class UraniumCave {
 				lgc.respawnTime = isToBiomeEdge ? 2 : 4;
 				lgc.mobLimit = isToBiomeEdge ? 4 : 6;
 
-				OreClusterType ore = (isToBiomeEdge ? CaveSection.ENTRY_TUNNEL : CaveSection.NODE_TUNNEL).oreSpawns.getRandomEntry();
+				OreClusterType ore = (isToBiomeEdge ? OreSpawnLocation.CAVE_ENTRY_TUNNEL : OreSpawnLocation.CAVE_NODE_TUNNEL).getRandomOreSpawn();
 
 				for (Coordinate c2 : below.getAdjacentCoordinates()) {
 					if (c2.softBlock(world)) {
@@ -773,35 +737,5 @@ public class UraniumCave {
 			return center+" @ R = ["+innerRadius+", "+outerRadius+"] + "+innerOffset+" & "+nodeRoom+" via "+tunnels;
 		}
 
-	}
-
-	public static class OreClusterType {
-
-		public final String id;
-		public final BlockKey oreBlock;
-		public final int spawnWeight;
-		public final CaveSection spawnArea;
-
-		public float sizeScale = 1;
-		public int maxDepth = 3;
-		public final HashSet<String> validSpawnLocations = new HashSet();
-
-		public OreClusterType(String s, BlockKey bk, CaveSection a, int w) {
-			id = s;
-			spawnWeight = w;
-			spawnArea = a;
-			oreBlock = bk;
-		}
-
-	}
-
-	public static enum CaveSection {
-
-		ENTRY_TUNNEL,
-		MAIN_RING,
-		NODE_TUNNEL,
-		NODE;
-
-		private final WeightedRandom<OreClusterType> oreSpawns = new WeightedRandom();
 	}
 }

@@ -10,6 +10,8 @@
 package Reika.Satisforestry.Biome;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -19,11 +21,14 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 
+import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
+import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Instantiable.Worldgen.StackableBiomeDecorator;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
+import Reika.Satisforestry.BiomeConfig;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Generator.WorldGenPoisonRocks;
@@ -290,6 +295,88 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 	public static boolean isTerrain(World world, int x, int y, int z) {
 		Block b = world.getBlock(x, y, z);
 		return b.isReplaceableOreGen(world, x, y, z, Blocks.stone) || b.isReplaceableOreGen(world, x, y, z, Blocks.sandstone) || b.getMaterial() == Material.ground || b.getMaterial() == Material.clay || b.getMaterial() == Material.sand || b.isReplaceableOreGen(world, x, y, z, Blocks.grass) || ReikaBlockHelper.isOre(b, world.getBlockMetadata(x, y, z));
+	}
+
+	public static void generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize) {
+		OreClusterType type = sec.getRandomOreSpawn();
+		int depth = rand.nextInt(2)+rand.nextInt(2)+rand.nextInt(2);
+		depth *= type.sizeScale;
+		depth = Math.min(depth, Math.min(maxSize, type.maxDepth));
+		HashSet<Coordinate> place = new HashSet();
+		HashSet<Coordinate> set = new HashSet();
+		set.add(new Coordinate(x, y, z));
+		for (int i = 0; i <= depth; i++) {
+			HashSet<Coordinate> next = new HashSet();
+			for (Coordinate c : set) {
+				if (c.softBlock(world)) {
+					place.add(c);
+					Coordinate c2 = c.offset(0, -1, 0);
+					while (c2.yCoord >= 0 && c2.softBlock(world)) {
+						place.add(c2);
+						c2 = c2.offset(0, -1, 0);
+					}
+					if (i < depth)
+						next.addAll(c.getAdjacentCoordinates());
+				}
+			}
+			set = next;
+		}
+
+		BlockKey ore = type.oreBlock;
+		for (Coordinate c : place) {
+			c.setBlock(world, ore.blockID, ore.metadata);
+		}
+
+	}
+
+	public static class OreClusterType {
+
+		public final String id;
+		public final BlockKey oreBlock;
+		public final int spawnWeight;
+		public final OreSpawnLocation spawnArea;
+
+		public float sizeScale = 1;
+		public int maxDepth = 3;
+
+		public OreClusterType(String s, BlockKey bk, OreSpawnLocation a, int w) {
+			id = s;
+			spawnWeight = w;
+			spawnArea = a;
+			oreBlock = bk;
+		}
+
+	}
+
+	public static enum OreSpawnLocation {
+
+		CAVE_ENTRY_TUNNEL,
+		CAVE_MAIN_RING,
+		CAVE_NODE_TUNNEL,
+		CAVE_RESOURCE_NODE,
+		PONDS,
+		;
+
+		private final WeightedRandom<OreClusterType> oreSpawns = new WeightedRandom();
+
+		public static void init() {
+			for (OreSpawnLocation loc : OreSpawnLocation.values()) {
+				loc.oreSpawns.clear();
+			}
+			for (OreClusterType ore : BiomeConfig.instance.getOreTypes()) {
+				ore.spawnArea.oreSpawns.addEntry(ore, ore.spawnWeight);
+			}
+		}
+
+		public static void setRNG(Random rand) {
+			for (OreSpawnLocation s : OreSpawnLocation.values()) {
+				s.oreSpawns.setRNG(rand);
+			}
+		}
+
+		public OreClusterType getRandomOreSpawn() {
+			return oreSpawns.getRandomEntry();
+		}
 	}
 
 

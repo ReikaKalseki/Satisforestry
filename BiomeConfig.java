@@ -26,8 +26,8 @@ import Reika.DragonAPI.Instantiable.IO.CustomRecipeList;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
-import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CaveSection;
-import Reika.Satisforestry.Biome.Biomewide.UraniumCave.OreClusterType;
+import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
+import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 
 
 public class BiomeConfig {
@@ -52,7 +52,7 @@ public class BiomeConfig {
 		//base.putData("generate", "true");
 		OreLuaBlock ores = new OreLuaBlock("blocks", base, oreData);
 		OreLuaBlock spawns = new OreLuaBlock("spawnLocations", base, oreData);
-		for (CaveSection s : CaveSection.values()) {
+		for (OreSpawnLocation s : OreSpawnLocation.values()) {
 			OreLuaBlock sec = new OreLuaBlock(s.name(), spawns, oreData);
 			sec.putData("sizeScale", "1");
 			sec.putData("maxSize", "4");
@@ -104,6 +104,8 @@ public class BiomeConfig {
 			e.printStackTrace();
 			Satisforestry.logger.logError("Could not create base data file!");
 		}
+
+		OreSpawnLocation.init();
 	}
 
 	private void createBaseFile(File f) throws IOException {
@@ -184,7 +186,7 @@ public class BiomeConfig {
 
 	private void parseOreEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
 		ArrayList<String> blocks = new ArrayList();
-		HashMap<CaveSection, LuaBlock> sections = new HashMap();
+		HashMap<OreSpawnLocation, LuaBlock> sections = new HashMap();
 
 		LuaBlock set = b.getChild("blocks");
 		if (set != null) {
@@ -197,7 +199,7 @@ public class BiomeConfig {
 		}
 
 		LuaBlock spawn = b.getChild("spawnLocations");
-		for (CaveSection s : CaveSection.values()) {
+		for (OreSpawnLocation s : OreSpawnLocation.values()) {
 			LuaBlock lb = spawn.getChild(s.name());
 			if (lb != null) {
 				sections.put(s, lb);
@@ -212,8 +214,8 @@ public class BiomeConfig {
 				Satisforestry.logger.logError("Could not load block type '"+s+"' for ore type '"+type+"'; skipping.");
 				continue;
 			}
-			for (Entry<CaveSection, LuaBlock> e : sections.entrySet()) {
-				CaveSection cs = e.getKey();
+			for (Entry<OreSpawnLocation, LuaBlock> e : sections.entrySet()) {
+				OreSpawnLocation cs = e.getKey();
 				LuaBlock data = e.getValue();
 				String id = type+"_"+s+"_"+cs.name();
 				OreClusterType ore = new OreClusterType(id, bk, cs, b.getInt("spawnWeight"));

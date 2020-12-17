@@ -25,6 +25,7 @@ import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
+import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 
 public class WorldGenPonds extends WorldGenerator {
@@ -167,10 +168,11 @@ public class WorldGenPonds extends WorldGenerator {
 				}
 				world.setBlock(ctr.xCoord, maxy+1, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 
+				OreSpawnLocation.PONDS.setRNG(rand);
 				for (int i2 = 0; i2 < 6; i2++) {
 					Coordinate c2 = ReikaJavaLibrary.getRandomCollectionEntry(rand, waterLevel.keySet());
 					c2 = c2.setY(waterLevel.get(c2));
-
+					DecoratorPinkForest.generateOreClumpAt(world, c2.xCoord, c2.yCoord, c2.zCoord, rand, OreSpawnLocation.PONDS, 2);
 				}
 				ReikaJavaLibrary.pConsole("Generated a swamp pond at "+x+", "+y+", "+z);
 				return true;
