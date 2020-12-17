@@ -59,6 +59,7 @@ public class BlockTerrain extends Block {
 
 	public static enum TerrainType {
 		POISONROCK("Spore Rock", 3, 45),
+		PONDROCK("Pond Rock", 1, 30),
 		;
 
 		private IIcon iconTop;
