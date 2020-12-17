@@ -35,7 +35,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 	private final WorldGenRedBamboo redBambooGenerator = new WorldGenRedBamboo();
 	//private final WorldGenPinkRiver riverGenerator = new WorldGenPinkRiver();
 	private final WorldGenPoisonRocks rockGenerator = new WorldGenPoisonRocks(false);
-	private final WorldGenPonds pondGenerator = new WorldGenPonds();
+	private final WorldGenPonds pondGenerator = new WorldGenPonds(false);
 
 	//private int riverHeight;
 	//private int glassHeight;

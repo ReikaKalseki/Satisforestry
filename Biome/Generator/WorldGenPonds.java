@@ -2,9 +2,12 @@ package Reika.Satisforestry.Biome.Generator;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockBush;
 import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
 import net.minecraft.world.World;
@@ -12,11 +15,11 @@ import net.minecraft.world.gen.feature.WorldGenerator;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.AbstractSearch.PropagationCondition;
-import Reika.DragonAPI.Instantiable.Data.BlockStruct.AbstractSearch.TerminationCondition;
-import Reika.DragonAPI.Instantiable.Data.BlockStruct.BreadthFirstSearch;
+import Reika.DragonAPI.Instantiable.Data.BlockStruct.BlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
@@ -26,9 +29,15 @@ import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 
 public class WorldGenPonds extends WorldGenerator {
 
+	private final boolean forceGeneration;
+
+	public WorldGenPonds(boolean force) {
+		forceGeneration = force;
+	}
+
 	@Override
 	public boolean generate(World world, Random rand, int x0, int y0, int z0) {
-		if (Satisforestry.pinkforest.getSubBiome(world, x0, z0) != BiomeSection.SWAMP)
+		if (!forceGeneration && Satisforestry.pinkforest.getSubBiome(world, x0, z0) != BiomeSection.SWAMP)
 			return false;
 
 		for (int i = 0; i < 3; i++) {
@@ -38,94 +47,132 @@ public class WorldGenPonds extends WorldGenerator {
 
 			if (!isValidBlock(world, x, y, z))
 				continue;
-			BreadthFirstSearch bfs = new BreadthFirstSearch(x, y, z);
-			int r = 9;
+
+			Coordinate root = new Coordinate(x, y, z);
+
+			final int rx = ReikaRandomHelper.getRandomBetween(6, 12, rand);
+			final int rz = ReikaRandomHelper.getRandomBetween(6, 12, rand);
+
 			PropagationCondition prop = new PropagationCondition() {
 
 				@Override
 				public boolean isValidLocation(World world, int x, int y, int z, Coordinate from) {
-					return y >= from.yCoord && bfs.root.isWithinDistOnAllCoords(x, y, z, r) && bfs.root.getDistanceTo(x, y, z) <= r+0.5 && isValidBlock(world, x, y, z);
+					return isValidBlock(world, x, y, z) && ReikaMathLibrary.isPointInsideEllipse(x-root.xCoord, 0, z-root.zCoord, rx, 1, rz);
 				}
 
 			};
-			TerminationCondition end = new TerminationCondition() {
 
-				@Override
-				public boolean isValidTerminus(World world, int x, int y, int z) {
-					return false;
+			BlockArray arr = new BlockArray();
+			arr.recursiveAddCallbackWithBounds(world, x0, y, z0, x-rx, y-2, z-rz, x+rx, y+20, z+rz, prop);
+
+			Set<Coordinate> blocks = arr.keySet();
+
+			if (!blocks.isEmpty() && arr.getMaxY() <= y+7) {
+				HashMap<Coordinate, Integer> top = new HashMap();
+				double averageTopY = 0;
+				for (Coordinate c : blocks) {
+					Coordinate key = c.to2D();
+					Coordinate above = c.offset(0, 1, 0);
+					Coordinate below = c.offset(0, -1, 0);
+					if (!blocks.contains(above)) {
+						top.put(key, c.yCoord);
+						averageTopY += c.yCoord;
+					}
 				}
-
-			};
-			bfs.complete(world, prop, end);
-
-			Set<Coordinate> blocks = bfs.getTotalSearchedCoords();
-
-			if (!blocks.isEmpty()) {
-				HashSet<Coordinate> set = new HashSet(blocks);
+				averageTopY /= top.size();
+				HashSet<Coordinate> footprint = new HashSet();
+				for (Entry<Coordinate, Integer> c : top.entrySet()) {
+					int dy = c.getValue();
+					if (dy <= averageTopY+1) {
+						footprint.add(c.getKey().setY(dy));
+					}
+				}
 				HashSet<Coordinate> adj = new HashSet();
-				for (Coordinate c : set) {
-					adj.addAll(c.getAdjacentCoordinates());
+				HashSet<Coordinate> cut = new HashSet();
+				HashMap<Coordinate, Integer> floor = new HashMap();
+				HashMap<Coordinate, Integer> waterLevel = new HashMap();
+				double dwx = ReikaRandomHelper.getRandomBetween(0.67, 1.125, rand);
+				double dwz = ReikaRandomHelper.getRandomBetween(0.67, 1.125, rand);
+				for (Coordinate c : footprint) {
+					double dx = c.xCoord-x;
+					double dz = c.zCoord-z;
+					double dist = ReikaMathLibrary.py3d(dx/dwx, 0, dz/dwz);
+					int depth = 0;
+					if (dist < 4)
+						depth = 2;
+					else if (dist < 7)
+						depth = 1;
+					int minY = Math.max(c.yCoord-depth, (int)(averageTopY-3));
+					Coordinate key = c.to2D();
+					waterLevel.put(key, c.yCoord);
+					for (int dy = minY; dy <= c.yCoord; dy++) {
+						Coordinate c2 = c.setY(dy);
+						cutBlock(world, c2);
+						adj.addAll(c2.getAdjacentCoordinates());
+						cut.add(c2);
+						floor.put(key, minY-1);
+					}
 				}
-				boolean flag = true;
-				while (flag) {
-					flag = false;
-					adj.removeAll(set);
-					for (Coordinate c : adj) {
-						if (set.contains(c.offset(0, -1, 0))) {
-							set.add(c);
-							flag = true;
+				adj.removeAll(cut);
+				HashSet<Coordinate> seams = new HashSet();
+				for (Coordinate c2 : adj) {
+					Integer floorAt = floor.get(c2.to2D());
+					if (floorAt == null || floorAt.intValue() != c2.yCoord) {
+						if (c2.softBlock(world) || !DecoratorPinkForest.isTerrain(world, c2.xCoord, c2.yCoord, c2.zCoord))
+							continue;
+					}
+					int dy = c2.yCoord;
+					cutBlock(world, c2);
+					c2.setBlock(world, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal());
+					boolean flag = false;
+					while (ReikaWorldHelper.softBlocks(world, c2.xCoord, c2.yCoord-1, c2.zCoord)) {
+						c2 = c2.offset(0, -1, 0);
+						c2.setBlock(world, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal());
+						flag = true;
+					}
+					if (flag) {
+						c2 = c2.to2D();
+						if (top.containsKey(c2.offset(0, 0, 1)) && top.containsKey(c2.offset(0, 0, -1)) && top.containsKey(c2.offset(1, 0, 0)) && top.containsKey(c2.offset(-1, 0, 0))) {
+							seams.add(c2.setY(dy));
 						}
 					}
 				}
-
-				for (Coordinate c : blocks) {
-					if (blocks.contains(c.offset(0, -1, 0))) {
-						set.remove(c);
+				for (int i2 = 0; i2 < seams.size()/4; i2++) {
+					Coordinate c2 = ReikaJavaLibrary.getRandomCollectionEntry(rand, seams);
+					c2.setBlock(world, Blocks.flowing_water);
+					for (Coordinate c3 : c2.getAdjacentCoordinates()) {
+						if (c3.yCoord == c2.yCoord && DecoratorPinkForest.isTerrain(world, c3.xCoord, c3.yCoord, c3.zCoord)) {
+							c3.setBlock(world, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal());
+						}
 					}
 				}
-
-				for (Coordinate c : set) {
-					cutBlock(world, c);
-					int dy = 1;
-					int depth = c.getDistanceTo(x, y, z) <= 4 ? 1 : 0;
-					while (dy < depth && isValidBlock(world, c.xCoord, c.yCoord-dy, c.zCoord)) {
-						world.setBlock(c.xCoord, c.yCoord-dy, c.zCoord, Blocks.glass);
-						dy++;
-					}
-				}
-				HashMap<Coordinate, Integer> floor = new HashMap();
-				for (Coordinate c2 : adj) {
-					if (c2.softBlock(world) || !DecoratorPinkForest.isTerrain(world, c2.xCoord, c2.yCoord, c2.zCoord))
-						continue;
-					cutBlock(world, c2);
-					c2.setBlock(world, Blocks.sand);
-					Coordinate key = c2.to2D();
-					Integer get = floor.get(key);
-					if (get == null) {
-						get = 255;
-					}
-					get = Math.min(get, c2.yCoord);
-					floor.put(key, get);
-				}
-				Coordinate ctr = bfs.root.to2D();
-				int my = floor.get(ctr);
+				Coordinate ctr = new Coordinate(x, 0, z);
+				int my = floor.get(ctr)+1;
 				int h = ReikaRandomHelper.getRandomBetween(1, 3, rand);
+				int maxy = h+waterLevel.get(ctr);
 				boolean thick = rand.nextInt(3) == 0;
-				for (int dy = my; dy < my+h; dy++) {
+				for (int dy = my; dy <= maxy; dy++) {
+					int l = dy-my;
 					world.setBlock(ctr.xCoord, dy, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 					world.setBlock(ctr.xCoord+1, dy, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 					world.setBlock(ctr.xCoord-1, dy, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 					world.setBlock(ctr.xCoord, dy, ctr.zCoord+1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 					world.setBlock(ctr.xCoord, dy, ctr.zCoord-1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
-					if (thick || (h > 1 && dy == my)) {
+					if ((thick || l <= h/3) && dy < maxy-1) {
 						world.setBlock(ctr.xCoord+1, dy, ctr.zCoord+1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 						world.setBlock(ctr.xCoord-1, dy, ctr.zCoord+1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 						world.setBlock(ctr.xCoord+1, dy, ctr.zCoord-1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 						world.setBlock(ctr.xCoord-1, dy, ctr.zCoord-1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 					}
 				}
-				world.setBlock(ctr.xCoord, my+h, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
-				ReikaJavaLibrary.pConsole("Generated a swamp pond at "+bfs.root);
+				world.setBlock(ctr.xCoord, maxy+1, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+
+				for (int i2 = 0; i2 < 6; i2++) {
+					Coordinate c2 = ReikaJavaLibrary.getRandomCollectionEntry(rand, waterLevel.keySet());
+					c2 = c2.setY(waterLevel.get(c2));
+
+				}
+				ReikaJavaLibrary.pConsole("Generated a swamp pond at "+x+", "+y+", "+z);
 				return true;
 			}
 		}
@@ -134,9 +181,16 @@ public class WorldGenPonds extends WorldGenerator {
 	}
 
 	private static void cutBlock(World world, Coordinate c) {
-		world.setBlock(c.xCoord, c.yCoord, c.zCoord, Blocks.water, 0, 3);
-		if (world.getBlock(c.xCoord, c.yCoord+1, c.zCoord).getMaterial() == Material.plants) {
-			world.setBlock(c.xCoord, c.yCoord+1, c.zCoord, Blocks.air, 0, 2);
+		cutBlock(world, c.xCoord, c.yCoord, c.zCoord);
+	}
+
+	private static void cutBlock(World world, int x, int y, int z) {
+		Block above = world.getBlock(x, y+1, z);
+		if (above.getMaterial() == Material.plants || above instanceof BlockBush)
+			world.setBlock(x, y+1, z, Blocks.air, 0, 2);
+		world.setBlock(x, y, z, Blocks.water, 0, 3);
+		if (!above.canBlockStay(world, x, y+1, z)) {
+			world.setBlock(x, y+1, z, Blocks.air, 0, 2);
 		}
 	}
 
@@ -152,7 +206,10 @@ public class WorldGenPonds extends WorldGenerator {
 			int dx = x+dir.offsetX;
 			int dy = y+dir.offsetY;
 			int dz = z+dir.offsetZ;
-			if (ReikaWorldHelper.softBlocks(world, dx, dy, dz) || !world.getBlock(dx, dy, dz).getMaterial().blocksMovement())
+			Block b = world.getBlock(dx, dy, dz);
+			if (b.getMaterial().isLiquid())
+				continue;
+			if (ReikaWorldHelper.softBlocks(world, dx, dy, dz) || !b.getMaterial().blocksMovement())
 				return false;
 		}
 		return true;

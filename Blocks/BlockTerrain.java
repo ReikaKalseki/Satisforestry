@@ -1,11 +1,15 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.List;
 import java.util.Locale;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
@@ -38,9 +42,15 @@ public class BlockTerrain extends Block {
 		for (int i = 0; i < TerrainType.list.length; i++) {
 			TerrainType t = TerrainType.list[i];
 			String base = "satisforestry:terrain/"+t.name().toLowerCase(Locale.ENGLISH);
-			t.iconSide = ico.registerIcon(base+"_side");
-			t.iconTop = ico.registerIcon(base+"_top");
-			t.iconBottom = ico.registerIcon(base+"_bottom");
+			if (t.hasSideIcons()) {
+				t.iconSide = ico.registerIcon(base+"_side");
+				t.iconTop = ico.registerIcon(base+"_top");
+				t.iconBottom = ico.registerIcon(base+"_bottom");
+			}
+			else {
+				IIcon icon = ico.registerIcon(base);
+				t.iconBottom = t.iconSide = t.iconTop = icon;
+			}
 		}
 	}
 
@@ -54,6 +64,13 @@ public class BlockTerrain extends Block {
 				return t.iconTop;
 			default:
 				return t.iconSide;
+		}
+	}
+
+	@Override
+	public void getSubBlocks(Item it, CreativeTabs tab, List li) {
+		for (int i = 0; i < TerrainType.list.length; i++) {
+			li.add(new ItemStack(it, 1, i));
 		}
 	}
 
@@ -76,6 +93,16 @@ public class BlockTerrain extends Block {
 			hardness = h;
 			resistance = r;
 			name = s;
+		}
+
+		public boolean hasSideIcons() {
+			switch(this) {
+				case POISONROCK:
+					return true;
+				case PONDROCK:
+					return false;
+			}
+			return false;
 		}
 	}
 
