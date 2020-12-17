@@ -46,14 +46,16 @@ public class BlockGasEmitter extends BlockContainer {
 
 	@Override
 	public TileEntity createNewTileEntity(World world, int meta) {
-		return new TileGasVent(4, meta == 0 ? 0 : -4);
+		return new TileGasVent();
 	}
 
 	@Override
 	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
 		if (s == 1)
 			return blockIcon;
-		return iba.getBlockMetadata(x, y, z) > 0 ? Blocks.stone.blockIcon : SFBlocks.CAVESHIELD.getBlockInstance().getIcon(iba, x, y, z, s);
+		SFBlocks sf = iba.getBlockMetadata(x, y, z) > 0 ? SFBlocks.TERRAIN : SFBlocks.CAVESHIELD;
+		int meta = 0;
+		return sf.getBlockInstance().getIcon(s, meta);
 	}
 
 	@Override
@@ -77,15 +79,6 @@ public class BlockGasEmitter extends BlockContainer {
 		public int yOffset = 0;
 
 		private AxisAlignedBB activeArea;
-
-		public TileGasVent() {
-			this(4, 0);
-		}
-
-		public TileGasVent(int r, int y) {
-			activeRadius = r;
-			yOffset = y;
-		}
 
 		@Override
 		public void updateEntity() {

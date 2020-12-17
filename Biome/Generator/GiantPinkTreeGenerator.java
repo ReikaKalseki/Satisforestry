@@ -12,6 +12,7 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaPlantHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 
 public class GiantPinkTreeGenerator extends ModifiableBigTree {
@@ -32,6 +33,9 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 			if (Satisforestry.pinkforest.isRoad(world, x, z))
 				return false;
 			if (!ReikaPlantHelper.SAPLING.canPlantAt(world, x, y, z))
+				return false;
+			BiomeSection s = Satisforestry.pinkforest.getSubBiome(world, x, z);
+			if (rand.nextDouble() > s.treeRateLarge())
 				return false;
 		}
 		int h1 = ReikaRandomHelper.getRandomBetween(10, 18, rand); //was 20-30, then 18-25, then 12-24
@@ -90,7 +94,7 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 				for (int i = -1; i <= 1; i++) {
 					for (int k = -1; k <= 1; k++) {
 						if (i == 0 || k == 0)
-							world.setBlock(x+i, y+dy, z+k, Satisforestry.log, 0, 2);
+							world.setBlock(x+i, y+dy, z+k, Satisforestry.log, 1, 2);
 					}
 				}
 			}
@@ -116,7 +120,7 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 					ix = MathHelper.floor_double(dx);
 					iy = MathHelper.floor_double(dy);
 					iz = MathHelper.floor_double(dz);
-					world.setBlock(ix, iy, iz, Satisforestry.log);
+					world.setBlock(ix, iy, iz, Satisforestry.log, 1, 2);
 					xyz = ReikaPhysicsHelper.polarToCartesian(0.5, theta, phi);
 					dx += xyz[0];
 					dy += xyz[1];

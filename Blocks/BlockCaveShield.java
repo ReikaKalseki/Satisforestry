@@ -24,7 +24,7 @@ public class BlockCaveShield extends Block {
 
 	@Override
 	public void registerBlockIcons(IIconRegister ico) {
-		blockIcon = ico.registerIcon("satisforestry:caveshield");
+		blockIcon = ico.registerIcon("satisforestry:terrain/caveshield");
 	}
 
 }

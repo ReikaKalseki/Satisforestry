@@ -70,12 +70,12 @@ public class BlockCaveSpawner extends BlockContainer {
 		public void setMobType(Class<? extends EntityMob> c) {
 			mobClass = c;
 			mobType = (String)EntityList.classToStringMapping.get(c);
-			selector = ReikaEntityHelper.combineEntitySelectors(false, ReikaEntityHelper.playerSelector, new ClassEntitySelector(mobClass));
+			selector = ReikaEntityHelper.combineEntitySelectors(false, ReikaEntityHelper.playerSelector, new ClassEntitySelector(mobClass, false));
 		}
 
 		@Override
 		public void updateEntity() {
-			if (!worldObj.isRemote) {
+			if (!worldObj.isRemote && worldObj.rand.nextInt(1+respawnTime) == 0) {
 				activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 0, activeRadius).addCoord(0, 4, 0);
 				List<EntityLivingBase> li = worldObj.selectEntitiesWithinAABB(EntityLivingBase.class, activeArea, selector);
 				boolean player = false;
@@ -88,7 +88,8 @@ public class BlockCaveSpawner extends BlockContainer {
 				}
 				if (player && entities < mobLimit) {
 					for (int i = entities; i < mobLimit; i++) {
-						this.trySpawnMob();
+						if (this.trySpawnMob())
+							break;
 					}
 				}
 			}
@@ -98,7 +99,7 @@ public class BlockCaveSpawner extends BlockContainer {
 			double x = ReikaRandomHelper.getRandomBetween(activeArea.minX, activeArea.maxX);
 			double z = ReikaRandomHelper.getRandomBetween(activeArea.minZ, activeArea.maxZ);
 			EntityMob e = (EntityMob)EntityList.createEntityByName(mobType, worldObj);
-			for (double y = yCoord+1; y <= activeArea.maxY; y += 0.5) {
+			for (double y = yCoord; y <= activeArea.maxY; y += 0.5) {
 				e.setLocationAndAngles(x, y, z, 0, 0);
 				if (e.getCanSpawnHere()) {
 					e.rotationYaw = worldObj.rand.nextFloat()*360;

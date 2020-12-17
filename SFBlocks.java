@@ -20,9 +20,6 @@ import net.minecraft.item.ItemStack;
 import Reika.DragonAPI.Instantiable.MetadataItemBlock;
 import Reika.DragonAPI.Interfaces.Registry.BlockEnum;
 import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
-import Reika.GeoStrata.Base.RockBlock;
-import Reika.GeoStrata.Blocks.BlockShapedRock;
-import Reika.GeoStrata.Blocks.BlockSmooth;
 import Reika.Satisforestry.Blocks.BlockCaveShield;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner;
 import Reika.Satisforestry.Blocks.BlockGasEmitter;
@@ -31,6 +28,8 @@ import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
 import Reika.Satisforestry.Blocks.BlockRedBamboo;
 import Reika.Satisforestry.Blocks.BlockResourceNode;
+import Reika.Satisforestry.Blocks.BlockTerrain;
+import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 
 public enum SFBlocks implements BlockEnum {
 
@@ -42,6 +41,7 @@ public enum SFBlocks implements BlockEnum {
 	SPAWNER(BlockCaveSpawner.class, null, "Cracked Cave Stone"),
 	GASEMITTER(BlockGasEmitter.class, null, "Gas Vent"),
 	RESOURCENODE(BlockResourceNode.class, null, "Resource Node"),
+	TERRAIN(BlockTerrain.class, MetadataItemBlock.class, ""),
 	;
 
 	private final Class blockClass;
@@ -98,10 +98,6 @@ public enum SFBlocks implements BlockEnum {
 		}
 	}
 
-	public boolean isRock() {
-		return RockBlock.class.isAssignableFrom(blockClass);
-	}
-
 	@Override
 	public Class[] getConstructorParamTypes() {
 		switch(this) {
@@ -110,8 +106,9 @@ public enum SFBlocks implements BlockEnum {
 			case BAMBOO:
 			case LOG:
 				return new Class[0];
+			default:
+				return new Class[]{Material.class};
 		}
-		return new Class[]{Material.class};
 	}
 
 	@Override
@@ -122,17 +119,14 @@ public enum SFBlocks implements BlockEnum {
 			case BAMBOO:
 			case LOG:
 				return new Object[0];
+			default:
+				return new Object[]{this.getBlockMaterial()};
 		}
-		return new Object[]{this.getBlockMaterial()};
 	}
 
 	@Override
 	public String getUnlocalizedName() {
 		return ReikaStringParser.stripSpaces(blockName);
-	}
-
-	public boolean isSmoothBlock() {
-		return BlockSmooth.class.isAssignableFrom(blockClass);
 	}
 
 	@Override
@@ -148,23 +142,31 @@ public enum SFBlocks implements BlockEnum {
 	@Override
 	public String getMultiValuedName(int meta) {
 		switch(this) {
+			case TERRAIN:
+				return TerrainType.list[meta].name;
 			default:
 				return "";
 		}
 	}
 
-	public boolean isShapedRock() {
-		return BlockShapedRock.class.isAssignableFrom(blockClass);
-	}
-
 	@Override
 	public boolean hasMultiValuedName() {
-		return false;
+		switch(this) {
+			case TERRAIN:
+				return true;
+			default:
+				return false;
+		}
 	}
 
 	@Override
 	public int getNumberMetadatas() {
-		return 1;
+		switch(this) {
+			case TERRAIN:
+				return TerrainType.list.length;
+			default:
+				return 1;
+		}
 	}
 
 	@Override

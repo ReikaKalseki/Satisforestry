@@ -16,6 +16,7 @@ import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaPlantHelper;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 
 public class PinkTreeGenerator extends ModifiableBigTree {
@@ -35,6 +36,9 @@ public class PinkTreeGenerator extends ModifiableBigTree {
 			if (Satisforestry.pinkforest.isRoad(world, x, z))
 				return false;
 			if (!ReikaPlantHelper.SAPLING.canPlantAt(world, x, y, z))
+				return false;
+			BiomeSection s = Satisforestry.pinkforest.getSubBiome(world, x, z);
+			if (rand.nextDouble() > s.treeRateSmall())
 				return false;
 		}
 		int h = ReikaRandomHelper.getRandomBetween(10, 16, rand)-2;

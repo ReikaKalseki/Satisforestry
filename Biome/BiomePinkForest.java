@@ -339,6 +339,32 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 		private static final BiomeSection[] list = values();
 
+		public double treeRateSmall() {
+			switch(this) {
+				case FOREST:
+					return 1;
+				case STREAMS:
+					return 0.25;
+				case SWAMP:
+					return 0.67;
+				default:
+					return 0;
+			}
+		}
+
+		public double treeRateLarge() {
+			switch(this) {
+				case FOREST:
+					return 1;
+				case STREAMS:
+					return 0.25;
+				case SWAMP:
+					return 1;
+				default:
+					return 0;
+			}
+		}
+
 		public double getRoadThickness() {
 			switch(this) {
 				case FOREST:

@@ -14,6 +14,7 @@ import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Blocks.BlockGasEmitter.TileGasVent;
+import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 
 public class WorldGenPoisonRocks extends WorldGenerator {
 
@@ -75,20 +76,24 @@ public class WorldGenPoisonRocks extends WorldGenerator {
 				}
 			}
 		}
+		for (int d = 2; d < 6; d++) {
+			ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[d];
+			int dx = x+dir.offsetX;
+			int dz = z+dir.offsetZ;
+			int dy = y;
+			while (this.isReplaceable(world, dx, dy-1, dz)) {
+				dy--;
+				this.placeBlock(world, dx, dy, dz);
+			}
+		}
 		for (int i = 0; i < h; i++) {
-			world.setBlock(x, y+i, z, Blocks.stone);
+			this.placeBlock(world, x, y+i, z);
 			if (bulge[i]) {
 				for (int d = 2; d < 6; d++) {
 					ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[d];
 					int dx = x+dir.offsetX;
 					int dz = z+dir.offsetZ;
-					world.setBlock(dx, y+i, dz, Blocks.stone);
-					if (i == 0) {
-						while (ReikaWorldHelper.softBlocks(world, x, y+i-1, z)) {
-							y--;
-							world.setBlock(dx, y+i, dz, Blocks.stone);
-						}
-					}
+					this.placeBlock(world, dx, y+i, dz);
 				}
 			}
 		}
@@ -98,6 +103,11 @@ public class WorldGenPoisonRocks extends WorldGenerator {
 		te.activeRadius = 4;
 		te.yOffset = 1-h;
 		return true;
+	}
+
+	private void placeBlock(World world, int x, int y, int z) {
+		world.setBlock(x, y, z, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.POISONROCK.ordinal(), 3);
+		//world.setBlock(x, y, z, Blocks.stone);
 	}
 
 	private boolean isReplaceable(World world, int x, int y, int z) {

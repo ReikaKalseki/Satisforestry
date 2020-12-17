@@ -40,7 +40,7 @@ import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.DragonAPIMod.LoadProfiler.LoadPhase;
 import Reika.DragonAPI.Instantiable.Event.BlockStopsPrecipitationEvent;
 import Reika.DragonAPI.Instantiable.Event.BlockTickEvent;
-import Reika.DragonAPI.Instantiable.Event.GenLayerBeachEvent.BeachTypeEvent;
+import Reika.DragonAPI.Instantiable.Event.GenLayerBeachEvent;
 import Reika.DragonAPI.Instantiable.Event.GenLayerRiverEvent;
 import Reika.DragonAPI.Instantiable.Event.GetYToSpawnMobEvent;
 import Reika.DragonAPI.Instantiable.Event.IceFreezeEvent;
@@ -271,10 +271,10 @@ public class Satisforestry extends DragonAPIMod {
 	@SideOnly(Side.CLIENT)
 	public void textureHook(TextureStitchEvent.Pre event) {
 		if (event.map.getTextureType() == 0) {
-			biomeGrassIcon = event.map.registerIcon("Satisforestry:grass_top");
-			biomeGrassIconSide = event.map.registerIcon("Satisforestry:grass_side_overlay");
-			biomeWaterIconFlow = event.map.registerIcon("Satisforestry:water/water_flow");
-			biomeWaterIcon = event.map.registerIcon("Satisforestry:water/water_still");
+			biomeGrassIcon = event.map.registerIcon("Satisforestry:terrain/grass_top");
+			biomeGrassIconSide = event.map.registerIcon("Satisforestry:terrain/grass_side_overlay");
+			biomeWaterIconFlow = event.map.registerIcon("Satisforestry:terrain/water/water_flow");
+			biomeWaterIcon = event.map.registerIcon("Satisforestry:terrain/water/water_still");
 		}
 	}
 
@@ -378,13 +378,15 @@ public class Satisforestry extends DragonAPIMod {
 		if (evt.block == leaves) {
 			evt.setResult(Result.DENY);
 		}
+		else if (evt.block == log && evt.getMetadata()%4 == 1) {
+			evt.setResult(Result.DENY);
+		}
 	}
 
 	@SubscribeEvent
-	public void preventCliffBeaches(BeachTypeEvent evt) {
-		if (this.isPinkForest(BiomeGenBase.biomeList[evt.sourceBiomeID])) {
-			//evt.deleteBeach();
-			evt.biomeID = BiomeGenBase.beach.biomeID;
+	public void preventCliffBeaches(GenLayerBeachEvent evt) {
+		if (this.isPinkForest(evt.originalBiomeID)) {
+			evt.beachIDToPlace = BiomeGenBase.beach.biomeID;
 		}
 	}
 
