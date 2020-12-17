@@ -75,7 +75,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntitySpider.class, 100, 4, 4)); //large stinger stand-in
 		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityCaveSpider.class, 50, 6, 6)); //basic (small) stinger stand-in
 		if (ModList.TWILIGHT.isLoaded()) {
-			ModSpawnEntry msp = new ModSpawnEntry(ModList.TWILIGHT, "twilightforest.entity.EntityTFHedgeSpider", 80, 4, 4); //elite stinger stand-in
+			ModSpawnEntry msp = new ModSpawnEntry(ModList.TWILIGHT, "twilightforest.entity.EntityTFHedgeSpider", 80, 4, 4); //elite stinger stand-in for now
 			spawnableMonsterList.add(msp.getEntry());
 		}
 		spawnableCreatureList.add(new BiomeGenBase.SpawnListEntry(EntityOcelot.class, 5, 2, 2)); //arachnophobia mode

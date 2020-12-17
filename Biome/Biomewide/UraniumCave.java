@@ -70,7 +70,7 @@ public class UraniumCave {
 		int top = DecoratorPinkForest.getTrueTopAt(world, x, z);
 		CentralCave cc = cache != null ? cache.reconstruct() : new CentralCave(x, ReikaRandomHelper.getRandomBetween(40, Math.min(72, top-50), rand), z);
 
-		Satisforestry.logger.log("Generating biome cave @ "+cc.center+", from cache "+cache);
+		Satisforestry.logger.log("Generating biome cave @ "+cc.center+", from rivers "+rivers+" and cache "+cache);
 
 		cc.calculate(world, rand);
 
@@ -149,8 +149,6 @@ public class UraniumCave {
 		for (Tunnel t : tunnels) {
 			t.generate(world, rand);
 		}
-
-		ReikaJavaLibrary.pConsole(cc.center+" > "+rm.center+" & "+tunnels);
 
 		rm.generate(world, rand);
 

@@ -27,6 +27,7 @@ import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Generator.WorldGenPoisonRocks;
+import Reika.Satisforestry.Biome.Generator.WorldGenPonds;
 import Reika.Satisforestry.Biome.Generator.WorldGenRedBamboo;
 
 public class DecoratorPinkForest extends StackableBiomeDecorator {
@@ -34,6 +35,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 	private final WorldGenRedBamboo redBambooGenerator = new WorldGenRedBamboo();
 	//private final WorldGenPinkRiver riverGenerator = new WorldGenPinkRiver();
 	private final WorldGenPoisonRocks rockGenerator = new WorldGenPoisonRocks(false);
+	private final WorldGenPonds pondGenerator = new WorldGenPonds();
 
 	//private int riverHeight;
 	//private int glassHeight;
@@ -111,12 +113,19 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 			}
 		}
 
-		super.genDecorations(biome);
-
 		int x = chunk_X + randomGenerator.nextInt(16) + 8;
 		int z = chunk_Z + randomGenerator.nextInt(16) + 8;
 
 		int top = currentWorld.getTopSolidOrLiquidBlock(x, z);
+
+		pondGenerator.generate(currentWorld, randomGenerator, x, top, z);
+
+		super.genDecorations(biome);
+
+		x = chunk_X + randomGenerator.nextInt(16) + 8;
+		z = chunk_Z + randomGenerator.nextInt(16) + 8;
+
+		top = currentWorld.getTopSolidOrLiquidBlock(x, z);
 
 		int d1 = randomGenerator.nextInt(3);
 		if (chunk_X%(4+d1) == chunk_Z%(3-d1))
