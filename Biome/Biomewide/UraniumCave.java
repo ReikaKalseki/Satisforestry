@@ -148,40 +148,11 @@ public class UraniumCave {
 
 		rm.generate(world, rand);
 
-		HashSet<Coordinate> secondLayer = new HashSet();
-		for (Coordinate c : carveSet) {
-			for (Coordinate c2 : c.getAdjacentCoordinates()) {
-				if (carveSet.contains(c2))
-					continue;
-				Block b = c2.getBlock(world);
-				if (this.isSpecialCaveBlock(b))
-					continue;
-				if (c2.yCoord <= DecoratorPinkForest.getTrueTopAt(world, c2.xCoord, c2.zCoord)-15) {
-					/*
-					if (c2.softBlock(world) || b == Blocks.planks || !b.getMaterial().blocksMovement() || !b.isOpaqueCube() || b == Blocks.gravel || b == Blocks.sand || b == Blocks.dirt) {
-						c2.setBlock(world, Blocks.cobblestone);
-						secondLayer.add(c2);
-					}
-					else if (b.isReplaceableOreGen(world, c2.xCoord, c2.yCoord, c2.zCoord, Blocks.stone) || ReikaBlockHelper.isOre(b, c.getBlockMetadata(world))) {
-						c2.setBlock(world, Blocks.mossy_cobblestone);
-						secondLayer.add(c2);
-					}
-					 */
-					c2.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
-					secondLayer.add(c2);
-				}
-			}
-		}
-		for (Coordinate c : secondLayer) {
-			for (Coordinate c2 : c.getAdjacentCoordinates()) {
-				if (carveSet.contains(c2) || secondLayer.contains(c2))
-					continue;
-				if (c2.softBlock(world))
-					c2.setBlock(world, Blocks.stone);
-			}
-		}
 
-		for (int i = 0; i < 20; i++) {
+
+		this.generateCasing(world, rand, carveSet);
+
+		for (int i = 0; i < 15; i++) {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.carve.keySet());
 			Integer y = cc.footprint.get(c.to2D());
 			while (y == null) {
@@ -222,6 +193,47 @@ public class UraniumCave {
 		}
 
 		return cc;
+	}
+
+	private void generateCasing(World world, Random rand, HashSet<Coordinate> carveSet) {
+		HashSet<Coordinate> secondLayer = new HashSet();
+		for (Coordinate c : carveSet) {
+			for (Coordinate c2 : c.getAdjacentCoordinates()) {
+				if (carveSet.contains(c2))
+					continue;
+				Block b = c2.getBlock(world);
+				if (this.isSpecialCaveBlock(b))
+					continue;
+				if (c2.yCoord <= DecoratorPinkForest.getTrueTopAt(world, c2.xCoord, c2.zCoord)-15) {
+					/*
+					if (c2.softBlock(world) || b == Blocks.planks || !b.getMaterial().blocksMovement() || !b.isOpaqueCube() || b == Blocks.gravel || b == Blocks.sand || b == Blocks.dirt) {
+						c2.setBlock(world, Blocks.cobblestone);
+						secondLayer.add(c2);
+					}
+					else if (b.isReplaceableOreGen(world, c2.xCoord, c2.yCoord, c2.zCoord, Blocks.stone) || ReikaBlockHelper.isOre(b, c.getBlockMetadata(world))) {
+						c2.setBlock(world, Blocks.mossy_cobblestone);
+						secondLayer.add(c2);
+					}
+					 */
+					c2.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
+					secondLayer.add(c2);
+				}
+			}
+		}
+		for (Coordinate c : secondLayer) {
+			boolean allEmpty = true;
+			for (Coordinate c2 : c.getAdjacentCoordinates()) {
+				if (!carveSet.contains(c2))
+					allEmpty = false;
+				if (carveSet.contains(c2) || secondLayer.contains(c2))
+					continue;
+				if (c2.softBlock(world))
+					c2.setBlock(world, Blocks.stone);
+			}
+			if (allEmpty) {
+				c.setBlock(world, Blocks.air);
+			}
+		}
 	}
 
 	private boolean isSpecialCaveBlock(Block b) {
@@ -391,7 +403,6 @@ public class UraniumCave {
 						c2.setBlock(world, ore.oreBlock.blockID, ore.oreBlock.metadata);
 					}
 				}
-
 			}
 		}
 
@@ -543,9 +554,10 @@ public class UraniumCave {
 
 		@Override
 		protected void calculate(World world, Random rand) {
-			int n = ReikaRandomHelper.getRandomBetween(3, 6, rand);
+			int n = ReikaRandomHelper.getRandomBetween(4, 7, rand); //was 3-6
+			double dr = 7;//8;//5;
 			for (int i = 0; i < n; i++) {
-				DecimalPosition c = center.offset(ReikaRandomHelper.getRandomPlusMinus(0, 5D, rand), ReikaRandomHelper.getRandomPlusMinus(0, 2D, rand), ReikaRandomHelper.getRandomPlusMinus(0, 5D, rand));
+				DecimalPosition c = center.offset(ReikaRandomHelper.getRandomPlusMinus(1, dr, rand), ReikaRandomHelper.getRandomPlusMinus(0, 1.75D, rand), ReikaRandomHelper.getRandomPlusMinus(1, dr, rand));
 				int r = ReikaRandomHelper.getRandomBetween(4, 7, rand);
 				disks.put(c, r);
 			}
@@ -587,7 +599,15 @@ public class UraniumCave {
 			}
 			for (Coordinate c : adjacent) {
 				if (carve.containsKey(c.offset(0, 1, 0))) {
-					adjacentFloor.add(c);
+					boolean flag2 = false;
+					for (Coordinate c2 : c.getAdjacentCoordinates()) {
+						if (!c2.isEmpty(world)) {
+							flag2 = true;
+							break;
+						}
+					}
+					if (flag2)
+						adjacentFloor.add(c);
 				}
 			}
 		}
@@ -596,7 +616,7 @@ public class UraniumCave {
 		protected void generate(World world, Random rand) {
 			super.generate(world, rand);
 
-			Coordinate c = new Coordinate(center);
+			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, disks.keySet()).getCoordinate();//new Coordinate(center);
 			Coordinate below = c.offset(0, -1, 0);
 			while (carve.containsKey(below)) {
 				c = below;

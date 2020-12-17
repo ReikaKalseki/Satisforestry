@@ -322,14 +322,14 @@ public class Satisforestry extends DragonAPIMod {
 	@SubscribeEvent
 	public void brighterDarkness(LightVisualBrightnessEvent evt) {
 		if (isPinkForest(evt.getBiome())) {
-			evt.brightness = evt.getBrightnessFor(Math.max(1, evt.lightLevel));
+			;//evt.brightness = evt.getBrightnessFor(Math.max(1, evt.lightLevel));
 		}
 	}
 
 	@SubscribeEvent
 	public void brighterDarkness(LightMixedBrightnessEvent evt) {
 		if (isPinkForest(evt.getBiome())) {
-			evt.value = evt.getBrightnessFor(evt.blockLight, Math.max(1, evt.skyLight));
+			;//evt.value = evt.getBrightnessFor(evt.blockLight, Math.max(1, evt.skyLight));
 		}
 	}
 
