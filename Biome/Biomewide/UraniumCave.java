@@ -148,7 +148,15 @@ public class UraniumCave {
 
 		rm.generate(world, rand);
 
-
+		for (int i = 0; i < 12; i++) {
+			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.carve.keySet());
+			Integer y = cc.footprint.get(c.to2D());
+			while (y == null) {
+				c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.carve.keySet());
+				y = cc.footprint.get(c.to2D());
+			}
+			this.generateGasPocket(world, rand, c, carveSet);
+		}
 
 		this.generateCasing(world, rand, carveSet);
 
@@ -193,6 +201,24 @@ public class UraniumCave {
 		}
 
 		return cc;
+	}
+
+	private void generateGasPocket(World world, Random rand, Coordinate c, HashSet<Coordinate> carveSet) {
+		int rx = ReikaRandomHelper.getRandomBetween(2, 5, rand);
+		int ry = ReikaRandomHelper.getRandomBetween(1, 3, rand);
+		int rz = ReikaRandomHelper.getRandomBetween(2, 5, rand);
+		int sub = ReikaRandomHelper.getRandomBetween(1, ry/2, rand);
+		for (int i = -rx; i <= rx; i++) {
+			for (int j = -ry; j <= ry; j++) {
+				for (int k = -rz; k <= rz; k++) {
+					if (ReikaMathLibrary.isPointInsideEllipse(i, j, k, rx, ry, rz)) {
+						Coordinate c2 = c.offset(i, j-sub, k);
+						carveSet.add(c2);
+						c2.setBlock(world, Blocks.air);
+					}
+				}
+			}
+		}
 	}
 
 	private void generateCasing(World world, Random rand, HashSet<Coordinate> carveSet) {
