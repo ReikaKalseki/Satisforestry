@@ -24,6 +24,7 @@ import Reika.Satisforestry.Blocks.BlockCaveShield;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner;
 import Reika.Satisforestry.Blocks.BlockGasEmitter;
 import Reika.Satisforestry.Blocks.BlockPinkGrass;
+import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
 import Reika.Satisforestry.Blocks.BlockRedBamboo;
@@ -144,6 +145,9 @@ public enum SFBlocks implements BlockEnum {
 		switch(this) {
 			case TERRAIN:
 				return TerrainType.list[meta].name;
+			case GRASS:
+				String s = GrassTypes.list[meta].name;
+				return s != null ? s : this.getBasicName();
 			default:
 				return "";
 		}
@@ -153,6 +157,7 @@ public enum SFBlocks implements BlockEnum {
 	public boolean hasMultiValuedName() {
 		switch(this) {
 			case TERRAIN:
+			case GRASS:
 				return true;
 			default:
 				return false;
@@ -164,6 +169,8 @@ public enum SFBlocks implements BlockEnum {
 		switch(this) {
 			case TERRAIN:
 				return TerrainType.list.length;
+			case GRASS:
+				return GrassTypes.list.length;
 			default:
 				return 1;
 		}

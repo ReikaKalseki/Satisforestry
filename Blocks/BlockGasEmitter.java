@@ -78,9 +78,9 @@ public class BlockGasEmitter extends BlockContainer {
 
 	public static class TileGasVent extends TileEntity {
 
-		public int activeRadius = 4;
-		public int activeHeight = 4;
-		public int yOffset = 0;
+		public double activeRadius = 4;
+		public double activeHeight = 4;
+		public double yOffset = 0;
 
 		private AxisAlignedBB activeArea;
 
@@ -104,6 +104,8 @@ public class BlockGasEmitter extends BlockContainer {
 			double dd = Math.sqrt(this.getDistanceFrom(ep.posX, ep.posY, ep.posZ));
 			int n = 1;
 			n += Math.max(0, (dd-32)/16D);
+			if (yCoord < 70 && ep.posY > 70)
+				dd = 1000;
 			if (dd <= 256 && DragonAPICore.rand.nextInt(n) == 0) {
 				double px = ReikaRandomHelper.getRandomBetween(activeArea.minX, activeArea.maxX);
 				double py = ReikaRandomHelper.getRandomBetween(activeArea.minY, activeArea.maxY);
@@ -132,18 +134,18 @@ public class BlockGasEmitter extends BlockContainer {
 		public void writeToNBT(NBTTagCompound NBT) {
 			super.writeToNBT(NBT);
 
-			NBT.setInteger("offset", yOffset);
-			NBT.setInteger("radius", activeRadius);
-			NBT.setInteger("height", activeHeight);
+			NBT.setDouble("offset", yOffset);
+			NBT.setDouble("radius", activeRadius);
+			NBT.setDouble("height", activeHeight);
 		}
 
 		@Override
 		public void readFromNBT(NBTTagCompound NBT) {
 			super.readFromNBT(NBT);
 
-			activeRadius = NBT.getInteger("radius");
-			activeHeight = NBT.getInteger("height");
-			yOffset = NBT.getInteger("offset");
+			activeRadius = NBT.getDouble("radius");
+			activeHeight = NBT.getDouble("height");
+			yOffset = NBT.getDouble("offset");
 		}
 
 		@Override

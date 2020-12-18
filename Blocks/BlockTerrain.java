@@ -11,6 +11,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import Reika.Satisforestry.Satisforestry;
@@ -74,9 +75,27 @@ public class BlockTerrain extends Block {
 		}
 	}
 
+	@Override
+	public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
+		TerrainType t = TerrainType.list[world.getBlockMetadata(x, y, z)];
+		float w = t.width()/2F;
+		this.setBlockBounds(0.5F-w, 0, 0.5F-w, 0.5F+w, t.height(), 0.5F+w);
+	}
+
+	@Override
+	public boolean isOpaqueCube() {
+		return false;
+	}
+
+	@Override
+	public boolean renderAsNormalBlock() {
+		return false;
+	}
+
 	public static enum TerrainType {
 		POISONROCK("Spore Rock", 3, 45),
 		PONDROCK("Pond Rock", 1, 30),
+		SPIKES("Spikes", 0.75F, 5),
 		;
 
 		private IIcon iconTop;
@@ -95,9 +114,26 @@ public class BlockTerrain extends Block {
 			name = s;
 		}
 
+		public float width() {
+			switch(this) {
+				case SPIKES:
+					return 0.25F;
+				default:
+					return 1;
+			}
+		}
+
+		public float height() {
+			switch(this) {
+				default:
+					return 1;
+			}
+		}
+
 		public boolean hasSideIcons() {
 			switch(this) {
 				case POISONROCK:
+				case SPIKES:
 					return true;
 				case PONDROCK:
 					return false;

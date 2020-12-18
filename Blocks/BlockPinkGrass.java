@@ -3,6 +3,7 @@ package Reika.Satisforestry.Blocks;
 import java.util.List;
 import java.util.Locale;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockTallGrass;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
@@ -12,8 +13,10 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 
 import cpw.mods.fml.relauncher.Side;
@@ -23,15 +26,27 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class BlockPinkGrass extends BlockTallGrass {
 
 	public static enum GrassTypes {
-		PEACH_FRINGE,
-		TINY_PINK_LUMPS,
-		RED_STRANDS_1,
-		RED_STRANDS_2,
+		PEACH_FRINGE(),
+		TINY_PINK_LUMPS(),
+		RED_STRANDS_1(),
+		RED_STRANDS_2(),
+		BLUE_MUSHROOM_STALK("Blue Mushroom"),
+		BLUE_MUSHROOM_TOP("Blue Mushroom"),
+		VINE("Cave Vine"),
 		;
 
-		private static final GrassTypes[] list = values();
-
+		public final String name;
 		private IIcon icon;
+
+		public static final GrassTypes[] list = values();
+
+		private GrassTypes() {
+			this(null);
+		}
+
+		private GrassTypes(String s) {
+			name = s;
+		}
 
 		public float getHeight() {
 			switch(this) {
@@ -42,6 +57,8 @@ public class BlockPinkGrass extends BlockTallGrass {
 					return 0.375F;
 				case TINY_PINK_LUMPS:
 					return 0.125F;
+				case BLUE_MUSHROOM_TOP:
+					return 0.75F;
 				default:
 					return 1;
 			}
@@ -52,14 +69,9 @@ public class BlockPinkGrass extends BlockTallGrass {
 				case PEACH_FRINGE:
 				case RED_STRANDS_1:
 				case RED_STRANDS_2:
+				case BLUE_MUSHROOM_STALK:
+				case BLUE_MUSHROOM_TOP:
 					return true;
-				default:
-					return false;
-			}
-		}
-
-		public boolean isCave() {
-			switch(this) {
 				default:
 					return false;
 			}
@@ -67,8 +79,37 @@ public class BlockPinkGrass extends BlockTallGrass {
 
 		public ForgeDirection getDirection() {
 			switch(this) {
+				case VINE:
+					return ForgeDirection.DOWN;
 				default:
 					return ForgeDirection.UP;
+			}
+		}
+
+		public boolean canExistAt(World world, int x, int y, int z) {
+			ForgeDirection side = this.getDirection();
+			int dx = x-side.offsetX;
+			int dy = y-side.offsetY;
+			int dz = z-side.offsetZ;
+			Block at = world.getBlock(dx, dy, dz);
+			Block b = SFBlocks.GRASS.getBlockInstance();
+			switch(this) {
+				case VINE:
+				case BLUE_MUSHROOM_STALK:
+					return at.isSideSolid(world, dx, dy, dz, side) || (at == b && world.getBlockMetadata(dx, dy, dz) == this.ordinal());
+				case BLUE_MUSHROOM_TOP:
+					return at == b && world.getBlockMetadata(dx, dy, dz) == BLUE_MUSHROOM_STALK.ordinal();
+				default:
+					return at.canSustainPlant(world, dx, dy, dz, side, (IPlantable)b);
+			}
+		}
+
+		public int getLight() {
+			switch(this) {
+				case BLUE_MUSHROOM_TOP:
+					return 8;
+				default:
+					return 0;
 			}
 		}
 	}
@@ -86,10 +127,9 @@ public class BlockPinkGrass extends BlockTallGrass {
 
 	@Override
 	public void registerBlockIcons(IIconRegister ico) {
-		blockIcon = ico.registerIcon("Satisforestry:birch_leaves");
 		for (int i = 0; i < GrassTypes.list.length; i++) {
 			GrassTypes gr = GrassTypes.list[i];
-			gr.icon = ico.registerIcon("Satisforestry:grass_"+gr.name().toLowerCase(Locale.ENGLISH));
+			gr.icon = ico.registerIcon("Satisforestry:foliage/"+gr.name().toLowerCase(Locale.ENGLISH));
 		}
 	}
 
@@ -121,8 +161,12 @@ public class BlockPinkGrass extends BlockTallGrass {
 	@Override
 	public boolean canBlockStay(World world, int x, int y, int z) {
 		GrassTypes gr = GrassTypes.list[world.getBlockMetadata(x, y, z)];
-		ForgeDirection side = gr.getDirection();
-		return gr.isCave() ? world.getBlock(x, y+side.offsetY, z).isSideSolid(world, x, y+side.offsetY, z, side) : world.getBlock(x, y+side.offsetY, z).canSustainPlant(world, x, y+side.offsetY, z, side, this);
+		return gr.canExistAt(world, x, y, z);
+	}
+
+	@Override
+	public int getLightValue(IBlockAccess world, int x, int y, int z) {
+		return GrassTypes.list[world.getBlockMetadata(x, y, z)].getLight();
 	}
 
 }

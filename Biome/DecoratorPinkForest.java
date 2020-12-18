@@ -12,6 +12,7 @@ package Reika.Satisforestry.Biome;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -298,6 +299,10 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 	}
 
 	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize) {
+		return generateOreClumpAt(world, x, y, z, rand, sec, maxSize, new HashSet());
+	}
+
+	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize, Set<Coordinate> exclusion) {
 		OreClusterType type = sec.getRandomOreSpawn();
 		int depth = rand.nextInt(2)+rand.nextInt(2)+rand.nextInt(2);
 		depth *= type.sizeScale;
@@ -308,7 +313,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		for (int i = 0; i <= depth; i++) {
 			HashSet<Coordinate> next = new HashSet();
 			for (Coordinate c : set) {
-				if (c.softBlock(world)) {
+				if (c.softBlock(world) && !exclusion.contains(c.to2D())) {
 					place.add(c);
 					Coordinate c2 = c.offset(0, -1, 0);
 					while (c2.yCoord >= 0 && c2.softBlock(world)) {

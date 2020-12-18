@@ -40,6 +40,8 @@ import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Blocks.BlockGasEmitter.TileGasVent;
+import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
+import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 
 public class UraniumCave {
 
@@ -149,14 +151,16 @@ public class UraniumCave {
 
 		rm.generate(world, rand);
 
-		HashSet<Coordinate> remainingFloor = new HashSet();
+		HashSet<Coordinate> flatFloor = new HashSet(cc.footprint.keySet());
+		HashSet<Coordinate> pits = new HashSet();
+		HashMap<Coordinate, Integer> remainingFloor = new HashMap();
 		SimplexNoiseGenerator floorLevel = (SimplexNoiseGenerator)new SimplexNoiseGenerator(rand.nextLong()).setFrequency(1/15D);
 		SimplexNoiseGenerator holes = (SimplexNoiseGenerator)new SimplexNoiseGenerator(rand.nextLong()).setFrequency(1/6D);
 
 		for (Entry<Coordinate, Integer> e : cc.footprint.entrySet()) {
 			Coordinate c = e.getKey();
 			int yat = e.getValue()-1;
-			int h = (int)Math.round(ReikaMathLibrary.normalizeToBounds(floorLevel.getValue(c.xCoord, c.zCoord), 3, 6));
+			int h = (int)Math.round(ReikaMathLibrary.normalizeToBounds(floorLevel.getValue(c.xCoord, c.zCoord), 4, 7)); //was 3,6
 			int floor = cc.lowestFloor-1-h;
 			boolean hole = Math.abs(holes.getValue(c.xCoord, c.zCoord)) >= 0.4;//rand.nextInt(5) == 0;
 			for (int i = hole ? 0 : 1; i < h; i++) {
@@ -164,22 +168,34 @@ public class UraniumCave {
 				c2.setBlock(world, Blocks.air);
 				carveSet.add(c2);
 			}
-			if (!hole)
-				remainingFloor.add(c.setY(e.getValue()));
-			if (rand.nextInt(30) == 0) {
+			if (hole) {
+				pits.add(c);
+				flatFloor.remove(c);
+				flatFloor.remove(c.offset(1, 0, 0));
+				flatFloor.remove(c.offset(-1, 0, 0));
+				flatFloor.remove(c.offset(0, 0, 1));
+				flatFloor.remove(c.offset(0, 0, -1));
+			}
+			else {
+				remainingFloor.put(c, e.getValue());
+			}
+			if (rand.nextInt(36) == 0) {
 				world.setBlock(c.xCoord, floor, c.zCoord, SFBlocks.GASEMITTER.getBlockInstance(), 1, 2);
 				TileGasVent te = (TileGasVent)world.getTileEntity(c.xCoord, floor, c.zCoord);
 				te.activeRadius = 5;
-				te.activeHeight = 3;
+				te.activeHeight = 3.5;
 				te.yOffset = 0;
 			}
 		}
 
+		this.generateDecorations(world, rand, carveSet, remainingFloor, cc, tunnels);
+
 		this.generateCasing(world, rand, carveSet);
 
 		for (int i = 0; i < 15; i++) {
-			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, remainingFloor);
-			DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, c.yCoord, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4);
+			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, flatFloor);
+			c = c.setY(remainingFloor.get(c));
+			DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, c.yCoord, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4, pits);
 
 			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord-1, c.zCoord, rand);
 			lgc.activeRadius = 10;//8;
@@ -213,6 +229,79 @@ public class UraniumCave {
 		}
 
 		return cc;
+	}
+
+	private void generateDecorations(World world, Random rand, HashSet<Coordinate> carveSet, HashMap<Coordinate, Integer> floor, CentralCave cc, Collection<Tunnel> tunnels) {
+		for (int i = 0; i < 36; i++) {
+			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, floor.keySet());
+			int y = floor.get(c);
+			int h = ReikaRandomHelper.getRandomBetween(1, 3, rand);
+			this.generateMushroom(world, c.xCoord, y, c.zCoord, h, carveSet);
+		}
+
+		for (int i = 0; i < 24; i++) {
+			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.carve.keySet());
+			while (cc.carve.containsKey(c.offset(0, 1, 0))) {
+				c = c.offset(0, 1, 0);
+			}
+			int l = Math.min(6, c.yCoord-cc.footprint.get(c.to2D())/2);
+			this.generateVine(world, c.xCoord, c.yCoord, c.zCoord, l, carveSet);
+		}
+
+		for (int i = 0; i < 12; i++) {
+			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, floor.keySet());
+			int y = floor.get(c);
+			world.setBlock(c.xCoord, y, c.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.SPIKES.ordinal(), 2);
+		}
+
+		for (Tunnel t : tunnels) {
+			for (int i = 0; i < 16; i++) {
+				Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, t.carve.keySet());
+				while (t.carve.containsKey(c.offset(0, -1, 0))) {
+					c = c.offset(0, -1, 0);
+				}
+				int h = ReikaRandomHelper.getRandomBetween(0, 2, rand);
+				this.generateMushroom(world, c.xCoord, c.yCoord, c.zCoord, h, carveSet);
+			}
+
+			for (int i = 0; i < 32; i++) {
+				Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, t.carve.keySet());
+				while (t.carve.containsKey(c.offset(0, 1, 0))) {
+					c = c.offset(0, 1, 0);
+				}
+				this.generateVine(world, c.xCoord, c.yCoord, c.zCoord, rand.nextBoolean() ? 3 : 2, carveSet);
+			}
+		}
+	}
+
+	private void generateVine(World world, int x, int y, int z, int l, HashSet<Coordinate> carveSet) {
+		if (!GrassTypes.VINE.canExistAt(world, x, y, z))
+			return;
+		for (int k = 0; k < l; k++) {
+			Coordinate c = new Coordinate(x, y-k, z);
+			if (carveSet.contains(c)) {
+				c.setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.VINE.ordinal());
+			}
+			else {
+				break;
+			}
+		}
+	}
+
+	private void generateMushroom(World world, int x, int y, int z, int h, HashSet<Coordinate> carveSet) {
+		if (!GrassTypes.BLUE_MUSHROOM_STALK.canExistAt(world, x, y, z))
+			return;
+		for (int k = 0; k < h; k++) {
+			Coordinate c = new Coordinate(x, y+k, z);
+			if (carveSet.contains(c)) {
+				c.setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.BLUE_MUSHROOM_STALK.ordinal(), 2);
+			}
+			else {
+				h = k-1;
+				break;
+			}
+		}
+		world.setBlock(x, y+h, z, SFBlocks.GRASS.getBlockInstance(), GrassTypes.BLUE_MUSHROOM_TOP.ordinal(), 2);
 	}
 
 	private void generateCasing(World world, Random rand, HashSet<Coordinate> carveSet) {
@@ -272,6 +361,10 @@ public class UraniumCave {
 		}
 		world.setBlock(x, y, z, SFBlocks.SPAWNER.getBlockInstance());
 		TileCaveSpawner te = (TileCaveSpawner)world.getTileEntity(x, y, z);
+		if (te == null) {
+			te = new TileCaveSpawner();
+			world.setTileEntity(x, y, z, te);
+		}
 		te.setMobType(mob);
 		return te;
 	}
