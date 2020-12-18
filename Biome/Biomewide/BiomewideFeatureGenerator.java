@@ -13,6 +13,7 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
+import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Biome.PinkForestPersistentData;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CachedCave;
@@ -30,13 +31,18 @@ public class BiomewideFeatureGenerator {
 
 	public void generateUniqueCenterFeatures(World world, int x, int z, Random rand, BiomeFootprint bf) {
 		Collection<Coordinate> rivers = PinkRivers.instance.generateRivers(world, x, z, rand, bf);
+		boolean flag = false;
 		if (!rivers.isEmpty()) {
 			CachedCave at = caveNetworks.get(new WorldLocation(world, x, 0, z));
 			CentralCave cc = UraniumCave.instance.generate(world, rand, x, z, rivers, at);
 			if (cc != null) {
 				caveNetworks.put(new WorldLocation(world, cc.center.to2D()), new CachedCave(cc));
 				PinkForestPersistentData.initNetworkData(world).setDirty(true);
+				flag = true;
 			}
+		}
+		if (!flag) {
+			Satisforestry.logger.logError("Failed to generate biomewide features! River set: "+rivers);
 		}
 	}
 

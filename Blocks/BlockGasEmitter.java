@@ -11,6 +11,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.tileentity.TileEntity;
@@ -76,13 +79,14 @@ public class BlockGasEmitter extends BlockContainer {
 	public static class TileGasVent extends TileEntity {
 
 		public int activeRadius = 4;
+		public int activeHeight = 4;
 		public int yOffset = 0;
 
 		private AxisAlignedBB activeArea;
 
 		@Override
 		public void updateEntity() {
-			activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 0, activeRadius).addCoord(0, 4, 0).offset(0, yOffset, 0);
+			activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 0, activeRadius).addCoord(0, activeHeight, 0).offset(0, yOffset, 0);
 			if (worldObj.isRemote) {
 				this.doFX();
 			}
@@ -110,6 +114,7 @@ public class BlockGasEmitter extends BlockContainer {
 				fx.angleVelocity *= 1.85;
 				fx.particleVelocity *= 0.3;
 				fx.freedom *= 1.5;
+				fx.setColliding();
 				fx.setColor(c);
 				Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 
@@ -117,6 +122,7 @@ public class BlockGasEmitter extends BlockContainer {
 				fx2.setRapidExpand().setAlphaFading().forceIgnoreLimits();
 				fx2.setScale((float)ReikaRandomHelper.getRandomBetween(12D, 25D));
 				fx2.setColor(ReikaColorAPI.getColorWithBrightnessMultiplier(c, 0.25F));
+				fx2.setColliding();
 				fx2.lockTo(fx);
 				Minecraft.getMinecraft().effectRenderer.addEffect(fx2);
 			}
@@ -128,6 +134,7 @@ public class BlockGasEmitter extends BlockContainer {
 
 			NBT.setInteger("offset", yOffset);
 			NBT.setInteger("radius", activeRadius);
+			NBT.setInteger("height", activeHeight);
 		}
 
 		@Override
@@ -135,7 +142,22 @@ public class BlockGasEmitter extends BlockContainer {
 			super.readFromNBT(NBT);
 
 			activeRadius = NBT.getInteger("radius");
+			activeHeight = NBT.getInteger("height");
 			yOffset = NBT.getInteger("offset");
+		}
+
+		@Override
+		public Packet getDescriptionPacket() {
+			NBTTagCompound NBT = new NBTTagCompound();
+			this.writeToNBT(NBT);
+			S35PacketUpdateTileEntity pack = new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, NBT);
+			return pack;
+		}
+
+		@Override
+		public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity p)  {
+			this.readFromNBT(p.field_148860_e);
+			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 		}
 
 	}

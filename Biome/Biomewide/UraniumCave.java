@@ -39,6 +39,7 @@ import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
+import Reika.Satisforestry.Blocks.BlockGasEmitter.TileGasVent;
 
 public class UraniumCave {
 
@@ -148,28 +149,39 @@ public class UraniumCave {
 
 		rm.generate(world, rand);
 
-		for (int i = 0; i < 12; i++) {
-			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.carve.keySet());
-			Integer y = cc.footprint.get(c.to2D());
-			while (y == null) {
-				c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.carve.keySet());
-				y = cc.footprint.get(c.to2D());
+		HashSet<Coordinate> remainingFloor = new HashSet();
+		SimplexNoiseGenerator floorLevel = (SimplexNoiseGenerator)new SimplexNoiseGenerator(rand.nextLong()).setFrequency(1/15D);
+		SimplexNoiseGenerator holes = (SimplexNoiseGenerator)new SimplexNoiseGenerator(rand.nextLong()).setFrequency(1/6D);
+
+		for (Entry<Coordinate, Integer> e : cc.footprint.entrySet()) {
+			Coordinate c = e.getKey();
+			int yat = e.getValue()-1;
+			int h = (int)Math.round(ReikaMathLibrary.normalizeToBounds(floorLevel.getValue(c.xCoord, c.zCoord), 3, 6));
+			int floor = cc.lowestFloor-1-h;
+			boolean hole = Math.abs(holes.getValue(c.xCoord, c.zCoord)) >= 0.4;//rand.nextInt(5) == 0;
+			for (int i = hole ? 0 : 1; i < h; i++) {
+				Coordinate c2 = c.setY(yat-i);
+				c2.setBlock(world, Blocks.air);
+				carveSet.add(c2);
 			}
-			this.generateGasPocket(world, rand, c, carveSet);
+			if (!hole)
+				remainingFloor.add(c.setY(e.getValue()));
+			if (rand.nextInt(30) == 0) {
+				world.setBlock(c.xCoord, floor, c.zCoord, SFBlocks.GASEMITTER.getBlockInstance(), 1, 2);
+				TileGasVent te = (TileGasVent)world.getTileEntity(c.xCoord, floor, c.zCoord);
+				te.activeRadius = 5;
+				te.activeHeight = 3;
+				te.yOffset = 0;
+			}
 		}
 
 		this.generateCasing(world, rand, carveSet);
 
 		for (int i = 0; i < 15; i++) {
-			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.carve.keySet());
-			Integer y = cc.footprint.get(c.to2D());
-			while (y == null) {
-				c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.carve.keySet());
-				y = cc.footprint.get(c.to2D());
-			}
-			DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, y, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4);
+			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, remainingFloor);
+			DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, c.yCoord, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4);
 
-			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, y-1, c.zCoord, rand);
+			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord-1, c.zCoord, rand);
 			lgc.activeRadius = 10;//8;
 			lgc.spawnRadius = 8;
 			lgc.respawnTime = 12;
@@ -201,24 +213,6 @@ public class UraniumCave {
 		}
 
 		return cc;
-	}
-
-	private void generateGasPocket(World world, Random rand, Coordinate c, HashSet<Coordinate> carveSet) {
-		int rx = ReikaRandomHelper.getRandomBetween(2, 5, rand);
-		int ry = ReikaRandomHelper.getRandomBetween(1, 3, rand);
-		int rz = ReikaRandomHelper.getRandomBetween(2, 5, rand);
-		int sub = ReikaRandomHelper.getRandomBetween(1, ry/2, rand);
-		for (int i = -rx; i <= rx; i++) {
-			for (int j = -ry; j <= ry; j++) {
-				for (int k = -rz; k <= rz; k++) {
-					if (ReikaMathLibrary.isPointInsideEllipse(i, j, k, rx, ry, rz)) {
-						Coordinate c2 = c.offset(i, j-sub, k);
-						carveSet.add(c2);
-						c2.setBlock(world, Blocks.air);
-					}
-				}
-			}
-		}
 	}
 
 	private void generateCasing(World world, Random rand, HashSet<Coordinate> carveSet) {
@@ -411,6 +405,8 @@ public class UraniumCave {
 			int n = ReikaRandomHelper.getRandomBetween(3, 6, rand);
 			for (int i = 0; i < 5; i++) {
 				Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, carve.keySet());
+				if (c.yCoord >= DecoratorPinkForest.getTrueTopAt(world, c.xCoord, c.zCoord)-15)
+					continue;
 				Coordinate below = c.offset(0, -1, 0);
 				while (carve.containsKey(below)) {
 					c = below;
@@ -458,6 +454,8 @@ public class UraniumCave {
 		private DecimalPosition innerCircleCenter;
 		private double innerCircleRadius;
 		private double outerCircleRadius;
+
+		private int lowestFloor = 255;
 
 		public CentralCave(int x, int y, int z) {
 			super(new DecimalPosition(x+0.5, y+0.5, z+0.5));
@@ -556,6 +554,7 @@ public class UraniumCave {
 					if (flag) {
 						Coordinate c = new Coordinate(x, 0, z);
 						footprint.put(c, floor);
+						lowestFloor = Math.min(floor, lowestFloor);
 					}
 				}
 			}

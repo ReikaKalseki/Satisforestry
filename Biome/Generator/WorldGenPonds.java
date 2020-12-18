@@ -162,25 +162,27 @@ public class WorldGenPonds extends WorldGenerator {
 					}
 				}
 				Coordinate ctr = new Coordinate(x, 0, z);
-				int my = floor.get(ctr)+1;
-				int h = ReikaRandomHelper.getRandomBetween(1, 3, rand);
-				int maxy = h+waterLevel.get(ctr);
-				boolean thick = rand.nextInt(3) == 0;
-				for (int dy = my; dy <= maxy; dy++) {
-					int l = dy-my;
-					world.setBlock(ctr.xCoord, dy, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
-					world.setBlock(ctr.xCoord+1, dy, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
-					world.setBlock(ctr.xCoord-1, dy, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
-					world.setBlock(ctr.xCoord, dy, ctr.zCoord+1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
-					world.setBlock(ctr.xCoord, dy, ctr.zCoord-1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
-					if ((thick || l <= h/3) && dy < maxy-1) {
-						world.setBlock(ctr.xCoord+1, dy, ctr.zCoord+1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
-						world.setBlock(ctr.xCoord-1, dy, ctr.zCoord+1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
-						world.setBlock(ctr.xCoord+1, dy, ctr.zCoord-1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
-						world.setBlock(ctr.xCoord-1, dy, ctr.zCoord-1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+				if (floor.containsKey(ctr)) {
+					int my = floor.get(ctr)+1;
+					int h = ReikaRandomHelper.getRandomBetween(1, 3, rand);
+					int maxy = h+waterLevel.get(ctr);
+					boolean thick = rand.nextInt(3) == 0;
+					for (int dy = my; dy <= maxy; dy++) {
+						int l = dy-my;
+						world.setBlock(ctr.xCoord, dy, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+						world.setBlock(ctr.xCoord+1, dy, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+						world.setBlock(ctr.xCoord-1, dy, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+						world.setBlock(ctr.xCoord, dy, ctr.zCoord+1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+						world.setBlock(ctr.xCoord, dy, ctr.zCoord-1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+						if ((thick || l <= h/3) && dy < maxy-1) {
+							world.setBlock(ctr.xCoord+1, dy, ctr.zCoord+1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+							world.setBlock(ctr.xCoord-1, dy, ctr.zCoord+1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+							world.setBlock(ctr.xCoord+1, dy, ctr.zCoord-1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+							world.setBlock(ctr.xCoord-1, dy, ctr.zCoord-1, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
+						}
 					}
+					world.setBlock(ctr.xCoord, maxy+1, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 				}
-				world.setBlock(ctr.xCoord, maxy+1, ctr.zCoord, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), 2);
 
 				OreSpawnLocation.PONDS.setRNG(rand);
 				int n = ReikaRandomHelper.getRandomBetween(3, 7, rand);
@@ -202,7 +204,8 @@ public class WorldGenPonds extends WorldGenerator {
 					}
 				}
 				ReikaJavaLibrary.pConsole("Generated a swamp pond at "+x+", "+y+", "+z);
-				return true;
+				if (rand.nextInt(5) >= 1)
+					return true;
 			}
 		}
 

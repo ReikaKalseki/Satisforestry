@@ -10,7 +10,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.Satisforestry.Satisforestry;
 
@@ -53,6 +55,20 @@ public class BlockPinkGrass extends BlockTallGrass {
 					return true;
 				default:
 					return false;
+			}
+		}
+
+		public boolean isCave() {
+			switch(this) {
+				default:
+					return false;
+			}
+		}
+
+		public ForgeDirection getDirection() {
+			switch(this) {
+				default:
+					return ForgeDirection.UP;
 			}
 		}
 	}
@@ -100,6 +116,13 @@ public class BlockPinkGrass extends BlockTallGrass {
 		GrassTypes gr = GrassTypes.list[world.getBlockMetadata(x, y, z)];
 		float f = 0.4F; //from parent
 		this.setBlockBounds(0.5F - f, 0.0F, 0.5F - f, 0.5F + f, gr.getHeight(), 0.5F + f);
+	}
+
+	@Override
+	public boolean canBlockStay(World world, int x, int y, int z) {
+		GrassTypes gr = GrassTypes.list[world.getBlockMetadata(x, y, z)];
+		ForgeDirection side = gr.getDirection();
+		return gr.isCave() ? world.getBlock(x, y+side.offsetY, z).isSideSolid(world, x, y+side.offsetY, z, side) : world.getBlock(x, y+side.offsetY, z).canSustainPlant(world, x, y+side.offsetY, z, side, this);
 	}
 
 }

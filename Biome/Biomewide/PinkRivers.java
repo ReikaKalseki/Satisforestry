@@ -105,7 +105,7 @@ public class PinkRivers {
 		}*/
 		River river = new River(c, mouth);
 		river.calculate(world);
-		if (river.sandBlocks.size() < 25)
+		if (!river.failedGeneration && river.sandBlocks.size() < 25)
 			return null;
 		return river;
 	}
@@ -239,9 +239,15 @@ return li.get(0);
 		private final ArrayList<Coordinate> path = new ArrayList();
 		private final ArrayList<BlockCandidate> unconverted = new ArrayList();
 
+		private boolean failedGeneration = false;
+
 		public River(Coordinate cx, RiverMouth rm) {
 			mouth = rm;
 			rootPosition = cx;
+		}
+
+		public boolean failed() {
+			return failedGeneration;
 		}
 
 		private void calculate(World world) {
@@ -261,7 +267,7 @@ return li.get(0);
 			double h = mouth.averageHeight;
 			//double step = 9;
 			Coordinate end = null;
-			for (double step = 0; step < 40; step += 0.5) {
+			for (double step = 0; step < 240; step += 0.5) {
 				int dx = MathHelper.floor_double(rootPosition.xCoord-step*mouth.cosNormal);
 				int dz = MathHelper.floor_double(rootPosition.zCoord-step*mouth.sinNormal);
 				int top = DecoratorPinkForest.getTrueTopAt(world, dx, dz);
@@ -272,6 +278,11 @@ return li.get(0);
 					end = c2;
 					break;
 				}
+			}
+
+			if (end == null) {
+				failedGeneration = true;
+				return;
 			}
 			/*
 	Coordinate c2 = new Coordinate(dx, h, dz);
