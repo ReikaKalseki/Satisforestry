@@ -2,6 +2,7 @@ package Reika.Satisforestry.Blocks;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockTallGrass;
@@ -10,6 +11,7 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.EnumPlantType;
@@ -30,22 +32,37 @@ public class BlockPinkGrass extends BlockTallGrass {
 		TINY_PINK_LUMPS(),
 		RED_STRANDS_1(),
 		RED_STRANDS_2(),
-		BLUE_MUSHROOM_STALK("Blue Mushroom"),
-		BLUE_MUSHROOM_TOP("Blue Mushroom"),
-		VINE("Cave Vine"),
+		BLUE_MUSHROOM_STALK("Blue Mushroom", 1),
+		BLUE_MUSHROOM_TOP("Blue Mushroom", 3),
+		VINE("Cave Vine", 1),
+		STALKS("Stony Stalks", 2),
 		;
 
 		public final String name;
-		private IIcon icon;
+		private IIcon[] icons;
+
+		private static final Random iconRand = new Random();
 
 		public static final GrassTypes[] list = values();
 
 		private GrassTypes() {
-			this(null);
+			this(null, 1);
 		}
 
-		private GrassTypes(String s) {
+		private GrassTypes(int n) {
+			this(null, n);
+		}
+
+		private GrassTypes(String s, int n) {
 			name = s;
+			icons = new IIcon[n];
+		}
+
+		public IIcon getIcon(IBlockAccess iba, int x, int y, int z) {
+			iconRand.setSeed(ChunkCoordIntPair.chunkXZ2Int(x, z) ^ y);
+			iconRand.nextBoolean();
+			iconRand.nextBoolean();
+			return icons[iconRand.nextInt(icons.length)];
 		}
 
 		public float getHeight() {
@@ -96,6 +113,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 			switch(this) {
 				case VINE:
 				case BLUE_MUSHROOM_STALK:
+				case STALKS:
 					return at.isSideSolid(world, dx, dy, dz, side) || (at == b && world.getBlockMetadata(dx, dy, dz) == this.ordinal());
 				case BLUE_MUSHROOM_TOP:
 					return at == b && world.getBlockMetadata(dx, dy, dz) == BLUE_MUSHROOM_STALK.ordinal();
@@ -107,7 +125,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 		public int getLight() {
 			switch(this) {
 				case BLUE_MUSHROOM_TOP:
-					return 8;
+					return 7;
 				default:
 					return 0;
 			}
@@ -129,14 +147,25 @@ public class BlockPinkGrass extends BlockTallGrass {
 	public void registerBlockIcons(IIconRegister ico) {
 		for (int i = 0; i < GrassTypes.list.length; i++) {
 			GrassTypes gr = GrassTypes.list[i];
-			gr.icon = ico.registerIcon("Satisforestry:foliage/"+gr.name().toLowerCase(Locale.ENGLISH));
+			for (int k = 0; k < gr.icons.length; k++) {
+				String s = "Satisforestry:foliage/"+gr.name().toLowerCase(Locale.ENGLISH);
+				if (gr.icons.length > 1)
+					s = s+"_"+k;
+				gr.icons[k] = ico.registerIcon(s);
+			}
 		}
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
 	public IIcon getIcon(int s, int meta) {
-		return GrassTypes.list[meta].icon;
+		return GrassTypes.list[meta].icons[0];
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
+		return GrassTypes.list[iba.getBlockMetadata(x, y, z)].getIcon(iba, x, y, z);
 	}
 
 	@Override

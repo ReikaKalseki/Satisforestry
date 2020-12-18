@@ -22,6 +22,8 @@ import Reika.DragonAPI.Interfaces.Registry.BlockEnum;
 import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 import Reika.Satisforestry.Blocks.BlockCaveShield;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner;
+import Reika.Satisforestry.Blocks.BlockDecoration;
+import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockGasEmitter;
 import Reika.Satisforestry.Blocks.BlockPinkGrass;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
@@ -43,6 +45,7 @@ public enum SFBlocks implements BlockEnum {
 	GASEMITTER(BlockGasEmitter.class, null, "Gas Vent"),
 	RESOURCENODE(BlockResourceNode.class, null, "Resource Node"),
 	TERRAIN(BlockTerrain.class, MetadataItemBlock.class, ""),
+	DECORATION(BlockDecoration.class, MetadataItemBlock.class, ""),
 	;
 
 	private final Class blockClass;
@@ -143,6 +146,8 @@ public enum SFBlocks implements BlockEnum {
 	@Override
 	public String getMultiValuedName(int meta) {
 		switch(this) {
+			case DECORATION:
+				return DecorationType.list[meta].name;
 			case TERRAIN:
 				return TerrainType.list[meta].name;
 			case GRASS:
@@ -157,6 +162,7 @@ public enum SFBlocks implements BlockEnum {
 	public boolean hasMultiValuedName() {
 		switch(this) {
 			case TERRAIN:
+			case DECORATION:
 			case GRASS:
 				return true;
 			default:
@@ -167,6 +173,8 @@ public enum SFBlocks implements BlockEnum {
 	@Override
 	public int getNumberMetadatas() {
 		switch(this) {
+			case DECORATION:
+				return DecorationType.list.length;
 			case TERRAIN:
 				return TerrainType.list.length;
 			case GRASS:
