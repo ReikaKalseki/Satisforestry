@@ -4,6 +4,7 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.entity.monster.EntityCreeper;
 import net.minecraft.entity.monster.EntityEnderman;
@@ -12,6 +13,7 @@ import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.passive.EntityOcelot;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
@@ -47,6 +49,10 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 	PinkForestNoiseData noise;
 	private final PinkForestTerrainShaper terrain = new PinkForestTerrainShaper();
+
+	/** Fades between zero and one as the biome is entered or left */
+	@SideOnly(Side.CLIENT)
+	public static float renderFactor;
 
 	public BiomePinkForest(int id) {
 		super(id);
@@ -179,6 +185,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 		return ReikaColorAPI.mixColors(0xFFB3D1, 0xE95F84, f);
 	}
 
+	@SideOnly(Side.CLIENT)
 	public int getWaterColor(IBlockAccess world, int x, int y, int z, int l) {
 		float f = (float)ReikaMathLibrary.normalizeToBounds(waterColorMix.getValue(x, z), 0, 1);
 		//was 3C6D76, 144D5A, then 0x62939C, 0x144D5A
@@ -218,6 +225,28 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 			ret = ReikaColorAPI.mixColors(ret, 0x1845ff, f);
 		}
 		return ret;
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public int getSkyColorByTemp(float temp)  {
+		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
+		float f = (float)(ep.posY-128)/512F;
+		f = MathHelper.clamp_float(f, 0, 1);
+		return ReikaColorAPI.mixColors(0xffffff, 0xC57ACD, f);
+	}
+
+	@SideOnly(Side.CLIENT)
+	public static void updateRenderFactor(AbstractClientPlayer ep) {
+		if (ep == null || ep.worldObj == null) {
+			renderFactor = Math.max(0, renderFactor-0.1F);
+		}
+		else if (Satisforestry.isPinkForest(ep.worldObj.getBiomeGenForCoords(MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))) {
+			renderFactor = Math.min(1, renderFactor+0.025F);
+		}
+		else {
+			renderFactor = Math.max(0, renderFactor-0.0125F);
+		}
 	}
 
 	public BiomeSection getSubBiome(World world, int x, int z) {

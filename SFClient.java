@@ -11,6 +11,8 @@ package Reika.Satisforestry;
 
 import net.minecraft.world.World;
 
+import Reika.Satisforestry.Render.DecorationRenderer;
+import Reika.Satisforestry.Render.PinkGrassRenderer;
 import Reika.Satisforestry.Render.RedBambooRenderer;
 
 import cpw.mods.fml.client.FMLClientHandler;
@@ -19,6 +21,8 @@ import cpw.mods.fml.client.registry.RenderingRegistry;
 public class SFClient extends SFCommon {
 
 	private static final RedBambooRenderer bamboo = new RedBambooRenderer();
+	private static final PinkGrassRenderer grass = new PinkGrassRenderer();
+	private static final DecorationRenderer deco = new DecorationRenderer();
 
 	@Override
 	public void registerSounds() {
@@ -29,6 +33,12 @@ public class SFClient extends SFCommon {
 	public void registerRenderers() {
 		bambooRender = RenderingRegistry.getNextAvailableRenderId();
 		RenderingRegistry.registerBlockHandler(bambooRender, bamboo);
+
+		grassRender = RenderingRegistry.getNextAvailableRenderId();
+		RenderingRegistry.registerBlockHandler(grassRender, grass);
+
+		decoRender = RenderingRegistry.getNextAvailableRenderId();
+		RenderingRegistry.registerBlockHandler(decoRender, deco);
 	}
 
 	// Override any other methods that need to be handled differently client side.

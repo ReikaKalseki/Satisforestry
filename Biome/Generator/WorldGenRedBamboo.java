@@ -59,7 +59,7 @@ public class WorldGenRedBamboo extends WorldGenerator {
 				generationRate = 48;
 				break;
 			case STREAMS:
-				generationRate = 400;
+				generationRate = 900;
 				break;
 			case SWAMP:
 				generationRate = 100;

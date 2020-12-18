@@ -304,6 +304,8 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize, Set<Coordinate> exclusion) {
 		OreClusterType type = sec.getRandomOreSpawn();
+		if (type == null)
+			return null;
 		int depth = rand.nextInt(2)+rand.nextInt(2)+rand.nextInt(2);
 		depth *= type.sizeScale;
 		depth = Math.min(depth, Math.min(maxSize, type.maxDepth));

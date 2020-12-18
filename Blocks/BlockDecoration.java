@@ -1,21 +1,29 @@
 package Reika.Satisforestry.Blocks;
 
 import java.util.List;
-import java.util.Locale;
 import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.renderer.RenderBlocks;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Libraries.IO.ReikaRenderHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class BlockDecoration extends Block {
 
@@ -46,32 +54,12 @@ public class BlockDecoration extends Block {
 
 	@Override
 	public void registerBlockIcons(IIconRegister ico) {
-		for (int i = 0; i < DecorationType.list.length; i++) {
-			DecorationType t = DecorationType.list[i];
-			String base = "satisforestry:decoration/"+t.name().toLowerCase(Locale.ENGLISH);
-			if (t.hasSideIcons()) {
-				t.iconSide = ico.registerIcon(base+"_side");
-				t.iconTop = ico.registerIcon(base+"_top");
-				t.iconBottom = ico.registerIcon(base+"_bottom");
-			}
-			else {
-				IIcon icon = ico.registerIcon(base);
-				t.iconBottom = t.iconSide = t.iconTop = icon;
-			}
-		}
+
 	}
 
 	@Override
 	public IIcon getIcon(int s, int meta) {
-		DecorationType t = DecorationType.list[meta];
-		switch(s) {
-			case 0:
-				return t.iconBottom;
-			case 1:
-				return t.iconTop;
-			default:
-				return t.iconSide;
-		}
+		return SFBlocks.CAVESHIELD.getBlockInstance().blockIcon;
 	}
 
 	@Override
@@ -84,6 +72,7 @@ public class BlockDecoration extends Block {
 	@Override
 	public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
 		DecorationType t = DecorationType.list[world.getBlockMetadata(x, y, z)];
+		t.prepareRandom(world, x, y, z);
 		float w = t.width(x, y, z)/2F;
 		this.setBlockBounds(0.5F-w, 0, 0.5F-w, 0.5F+w, t.height(x, y, z), 0.5F+w);
 	}
@@ -98,17 +87,21 @@ public class BlockDecoration extends Block {
 		return false;
 	}
 
-	public static enum DecorationType {
-		SPIKES("Stone Spikes", 0.75F, 5),
-		;
+	@Override
+	public int getRenderType() {
+		return Satisforestry.proxy.decoRender;
+	}
 
-		private IIcon iconTop;
-		private IIcon iconSide;
-		private IIcon iconBottom;
+	public static enum DecorationType {
+		STALAGMITE("Stone Spikes", 0.75F, 5),
+		STALACTITE("Stone Spikes", 0.75F, 5),
+		;
 
 		public final String name;
 		public final float hardness;
 		public final float resistance;
+
+		private static final Random renderRand = new Random();
 
 		public static final DecorationType[] list = values();
 
@@ -120,8 +113,9 @@ public class BlockDecoration extends Block {
 
 		public float width(int x, int y, int z) {
 			switch(this) {
-				case SPIKES:
-					return 0.25F;
+				case STALAGMITE:
+				case STALACTITE:
+					return (float)ReikaRandomHelper.getRandomBetween(5D, 8D, renderRand)/16F;
 				default:
 					return 1;
 			}
@@ -139,6 +133,43 @@ public class BlockDecoration extends Block {
 				default:
 					return false;
 			}
+		}
+
+		@SideOnly(Side.CLIENT)
+		public void render(IBlockAccess world, int x, int y, int z, Block b, RenderBlocks rb, Tessellator v5) {
+			this.prepareRandom(world, x, y, z);
+			v5.setColorOpaque_I(b.colorMultiplier(world, x, y, z));
+			v5.setBrightness(b.getMixedBrightnessForBlock(world, x, y, z));
+			float h = this.height(x, y, z);
+			switch(this) {
+				case STALAGMITE:
+				case STALACTITE:
+					int y0 = y;
+					double w = ReikaRandomHelper.getRandomBetween(5D, 8D, renderRand);
+					h = (float)ReikaRandomHelper.getRandomBetween(10D, 16D, renderRand);
+					double dy = this == STALACTITE ? 16-h : 0;
+					while (w >= 1 && (world.getBlock(x, y0, z).isAir(world, x, y0, z) || world.getBlock(x, y0, z) == b)) {
+						ReikaRenderHelper.renderBlockSubCube(x, y, z, 8-w, dy, 8-w, w*2, h, w*2, v5, rb, SFBlocks.CAVESHIELD.getBlockInstance(), 0);
+						if (this == STALAGMITE)
+							dy += h;
+						w -= ReikaRandomHelper.getRandomBetween(1D, 3D, renderRand);
+						h *= ReikaRandomHelper.getRandomBetween(0.5, 1, renderRand);
+						if (this == STALACTITE) {
+							dy -= h;
+							y0 = (int)(y-dy/16D);
+						}
+						else {
+							y0 = (int)(y+dy/16D);
+						}
+					}
+					break;
+			}
+		}
+
+		private void prepareRandom(IBlockAccess world, int x, int y, int z) {
+			renderRand.setSeed(ChunkCoordIntPair.chunkXZ2Int(x, z) ^ y);
+			renderRand.nextBoolean();
+			renderRand.nextBoolean();
 		}
 	}
 

@@ -18,17 +18,18 @@ import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 
 public class WorldGenPinkGrass extends WorldGenerator {
 
-	private static final GrassType BASE = new GrassType(Blocks.tallgrass, 1, new Interpolation(false).addPoint(60, 50).addPoint(90, 25).addPoint(105, 0));
+	private static final GrassType BASE = new GrassType(Blocks.tallgrass, 1, new Interpolation(false).addPoint(60, 50).addPoint(90, 25).addPoint(110, 5).addPoint(120, 0));
 
 	private final WeightedRandom<GrassType> grassTypes = new WeightedRandom();
 
 	public WorldGenPinkGrass() {
 		grassTypes.addDynamicEntry(BASE);
+		grassTypes.addDynamicEntry(new GrassType(Blocks.tallgrass, 2, new Interpolation(false).addPoint(80, 0).addPoint(100, 20).addPoint(128, 5)));
 		Block b = SFBlocks.GRASS.getBlockInstance();
-		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.PEACH_FRINGE.ordinal(), new Interpolation(false).addPoint(60, 0).addPoint(80, 10).addPoint(100, 40).addPoint(128, 20)));
-		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.RED_STRANDS_1.ordinal(), new Interpolation(false).addPoint(55, 0).addPoint(70, 20).addPoint(96, 40).addPoint(144, 25)));
-		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.RED_STRANDS_2.ordinal(), new Interpolation(false).addPoint(55, 0).addPoint(60, 20).addPoint(90, 30).addPoint(112, 10)));
-		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.TINY_PINK_LUMPS.ordinal(), new Interpolation(false).addPoint(72, 0).addPoint(80, 10).addPoint(144, 50)));
+		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.FERN.ordinal(), new Interpolation(false).addPoint(60, 40).addPoint(100, 15).addPoint(120, 5)));
+		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.PEACH_FRINGE.ordinal(), new Interpolation(false).addPoint(60, 0).addPoint(80, 10).addPoint(100, 30).addPoint(128, 10)));
+		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.RED_STRANDS.ordinal(), new Interpolation(false).addPoint(55, 0).addPoint(64, 20).addPoint(96, 40).addPoint(144, 25)));
+		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.TINY_PINK_LUMPS.ordinal(), new Interpolation(false).addPoint(72, 0).addPoint(80, 10).addPoint(110, 30).addPoint(144, 50)));
 	}
 
 	@Override

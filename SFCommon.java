@@ -14,6 +14,8 @@ import net.minecraft.world.World;
 public class SFCommon {
 
 	public static int bambooRender;
+	public static int grassRender;
+	public static int decoRender;
 
 	/**
 	 * Client side only register stuff...

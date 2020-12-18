@@ -14,6 +14,8 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.monster.EntitySpider;
@@ -24,6 +26,7 @@ import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.BiomeManager;
@@ -37,6 +40,7 @@ import net.minecraftforge.fluids.FluidRegistry;
 import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.DragonOptions;
 import Reika.DragonAPI.Auxiliary.Trackers.CommandableUpdateChecker;
+import Reika.DragonAPI.Auxiliary.Trackers.SpecialDayTracker;
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.DragonAPIMod.LoadProfiler.LoadPhase;
 import Reika.DragonAPI.Instantiable.Event.BlockStopsPrecipitationEvent;
@@ -56,6 +60,8 @@ import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Instantiable.IO.ControlledConfig;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
+import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
@@ -77,6 +83,7 @@ import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.eventhandler.Event.Result;
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
@@ -135,7 +142,7 @@ public class Satisforestry extends DragonAPIMod {
 				for (int k = 0; k < cs.length; k++) {
 					Class in = cs[k];
 					if (TileEntity.class.isAssignableFrom(in) && (in.getModifiers() & Modifier.ABSTRACT) == 0) {
-						String s = "CC"+in.getSimpleName();
+						String s = "SF"+in.getSimpleName();
 						GameRegistry.registerTileEntity(in, s);
 					}
 				}
@@ -220,7 +227,7 @@ public class Satisforestry extends DragonAPIMod {
 
 	@SubscribeEvent
 	public void meltSnowIce(BlockTickEvent evt) {
-		if (!evt.world.isRaining() && evt.world.isDaytime() && evt.getBiome() instanceof BiomePinkForest && evt.world.canBlockSeeTheSky(evt.xCoord, evt.yCoord+1, evt.zCoord)) {
+		if (!evt.world.isRaining() && evt.world.isDaytime() && !SpecialDayTracker.instance.isWinterEnabled() && this.isPinkForest(evt.world, evt.xCoord, evt.zCoord) && evt.world.canBlockSeeTheSky(evt.xCoord, evt.yCoord+1, evt.zCoord)) {
 			if (evt.block == Blocks.snow_layer)
 				evt.world.setBlockToAir(evt.xCoord, evt.yCoord, evt.zCoord);
 			else if (evt.block == Blocks.ice)
@@ -230,14 +237,14 @@ public class Satisforestry extends DragonAPIMod {
 
 	@SubscribeEvent
 	public void preventNewIce(IceFreezeEvent evt) {
-		if (evt.getBiome() instanceof BiomePinkForest) {
+		if (this.isPinkForest(evt.world, evt.xCoord, evt.zCoord)) {
 			evt.setResult(Result.DENY);
 		}
 	}
 
 	@SubscribeEvent
 	public void preventSnowGen(SnowOrIceOnGenEvent evt) {
-		if (evt.getBiome() instanceof BiomePinkForest) {
+		if (this.isPinkForest(evt.world, evt.xCoord, evt.zCoord)) {
 			evt.setResult(Result.DENY);
 		}
 	}
@@ -252,7 +259,7 @@ public class Satisforestry extends DragonAPIMod {
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void retextureGrass(GrassIconEvent evt) {
-		if (evt.getBiome() instanceof BiomePinkForest) {
+		if (this.isPinkForest(evt.getBiome())) {
 			evt.icon = evt.isTop ? biomeGrassIcon : biomeGrassIconSide;
 		}
 	}
@@ -260,7 +267,7 @@ public class Satisforestry extends DragonAPIMod {
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void retextureWater(LiquidBlockIconEvent evt) {
-		if (evt.getBiome() instanceof BiomePinkForest) {
+		if (this.isPinkForest(evt.getBiome())) {
 			if (evt.originalIcon == FluidRegistry.WATER.getFlowingIcon())
 				evt.icon = biomeWaterIconFlow;
 			else if (evt.originalIcon == FluidRegistry.WATER.getStillIcon())
@@ -389,6 +396,26 @@ public class Satisforestry extends DragonAPIMod {
 	public void preventCliffBeaches(GenLayerBeachEvent evt) {
 		if (this.isPinkForest(evt.originalBiomeID)) {
 			evt.beachIDToPlace = BiomeGenBase.beach.biomeID;
+		}
+	}
+
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void updateRendering(ClientTickEvent evt) {
+		BiomePinkForest.updateRenderFactor(Minecraft.getMinecraft().thePlayer);
+	}
+
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void setBiomeHorizonColor(FogColors evt) {
+		if (Minecraft.getMinecraft().thePlayer == null || Minecraft.getMinecraft().theWorld == null)
+			return;
+		if (Minecraft.getMinecraft().thePlayer.isInsideOfMaterial(Material.lava) || Minecraft.getMinecraft().thePlayer.isInsideOfMaterial(Material.water))
+			return;
+		float f = BiomePinkForest.renderFactor*(float)ReikaMathLibrary.normalizeToBounds(ReikaWorldHelper.getSunIntensity(Minecraft.getMinecraft().theWorld, false, (float)evt.renderPartialTicks), 0, 1, 0.2, 0.8);
+		if (f > 0) {
+			int color = 0xFFABF6;
+			evt.red = evt.red*(1-f)+f*ReikaColorAPI.getRed(color)/255F;
+			evt.green = evt.green*(1-f)+f*ReikaColorAPI.getGreen(color)/255F;
+			evt.blue = evt.blue*(1-f)+f*ReikaColorAPI.getBlue(color)/255F;
 		}
 	}
 

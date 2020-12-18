@@ -42,7 +42,7 @@ public class WorldGenPonds extends WorldGenerator {
 		if (!forceGeneration && Satisforestry.pinkforest.getSubBiome(world, x0, z0) != BiomeSection.SWAMP)
 			return false;
 
-		for (int i = 0; i < 3; i++) {
+		for (int i = 0; i < 4; i++) {
 			int x = ReikaRandomHelper.getRandomPlusMinus(x0, 6, rand);
 			int z = ReikaRandomHelper.getRandomPlusMinus(z0, 6, rand);
 			int y = DecoratorPinkForest.getTrueTopAt(world, x, z);
@@ -198,12 +198,14 @@ public class WorldGenPonds extends WorldGenerator {
 						Integer level = waterLevel.get(c2);
 						if (level != null) {
 							OreClusterType ore = DecoratorPinkForest.generateOreClumpAt(world, c2.xCoord, level, c2.zCoord, rand, OreSpawnLocation.PONDS, 2);
-							world.setBlock(c2.xCoord, level+1, c2.zCoord, ore.oreBlock.blockID, ore.oreBlock.metadata, 2);
-							break;
+							if (ore != null) {
+								world.setBlock(c2.xCoord, level+1, c2.zCoord, ore.oreBlock.blockID, ore.oreBlock.metadata, 2);
+								break;
+							}
 						}
 					}
 				}
-				ReikaJavaLibrary.pConsole("Generated a swamp pond at "+x+", "+y+", "+z);
+				//ReikaJavaLibrary.pConsole("Generated a swamp pond at "+x+", "+y+", "+z);
 				if (rand.nextInt(5) >= 1)
 					return true;
 			}
