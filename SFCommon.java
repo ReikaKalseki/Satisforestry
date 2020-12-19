@@ -16,6 +16,7 @@ public class SFCommon {
 	public static int bambooRender;
 	public static int grassRender;
 	public static int decoRender;
+	public static int resourceRender;
 
 	/**
 	 * Client side only register stuff...
