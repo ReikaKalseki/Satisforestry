@@ -5,6 +5,7 @@ import java.util.Random;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
@@ -83,7 +84,7 @@ public class BlockRedBamboo extends Block implements IPlantable {
 	@Override
 	public boolean canPlaceBlockAt(World world, int x, int y, int z) {
 		Block b = world.getBlock(x, y-1, z);
-		return b == this || b.canSustainPlant(world, x, y-1, z, ForgeDirection.UP, this);
+		return b == this || b == Blocks.sand || b.canSustainPlant(world, x, y-1, z, ForgeDirection.UP, this);
 	}
 
 	@Override

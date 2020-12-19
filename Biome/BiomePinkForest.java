@@ -29,9 +29,12 @@ import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.Instantiable.Math.Noise.NoiseGeneratorBase;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Instantiable.Worldgen.ModSpawnEntry;
+import Reika.DragonAPI.Interfaces.WinterBiomeStrengthControl;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper.CubeDirections;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
+import Reika.DragonAPI.Libraries.IO.ReikaRenderHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Generator.GiantPinkTreeGenerator;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGenerator;
@@ -40,7 +43,7 @@ import Reika.Satisforestry.Biome.Generator.WorldGenPinkGrass;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, NonconvertibleBiome {
+public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, NonconvertibleBiome, WinterBiomeStrengthControl {
 
 	//private final PinkTreeGenerator treeGen = new PinkTreeGenerator();
 	//private final GiantPinkTreeGenerator giantTreeGen = new GiantPinkTreeGenerator();
@@ -406,6 +409,12 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 					return 0;
 			}
 		}
+	}
+
+	@Override
+	public float getStrength(World world, EntityPlayer ep) {
+		float sun = ReikaWorldHelper.getSunIntensity(Minecraft.getMinecraft().theWorld, true, ReikaRenderHelper.getPartialTickTime());
+		return 1-Math.min(1, 1.1F*sun*sun);
 	}
 
 }

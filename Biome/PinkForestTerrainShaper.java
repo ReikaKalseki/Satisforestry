@@ -53,10 +53,6 @@ public class PinkForestTerrainShaper extends TerrainShaper {
 
 			this.cleanColumn(world, x, z, biome);
 		}
-		if (sub == BiomeSection.SWAMP) {
-			top = this.getTopNonAir(x, z);
-			this.setBlock(x, top, z, Blocks.dirt);
-		}
 	}
 
 	@Override

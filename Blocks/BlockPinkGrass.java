@@ -38,7 +38,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 		RED_STRANDS(2),
 		BLUE_MUSHROOM_STALK("Blue Mushroom", 1),
 		BLUE_MUSHROOM_TOP("Blue Mushroom", 3),
-		VINE("Cave Vine", 1),
+		VINE("Cave Vine", 3),
 		STALKS("Stony Stalks", 2),
 		FERN(),
 		;
@@ -84,16 +84,18 @@ public class BlockPinkGrass extends BlockTallGrass {
 			}
 		}
 
-		public boolean isSelfColor() {
+		public int getColor(int base) {
 			switch(this) {
 				case PEACH_FRINGE:
 				case RED_STRANDS:
 				case BLUE_MUSHROOM_STALK:
 				case BLUE_MUSHROOM_TOP:
 				case STALKS:
-					return true;
+					return 0xffffff;
+				case VINE:
+					return ReikaColorAPI.mixColors(0xa0a0a0, base, 0.25F);
 				default:
-					return false;
+					return base;
 			}
 		}
 
@@ -195,7 +197,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 	@Override
 	public int colorMultiplier(IBlockAccess world, int x, int y, int z) {
 		GrassTypes gr = GrassTypes.list[world.getBlockMetadata(x, y, z)];
-		return gr.isSelfColor() ? 0xffffff : super.colorMultiplier(world, x, y, z);
+		return gr.getColor(super.colorMultiplier(world, x, y, z));
 	}
 
 	@Override

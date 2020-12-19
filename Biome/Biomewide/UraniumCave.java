@@ -188,13 +188,17 @@ public class UraniumCave {
 			}
 		}
 
-		this.generateDecorations(world, rand, carveSet, remainingFloor, cc, tunnels);
+		this.generateDecorations(world, rand, carveSet, remainingFloor, cc);
 
 		this.generateCasing(world, rand, carveSet);
 
 		for (int i = 0; i < 15; i++) {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, flatFloor);
 			c = c.setY(remainingFloor.get(c));
+			while (c.offset(0, -1, 0).softBlock(world))
+				c = c.offset(0, -1, 0);
+			if (c.yCoord+1 < cc.footprint.get(c.to2D()))
+				continue;
 			DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, c.yCoord, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4, pits);
 
 			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord-1, c.zCoord, rand);
@@ -231,7 +235,7 @@ public class UraniumCave {
 		return cc;
 	}
 
-	private void generateDecorations(World world, Random rand, HashSet<Coordinate> carveSet, HashMap<Coordinate, Integer> floor, CentralCave cc, Collection<Tunnel> tunnels) {
+	private void generateDecorations(World world, Random rand, HashSet<Coordinate> carveSet, HashMap<Coordinate, Integer> floor, CentralCave cc) {
 		HashSet<Coordinate> used = new HashSet();
 
 		for (int i = 0; i < 30; i++) {
@@ -280,12 +284,12 @@ public class UraniumCave {
 			}
 		}
 
-		for (int i = 0; i < 60; i++) {
+		for (int i = 0; i < 120; i++) {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.carve.keySet());
 			while (carveSet.contains(c.offset(0, 1, 0))) {
 				c = c.offset(0, 1, 0);
 			}
-			if (rand.nextBoolean()) {
+			if (rand.nextInt(3) > 0) {
 				c.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALACTITE.ordinal());
 			}
 			else {
@@ -316,7 +320,7 @@ public class UraniumCave {
 			}
 		}
 
-		for (Tunnel t : tunnels) {
+		for (Tunnel t : cc.tunnels) {
 			for (int i = 0; i < 16; i++) {
 				Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, t.carve.keySet());
 				while (carveSet.contains(c.offset(0, -1, 0))) {
@@ -349,12 +353,60 @@ public class UraniumCave {
 				while (carveSet.contains(c.offset(0, 1, 0))) {
 					c = c.offset(0, 1, 0);
 				}
-				if (rand.nextInt(3) == 0) {
+				if (rand.nextInt(5) >= 1) {
 					c.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALACTITE.ordinal());
 				}
 				else {
 					this.generateVine(world, c.xCoord, c.yCoord, c.zCoord, rand.nextBoolean() ? 3 : 2, carveSet);
 				}
+			}
+		}
+
+		for (int i = 0; i < 10; i++) {
+			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.nodeRoom.carve.keySet());
+			while (carveSet.contains(c.offset(0, -1, 0))) {
+				c = c.offset(0, -1, 0);
+			}
+			int h = ReikaRandomHelper.getRandomBetween(0, 2, rand);
+			this.generateMushroom(world, c.xCoord, c.yCoord, c.zCoord, h, carveSet);
+
+			for (int i2 = 0; i2 <= 5; i2++) {
+				Coordinate c2 = c.offset(ReikaRandomHelper.getRandomPlusMinus(0, 2, rand), 0, ReikaRandomHelper.getRandomPlusMinus(0, 2, rand));
+				while (carveSet.contains(c2.offset(0, -1, 0))) {
+					c2 = c2.offset(0, -1, 0);
+				}
+				if (!carveSet.contains(c2))
+					continue;
+				if (DecoratorPinkForest.getTrueTopAt(world, c2.xCoord, c2.zCoord) <= c2.yCoord+10)
+					continue;
+				int n = rand.nextInt(5);
+				switch(n) {
+					case 0:
+					case 1:
+						c.setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal());
+						break;
+					case 2:
+						c.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal());
+						break;
+					case 3:
+					case 4:
+						h = ReikaRandomHelper.getRandomBetween(0, 2, rand);
+						this.generateMushroom(world, c2.xCoord, c2.yCoord, c2.zCoord, h, carveSet);
+						break;
+				}
+			}
+		}
+
+		for (int i = 0; i < 20; i++) {
+			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, cc.nodeRoom.carve.keySet());
+			while (carveSet.contains(c.offset(0, 1, 0))) {
+				c = c.offset(0, 1, 0);
+			}
+			if (rand.nextInt(5) >= 1) {
+				c.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALACTITE.ordinal());
+			}
+			else {
+				this.generateVine(world, c.xCoord, c.yCoord, c.zCoord, rand.nextBoolean() ? 3 : 2, carveSet);
 			}
 		}
 	}
