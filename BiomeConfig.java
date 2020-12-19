@@ -252,7 +252,7 @@ public class BiomeConfig {
 			ResourceItem ore = new ResourceItem(id, is, b.getInt("spawnWeight"));
 			ore.minCount = b.getInt("minCount");
 			ore.maxCount = b.getInt("maxCount");
-			resourceEntries.put(type, ore);
+			resourceEntries.put(id, ore);
 			Satisforestry.logger.log("Registered resource type '"+type+"' with item '"+CustomRecipeList.fullID(is));
 			entryCount++;
 		}

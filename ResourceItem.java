@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 public class ResourceItem {
 
 	public final String id;
-	public final ItemStack item;
+	private final ItemStack item;
 	public final int spawnWeight;
 
 	public int minCount = 1;
@@ -15,6 +15,10 @@ public class ResourceItem {
 		id = s;
 		item = is.copy();
 		spawnWeight = w;
+	}
+
+	public ItemStack getItem() {
+		return item.copy();
 	}
 
 }

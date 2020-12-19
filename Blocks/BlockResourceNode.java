@@ -3,13 +3,23 @@ package Reika.Satisforestry.Blocks;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 
 public class BlockResourceNode extends BlockContainer {
 
@@ -22,11 +32,13 @@ public class BlockResourceNode extends BlockContainer {
 
 	@Override
 	public TileEntity createNewTileEntity(World world, int meta) {
-		return null;
+		return meta == 0 ? new TileResourceNode() : null;
 	}
 
 	@Override
 	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
+		int meta = iba.getBlockMetadata(x, y, z);
+
 		return s == 1 ? blockIcon : SFBlocks.CAVESHIELD.getBlockInstance().getIcon(iba, x, y, z, s);
 	}
 
@@ -35,4 +47,118 @@ public class BlockResourceNode extends BlockContainer {
 		blockIcon = ico.registerIcon("satisforestry:resourcenode");
 	}
 
+	@Override
+	public void onBlockClicked(World world, int x, int y, int z, EntityPlayer ep) {
+		TileResourceNode te = (TileResourceNode)world.getTileEntity(x, y, z);
+		te.onManualClick();
+	}
+
+	@Override
+	public int getRenderType() {
+		return Satisforestry.proxy.resourceRender;
+	}
+
+	public static class TileResourceNode extends TileEntity {
+
+		private static final int MINING_TIME = 3; //just like in SF
+		private static final int MANUAL_MINING_COOLDOWN = 15;
+
+		private Purity purity = Purity.NORMAL;
+
+		private int manualMiningCycle;
+		private long lastClickTick = -1;
+		private int autoOutputTimer = purity.getCountdown();
+
+		@Override
+		public void updateEntity() {
+			if (autoOutputTimer > 0)
+				autoOutputTimer--;
+			if (autoOutputTimer == 0) {
+				TileEntity te = worldObj.getTileEntity(xCoord, yCoord+1, zCoord);
+				if (te instanceof IInventory) {
+					ItemStack is = UraniumCave.instance.getRandomNodeItem();
+					if (is != null) {
+						if (ReikaInventoryHelper.addToIInv(is, (IInventory)te)) {
+							autoOutputTimer = purity.getCountdown();
+						}
+					}
+				}
+			}
+		}
+
+		public void onManualClick() {
+			long time = worldObj.getTotalWorldTime();
+			long dur = time-lastClickTick;
+			if (dur >= MANUAL_MINING_COOLDOWN) {
+				lastClickTick = time;
+				manualMiningCycle++;
+				if (manualMiningCycle >= MINING_TIME) {
+					ItemStack is = UraniumCave.instance.getRandomNodeItem();
+					if (is != null)
+						ReikaItemHelper.dropItem(worldObj, xCoord+0.5, yCoord+1, zCoord+0.5, is);
+					manualMiningCycle = 0;
+				}
+			}
+		}
+
+		public float getAutomationProgress() {
+			return 1F-(autoOutputTimer/(float)purity.getCountdown());
+		}
+
+		public float getManualProgress() {
+			return manualMiningCycle/(float)MINING_TIME;
+		}
+
+		@Override
+		public void writeToNBT(NBTTagCompound NBT) {
+			super.writeToNBT(NBT);
+
+			NBT.setInteger("cycle", manualMiningCycle);
+			NBT.setInteger("timer", autoOutputTimer);
+			NBT.setLong("lastClick", lastClickTick);
+		}
+
+		@Override
+		public void readFromNBT(NBTTagCompound NBT) {
+			super.readFromNBT(NBT);
+
+			manualMiningCycle = NBT.getInteger("cycle");
+			autoOutputTimer = NBT.getInteger("timer");
+			lastClickTick = NBT.getLong("lastClick");
+		}
+
+		@Override
+		public Packet getDescriptionPacket() {
+			NBTTagCompound NBT = new NBTTagCompound();
+			this.writeToNBT(NBT);
+			S35PacketUpdateTileEntity pack = new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, NBT);
+			return pack;
+		}
+
+		@Override
+		public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity p)  {
+			this.readFromNBT(p.field_148860_e);
+			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+		}
+
+	}
+
+	public static enum Purity {
+		IMPURE(0.5F),
+		NORMAL(1),
+		PURE(2);
+
+		public final float yield;
+
+		private static final int MINING_COOLDOWN = 10; //default resource node is 120/min = 2/s = 10t
+		private static final Purity[] list = values();
+
+		private Purity(float d) {
+			yield = d;
+		}
+
+		public int getCountdown() {
+			return (int)(MINING_COOLDOWN/yield);
+		}
+	}
 }
