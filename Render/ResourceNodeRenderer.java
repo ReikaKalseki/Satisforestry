@@ -19,8 +19,10 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 
+import Reika.ChromatiCraft.Registry.ChromaBlocks;
 import Reika.DragonAPI.Interfaces.ISBRH;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 
 
 public class ResourceNodeRenderer implements ISBRH {
@@ -46,15 +48,16 @@ public class ResourceNodeRenderer implements ISBRH {
 		IIcon ico = Blocks.bedrock.blockIcon;
 
 		int n = ReikaRandomHelper.getRandomBetween(5, 9, rand);
+		double minr = 1.75;
 		double maxr = 2.25;
 
 		double da = 360D/n;
 		for (int i = 0; i < n; i++) {
-			double h = ReikaRandomHelper.getRandomBetween(0.0625, 0.125, rand);
+			double h = ReikaRandomHelper.getRandomBetween(0.0625, 0.1875, rand);
 			double dy = y+1+h;
 			boolean split = rand.nextInt(3) > 0;
 			double r1 = ReikaRandomHelper.getRandomBetween(0.25, 0.625, rand);
-			double r2 = Math.max(r1+0.5, ReikaRandomHelper.getRandomBetween(1.75, maxr, rand));
+			double r2 = Math.max(r1+0.5, ReikaRandomHelper.getRandomBetween(minr, maxr, rand));
 			double f = ReikaRandomHelper.getRandomBetween(0.625, 0.875, rand);
 			double aw = da*f/2D;
 			double oa = (1-f)*da/2D;
@@ -143,34 +146,41 @@ public class ResourceNodeRenderer implements ISBRH {
 		}
 
 		v5.setBrightness(240);
-		int div = 8;//16;
-		int half = div/2-1;
-		double scale = 16D/div;
+		n = 8;
+		double dd = 1D/n;
+		double r = ReikaMathLibrary.roundToNearestFraction(ReikaRandomHelper.getRandomBetween(minr-0.5, minr-0.25), dd);
+		int len = (int)((r/dd)*2+1);
 		double h = 0.25;
+		double[][] grid = new double[len][len];
+		for (int i = 0; i < grid.length; i++) {
+			for (int k = 0; k < grid[i].length; k++) {
+				double i2 = (i-len/2D)*dd;
+				double k2 = (k-len/2D)*dd;
+				double dh = Math.max(0, 1-0.125*ReikaMathLibrary.py3d(i2, 0, k2));
+				grid[i][k] = rand.nextDouble()*h*dh;
+			}
+		}
 
+		int div = len;//8;//16;
+		int half = div/2-1;
 		double size = 1;
+		double scale = 16D/div;
+
 		double minX = x+0.5-size/2;
 		double maxX = x+0.5+size/2;
 		double minZ = z+0.5-size/2;
 		double maxZ = z+0.5+size/2;
 
-		double[][] grid = new double[div-1][div-1];
-		for (int i = 0; i < grid.length; i++) {
-			for (int k = 0; k < grid[i].length; k++) {
-				double d = Math.min(Math.abs(k-half), Math.abs(i-half))/(double)half;
-				double dh = 1-d;
-				grid[i][k] = rand.nextDouble()*h*dh;
-			}
-		}
-
-		ico = Blocks.snow.blockIcon;
+		ico = ChromaBlocks.CRYSTAL.getBlockInstance().getIcon(0, 15);
 		v5.setColorOpaque_I(0x22aaff);
 
-		for (int i = 0; i < div; i++) {
-			for (int k = 0; k < div; k++) {
-				double x1 = minX+i/(double)div;
+		for (int i = 0; i < len; i++) {
+			for (int k = 0; k < len; k++) {
+				double i2 = (i-len/2D);
+				double k2 = (k-len/2D);
+				double x1 = minX+i2/div;
 				double x2 = x1+size/div;
-				double z1 = minZ+k/(double)div;
+				double z1 = minZ+k2/div;
 				double z2 = z1+size/div;
 				double y11 = i == 0 || k == 0 ? 0 : grid[i-1][k-1];
 				double y12 = i == 0 || k == div-1 ? 0 : grid[i-1][k];
