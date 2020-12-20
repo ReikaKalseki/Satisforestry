@@ -18,10 +18,15 @@ import net.minecraft.world.World;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.SFBlocks;
+import Reika.Satisforestry.SFOptions;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
+import Reika.Satisforestry.Render.ResourceNodeRenderer;
 
 public class BlockResourceNode extends BlockContainer {
+
+	private static IIcon crystalIcon;
+	private static IIcon overlayIcon;
 
 	public BlockResourceNode(Material mat) {
 		super(mat);
@@ -37,14 +42,15 @@ public class BlockResourceNode extends BlockContainer {
 
 	@Override
 	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
-		int meta = iba.getBlockMetadata(x, y, z);
-
-		return s == 1 ? blockIcon : SFBlocks.CAVESHIELD.getBlockInstance().getIcon(iba, x, y, z, s);
+		return SFBlocks.CAVESHIELD.getBlockInstance().getIcon(iba, x, y, z, s);
 	}
 
 	@Override
 	public void registerBlockIcons(IIconRegister ico) {
 		blockIcon = ico.registerIcon("satisforestry:resourcenode");
+
+		overlayIcon = ico.registerIcon("satisforestry:resourcenode_overlay");
+		crystalIcon = ico.registerIcon("satisforestry:resourcenode_crystal");
 	}
 
 	@Override
@@ -56,6 +62,25 @@ public class BlockResourceNode extends BlockContainer {
 	@Override
 	public int getRenderType() {
 		return Satisforestry.proxy.resourceRender;
+	}
+
+	@Override
+	public final int getRenderBlockPass() {
+		return 1;
+	}
+
+	@Override
+	public boolean canRenderInPass(int pass) {
+		ResourceNodeRenderer.renderPass = pass;
+		return pass <= 1;
+	}
+
+	public static IIcon getCrystal() {
+		return crystalIcon;
+	}
+
+	public static IIcon getOverlay() {
+		return overlayIcon;
 	}
 
 	public static class TileResourceNode extends TileEntity {
@@ -71,15 +96,17 @@ public class BlockResourceNode extends BlockContainer {
 
 		@Override
 		public void updateEntity() {
-			if (autoOutputTimer > 0)
-				autoOutputTimer--;
-			if (autoOutputTimer == 0) {
-				TileEntity te = worldObj.getTileEntity(xCoord, yCoord+1, zCoord);
-				if (te instanceof IInventory) {
-					ItemStack is = UraniumCave.instance.getRandomNodeItem();
-					if (is != null) {
-						if (ReikaInventoryHelper.addToIInv(is, (IInventory)te)) {
-							autoOutputTimer = purity.getCountdown();
+			if (SFOptions.SIMPLEAUTO.getState()) {
+				if (autoOutputTimer > 0)
+					autoOutputTimer--;
+				if (autoOutputTimer == 0) {
+					TileEntity te = worldObj.getTileEntity(xCoord, yCoord+1, zCoord);
+					if (te instanceof IInventory) {
+						ItemStack is = UraniumCave.instance.getRandomNodeItem();
+						if (is != null) {
+							if (ReikaInventoryHelper.addToIInv(is, (IInventory)te)) {
+								autoOutputTimer = purity.getCountdown();
+							}
 						}
 					}
 				}

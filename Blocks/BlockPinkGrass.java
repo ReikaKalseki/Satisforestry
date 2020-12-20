@@ -41,6 +41,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 		VINE("Cave Vine", 3),
 		STALKS("Stony Stalks", 2),
 		FERN(),
+		PALEBERRY(),
 		;
 
 		public final String name;

@@ -30,6 +30,7 @@ public class BiomewideFeatureGenerator {
 	}
 
 	public void generateUniqueCenterFeatures(World world, int x, int z, Random rand, BiomeFootprint bf) {
+		Collection<Coordinate> spawns = LizardDoggoSpawner.instance.createDoggoSpawnPoints();
 		Collection<Coordinate> rivers = PinkRivers.instance.generateRivers(world, x, z, rand, bf);
 		boolean flag = false;
 		if (!rivers.isEmpty()) {

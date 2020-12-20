@@ -12,24 +12,29 @@ package Reika.Satisforestry.Render;
 import java.util.Random;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 
-import Reika.ChromatiCraft.Registry.ChromaBlocks;
+import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Interfaces.ISBRH;
+import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.Satisforestry.SFOptions;
+import Reika.Satisforestry.Blocks.BlockResourceNode;
 
 
 public class ResourceNodeRenderer implements ISBRH {
 
 	private static final Random rand = new Random();
 
-	public int renderPass;
+	public static int renderPass;
 
 	@Override
 	public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
@@ -38,14 +43,29 @@ public class ResourceNodeRenderer implements ISBRH {
 
 	@Override
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
-		renderer.renderStandardBlockWithAmbientOcclusion(block, x, y, z, 1, 1, 1);
 		Tessellator v5 = Tessellator.instance;
-		v5.setColorOpaque_I(0xffffff);
+		int c = SFOptions.RESOURCECOLOR.getValue();
+		if (renderPass == 0) {
+			v5.setColorOpaque_I(0xffffff);
+			renderer.renderStandardBlockWithAmbientOcclusion(block, x, y, z, 1, 1, 1);
+		}
+		else {
+			v5.setBrightness(240);
+
+			World w = Minecraft.getMinecraft().theWorld;
+			float l = Math.max(w.getSavedLightValue(EnumSkyBlock.Block, x, y+1, z), w.getSavedLightValue(EnumSkyBlock.Sky, x, y+1, z)*w.getSunBrightnessFactor(0));
+			float a = 1-l/24F;
+			if (a < 1) {
+				c = ReikaColorAPI.mixColors(c, 0xffffff, a*0.5F+0.5F);
+			}
+
+			v5.setColorRGBA_I(c, (int)(a*255));
+		}
 
 		rand.setSeed(this.calcSeed(x, y, z));
 		rand.nextBoolean();
 
-		IIcon ico = Blocks.bedrock.blockIcon;
+		IIcon ico = renderPass == 1 ? BlockResourceNode.getOverlay() : block.blockIcon;
 
 		int n = ReikaRandomHelper.getRandomBetween(5, 9, rand);
 		double minr = 1.75;
@@ -145,51 +165,62 @@ public class ResourceNodeRenderer implements ISBRH {
 			}
 		}
 
-		v5.setBrightness(240);
-		n = 8;
-		double dd = 1D/n;
-		double r = ReikaMathLibrary.roundToNearestFraction(ReikaRandomHelper.getRandomBetween(minr-0.5, minr-0.25), dd);
-		int len = (int)((r/dd)*2+1);
-		double h = 0.25;
-		double[][] grid = new double[len][len];
-		for (int i = 0; i < grid.length; i++) {
-			for (int k = 0; k < grid[i].length; k++) {
-				double i2 = (i-len/2D)*dd;
-				double k2 = (k-len/2D)*dd;
-				double dh = Math.max(0, 1-0.125*ReikaMathLibrary.py3d(i2, 0, k2));
-				grid[i][k] = rand.nextDouble()*h*dh;
-			}
-		}
+		if (renderPass == 1) {
+			v5.setColorOpaque_I(c);
+			ico = BlockResourceNode.getCrystal();
 
-		int div = len;//8;//16;
-		int half = div/2-1;
-		double size = 1;
-		double scale = 16D/div;
+			SimplexNoiseGenerator gen = (SimplexNoiseGenerator)new SimplexNoiseGenerator(rand.nextLong()).setFrequency(12);
 
-		double minX = x+0.5-size/2;
-		double maxX = x+0.5+size/2;
-		double minZ = z+0.5-size/2;
-		double maxZ = z+0.5+size/2;
+			n = 8;
+			double dd = 1D/n;
+			double r = ReikaMathLibrary.roundToNearestFraction(ReikaRandomHelper.getRandomBetween(minr-0.5, minr-0.25, rand), dd);
+			double h = 0.4;
+			double dhl = 0.15;
+			double oy = 0.995;
 
-		ico = ChromaBlocks.CRYSTAL.getBlockInstance().getIcon(0, 15);
-		v5.setColorOpaque_I(0x22aaff);
+			for (double i = -r; i <= r; i += dd) {
+				for (double k = -r; k <= r; k += dd) {
+					double dh11 = Math.max(-0.5, -dhl*ReikaMathLibrary.py3d(i, 0, k));
+					double dh12 = Math.max(-0.5, -dhl*ReikaMathLibrary.py3d(i, 0, k+dd));
+					double dh21 = Math.max(-0.5, -dhl*ReikaMathLibrary.py3d(i+dd, 0, k));
+					double dh22 = Math.max(-0.5, -dhl*ReikaMathLibrary.py3d(i+dd, 0, k+dd));
+					/*
+				double y11 = rand.nextDouble()*h*dh11;
+				double y12 = rand.nextDouble()*h*dh12;
+				double y21 = rand.nextDouble()*h*dh21;
+				double y22 = rand.nextDouble()*h*dh22;
+					 */
+					double x1 = x+0.5+i;
+					double x2 = x+0.5+i+dd;
+					double z1 = z+0.5+k;
+					double z2 = z+0.5+k+dd;
 
-		for (int i = 0; i < len; i++) {
-			for (int k = 0; k < len; k++) {
-				double i2 = (i-len/2D);
-				double k2 = (k-len/2D);
-				double x1 = minX+i2/div;
-				double x2 = x1+size/div;
-				double z1 = minZ+k2/div;
-				double z2 = z1+size/div;
-				double y11 = i == 0 || k == 0 ? 0 : grid[i-1][k-1];
-				double y12 = i == 0 || k == div-1 ? 0 : grid[i-1][k];
-				double y21 = i == div-1 || k == 0 ? 0 : grid[i][k-1];
-				double y22 = i == div-1 || k == div-1 ? 0 : grid[i][k];
-				v5.addVertexWithUV(x1, y+1.02+y12, z2, ico.getInterpolatedU(i*scale), ico.getInterpolatedV((k+1)*scale));
-				v5.addVertexWithUV(x2, y+1.02+y22, z2, ico.getInterpolatedU((i+1)*scale), ico.getInterpolatedV((k+1)*scale));
-				v5.addVertexWithUV(x2, y+1.02+y21, z1, ico.getInterpolatedU((i+1)*scale), ico.getInterpolatedV(k*scale));
-				v5.addVertexWithUV(x1, y+1.02+y11, z1, ico.getInterpolatedU(i*scale), ico.getInterpolatedV(k*scale));
+					double y11 = ReikaMathLibrary.normalizeToBounds(gen.getValue(x1, z1), 0, 1)*h+dh11;
+					double y12 = ReikaMathLibrary.normalizeToBounds(gen.getValue(x1, z2), 0, 1)*h+dh12;
+					double y21 = ReikaMathLibrary.normalizeToBounds(gen.getValue(x2, z1), 0, 1)*h+dh21;
+					double y22 = ReikaMathLibrary.normalizeToBounds(gen.getValue(x2, z2), 0, 1)*h+dh22;
+
+					double u1 = ico.getInterpolatedU((i+r)*16D/(r*2));
+					double u2 = Math.min(ico.getMaxU(), ico.getInterpolatedU((i+dd+r)*16D/(r*2)));
+					double v1 = ico.getInterpolatedV((k+r)*16D/(r*2));
+					double v2 = Math.min(ico.getMaxV(), ico.getInterpolatedV((k+dd+r)*16D/(r*2)));
+
+					if (rand.nextBoolean()) {
+						double s = u2;
+						u2 = u1;
+						u1 = s;
+					}
+					if (rand.nextBoolean()) {
+						double s = v2;
+						v2 = v1;
+						v1 = s;
+					}
+
+					v5.addVertexWithUV(x1, y+oy+y12, z2, u1, v2);
+					v5.addVertexWithUV(x2, y+oy+y22, z2, u2, v2);
+					v5.addVertexWithUV(x2, y+oy+y21, z1, u2, v1);
+					v5.addVertexWithUV(x1, y+oy+y11, z1, u1, v1);
+				}
 			}
 		}
 
@@ -205,7 +236,6 @@ public class ResourceNodeRenderer implements ISBRH {
 		double fz = (z2-z0)/(maxr*2);//ReikaMathLibrary.getDecimalPart(z2);
 		double u = ico.getInterpolatedU(fx*16+0.01);
 		double v = ico.getInterpolatedV(fz*16+0.01); //tiny offset is to avoid the selection lying right at the boundary between two px and giving flicker
-		//v5.setColorOpaque_F((float)fx, 0, (float)fz);
 		v5.addVertexWithUV(x2, y, z2, u, v);
 	}
 
