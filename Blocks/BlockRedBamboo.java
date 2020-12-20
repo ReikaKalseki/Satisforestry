@@ -15,6 +15,7 @@ import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Render.RedBambooRenderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -126,6 +127,17 @@ public class BlockRedBamboo extends Block implements IPlantable {
 	@Override
 	public int getRenderType() {
 		return Satisforestry.proxy.bambooRender;//0;//1;
+	}
+
+	@Override
+	public final int getRenderBlockPass() {
+		return 1;
+	}
+
+	@Override
+	public boolean canRenderInPass(int pass) {
+		RedBambooRenderer.renderPass = pass;
+		return pass <= 1;
 	}
 
 	@Override
