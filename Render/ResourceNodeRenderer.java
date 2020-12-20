@@ -73,6 +73,8 @@ public class ResourceNodeRenderer implements ISBRH {
 
 		double da = 360D/n;
 		for (int i = 0; i < n; i++) {
+			double ox = ReikaRandomHelper.getRandomPlusMinus(0, 0.09375, rand);
+			double oz = ReikaRandomHelper.getRandomPlusMinus(0, 0.09375, rand);
 			double h = ReikaRandomHelper.getRandomBetween(0.0625, 0.1875, rand);
 			double dy = y+1+h;
 			boolean split = rand.nextInt(3) > 0;
@@ -84,48 +86,55 @@ public class ResourceNodeRenderer implements ISBRH {
 			double a0 = da*i+oa;
 			double a1 = Math.toRadians(a0-aw);
 			double a2 = Math.toRadians(a0+aw);
-			double x1 = r1*Math.cos(a1);
-			double x2 = r1*Math.cos(a2);
-			double x3 = r2*Math.cos(a2);
-			double x4 = r2*Math.cos(a1);
-			double z1 = r1*Math.sin(a1);
-			double z2 = r1*Math.sin(a2);
-			double z3 = r2*Math.sin(a2);
-			double z4 = r2*Math.sin(a1);
+
+			double oo = 0.09375;
+			double x1 = r1*Math.cos(a1)+ox+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+			double x2 = r1*Math.cos(a2)+ox+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+			double x3 = r2*Math.cos(a2)+ox+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+			double x4 = r2*Math.cos(a1)+ox+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+			double z1 = r1*Math.sin(a1)+oz+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+			double z2 = r1*Math.sin(a2)+oz+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+			double z3 = r2*Math.sin(a2)+oz+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+			double z4 = r2*Math.sin(a1)+oz+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+
 			if (split) {
-				double xa = Math.cos(Math.toRadians(a0));
-				double za = Math.sin(Math.toRadians(a0));
+				double xm = Math.cos(Math.toRadians(a0));
+				double zm = Math.sin(Math.toRadians(a0));
+
+				double xa = xm*r1+ox+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+				double xb = xm*r2+ox+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+				double za = zm*r1+oz+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
+				double zb = zm*r2+oz+ReikaRandomHelper.getRandomPlusMinus(0, oo, rand);
 
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x1, z1);
-				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r1, za*r1);
-				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r2, za*r2);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xa, za);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xb, zb);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x4, z4);
 
-				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r1, za*r1);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xa, za);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x2, z2);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x3, z3);
-				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r2, za*r2);
-
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xb, zb);
 
 				this.addVertexAt(v5, x, y+1, z, maxr, ico, x1, z1);
-				this.addVertexAt(v5, x, y+1, z, maxr, ico, xa*r1, za*r1);
-				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r1, za*r1);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, xa, za);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xa, za);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x1, z1);
 
-				this.addVertexAt(v5, x, y+1, z, maxr, ico, xa*r1, za*r1);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, xa, za);
 				this.addVertexAt(v5, x, y+1, z, maxr, ico, x2, z2);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x2, z2);
-				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r1, za*r1);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xa, za);
 
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x4, z4);
-				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r2, za*r2);
-				this.addVertexAt(v5, x, y+1, z, maxr, ico, xa*r2, za*r2);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xb, zb);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, xb, zb);
 				this.addVertexAt(v5, x, y+1, z, maxr, ico, x4, z4);
 
-				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r2, za*r2);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xb, zb);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x3, z3);
 				this.addVertexAt(v5, x, y+1, z, maxr, ico, x3, z3);
-				this.addVertexAt(v5, x, y+1, z, maxr, ico, xa*r2, za*r2);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, xb, zb);
 
 				this.addVertexAt(v5, x, y+1, z, maxr, ico, x1, z1);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x1, z1);
