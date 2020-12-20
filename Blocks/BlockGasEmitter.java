@@ -93,7 +93,8 @@ public class BlockGasEmitter extends BlockContainer {
 			else {
 				List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, activeArea);
 				for (EntityPlayer e : li) {
-					e.addPotionEffect(new PotionEffect(Potion.poison.id, 40, 1));
+					if (!e.isPotionActive(Potion.poison))
+						e.addPotionEffect(new PotionEffect(Potion.poison.id, 60, 1));
 				}
 			}
 		}

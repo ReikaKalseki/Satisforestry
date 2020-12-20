@@ -10,6 +10,8 @@ import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
@@ -20,9 +22,12 @@ import net.minecraftforge.common.EnumPlantType;
 import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.IO.ReikaRenderHelper;
+import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 
@@ -41,7 +46,8 @@ public class BlockPinkGrass extends BlockTallGrass {
 		VINE("Cave Vine", 3),
 		STALKS("Stony Stalks", 2),
 		FERN(),
-		PALEBERRY(),
+		PALEBERRY_NEW("Paleberry", 1),
+		PALEBERRY_EMPTY("Paleberry", 1),
 		;
 
 		public final String name;
@@ -92,6 +98,8 @@ public class BlockPinkGrass extends BlockTallGrass {
 				case BLUE_MUSHROOM_STALK:
 				case BLUE_MUSHROOM_TOP:
 				case STALKS:
+				case PALEBERRY_EMPTY:
+				case PALEBERRY_NEW:
 					return 0xffffff;
 				case VINE:
 					return ReikaColorAPI.mixColors(0xa0a0a0, base, 0.25F);
@@ -177,6 +185,11 @@ public class BlockPinkGrass extends BlockTallGrass {
 						v5.addVertexWithUV(x+0.5-px+px2*(1+dr), y+h2, z+0.5-pz+pz2*(1+dr), u, v);
 					}
 					break;
+				case PALEBERRY_NEW:
+					ReikaRenderHelper.renderCrossTex(world, x, y, z, ico, v5, rb, 1);
+					v5.setBrightness(240);
+					ReikaRenderHelper.renderCrossTex(world, x, y, z, berryIcon, v5, rb, 1);
+					break;
 				default:
 					ReikaRenderHelper.renderCrossTex(world, x, y, z, ico, v5, rb, 1); //not h, since icon is already part of a block
 					break;
@@ -188,11 +201,54 @@ public class BlockPinkGrass extends BlockTallGrass {
 			renderRand.nextBoolean();
 			renderRand.nextBoolean();
 		}
+
+		public void updateTick(World world, int x, int y, int z, Random rand) {
+			switch(this) {
+				case PALEBERRY_EMPTY:
+					world.setBlockMetadataWithNotify(x, y, z, PALEBERRY_NEW.ordinal(), 3);
+					ReikaSoundHelper.playBreakSound(world, x, y, z, Blocks.leaves, 0.7F, 0.25F);
+					break;
+				default:
+					break;
+			}
+		}
+
+		public boolean onClicked(World world, int x, int y, int z, EntityPlayer ep) {
+			switch(this) {
+				case PALEBERRY_NEW:
+					ItemStack is = new ItemStack(Satisforestry.paleberry);
+					if (!ReikaInventoryHelper.addToIInv(is, ep.inventory)) {
+						ReikaItemHelper.dropItem(ep, is);
+					}
+					ReikaSoundHelper.playBreakSound(world, x, y, z, Blocks.leaves, 0.7F, 0.25F);
+					world.setBlockMetadataWithNotify(x, y, z, PALEBERRY_EMPTY.ordinal(), 3);
+					return true;
+				default:
+					return false;
+			}
+		}
 	}
 
+	private static IIcon berryIcon;
+
 	public BlockPinkGrass() {
+		super();
+		this.setTickRandomly(true);
 		this.setCreativeTab(Satisforestry.tabCreative);
 		this.setStepSound(soundTypeGrass);
+	}
+
+	@Override
+	public void updateTick(World world, int x, int y, int z, Random rand) {
+		super.updateTick(world, x, y, z, rand);
+		GrassTypes gr = GrassTypes.list[world.getBlockMetadata(x, y, z)];
+		gr.updateTick(world, x, y, z, rand);
+	}
+
+	@Override
+	public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer ep, int s, float a, float b, float c) {
+		GrassTypes gr = GrassTypes.list[world.getBlockMetadata(x, y, z)];
+		return gr.onClicked(world, x, y, z, ep);
 	}
 
 	@Override
@@ -212,6 +268,8 @@ public class BlockPinkGrass extends BlockTallGrass {
 				gr.icons[k] = ico.registerIcon(s);
 			}
 		}
+
+		berryIcon = ico.registerIcon("Satisforestry:foliage/paleberry_berry");
 	}
 
 	@Override

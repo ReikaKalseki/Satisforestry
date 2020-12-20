@@ -20,6 +20,7 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemFood;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.IIcon;
@@ -86,6 +87,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.common.registry.LanguageRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -103,6 +105,8 @@ public class Satisforestry extends DragonAPIMod {
 
 	public static BiomePinkForest pinkforest;
 	//public static BiomePinkRiver pinkriver;
+
+	public static ItemFood paleberry;
 
 	private IIcon biomeGrassIcon;
 	private IIcon biomeGrassIconSide;
@@ -149,6 +153,10 @@ public class Satisforestry extends DragonAPIMod {
 			}
 		}
 
+		paleberry = new ItemPaleberry();
+		paleberry.setUnlocalizedName("paleberry");
+		GameRegistry.registerItem(paleberry, "paleberry");
+
 		proxy.registerSounds();
 
 		this.basicSetup(evt);
@@ -161,6 +169,8 @@ public class Satisforestry extends DragonAPIMod {
 	public void load(FMLInitializationEvent event) {
 		this.startTiming(LoadPhase.LOAD);
 		proxy.registerRenderers();
+
+		LanguageRegistry.addName(paleberry, "Paleberries");
 
 		pinkforest = new BiomePinkForest(SFOptions.BIOMEID.getValue());
 		BiomeManager.addBiome(BiomeType.COOL, new BiomeEntry(pinkforest, 4));
