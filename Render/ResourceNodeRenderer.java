@@ -45,17 +45,17 @@ public class ResourceNodeRenderer implements ISBRH {
 
 		IIcon ico = Blocks.bedrock.blockIcon;
 
-		int n = ReikaRandomHelper.getRandomBetween(6, 12, rand);
+		int n = ReikaRandomHelper.getRandomBetween(5, 9, rand);
 		double maxr = 2.25;
 
 		double da = 360D/n;
 		for (int i = 0; i < n; i++) {
-			double h = ReikaRandomHelper.getRandomBetween(0.0625, 0.25, rand);
+			double h = ReikaRandomHelper.getRandomBetween(0.0625, 0.125, rand);
 			double dy = y+1+h;
-			boolean split = rand.nextInt(2) == 0;
-			double r1 = ReikaRandomHelper.getRandomBetween(0.25, 0.75, rand);
-			double r2 = Math.max(r1+0.5, ReikaRandomHelper.getRandomBetween(1.25, maxr, rand));
-			double f = ReikaRandomHelper.getRandomBetween(0.5, 0.875, rand);
+			boolean split = rand.nextInt(3) > 0;
+			double r1 = ReikaRandomHelper.getRandomBetween(0.25, 0.625, rand);
+			double r2 = Math.max(r1+0.5, ReikaRandomHelper.getRandomBetween(1.75, maxr, rand));
+			double f = ReikaRandomHelper.getRandomBetween(0.625, 0.875, rand);
 			double aw = da*f/2D;
 			double oa = (1-f)*da/2D;
 			double a0 = da*i+oa;
@@ -82,21 +82,71 @@ public class ResourceNodeRenderer implements ISBRH {
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x2, z2);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x3, z3);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r2, za*r2);
+
+
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x1, z1);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, xa*r1, za*r1);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r1, za*r1);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x1, z1);
+
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, xa*r1, za*r1);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x2, z2);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x2, z2);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r1, za*r1);
+
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x4, z4);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r2, za*r2);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, xa*r2, za*r2);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x4, z4);
+
+				this.addVertexAt(v5, x, dy, z, maxr, ico, xa*r2, za*r2);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x3, z3);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x3, z3);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, xa*r2, za*r2);
+
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x1, z1);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x1, z1);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x4, z4);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x4, z4);
+
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x3, z3);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x3, z3);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x2, z2);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x2, z2);
 			}
 			else {
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x1, z1);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x2, z2);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x3, z3);
 				this.addVertexAt(v5, x, dy, z, maxr, ico, x4, z4);
+
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x1, z1);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x2, z2);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x2, z2);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x1, z1);
+
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x4, z4);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x3, z3);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x3, z3);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x4, z4);
+
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x1, z1);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x1, z1);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x4, z4);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x4, z4);
+
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x3, z3);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x3, z3);
+				this.addVertexAt(v5, x, dy, z, maxr, ico, x2, z2);
+				this.addVertexAt(v5, x, y+1, z, maxr, ico, x2, z2);
 			}
 		}
 
-		/*
 		v5.setBrightness(240);
 		int div = 8;//16;
 		int half = div/2-1;
 		double scale = 16D/div;
-		double h = 0.375;//0.25;
+		double h = 0.25;
 
 		double size = 1;
 		double minX = x+0.5-size/2;
@@ -113,15 +163,15 @@ public class ResourceNodeRenderer implements ISBRH {
 			}
 		}
 
-		IIcon ico =
-				v5.setColorOpaque_I(0x22aaff);
+		ico = Blocks.snow.blockIcon;
+		v5.setColorOpaque_I(0x22aaff);
 
 		for (int i = 0; i < div; i++) {
 			for (int k = 0; k < div; k++) {
 				double x1 = minX+i/(double)div;
-				double x2 = x1+size/(double)div;
+				double x2 = x1+size/div;
 				double z1 = minZ+k/(double)div;
-				double z2 = z1+size/(double)div;
+				double z2 = z1+size/div;
 				double y11 = i == 0 || k == 0 ? 0 : grid[i-1][k-1];
 				double y12 = i == 0 || k == div-1 ? 0 : grid[i-1][k];
 				double y21 = i == div-1 || k == 0 ? 0 : grid[i][k-1];
@@ -132,7 +182,6 @@ public class ResourceNodeRenderer implements ISBRH {
 				v5.addVertexWithUV(x1, y+1.02+y11, z1, ico.getInterpolatedU(i*scale), ico.getInterpolatedV(k*scale));
 			}
 		}
-		 */
 
 		return true;
 	}
@@ -144,8 +193,8 @@ public class ResourceNodeRenderer implements ISBRH {
 		double z0 = z+0.5-maxr;
 		double fx = (x2-x0)/(maxr*2);//ReikaMathLibrary.getDecimalPart(x2);
 		double fz = (z2-z0)/(maxr*2);//ReikaMathLibrary.getDecimalPart(z2);
-		double u = ico.getInterpolatedU((fx*16*maxr)%16);
-		double v = ico.getInterpolatedV((fz*16*maxr)%16);
+		double u = ico.getInterpolatedU(fx*16+0.01);
+		double v = ico.getInterpolatedV(fz*16+0.01); //tiny offset is to avoid the selection lying right at the boundary between two px and giving flicker
 		//v5.setColorOpaque_F((float)fx, 0, (float)fz);
 		v5.addVertexWithUV(x2, y, z2, u, v);
 	}
