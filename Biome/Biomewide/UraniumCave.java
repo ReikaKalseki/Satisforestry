@@ -41,6 +41,7 @@ import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockGasEmitter.TileGasVent;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
+import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 
 public class UraniumCave {
 
@@ -979,6 +980,8 @@ public class UraniumCave {
 
 		private void generateResourceNodeAt(World world, Random rand) {
 			resourceNode.setBlock(world, SFBlocks.RESOURCENODE.getBlockInstance());
+			TileResourceNode te = (TileResourceNode)resourceNode.getTileEntity(world);
+			te.generate(rand);
 
 			HashSet<Coordinate> cleared = new HashSet();
 			int r = 2;//1;

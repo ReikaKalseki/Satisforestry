@@ -250,6 +250,13 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 	}
 
+	@FunctionalInterface
+	public static interface OreValidityFunction {
+
+		public boolean apply(World world, Coordinate c);
+
+	}
+
 	public static double getAverageHeight(World world, int x, int z, int r) {
 		return getAverageHeight(world, x, z, r, null);
 	}
@@ -302,10 +309,14 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 	}
 
 	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize) {
-		return generateOreClumpAt(world, x, y, z, rand, sec, maxSize, new HashSet());
+		return generateOreClumpAt(world, x, y, z, rand, sec, maxSize, (OreValidityFunction)null);
 	}
 
-	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize, Set<Coordinate> exclusion) {
+	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize, Set<Coordinate> set) {
+		return generateOreClumpAt(world, x, y, z, rand, sec, maxSize, (w, c) -> !set.contains(c.to2D()));
+	}
+
+	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize, OreValidityFunction func) {
 		OreClusterType type = sec.getRandomOreSpawn();
 		if (type == null)
 			return null;
@@ -318,7 +329,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		for (int i = 0; i <= depth; i++) {
 			HashSet<Coordinate> next = new HashSet();
 			for (Coordinate c : set) {
-				if (c.softBlock(world) && !exclusion.contains(c.to2D())) {
+				if (c.softBlock(world) && (func == null || func.apply(world, c))) {
 					place.add(c);
 					Coordinate c2 = c.offset(0, -1, 0);
 					while (c2.yCoord >= 0 && c2.softBlock(world)) {

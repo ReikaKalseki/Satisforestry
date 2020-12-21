@@ -194,8 +194,6 @@ public class Satisforestry extends DragonAPIMod {
 	public void postload(FMLPostInitializationEvent evt) {
 		this.startTiming(LoadPhase.POSTLOAD);
 
-		BiomeConfig.instance.loadConfigs();
-
 		this.finishTiming();
 	}
 

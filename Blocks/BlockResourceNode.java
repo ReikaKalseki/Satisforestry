@@ -164,7 +164,8 @@ public class BlockResourceNode extends BlockContainer {
 			NBT.setLong("lastClick", lastClickTick);
 
 			NBT.setInteger("purity", purity.ordinal());
-			NBT.setString("resource", resource.id);
+			if (resource != null)
+				NBT.setString("resource", resource.id);
 		}
 
 		@Override
@@ -176,7 +177,8 @@ public class BlockResourceNode extends BlockContainer {
 			lastClickTick = NBT.getLong("lastClick");
 
 			purity = Purity.list[NBT.getInteger("purity")];
-			resource = BiomeConfig.instance.getResourceByID(NBT.getString("resource"));
+			if (NBT.hasKey("resource"))
+				resource = BiomeConfig.instance.getResourceByID(NBT.getString("resource"));
 		}
 
 		@Override

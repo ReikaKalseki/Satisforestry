@@ -246,7 +246,7 @@ public class BiomeConfig {
 	private void parseResourceEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
 		ArrayList<LuaBlock> items = new ArrayList();
 
-		LuaBlock set = b.getChild("items");
+		LuaBlock set = b.getChild("outputItems");
 		if (set == null)
 			throw new IllegalArgumentException("No items specified");
 		for (LuaBlock s : set.getChildren()) {
