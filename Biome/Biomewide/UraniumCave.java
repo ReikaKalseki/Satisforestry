@@ -14,7 +14,6 @@ import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
@@ -33,9 +32,6 @@ import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
-import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
-import Reika.Satisforestry.BiomeConfig;
-import Reika.Satisforestry.ResourceItem;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
@@ -51,7 +47,6 @@ public class UraniumCave {
 	public static final UraniumCave instance = new UraniumCave();
 
 	private final WeightedRandom<SpawnListEntry> caveSpawns = new WeightedRandom();
-	private final WeightedRandom<ResourceItem> nodeOutput = new WeightedRandom();
 
 	private UraniumCave() {
 		List<SpawnListEntry> li = Satisforestry.pinkforest.getSpawnableList(EnumCreatureType.monster);
@@ -60,16 +55,6 @@ public class UraniumCave {
 				caveSpawns.addEntry(e, e.itemWeight);
 			}
 		}
-		for (ResourceItem ri : BiomeConfig.instance.getResourceDrops()) {
-			nodeOutput.addEntry(ri, ri.spawnWeight);
-		}
-	}
-
-	public ItemStack getRandomNodeItem() {
-		ResourceItem ri = nodeOutput.getRandomEntry();
-		if (ri == null)
-			return null;
-		return ReikaItemHelper.getSizedItemStack(ri.getItem(), ReikaRandomHelper.getRandomBetween(ri.minCount, ri.maxCount));
 	}
 
 	public CentralCave generate(World world, Random rand, int x, int z, Collection<Coordinate> rivers, CachedCave cache) {

@@ -28,6 +28,7 @@ import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
+import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
 
 
 public class BiomeConfig {
@@ -54,21 +55,28 @@ public class BiomeConfig {
 		OreLuaBlock spawns = new OreLuaBlock("spawnLocations", base, oreData);
 		for (OreSpawnLocation s : OreSpawnLocation.values()) {
 			OreLuaBlock sec = new OreLuaBlock(s.name(), spawns, oreData);
-			sec.putData("sizeScale", "1");
-			sec.putData("maxSize", "4");
-			sec.putData("spawnWeight", "10");
+			sec.putData("sizeScale", 1F);
+			sec.putData("maxSize", 4);
+			sec.putData("spawnWeight", 10);
 		}
 		oreData.addBlock("base", base);
 
 		itemData = new LuaBlockDatabase();
 		ResourceLuaBlock base2 = new ResourceLuaBlock("base", null, itemData);
 		base2.putData("type", "base");
-		base2.putData("minCount", "1");
-		base2.putData("maxCount", "1");
-		base2.putData("spawnWeight", "10");
-		base2.putData("item", "some_item_identifier");
+		base2.putData("minCount", 1);
+		base2.putData("maxCount", 1);
+		base2.putData("spawnWeight", 10);
+		base2.putData("renderColor", "0xffffff");
 		//base.putData("generate", "true");
-		ResourceLuaBlock items = new ResourceLuaBlock("items", base2, itemData);
+		ResourceLuaBlock levels = new ResourceLuaBlock("purityLevels", base2, itemData);
+		for (Purity p : Purity.list) {
+			levels.putData(p.name(), 10);
+		}
+		ResourceLuaBlock items = new ResourceLuaBlock("outputItems", base2, itemData);
+		items.putData("key", "some_mod:some_item");
+		items.putData("weight", 10);
+		items.putData("minimumPurity", Purity.IMPURE.name());
 		itemData.addBlock("base", base2);
 	}
 
@@ -87,8 +95,8 @@ public class BiomeConfig {
 		else {
 			try {
 				f.mkdirs();
-				File f1 = new File(f, "ores.lua");
-				File f2 = new File(f, "resources.lua");
+				File f1 = ReikaFileReader.getFileByNameAnyExt(f, "ores");
+				File f2 = ReikaFileReader.getFileByNameAnyExt(f, "resources");
 				f1.createNewFile();
 				f2.createNewFile();
 			}
@@ -198,13 +206,20 @@ public class BiomeConfig {
 			blocks.add(b.getString("block"));
 		}
 
+		if (blocks.isEmpty())
+			throw new IllegalArgumentException("No blocks specified");
+
 		LuaBlock spawn = b.getChild("spawnLocations");
+		if (spawn == null)
+			throw new IllegalArgumentException("No spawn locations specified");
 		for (OreSpawnLocation s : OreSpawnLocation.values()) {
 			LuaBlock lb = spawn.getChild(s.name());
 			if (lb != null) {
 				sections.put(s, lb);
 			}
 		}
+		if (sections.isEmpty())
+			throw new IllegalArgumentException("No spawn locations specified");
 
 		entryAttemptsCount += blocks.size()*sections.size();
 
@@ -232,14 +247,24 @@ public class BiomeConfig {
 		ArrayList<LuaBlock> items = new ArrayList();
 
 		LuaBlock set = b.getChild("items");
-		if (set != null) {
-			for (LuaBlock s : set.getChildren()) {
-				items.add(s);
-			}
+		if (set == null)
+			throw new IllegalArgumentException("No items specified");
+		for (LuaBlock s : set.getChildren()) {
+			items.add(s);
 		}
-		else {
-			items.add(b.getChild("item"));
-		}
+		if (items.isEmpty())
+			throw new IllegalArgumentException("No items specified");
+
+		LuaBlock purities = b.getChild("purityLevels");
+		if (purities == null)
+			throw new IllegalArgumentException("No purity levels specified");
+		HashMap<String, Object> map = purities.asHashMap();
+		if (map.isEmpty())
+			throw new IllegalArgumentException("No purity levels specified");
+
+		ResourceItem ore = new ResourceItem(type, b.getInt("spawnWeight"), b.getInt("renderColor"), map);
+		ore.minCount = b.getInt("minCount");
+		ore.maxCount = b.getInt("maxCount");
 
 		for (LuaBlock s : items) {
 			entryAttemptsCount++;
@@ -248,14 +273,17 @@ public class BiomeConfig {
 				Satisforestry.logger.logError("Could not load item type '"+s+"' for resource type '"+type+"'; skipping.");
 				continue;
 			}
-			String id = type+"_"+s;
-			ResourceItem ore = new ResourceItem(id, is, b.getInt("spawnWeight"));
-			ore.minCount = b.getInt("minCount");
-			ore.maxCount = b.getInt("maxCount");
-			resourceEntries.put(id, ore);
-			Satisforestry.logger.log("Registered resource type '"+type+"' with item '"+CustomRecipeList.fullID(is));
-			entryCount++;
+			int weight = s.getInt("weight");
+			Purity p = Purity.valueOf(s.getString("minimumPurity"));
+			while (p != null) {
+				ore.addItem(p, is, weight);
+				p = p.lower();
+			}
 		}
+
+		resourceEntries.put(type, ore);
+		Satisforestry.logger.log("Registered resource type '"+type+"': "+ore.toString().replaceAll("\\\\n", " "));
+		entryCount++;
 	}
 
 	private Collection<BlockKey> parseBlocks(LuaBlock b) {
@@ -303,6 +331,10 @@ public class BiomeConfig {
 		return resourceEntries.values();
 	}
 
+	public ResourceItem getResourceByID(String s) {
+		return resourceEntries.get(s);
+	}
+
 	private static class OreLuaBlock extends LuaBlock {
 
 		protected OreLuaBlock(String n, LuaBlock lb, LuaBlockDatabase db) {
@@ -311,6 +343,8 @@ public class BiomeConfig {
 			requiredElements.add("inherit");
 			requiredElements.add("name");
 			requiredElements.add("spawnWeight");
+
+			requiredElements.add("spawnLocations");
 		}
 
 	}
@@ -323,6 +357,9 @@ public class BiomeConfig {
 			requiredElements.add("inherit");
 			requiredElements.add("name");
 			requiredElements.add("spawnWeight");
+
+			requiredElements.add("purityLevels");
+			requiredElements.add("outputItems");
 		}
 
 	}

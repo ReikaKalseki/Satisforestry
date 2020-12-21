@@ -224,6 +224,8 @@ public class BlockPinkGrass extends BlockTallGrass {
 		public void updateTick(World world, int x, int y, int z, Random rand) {
 			switch(this) {
 				case PALEBERRY_EMPTY:
+					if (!Satisforestry.isPinkForest(world, x, z))
+						return;
 					for (int i = 2; i < 6; i++) {
 						ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i];
 						if (this.matchAt(world, x+dir.offsetX, y, z+dir.offsetZ))

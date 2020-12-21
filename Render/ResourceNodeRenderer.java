@@ -26,8 +26,9 @@ import Reika.DragonAPI.Interfaces.ISBRH;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
-import Reika.Satisforestry.SFOptions;
+import Reika.Satisforestry.ResourceItem;
 import Reika.Satisforestry.Blocks.BlockResourceNode;
+import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 
 
 public class ResourceNodeRenderer implements ISBRH {
@@ -44,7 +45,9 @@ public class ResourceNodeRenderer implements ISBRH {
 	@Override
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
 		Tessellator v5 = Tessellator.instance;
-		int c = SFOptions.RESOURCECOLOR.getValue();
+		TileResourceNode te = (TileResourceNode)world.getTileEntity(x, y, z);
+		ResourceItem ri = te.getResource();
+		int c = ri == null ? 0xffffff : ri.color;
 		if (renderPass == 0) {
 			v5.setColorOpaque_I(0xffffff);
 			renderer.renderStandardBlockWithAmbientOcclusion(block, x, y, z, 1, 1, 1);

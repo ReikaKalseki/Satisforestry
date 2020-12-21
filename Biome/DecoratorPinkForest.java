@@ -365,6 +365,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		CAVE_RESOURCE_ROOM,
 		CAVE_RESOURCE_NODE,
 		PONDS,
+		BORDER,
 		;
 
 		private final WeightedRandom<OreClusterType> oreSpawns = new WeightedRandom();

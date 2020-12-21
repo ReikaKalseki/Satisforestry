@@ -1,5 +1,7 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.Random;
+
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -15,12 +17,15 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.Satisforestry.BiomeConfig;
+import Reika.Satisforestry.ResourceItem;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.SFOptions;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Render.ResourceNodeRenderer;
 
 public class BlockResourceNode extends BlockContainer {
@@ -88,11 +93,25 @@ public class BlockResourceNode extends BlockContainer {
 		private static final int MINING_TIME = 3; //just like in SF
 		private static final int MANUAL_MINING_COOLDOWN = 15;
 
+		private static WeightedRandom<ResourceItem> resourceSet = new WeightedRandom();
+
 		private Purity purity = Purity.NORMAL;
+		private ResourceItem resource;
 
 		private int manualMiningCycle;
 		private long lastClickTick = -1;
 		private int autoOutputTimer = purity.getCountdown();
+
+		public void generate(Random rand) {
+			if (resourceSet.isEmpty()) {
+				for (ResourceItem ri : BiomeConfig.instance.getResourceDrops()) {
+					resourceSet.addEntry(ri, ri.spawnWeight);
+				}
+			}
+			resourceSet.setRNG(rand);
+			resource = resourceSet.getRandomEntry();
+			purity = resource.getRandomPurity(rand);
+		}
 
 		@Override
 		public void updateEntity() {
@@ -102,7 +121,7 @@ public class BlockResourceNode extends BlockContainer {
 				if (autoOutputTimer == 0) {
 					TileEntity te = worldObj.getTileEntity(xCoord, yCoord+1, zCoord);
 					if (te instanceof IInventory) {
-						ItemStack is = UraniumCave.instance.getRandomNodeItem();
+						ItemStack is = this.getRandomNodeItem();
 						if (is != null) {
 							if (ReikaInventoryHelper.addToIInv(is, (IInventory)te)) {
 								autoOutputTimer = purity.getCountdown();
@@ -120,7 +139,7 @@ public class BlockResourceNode extends BlockContainer {
 				lastClickTick = time;
 				manualMiningCycle++;
 				if (manualMiningCycle >= MINING_TIME) {
-					ItemStack is = UraniumCave.instance.getRandomNodeItem();
+					ItemStack is = this.getRandomNodeItem();
 					if (is != null)
 						ReikaItemHelper.dropItem(worldObj, xCoord+0.5, yCoord+1, zCoord+0.5, is);
 					manualMiningCycle = 0;
@@ -143,6 +162,9 @@ public class BlockResourceNode extends BlockContainer {
 			NBT.setInteger("cycle", manualMiningCycle);
 			NBT.setInteger("timer", autoOutputTimer);
 			NBT.setLong("lastClick", lastClickTick);
+
+			NBT.setInteger("purity", purity.ordinal());
+			NBT.setString("resource", resource.id);
 		}
 
 		@Override
@@ -152,6 +174,9 @@ public class BlockResourceNode extends BlockContainer {
 			manualMiningCycle = NBT.getInteger("cycle");
 			autoOutputTimer = NBT.getInteger("timer");
 			lastClickTick = NBT.getLong("lastClick");
+
+			purity = Purity.list[NBT.getInteger("purity")];
+			resource = BiomeConfig.instance.getResourceByID(NBT.getString("resource"));
 		}
 
 		@Override
@@ -168,6 +193,17 @@ public class BlockResourceNode extends BlockContainer {
 			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 		}
 
+		public ResourceItem getResource() {
+			return resource;
+		}
+
+		private ItemStack getRandomNodeItem() {
+			ItemStack ri = resource.getRandomItem(purity);
+			if (ri == null)
+				return null;
+			return ReikaItemHelper.getSizedItemStack(ri, ReikaRandomHelper.getRandomBetween(resource.minCount, resource.maxCount));
+		}
+
 	}
 
 	public static enum Purity {
@@ -178,7 +214,7 @@ public class BlockResourceNode extends BlockContainer {
 		public final float yield;
 
 		private static final int MINING_COOLDOWN = 10; //default resource node is 120/min = 2/s = 10t
-		private static final Purity[] list = values();
+		public static final Purity[] list = values();
 
 		private Purity(float d) {
 			yield = d;
@@ -186,6 +222,10 @@ public class BlockResourceNode extends BlockContainer {
 
 		public int getCountdown() {
 			return (int)(MINING_COOLDOWN/yield);
+		}
+
+		public Purity lower() {
+			return this == IMPURE ? null : list[this.ordinal()-1];
 		}
 	}
 }

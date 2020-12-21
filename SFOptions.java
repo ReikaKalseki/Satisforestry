@@ -19,7 +19,6 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
 
 	BIOMEID("Pink Forest Biome ID", 144),
 	SIMPLEAUTO("Enable Simple Automation for Resource Node", false),
-	RESOURCECOLOR("Resource Node Color", 0x22aaff),
 	;
 
 	private String label;
