@@ -2,6 +2,8 @@ package Reika.Satisforestry.Render;
 
 import java.util.Random;
 
+import org.lwjgl.opengl.GL11;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
@@ -20,12 +22,69 @@ public class RedBambooRenderer implements ISBRH {
 
 	public static int renderPass;
 
+	private final Random itemRand = new Random();
+
 	private final Random rand = new Random();
 	private final Random randY = new Random();
 
 	@Override
-	public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
+	public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks rb) {
+		itemRand.setSeed(0);
+		itemRand.nextBoolean();
+		Tessellator v5 = Tessellator.instance;
+		int color = ReikaColorAPI.mixColors(0x964335, 0xCC705B, itemRand.nextFloat());
+		IIcon[] icons = new IIcon[3];
+		icons[0] = block.getIcon(2, 0);
+		icons[1] = BlockRedBamboo.getRandomLeaf(itemRand);
+		icons[2] = BlockRedBamboo.getRandomLeaf(itemRand);
 
+		GL11.glColor4f(1, 1, 1, 1);
+		GL11.glDisable(GL11.GL_LIGHTING);
+
+		GL11.glPushMatrix();
+		GL11.glRotated(45, 0, 1, 0);
+		GL11.glRotated(-30, 1, 0, 0);
+		double s = 1.6;
+		GL11.glScaled(s, s, s);
+		double x = -0.5;
+		double y = -0.5;
+		double z = 0;
+
+		GL11.glTranslated(x, y, z);
+		v5.startDrawingQuads();
+		v5.setColorOpaque_I(color);
+		v5.setBrightness(240);
+
+		for (int i = 0; i < icons.length; i++) {
+			IIcon ico = icons[i];
+			float u = ico.getMinU();
+			float v = ico.getMinV();
+			float du = ico.getMaxU();
+			float dv = ico.getMaxV();
+
+			double x0 = 0;
+			double x1 = 1;
+			switch(i) {
+				case 1:
+					x0 = 0.5;
+					break;
+				case 2:
+					x1 = 0.5;
+					float dd = u;
+					u = du;
+					du = dd;
+					break;
+			}
+
+			v5.addVertexWithUV(x0, 0, 0, u, dv);
+			v5.addVertexWithUV(x1, 0, 0, du, dv);
+			v5.addVertexWithUV(x1, 1, 0, du, v);
+			v5.addVertexWithUV(x0, 1, 0, u, v);
+		}
+
+		v5.draw();
+		GL11.glPopMatrix();
+		GL11.glEnable(GL11.GL_LIGHTING);
 	}
 
 	@Override
@@ -40,14 +99,15 @@ public class RedBambooRenderer implements ISBRH {
 		randY.setSeed(this.calcSeed(x, y, z));
 		randY.nextBoolean();
 
-		v5.setBrightness(b.getMixedBrightnessForBlock(world, x, y, z));
-		v5.setColorOpaque_I(0xffffff);
-
 		int n = 1;
 		if (rand.nextInt(4) == 0)
 			n++;
 		if (rand.nextInt(4) == 0)
 			n++;
+
+		v5.setBrightness(b.getMixedBrightnessForBlock(world, x, y, z));
+		v5.setColorOpaque_I(0xffffff);
+
 		boolean above = world.getBlock(x, y+1, z) == b;
 		boolean below = world.getBlock(x, y-1, z) == b;
 		int colorTop = ReikaColorAPI.mixColors(0x964335, 0xCC705B, randY.nextFloat());
@@ -170,7 +230,7 @@ public class RedBambooRenderer implements ISBRH {
 
 	@Override
 	public boolean shouldRender3DInInventory(int modelId) {
-		return false;
+		return true;
 	}
 
 	@Override

@@ -362,6 +362,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		CAVE_ENTRY_TUNNEL,
 		CAVE_MAIN_RING,
 		CAVE_NODE_TUNNEL,
+		CAVE_RESOURCE_ROOM,
 		CAVE_RESOURCE_NODE,
 		PONDS,
 		;

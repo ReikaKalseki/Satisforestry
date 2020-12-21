@@ -6,6 +6,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.Item;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
@@ -29,8 +30,6 @@ public class BlockRedBamboo extends Block implements IPlantable {
 
 	public BlockRedBamboo() {
 		super(Material.leaves);
-		float s = 0.125F;
-		this.setBlockBounds(0.5F-s, 0, 0.5F-s, 0.5F+s, 1, 0.5F+s);
 		this.setTickRandomly(true);
 		this.setCreativeTab(Satisforestry.tabCreative);
 		this.setStepSound(soundTypeGrass);
@@ -41,10 +40,15 @@ public class BlockRedBamboo extends Block implements IPlantable {
 	}
 
 	@Override
+	public IIcon getIcon(int s, int meta) {
+		return s <= 1 ? topIcon : stemIcon;
+	}
+	/*
+	@Override
 	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
 		return s <= 1 ? topIcon : stemIcon;
 	}
-
+	 */
 	@Override
 	public void registerBlockIcons(IIconRegister ico) {
 		stemIcon = ico.registerIcon("Satisforestry:bamboo/side");
@@ -110,11 +114,6 @@ public class BlockRedBamboo extends Block implements IPlantable {
 	}
 
 	@Override
-	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
-		return null;
-	}
-
-	@Override
 	public boolean isOpaqueCube() {
 		return false;
 	}
@@ -141,6 +140,22 @@ public class BlockRedBamboo extends Block implements IPlantable {
 	}
 
 	@Override
+	public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
+		float s = 0.375F;//0.125F;
+		this.setBlockBounds(0.5F-s, 0, 0.5F-s, 0.5F+s, 1, 0.5F+s);
+	}
+
+	@Override
+	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
+		return null;
+	}
+
+	@Override
+	public Item getItemDropped(int dmg, Random rand, int fortune) {
+		return null;
+	}
+
+	@Override
 	@SideOnly(Side.CLIENT)
 	public int colorMultiplier(IBlockAccess world, int x, int y, int z) {
 		return 0xffffff;//world.getBiomeGenForCoords(x, z).getBiomeGrassColor(x, y, z);
@@ -159,5 +174,10 @@ public class BlockRedBamboo extends Block implements IPlantable {
 	@Override
 	public int getPlantMetadata(IBlockAccess world, int x, int y, int z) {
 		return world.getBlockMetadata(x, y, z);
+	}
+
+	@Override
+	public boolean isLeaves(IBlockAccess world, int x, int y, int z) {
+		return false;
 	}
 }

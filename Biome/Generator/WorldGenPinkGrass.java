@@ -47,14 +47,20 @@ public class WorldGenPinkGrass extends WorldGenerator {
 			int dy = y + rand.nextInt(4) - rand.nextInt(4);
 			int dz = z + rand.nextInt(8) - rand.nextInt(8);
 
+			if (Satisforestry.pinkforest.isRoad(world, dx, dz) && rand.nextBoolean())
+				continue;
+
 			BlockKey place = this.getBlockToPlace(world, dx, dy, dz, rand);
-			if (dy >= 105 && rand.nextInt(200) == 0)
-				place = new BlockKey(SFBlocks.GRASS.getBlockInstance(), GrassTypes.PALEBERRY_NEW.ordinal());
+			boolean paleberry = dy >= 105 && rand.nextInt(200) == 0 && world.isAirBlock(dx, dy+1, dz);
+			if (paleberry) {
+				place = new BlockKey(SFBlocks.GRASS.getBlockInstance(), GrassTypes.PALEBERRY_STALK.ordinal());
+			}
 
 			if (world.isAirBlock(dx, dy, dz) && place.blockID.canBlockStay(world, dx, dy, dz)) {
-				if (Satisforestry.pinkforest.isRoad(world, dx, dz) && rand.nextBoolean())
-					continue;
 				world.setBlock(dx, dy, dz, place.blockID, place.metadata, 2);
+				if (paleberry) {
+					world.setBlock(dx, dy+1, dz, place.blockID, GrassTypes.PALEBERRY_NEW.ordinal(), 2);
+				}
 			}
 		}
 

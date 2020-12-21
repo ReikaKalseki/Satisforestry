@@ -1,11 +1,13 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockTallGrass;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -16,6 +18,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.ChunkCoordIntPair;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.EnumPlantType;
@@ -26,8 +29,10 @@ import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.IO.ReikaRenderHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 
@@ -48,6 +53,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 		FERN(),
 		PALEBERRY_NEW("Paleberry", 1),
 		PALEBERRY_EMPTY("Paleberry", 1),
+		PALEBERRY_STALK("Paleberry", 1)
 		;
 
 		public final String name;
@@ -71,10 +77,15 @@ public class BlockPinkGrass extends BlockTallGrass {
 		}
 
 		public IIcon getIcon(IBlockAccess iba, int x, int y, int z) {
-			return icons[renderRand.nextInt(icons.length)];
+			switch(this) {
+				case STALKS:
+					return this.matchAt(iba, x, y+1, z) ? icons[0] : icons[1+renderRand.nextInt(icons.length-1)];
+				default:
+					return icons[renderRand.nextInt(icons.length)];
+			}
 		}
 
-		public float getHeight(int x, int y, int z) {
+		public float getHeight(IBlockAccess world, int x, int y, int z) {
 			switch(this) {
 				case RED_STRANDS:
 					return 0.375F;
@@ -83,7 +94,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 				case BLUE_MUSHROOM_TOP:
 					return 0.75F;
 				case STALKS:
-					return (float)ReikaRandomHelper.getRandomBetween(1.25, 2, renderRand);
+					return this.matchAt(world, x, y+1, z) ? 1 : (float)ReikaRandomHelper.getRandomBetween(1.25, 2, renderRand);
 				case FERN:
 					return 0.5F;
 				default:
@@ -100,6 +111,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 				case STALKS:
 				case PALEBERRY_EMPTY:
 				case PALEBERRY_NEW:
+				case PALEBERRY_STALK:
 					return 0xffffff;
 				case VINE:
 					return ReikaColorAPI.mixColors(0xa0a0a0, base, 0.25F);
@@ -128,9 +140,12 @@ public class BlockPinkGrass extends BlockTallGrass {
 				case VINE:
 				case BLUE_MUSHROOM_STALK:
 				case STALKS:
-					return at.isSideSolid(world, dx, dy, dz, side) || (at == b && world.getBlockMetadata(dx, dy, dz) == this.ordinal());
+					return at.isSideSolid(world, dx, dy, dz, side) || this.matchAt(world, dx, dy, dz);
 				case BLUE_MUSHROOM_TOP:
-					return at == b && world.getBlockMetadata(dx, dy, dz) == BLUE_MUSHROOM_STALK.ordinal();
+					return BLUE_MUSHROOM_STALK.canExistAt(world, x, y, z);
+				case PALEBERRY_NEW:
+				case PALEBERRY_EMPTY:
+					return at == b && world.getBlockMetadata(dx, dy, dz) == PALEBERRY_STALK.ordinal();
 				default:
 					return at.canSustainPlant(world, dx, dy, dz, side, (IPlantable)b);
 			}
@@ -151,7 +166,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 			IIcon ico = this.getIcon(world, x, y, z);
 			v5.setColorOpaque_I(b.colorMultiplier(world, x, y, z));
 			v5.setBrightness(b.getMixedBrightnessForBlock(world, x, y, z));
-			float h = this.getHeight(x, y, z);
+			float h = this.getHeight(world, x, y, z);
 			switch(this) {
 				case STALKS:
 					ReikaRenderHelper.renderCropTypeTex(world, x, y, z, ico, v5, rb, 0.1875, h);
@@ -186,8 +201,12 @@ public class BlockPinkGrass extends BlockTallGrass {
 					}
 					break;
 				case PALEBERRY_NEW:
-					ReikaRenderHelper.renderCrossTex(world, x, y, z, ico, v5, rb, 1);
-					v5.setBrightness(240);
+					PALEBERRY_EMPTY.render(world, x, y, z, b, rb, v5);
+					World w = Minecraft.getMinecraft().theWorld;
+					float rawSun = 4+11*ReikaWorldHelper.getSunIntensity(w, false, 0);
+					float light = rawSun*w.getSavedLightValue(EnumSkyBlock.Sky, x, y, z)/15F;
+					if (light >= 4)
+						v5.setBrightness(240);
 					ReikaRenderHelper.renderCrossTex(world, x, y, z, berryIcon, v5, rb, 1);
 					break;
 				default:
@@ -205,12 +224,21 @@ public class BlockPinkGrass extends BlockTallGrass {
 		public void updateTick(World world, int x, int y, int z, Random rand) {
 			switch(this) {
 				case PALEBERRY_EMPTY:
+					for (int i = 2; i < 6; i++) {
+						ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i];
+						if (this.matchAt(world, x+dir.offsetX, y, z+dir.offsetZ))
+							return;
+					}
 					world.setBlockMetadataWithNotify(x, y, z, PALEBERRY_NEW.ordinal(), 3);
 					ReikaSoundHelper.playBreakSound(world, x, y, z, Blocks.leaves, 0.7F, 0.25F);
 					break;
 				default:
 					break;
 			}
+		}
+
+		private boolean matchAt(IBlockAccess world, int x, int y, int z) {
+			return world.getBlock(x, y, z) == SFBlocks.GRASS.getBlockInstance() && world.getBlockMetadata(x, y, z) == this.ordinal();
 		}
 
 		public boolean onClicked(World world, int x, int y, int z, EntityPlayer ep) {
@@ -225,6 +253,33 @@ public class BlockPinkGrass extends BlockTallGrass {
 					return true;
 				default:
 					return false;
+			}
+		}
+
+		public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int fortune) {
+			switch(this) {
+				case BLUE_MUSHROOM_STALK:
+				case BLUE_MUSHROOM_TOP:
+					return ReikaJavaLibrary.makeListFrom(new ItemStack(Item.getItemFromBlock(Blocks.brown_mushroom)));
+				case STALKS:
+				case PALEBERRY_EMPTY:
+				case PALEBERRY_STALK:
+					return new ArrayList();
+				default:
+					return null;
+			}
+		}
+
+		public boolean isShearable() {
+			switch(this) {
+				case PALEBERRY_NEW:
+				case PALEBERRY_EMPTY:
+				case PALEBERRY_STALK:
+					//case BLUE_MUSHROOM_STALK:
+					//case BLUE_MUSHROOM_TOP:
+					return false;
+				default:
+					return true;
 			}
 		}
 	}
@@ -301,7 +356,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 		GrassTypes gr = GrassTypes.list[world.getBlockMetadata(x, y, z)];
 		gr.prepareRandom(world, x, y, z);
 		float f = 0.4F; //from parent
-		this.setBlockBounds(0.5F - f, 0.0F, 0.5F - f, 0.5F + f, gr.getHeight(x, y, z), 0.5F + f);
+		this.setBlockBounds(0.5F - f, 0.0F, 0.5F - f, 0.5F + f, gr.getHeight(world, x, y, z), 0.5F + f);
 	}
 
 	@Override
@@ -318,6 +373,24 @@ public class BlockPinkGrass extends BlockTallGrass {
 	@Override
 	public int getRenderType() {
 		return Satisforestry.proxy.grassRender;
+	}
+
+	@Override
+	public boolean canReplace(World world, int x, int y, int z, int side, ItemStack is) {
+		return world.getBlock(x, y, z).isReplaceable(world, x, y, z) && GrassTypes.list[is.getItemDamage()].canExistAt(world, x, y, z);
+	}
+
+	@Override
+	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int meta, int fortune) {
+		ArrayList<ItemStack> ret = GrassTypes.list[meta].getDrops(world, x, y, z, fortune);
+		if (ret == null)
+			ret = super.getDrops(world, x, y, z, meta, fortune);
+		return ret;
+	}
+
+	@Override
+	public boolean isShearable(ItemStack item, IBlockAccess world, int x, int y, int z) {
+		return GrassTypes.list[world.getBlockMetadata(x, y, z)].isShearable();
 	}
 
 }

@@ -3,11 +3,15 @@ package Reika.Satisforestry.Blocks;
 import java.util.Random;
 
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Base.BlockCustomLeaf;
+import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.Satisforestry.Satisforestry;
 
 public class BlockPinkLeaves extends BlockCustomLeaf {
@@ -125,12 +129,17 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 
 	@Override
 	public boolean isMatchingLeaf(IBlockAccess iba, int thisX, int thisY, int thisZ, int lookX, int lookY, int lookZ) {
-		return iba.getBlock(lookX, lookY, lookZ) == iba.getBlock(thisX, thisY, thisZ) && this.getLeafType(iba, lookX, lookY, lookZ) == this.getLeafType(iba, thisX, thisY, thisZ);
+		return iba.getBlock(lookX, lookY, lookZ) == iba.getBlock(thisX, thisY, thisZ);// && this.getLeafType(iba, lookX, lookY, lookZ) == this.getLeafType(iba, thisX, thisY, thisZ);
 	}
 
 	@Override
 	public boolean isValidLog(IBlockAccess iba, int thisX, int thisY, int thisZ, int lookX, int lookY, int lookZ) {
-		return iba.getBlock(lookX, lookY, lookZ) == Satisforestry.log && this.getLeafType(iba, thisX, thisY, thisZ).isValidLogMeta(iba.getBlockMetadata(lookX, lookY, lookZ));
+		return iba.getBlock(lookX, lookY, lookZ) == Satisforestry.log;// && this.getLeafType(iba, thisX, thisY, thisZ).isValidLogMeta(iba.getBlockMetadata(lookX, lookY, lookZ));
+	}
+
+	@Override
+	protected int getNumberSidesToPropagate(World world, int x, int y, int z) {
+		return 1;
 	}
 
 	@Override
@@ -140,7 +149,29 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 
 	@Override
 	public int getMaximumLogSearchDepth() {
-		return 8;
+		return 12;
+	}
+
+	@Override
+	protected void onLeafDecay(World world, int x, int y, int z) {
+		Coordinate c = new Coordinate(x, y, z);
+		c.setBlock(world, Blocks.obsidian);
+		ReikaJavaLibrary.pConsole("Leaf decay @ "+c);
+	}
+
+	@Override
+	public int getFlammability(IBlockAccess world, int x, int y, int z, ForgeDirection face) {
+		return 0;
+	}
+
+	@Override
+	public boolean isFlammable(IBlockAccess world, int x, int y, int z, ForgeDirection face) {
+		return false;
+	}
+
+	@Override
+	public int getFireSpreadSpeed(IBlockAccess world, int x, int y, int z, ForgeDirection face) {
+		return 0;
 	}
 
 	@Override

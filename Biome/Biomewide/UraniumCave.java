@@ -22,6 +22,7 @@ import net.minecraft.world.biome.BiomeGenBase.SpawnListEntry;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
+import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Effects.LightningBolt;
@@ -138,7 +139,7 @@ public class UraniumCave {
 		}
 
 		double dr = cc.outerCircleRadius+5;
-		ResourceNodeRoom rm = cache != null ? cache.reconstructNode() : new ResourceNodeRoom(cc.center.offset(-avg.xCoord*dr, 0, -avg.zCoord*dr));
+		ResourceNodeRoom rm = cache != null ? cache.reconstructNode(cache.nodeTile) : new ResourceNodeRoom(cc.center.offset(-avg.xCoord*dr, 0, -avg.zCoord*dr));
 		rm.calculate(world, rand);
 
 		carveSet.addAll(rm.carve.keySet());
@@ -197,9 +198,11 @@ public class UraniumCave {
 			}
 		}
 
-		this.generateDecorations(world, rand, carveSet, remainingFloor, cc);
-
 		this.generateCasing(world, rand, carveSet);
+
+		rm.generateResourceNode(world, rand);
+
+		this.generateDecorations(world, rand, carveSet, remainingFloor, pits, cc);
 
 		for (int i = 0; i < 15; i++) {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, flatFloor);
@@ -222,11 +225,17 @@ public class UraniumCave {
 			int px = MathHelper.floor_double(p.xCoord);
 			int py = MathHelper.floor_double(p.yCoord);
 			int pz = MathHelper.floor_double(p.zCoord);
-			DecoratorPinkForest.generateOreClumpAt(world, px, py-1, pz, rand, OreSpawnLocation.CAVE_RESOURCE_NODE, 3);
+			DecoratorPinkForest.generateOreClumpAt(world, px, py-1, pz, rand, OreSpawnLocation.CAVE_RESOURCE_ROOM, 3, rm.nodeClearArea);
+		}
+		OreClusterType spike = OreSpawnLocation.CAVE_RESOURCE_NODE.getRandomOreSpawn();
+		if (spike != null) {
+			rm.generateOreSpike(world, rand, spike.oreBlock);
 		}
 
 		for (int i = 0; i < 6; i++) {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, rm.adjacentFloor);
+			while (c.offset(0, -1, 0).softBlock(world) || c.offset(0, -1, 0).getBlock(world) == SFBlocks.CAVESHIELD.getBlockInstance())
+				c = c.offset(0, -1, 0);
 			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord, c.zCoord, rand);
 			lgc.activeRadius = 6;
 			lgc.spawnRadius = 5;
@@ -244,15 +253,15 @@ public class UraniumCave {
 		return cc;
 	}
 
-	private void generateDecorations(World world, Random rand, HashSet<Coordinate> carveSet, HashMap<Coordinate, Integer> floor, CentralCave cc) {
-		HashSet<Coordinate> used = new HashSet();
-
-		for (int i = 0; i < 30; i++) {
+	private void generateDecorations(World world, Random rand, HashSet<Coordinate> carveSet, HashMap<Coordinate, Integer> floor, HashSet<Coordinate> pits, CentralCave cc) {
+		for (int i = 0; i < 40; i++) {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, floor.keySet());
-			if (used.contains(c))
+			if (pits.contains(c))
+				continue;
+			int y = floor.get(c);
+			if (!c.setY(y).isEmpty(world))
 				continue;
 			boolean flag = true;
-			int y = floor.get(c);
 			for (int i2 = 0; i2 <= 2; i2++) {
 				if (!carveSet.contains(c.offset(0, y+i2, 0))) {
 					flag = false;
@@ -270,26 +279,27 @@ public class UraniumCave {
 			if (!flag)
 				continue;
 			world.setBlock(c.xCoord, y, c.zCoord, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal(), 2);
-			used.add(c);
 		}
 
 		for (int i = 0; i < 20; i++) {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, floor.keySet());
-			if (used.contains(c))
+			if (pits.contains(c))
 				continue;
 			int y = floor.get(c);
+			if (!c.setY(y).isEmpty(world))
+				continue;
 			int h = ReikaRandomHelper.getRandomBetween(1, 3, rand);
 			this.generateMushroom(world, c.xCoord, y, c.zCoord, h, carveSet);
-			used.add(c);
 
 			for (int i2 = 0; i2 < 3 ; i2++) {
 				Coordinate c2 = c.offset(ReikaRandomHelper.getRandomPlusMinus(0, 2, rand), 0, ReikaRandomHelper.getRandomPlusMinus(0, 2, rand));
 				if (!floor.containsKey(c2))
 					continue;
-				y = floor.get(c);
+				y = floor.get(c2);
+				if (!c2.setY(y).isEmpty(world))
+					continue;
 				h = ReikaRandomHelper.getRandomBetween(1, 3, rand);
 				this.generateMushroom(world, c2.xCoord, y, c2.zCoord, h, carveSet);
-				used.add(c2);
 			}
 		}
 
@@ -298,6 +308,10 @@ public class UraniumCave {
 			while (carveSet.contains(c.offset(0, 1, 0))) {
 				c = c.offset(0, 1, 0);
 			}
+			if (!c.isEmpty(world))
+				continue;
+			if (c.offset(0, 1, 0).softBlock(world))
+				continue;
 			if (rand.nextInt(3) > 0) {
 				c.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALACTITE.ordinal());
 			}
@@ -307,7 +321,7 @@ public class UraniumCave {
 			}
 		}
 
-		for (int i = 0; i < 18; i++) {
+		for (int i = 0; i < 20; i++) {
 			Coordinate root = ReikaJavaLibrary.getRandomCollectionEntry(rand, floor.keySet());
 			HashSet<Coordinate> place = new HashSet();
 			place.add(root);
@@ -325,7 +339,11 @@ public class UraniumCave {
 			}
 			for (Coordinate c : place) {
 				int y = floor.get(c);
+				if (!c.setY(y).isEmpty(world))
+					continue;
 				world.setBlock(c.xCoord, y, c.zCoord, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal(), 2);
+				if (rand.nextInt(4) == 0 && world.getBlock(c.xCoord, y+1, c.zCoord).isAir(world, c.xCoord, y+1, c.zCoord))
+					world.setBlock(c.xCoord, y+1, c.zCoord, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal(), 2);
 			}
 		}
 
@@ -335,6 +353,8 @@ public class UraniumCave {
 				while (carveSet.contains(c.offset(0, -1, 0))) {
 					c = c.offset(0, -1, 0);
 				}
+				if (!c.isEmpty(world))
+					continue;
 				int h = ReikaRandomHelper.getRandomBetween(0, 2, rand);
 				this.generateMushroom(world, c.xCoord, c.yCoord, c.zCoord, h, carveSet);
 
@@ -345,13 +365,19 @@ public class UraniumCave {
 					}
 					if (!carveSet.contains(c2))
 						continue;
+					if (!c2.isEmpty(world))
+						continue;
 					if (DecoratorPinkForest.getTrueTopAt(world, c2.xCoord, c2.zCoord) <= c2.yCoord+10)
 						continue;
 					if (rand.nextInt(3) == 0) {
-						c.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal());
+						c2.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal());
+						if (c2.offset(0, 1, 0).getBlock(world) == SFBlocks.GRASS.getBlockInstance())
+							ReikaJavaLibrary.pConsole("Placed stagmite into mushroom!");
 					}
 					else {
 						h = ReikaRandomHelper.getRandomBetween(0, 2, rand);
+						if (c2.getBlock(world) == SFBlocks.DECORATION.getBlockInstance())
+							ReikaJavaLibrary.pConsole("Placed mushroom into stagmite!");
 						this.generateMushroom(world, c2.xCoord, c2.yCoord, c2.zCoord, h, carveSet);
 					}
 				}
@@ -362,6 +388,10 @@ public class UraniumCave {
 				while (carveSet.contains(c.offset(0, 1, 0))) {
 					c = c.offset(0, 1, 0);
 				}
+				if (!c.isEmpty(world))
+					continue;
+				if (c.offset(0, 1, 0).softBlock(world))
+					continue;
 				if (rand.nextInt(5) >= 1) {
 					c.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALACTITE.ordinal());
 				}
@@ -376,6 +406,10 @@ public class UraniumCave {
 			while (carveSet.contains(c.offset(0, -1, 0))) {
 				c = c.offset(0, -1, 0);
 			}
+			if (!c.isEmpty(world))
+				continue;
+			if (c.getTaxicabDistanceTo(cc.nodeRoom.resourceNode) <= 2)
+				continue;
 			int h = ReikaRandomHelper.getRandomBetween(0, 2, rand);
 			this.generateMushroom(world, c.xCoord, c.yCoord, c.zCoord, h, carveSet);
 
@@ -386,6 +420,10 @@ public class UraniumCave {
 				}
 				if (!carveSet.contains(c2))
 					continue;
+				if (!c2.isEmpty(world))
+					continue;
+				if (c2.getTaxicabDistanceTo(cc.nodeRoom.resourceNode) <= 2)
+					continue;
 				if (DecoratorPinkForest.getTrueTopAt(world, c2.xCoord, c2.zCoord) <= c2.yCoord+10)
 					continue;
 				int n = rand.nextInt(5);
@@ -393,12 +431,18 @@ public class UraniumCave {
 					case 0:
 					case 1:
 						c.setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal());
+						if (rand.nextInt(4) == 0 && c.offset(0, 1, 0).isEmpty(world))
+							c.offset(0, 1, 0).setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal());
 						break;
 					case 2:
-						c.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal());
+						c2.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal());
+						if (c2.offset(0, 1, 0).getBlock(world) == SFBlocks.GRASS.getBlockInstance())
+							ReikaJavaLibrary.pConsole("Placed stagmite into mushroom!");
 						break;
 					case 3:
 					case 4:
+						if (c2.getBlock(world) == SFBlocks.DECORATION.getBlockInstance())
+							ReikaJavaLibrary.pConsole("Placed mushroom into stagmite!");
 						h = ReikaRandomHelper.getRandomBetween(0, 2, rand);
 						this.generateMushroom(world, c2.xCoord, c2.yCoord, c2.zCoord, h, carveSet);
 						break;
@@ -411,6 +455,12 @@ public class UraniumCave {
 			while (carveSet.contains(c.offset(0, 1, 0))) {
 				c = c.offset(0, 1, 0);
 			}
+			if (!c.isEmpty(world))
+				continue;
+			if (c.getTaxicabDistanceTo(cc.nodeRoom.resourceNode) <= 4)
+				continue;
+			if (c.offset(0, 1, 0).softBlock(world))
+				continue;
 			if (rand.nextInt(5) >= 1) {
 				c.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALACTITE.ordinal());
 			}
@@ -812,8 +862,53 @@ public class UraniumCave {
 		private final HashSet<Coordinate> adjacent = new HashSet();
 		private final HashSet<Coordinate> adjacentFloor = new HashSet();
 
+		private Coordinate resourceNode;
+		private final HashSet<Coordinate> nodeClearArea = new HashSet();
+
 		protected ResourceNodeRoom(DecimalPosition p) {
 			super(p);
+		}
+
+		void generateOreSpike(World world, Random rand, BlockKey ore) {
+			/*
+			placeOreIfEmpty(world, ore, resourceNode.offset(0, 1, 0));
+			placeOreIfEmpty(world, ore, resourceNode.offset(0, 2, 0));
+			placeOreIfEmpty(world, ore, resourceNode.offset(0, 2, 0));
+			 */
+			for (int i = 1; i <= 3; i++) {
+				Coordinate c = resourceNode.offset(0, i, 0);
+				if (c.softBlock(world)) {
+					c.setBlock(world, ore.blockID, ore.metadata);
+					if (i <= 2) {
+						for (Coordinate c2 : c.getAdjacentCoordinates()) {
+							if (c2.yCoord == c.yCoord && c2.softBlock(world)) {
+								c2.setBlock(world, ore.blockID, ore.metadata);
+							}
+						}
+					}
+					if (i == 1) {
+						Coordinate c2 = resourceNode.offset(1, i, 0);
+						if (c2.yCoord == c.yCoord && c2.softBlock(world)) {
+							c2.setBlock(world, ore.blockID, ore.metadata);
+						}
+						c2 = resourceNode.offset(-1, i, 0);
+						if (c2.yCoord == c.yCoord && c2.softBlock(world)) {
+							c2.setBlock(world, ore.blockID, ore.metadata);
+						}
+						c2 = resourceNode.offset(0, i, 1);
+						if (c2.yCoord == c.yCoord && c2.softBlock(world)) {
+							c2.setBlock(world, ore.blockID, ore.metadata);
+						}
+						c2 = resourceNode.offset(0, i, -1);
+						if (c2.yCoord == c.yCoord && c2.softBlock(world)) {
+							c2.setBlock(world, ore.blockID, ore.metadata);
+						}
+					}
+				}
+				else {
+					break;
+				}
+			}
 		}
 
 		@Override
@@ -880,26 +975,53 @@ public class UraniumCave {
 		protected void generate(World world, Random rand) {
 			super.generate(world, rand);
 
-			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, disks.keySet()).getCoordinate();//new Coordinate(center);
-			Coordinate below = c.offset(0, -1, 0);
-			while (carve.containsKey(below)) {
-				c = below;
-				below = c.offset(0, -1, 0);
+			//this.generateResourceNode(world, rand);
+		}
+
+		void generateResourceNode(World world, Random rand) {
+			if (resourceNode == null) {
+				Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, disks.keySet()).getCoordinate();//new Coordinate(center);
+				Coordinate below = c.offset(0, -1, 0);
+				while (carve.containsKey(below)) {
+					c = below;
+					below = c.offset(0, -1, 0);
+				}
+				resourceNode = below;
 			}
 
-			below.setBlock(world, SFBlocks.RESOURCENODE.getBlockInstance());
-			for (Coordinate c2 : below.getAdjacentCoordinates()) {
-				if (!carve.containsKey(c2)) {
-					c2.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
+			this.generateResourceNodeAt(world, rand);
+		}
+
+		private void generateResourceNodeAt(World world, Random rand) {
+			resourceNode.setBlock(world, SFBlocks.RESOURCENODE.getBlockInstance());
+
+			HashSet<Coordinate> cleared = new HashSet();
+			int r = 2;//1;
+			for (int i = -r; i <= r; i++) {
+				for (int k = -r; k <= r; k++) {
+					if (Math.abs(i) == 2 && Math.abs(k) == 2)
+						continue;
+					Coordinate below = resourceNode.offset(i, -1, k);
+					Coordinate above = resourceNode.offset(i, 1, k);
+					Coordinate above2 = resourceNode.offset(i, 2, k);
+					Coordinate at = resourceNode.offset(i, 0, k);
+					cleared.add(above);
+					cleared.add(above2);
+					nodeClearArea.add(at.to2D());
+					if (i != 0 || k != 0) {
+						at.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
+					}
+					below.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
 				}
 			}
-			/*
-			for (int i = -1; i <= 1; i++) {
-				for (int k = -1; k <= 1; k++) {
-					below.offset(i, 0, k).setBlock(world, SFBlocks.RESOURCENODE.getBlockInstance(), 1);
+			for (Coordinate c2 : cleared) {
+				for (Coordinate c3 : c2.getAdjacentCoordinates()) {
+					if (!carve.containsKey(c3) && !cleared.contains(c3) && !instance.isSpecialCaveBlock(c3.getBlock(world))) {
+						c3.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
+					}
 				}
+				c2.setBlock(world, Blocks.air);
 			}
-			 */
 		}
 
 	}
@@ -985,6 +1107,7 @@ public class UraniumCave {
 		public final double innerRadius;
 		final DecimalPosition innerOffset;
 		public final DecimalPosition nodeRoom;
+		public final Coordinate nodeTile;
 		final HashMap<Coordinate, Double> tunnels = new HashMap();
 
 		CachedCave(CentralCave cc) {
@@ -993,13 +1116,16 @@ public class UraniumCave {
 			innerRadius = cc.innerCircleRadius;
 			innerOffset = cc.innerCircleOffset;
 			nodeRoom = cc.nodeRoom.center;
+			nodeTile = cc.nodeRoom.resourceNode;
 			for (Tunnel t : cc.tunnels) {
 				tunnels.put(t.endpoint, t.startingAngle);
 			}
 		}
 
-		public ResourceNodeRoom reconstructNode() {
-			return new ResourceNodeRoom(nodeRoom);
+		public ResourceNodeRoom reconstructNode(Coordinate node) {
+			ResourceNodeRoom rm = new ResourceNodeRoom(nodeRoom);
+			rm.resourceNode = node;
+			return rm;
 		}
 
 		public CentralCave reconstruct() {
@@ -1010,9 +1136,10 @@ public class UraniumCave {
 			return ret;
 		}
 
-		public CachedCave(Coordinate ctr, DecimalPosition node, double radius, double inner, DecimalPosition off, HashMap<Coordinate, Double> map) {
+		public CachedCave(Coordinate ctr, DecimalPosition node, Coordinate tile, double radius, double inner, DecimalPosition off, HashMap<Coordinate, Double> map) {
 			center = ctr;
 			nodeRoom = node;
+			nodeTile = tile;
 			outerRadius = radius;
 			innerRadius = inner;
 			innerOffset = off;

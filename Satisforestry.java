@@ -33,8 +33,10 @@ import net.minecraftforge.common.BiomeDictionary;
 import net.minecraftforge.common.BiomeManager;
 import net.minecraftforge.common.BiomeManager.BiomeEntry;
 import net.minecraftforge.common.BiomeManager.BiomeType;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.terraingen.ChunkProviderEvent;
+import net.minecraftforge.event.terraingen.DecorateBiomeEvent.Decorate;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fluids.FluidRegistry;
 
@@ -132,6 +134,8 @@ public class Satisforestry extends DragonAPIMod {
 		logger = new ModLogger(instance, false);
 		if (DragonOptions.FILELOG.getState())
 			logger.setOutput("**_Loading_Log.log");
+
+		MinecraftForge.TERRAIN_GEN_BUS.register(this);
 
 		ReikaRegistryHelper.instantiateAndRegisterBlocks(instance, SFBlocks.blockList, blocks);
 
@@ -398,6 +402,13 @@ public class Satisforestry extends DragonAPIMod {
 			evt.setResult(Result.DENY);
 		}
 		else if (evt.block == log && evt.getMetadata()%4 == 1) {
+			evt.setResult(Result.DENY);
+		}
+	}
+
+	@SubscribeEvent
+	public void noPumpkins(Decorate evt) {
+		if (evt.type == Decorate.EventType.PUMPKIN && this.isPinkForest(evt.world, evt.chunkX+8, evt.chunkZ+8)) {
 			evt.setResult(Result.DENY);
 		}
 	}

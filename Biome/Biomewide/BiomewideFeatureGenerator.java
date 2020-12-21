@@ -64,6 +64,7 @@ public class BiomewideFeatureGenerator {
 		for (Object o : li.tagList) {
 			NBTTagCompound tag = (NBTTagCompound)o;
 			Coordinate center = Coordinate.readTag(tag.getCompoundTag("center"));
+			Coordinate tile = Coordinate.readTag(tag.getCompoundTag("tile"));
 			DecimalPosition node = DecimalPosition.readTag(tag.getCompoundTag("node"));
 			DecimalPosition off = DecimalPosition.readTag(tag.getCompoundTag("offset"));
 			double radius = tag.getDouble("radius");
@@ -77,7 +78,7 @@ public class BiomewideFeatureGenerator {
 				map.put(end, ang);
 			}
 			WorldLocation key = WorldLocation.readTag(tag);
-			caveNetworks.put(key, new CachedCave(center, node, radius, inner, off, map));
+			caveNetworks.put(key, new CachedCave(center, node, tile, radius, inner, off, map));
 		}
 	}
 
@@ -88,6 +89,7 @@ public class BiomewideFeatureGenerator {
 			CachedCave cv = e.getValue();
 			cave.setTag("key", e.getKey().writeToTag());
 			cave.setTag("center", cv.center.writeToTag());
+			cave.setTag("tile", cv.nodeTile.writeToTag());
 			cave.setTag("node", cv.nodeRoom.writeToTag());
 			cave.setTag("offset", cv.innerOffset.writeToTag());
 			cave.setDouble("radius", cv.outerRadius);
