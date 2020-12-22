@@ -6,6 +6,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
@@ -15,6 +16,9 @@ import net.minecraftforge.common.EnumPlantType;
 import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
+import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Render.RedBambooRenderer;
 
@@ -28,11 +32,15 @@ public class BlockRedBamboo extends Block implements IPlantable {
 
 	private static final IIcon[] leaves = new IIcon[8];
 
+	private final SimplexNoiseGenerator growthLimit;
+
 	public BlockRedBamboo() {
 		super(Material.leaves);
 		this.setTickRandomly(true);
 		this.setCreativeTab(Satisforestry.tabCreative);
 		this.setStepSound(soundTypeGrass);
+
+		growthLimit = (SimplexNoiseGenerator)new SimplexNoiseGenerator(this.getClass().getName().hashCode()).setFrequency(1/2D);
 	}
 
 	public static IIcon getRandomLeaf(Random rand) {
@@ -83,7 +91,46 @@ public class BlockRedBamboo extends Block implements IPlantable {
 				}
 			}
 		}*/
-		this.checkStability(world, x, y, z);
+		if (this.checkStability(world, x, y, z)) {
+			if (this.tryGrow(world, x, y, z, rand)) {
+
+			}
+		}
+	}
+
+	private boolean tryGrow(World world, int x, int y, int z, Random rand) {
+		int h = 0;
+		if (world.getBlock(x, y-1, z) == this)
+			return false;
+		while (world.getBlock(x, y+h, z) == this) {
+			h++;
+		}
+		int meta = world.getBlockMetadata(x, y+h-1, z);
+		if (meta < 8) {
+			if (meta == 0) {
+				int limit = (int)ReikaMathLibrary.normalizeToBounds(growthLimit.getValue(x, z), 3, 8);
+				if (h < limit) {
+					world.setBlock(x, y+h, z, this, 7, 3);
+					ReikaSoundHelper.playPlaceSound(world, x, y+h, z, Blocks.leaves, 0.85F, 0.6F);
+					return true;
+				}
+				else {
+					return false;
+				}
+			}
+			else {
+				world.setBlockMetadataWithNotify(x, y+h-1, z, meta-1, 3);
+				return true;
+			}
+		}
+		else {
+			return false;
+		}
+	}
+
+	@Override
+	public int damageDropped(int meta) {
+		return 0;
 	}
 
 	@Override
@@ -152,7 +199,7 @@ public class BlockRedBamboo extends Block implements IPlantable {
 
 	@Override
 	public Item getItemDropped(int dmg, Random rand, int fortune) {
-		return null;
+		return Items.reeds;
 	}
 
 	@Override

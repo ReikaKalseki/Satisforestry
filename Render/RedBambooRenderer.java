@@ -127,15 +127,15 @@ public class RedBambooRenderer implements ISBRH {
 			double maxLeaf = 0;
 
 			int n2 = 1;
-			if (randY.nextInt(3) == 0)
+			if (randY.nextInt(3) == 0 && false)
 				n2++;
-			int nl = ReikaRandomHelper.getRandomBetween(0, 4, randY);
+			int nl = ReikaRandomHelper.getRandomBetween(0, 5, randY);
 			for (int i0 = 0; i0 < nl; i0++) {
 				double ang = ReikaRandomHelper.getRandomPlusMinus(i0*360D/nl, 90D/nl, randY);//Math.toRadians(randY.nextDouble()*360);
 				double w = ReikaRandomHelper.getRandomPlusMinus(0.875, 0.125, randY);
 				double h = ReikaRandomHelper.getRandomPlusMinus(1, 0.25, randY);
-				double ax = w*Math.cos(ang);
-				double az = w*Math.sin(ang);
+				double ax = w*Math.cos(Math.toRadians(ang));
+				double az = w*Math.sin(Math.toRadians(ang));
 				double dy = ReikaRandomHelper.getRandomPlusMinus(0.5, 0.25, randY);
 				maxLeaf = Math.max(maxLeaf, dy);
 				for (int i2 = 0; i2 < n2; i2++) {
@@ -151,18 +151,25 @@ public class RedBambooRenderer implements ISBRH {
 					float v = ico.getMinV();
 					float du = ico.getMaxU();
 					float dv = ico.getMaxV();
-					if (renderPass == 1) {
-						v5.addVertexWithUV(x+dx+0.5, 		y+dy-h/2, 	z+dz+0.5, 		u, v);
-						v5.addVertexWithUV(x+dx+0.5+ax, 	y+dy-h/2, 	z+dz+0.5+az, 	du, v);
-						v5.addVertexWithUV(x+dx+0.5+ax, 	y+dy+h/2, 	z+dz+0.5+az, 	du, dv);
-						v5.addVertexWithUV(x+dx+0.5, 		y+dy+h/2, 	z+dz+0.5, 		u, dv);
+					for (double ds = 0; ds <= 0.5; ds += 0.5) {
+						double right = Math.toRadians(ang+90);
+						double ss = (randY.nextDouble()*randY.nextDouble()+ds)%1D;
+						double oy = ss*h/2;
+						double ox = ss*Math.cos(right)*h/2;
+						double oz = ss*Math.sin(right)*h/2;
+						if (renderPass == 1) {
+							v5.addVertexWithUV(x+dx+0.5-ox, 		y+dy-h/2+oy, 	z+dz+0.5-oz, 		u, v);
+							v5.addVertexWithUV(x+dx+0.5+ax-ox, 		y+dy-h/2+oy, 	z+dz+0.5+az-oz, 	du, v);
+							v5.addVertexWithUV(x+dx+0.5+ax+ox, 		y+dy+h/2-oy, 	z+dz+0.5+az+oz, 	du, dv);
+							v5.addVertexWithUV(x+dx+0.5+ox, 		y+dy+h/2-oy, 	z+dz+0.5+oz, 		u, dv);
 
-						v5.addVertexWithUV(x+dx+0.5, 		y+dy+h/2, 	z+dz+0.5, 		u, dv);
-						v5.addVertexWithUV(x+dx+0.5+ax, 	y+dy+h/2, 	z+dz+0.5+az, 	du, dv);
-						v5.addVertexWithUV(x+dx+0.5+ax, 	y+dy-h/2, 	z+dz+0.5+az, 	du, v);
-						v5.addVertexWithUV(x+dx+0.5, 		y+dy-h/2, 	z+dz+0.5, 		u, v);
+							v5.addVertexWithUV(x+dx+0.5+ox, 		y+dy+h/2-oy, 	z+dz+0.5+oz, 		u, dv);
+							v5.addVertexWithUV(x+dx+0.5+ax+ox, 		y+dy+h/2-oy, 	z+dz+0.5+az+oz, 	du, dv);
+							v5.addVertexWithUV(x+dx+0.5+ax-ox, 		y+dy-h/2+oy, 	z+dz+0.5+az-oz, 	du, v);
+							v5.addVertexWithUV(x+dx+0.5-ox, 		y+dy-h/2+oy, 	z+dz+0.5-oz, 		u, v);
 
-						flag = true;
+							flag = true;
+						}
 					}
 				}
 			}

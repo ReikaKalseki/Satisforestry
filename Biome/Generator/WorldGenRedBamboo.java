@@ -40,7 +40,7 @@ public class WorldGenRedBamboo extends WorldGenerator {
 				int h = ReikaRandomHelper.getRandomBetween(3, 7, rand); //TODO noisemap?
 				for (int d = 0; d < h; d++) {
 					if (this.isReplaceable(world, dx, dy+d, dz)) {
-						world.setBlock(dx, dy+d, dz, SFBlocks.BAMBOO.getBlockInstance());
+						world.setBlock(dx, dy+d, dz, SFBlocks.BAMBOO.getBlockInstance(), 15, 2);
 					}
 					else {
 						break;
