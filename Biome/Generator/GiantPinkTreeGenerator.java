@@ -13,6 +13,7 @@ import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaPlantHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
+import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
@@ -184,6 +185,16 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 	@Override
 	protected float leafSize(int r) {
 		return super.leafSize(r);
+	}
+
+	@Override
+	protected boolean isValidUnderBlock(World world, int x, int y, int z) {
+		return true;
+	}
+
+	@Override
+	protected boolean isReplaceable(World world, int x, int y, int z) {
+		return super.isReplaceable(world, x, y, z) || ReikaWorldHelper.softBlocks(world, x, y, z) || world.getBlock(x, y, z) == SFBlocks.BAMBOO.getBlockInstance();
 	}
 
 	@Override

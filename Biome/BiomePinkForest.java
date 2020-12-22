@@ -378,7 +378,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 				case STREAMS:
 					return 0.25;
 				case SWAMP:
-					return 0.67;
+					return 0.8;
 				default:
 					return 0;
 			}
@@ -389,9 +389,9 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 				case FOREST:
 					return 1;
 				case STREAMS:
-					return 0.25;
+					return 0.2;
 				case SWAMP:
-					return 1;
+					return 0.9;
 				default:
 					return 0;
 			}
