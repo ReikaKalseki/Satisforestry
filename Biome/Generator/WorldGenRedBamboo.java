@@ -2,9 +2,7 @@ package Reika.Satisforestry.Biome.Generator;
 
 import java.util.Random;
 
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.gen.feature.WorldGenerator;
 
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
@@ -13,43 +11,40 @@ import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 
-public class WorldGenRedBamboo extends WorldGenerator {
+public class WorldGenRedBamboo {
 
-	private int generationRate = 128;
+	private float generationRate = 0.2F;
 
-	public WorldGenRedBamboo() {
+	/** Block coords */
+	public boolean generate(World world, Random rand, int chunkX, int chunkZ) {
+		int amt = 0;
+		for (int dx = chunkX; dx < chunkX+16; dx++) {
+			for (int dz = chunkZ; dz < chunkZ+16; dz++) {
+				if (!Satisforestry.isPinkForest(world, dx, dz))
+					continue;
+				this.setFrequency(Satisforestry.pinkforest.getSubBiome(world, dx, dz));
+				if (rand.nextFloat() > generationRate)
+					continue;
 
-	}
+				int dy = DecoratorPinkForest.getTrueTopAt(world, dx, dz)+1;
+				if (dy < 62)
+					continue;
 
-	@Override
-	public boolean generate(World world, Random rand, int x, int y, int z) {
-		for (int i = 0; i < generationRate; i++) {
-			int r = MathHelper.ceiling_double_int(generationRate);
-			int dx = ReikaRandomHelper.getRandomPlusMinus(x, r, rand);
-			int dz = ReikaRandomHelper.getRandomPlusMinus(z, r, rand);
-
-			if (!Satisforestry.isPinkForest(world, dx, dz))
-				continue;
-
-			int dy = DecoratorPinkForest.getTrueTopAt(world, dx, dz)+1;
-
-			if (dy < 62)
-				continue;
-
-			if (this.isReplaceable(world, dx, dy, dz) && !Satisforestry.pinkforest.isRoad(world, dx, dz) && SFBlocks.BAMBOO.getBlockInstance().canBlockStay(world, dx, dy, dz)) {
-				int h = ReikaRandomHelper.getRandomBetween(3, 7, rand); //TODO noisemap?
-				for (int d = 0; d < h; d++) {
-					if (this.isReplaceable(world, dx, dy+d, dz)) {
-						world.setBlock(dx, dy+d, dz, SFBlocks.BAMBOO.getBlockInstance(), 15, 2);
-					}
-					else {
-						break;
+				if (this.isReplaceable(world, dx, dy, dz) && !Satisforestry.pinkforest.isRoad(world, dx, dz) && SFBlocks.BAMBOO.getBlockInstance().canBlockStay(world, dx, dy, dz)) {
+					int h = ReikaRandomHelper.getRandomBetween(3, 7, rand); //TODO noisemap?
+					for (int d = 0; d < h; d++) {
+						if (this.isReplaceable(world, dx, dy+d, dz)) {
+							world.setBlock(dx, dy+d, dz, SFBlocks.BAMBOO.getBlockInstance(), 15, 2);
+						}
+						else {
+							break;
+						}
 					}
 				}
 			}
 		}
 
-		return true;
+		return amt > 0;
 	}
 
 	private boolean isReplaceable(World world, int x, int y, int z) {
@@ -59,13 +54,13 @@ public class WorldGenRedBamboo extends WorldGenerator {
 	public void setFrequency(BiomeSection sub) {
 		switch(sub) {
 			case FOREST:
-				generationRate = 40;
+				generationRate = 0.1F;
 				break;
 			case STREAMS:
-				generationRate = 320;
+				generationRate = 0.67F;
 				break;
 			case SWAMP:
-				generationRate = 120;
+				generationRate = 0.2F;
 				break;
 		}
 	}

@@ -15,6 +15,7 @@ import Reika.DragonAPI.Instantiable.Worldgen.ChunkSplicedGenerationCache;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.Satisforestry.Biome.Generator.GiantPinkTreeGenerator;
 
+@Deprecated
 public class TreeGenCache {
 
 	public static final TreeGenCache instance = new TreeGenCache();
@@ -87,7 +88,7 @@ public class TreeGenCache {
 		li = NBT.getTagList("blocks", NBTTypes.COMPOUND.ID);
 		for (Object o : li.tagList) {
 			NBTTagCompound tag = (NBTTagCompound)o;
-			blockCache.put(tag.getInteger("dimension"), ChunkSplicedGenerationCache.readFromNBT(tag.getCompoundTag("blocks")));
+			//blockCache.put(tag.getInteger("dimension"), ChunkSplicedGenerationCache.readFromNBT(tag.getCompoundTag("blocks")));
 		}
 	}
 
@@ -112,7 +113,7 @@ public class TreeGenCache {
 		for (Entry<Integer, ChunkSplicedGenerationCache> e : blockCache.entrySet()) {
 			NBTTagCompound tag = new NBTTagCompound();
 			tag.setInteger("dimension", e.getKey());
-			tag.setTag("blocks", e.getValue().writeToNBT());
+			//tag.setTag("blocks", e.getValue().writeToNBT());
 			li.appendTag(tag);
 		}
 		NBT.setTag("blocks", li);

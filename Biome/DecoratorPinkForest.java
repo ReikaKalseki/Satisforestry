@@ -140,9 +140,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		if (chunk_X%(4+d1) == chunk_Z%(3-d1))
 			rockGenerator.generate(currentWorld, randomGenerator, x, top, z);
 
-		BiomePinkForest forest = (BiomePinkForest)biome;
-		redBambooGenerator.setFrequency(forest.getSubBiome(currentWorld, x, z));
-		redBambooGenerator.generate(currentWorld, randomGenerator, x, top, z);
+		redBambooGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
 	}
 
 	public static int getTrueTopAt(World currentWorld, int dx, int dz) {

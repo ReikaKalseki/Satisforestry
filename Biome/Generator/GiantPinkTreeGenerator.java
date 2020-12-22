@@ -15,8 +15,6 @@ import Reika.DragonAPI.Libraries.Registry.ReikaPlantHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
-import Reika.Satisforestry.Biome.PinkForestPersistentData;
-import Reika.Satisforestry.Biome.TreeGenCache;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 
 public class GiantPinkTreeGenerator extends ModifiableBigTree {
@@ -57,8 +55,8 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 		if (!readyToGenerate) {
 			readyToGenerate = true;
 			forceGen = true;
-			TreeGenCache.instance.addTree(world, x, y, z, this);
-			PinkForestPersistentData.initNetworkData(world).setDirty(true);
+			//TreeGenCache.instance.addTree(world, x, y, z, this);
+			//PinkForestPersistentData.initNetworkData(world).setDirty(true);
 			return true;
 		}
 		int h1 = ReikaRandomHelper.getRandomBetween(10, 18, treeRand); //was 20-30, then 18-25, then 12-24
@@ -190,8 +188,9 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 
 	@Override
 	protected void setBlockAndNotifyAdequately(World world, int x, int y, int z, Block b, int meta) {
+		super.setBlockAndNotifyAdequately(world, x, y, z, b, meta);
 		//world.setBlock(x+globalOffset[0], y+globalOffset[1], z+globalOffset[2], b, meta, doUpdates ? 3 : 2);
-		TreeGenCache.instance.addBlock(world, x, y, z, b, meta);
+		//TreeGenCache.instance.addBlock(world, x, y, z, b, meta);
 	}
 
 	public static GiantPinkTreeGenerator readNBT(NBTTagCompound tag) {

@@ -42,7 +42,8 @@ public class WorldGenPonds extends WorldGenerator {
 		if (!forceGeneration && Satisforestry.pinkforest.getSubBiome(world, x0, z0) != BiomeSection.SWAMP)
 			return false;
 
-		for (int i = 0; i < 4; i++) {
+		int n0 = rand.nextBoolean() ? 2 : 3;
+		for (int i = 0; i < n0; i++) {
 			int x = ReikaRandomHelper.getRandomPlusMinus(x0, 6, rand);
 			int z = ReikaRandomHelper.getRandomPlusMinus(z0, 6, rand);
 			int y = DecoratorPinkForest.getTrueTopAt(world, x, z);
@@ -206,7 +207,7 @@ public class WorldGenPonds extends WorldGenerator {
 					}
 				}
 				//ReikaJavaLibrary.pConsole("Generated a swamp pond at "+x+", "+y+", "+z);
-				if (rand.nextInt(5) >= 2)
+				if (rand.nextInt(7) > 0)
 					return true;
 			}
 		}
