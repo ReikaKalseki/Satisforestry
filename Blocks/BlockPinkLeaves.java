@@ -3,15 +3,12 @@ package Reika.Satisforestry.Blocks;
 import java.util.Random;
 
 import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Base.BlockCustomLeaf;
-import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
-import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.Satisforestry.Satisforestry;
 
 public class BlockPinkLeaves extends BlockCustomLeaf {
@@ -154,9 +151,7 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 
 	@Override
 	protected void onLeafDecay(World world, int x, int y, int z) {
-		Coordinate c = new Coordinate(x, y, z);
-		c.setBlock(world, Blocks.obsidian);
-		ReikaJavaLibrary.pConsole("Leaf decay @ "+c);
+
 	}
 
 	@Override

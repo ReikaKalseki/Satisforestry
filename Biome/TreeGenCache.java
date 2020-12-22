@@ -3,6 +3,7 @@ package Reika.Satisforestry.Biome;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
@@ -10,6 +11,7 @@ import net.minecraftforge.common.DimensionManager;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldChunk;
+import Reika.DragonAPI.Instantiable.Worldgen.ChunkSplicedGenerationCache;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.Satisforestry.Biome.Generator.GiantPinkTreeGenerator;
 
@@ -17,43 +19,55 @@ public class TreeGenCache {
 
 	public static final TreeGenCache instance = new TreeGenCache();
 
-	private final HashMap<WorldChunk, HashMap<Coordinate, GiantPinkTreeGenerator>> data = new HashMap();
+	private final HashMap<WorldChunk, HashMap<Coordinate, GiantPinkTreeGenerator>> treeCache = new HashMap();
+	private final HashMap<Integer, ChunkSplicedGenerationCache> blockCache = new HashMap();
 
 	private TreeGenCache() {
 
 	}
 
-	public void add(World world, int x, int y, int z, GiantPinkTreeGenerator gen) {
+	public void addTree(World world, int x, int y, int z, GiantPinkTreeGenerator gen) {
 		WorldChunk wc = new WorldChunk(world, x >> 4, z >> 4);
-		HashMap<Coordinate, GiantPinkTreeGenerator> map = data.get(wc);
+		HashMap<Coordinate, GiantPinkTreeGenerator> map = treeCache.get(wc);
 		if (map == null) {
 			map = new HashMap();
-			data.put(wc, map);
+			treeCache.put(wc, map);
 		}
 		map.put(new Coordinate(x, y, z), gen);
 	}
 
-	public void generate(World world, int chunkX, int chunkZ) {
+	public void generateChunk(World world, int chunkX, int chunkZ) {
 		WorldChunk wc = new WorldChunk(world, chunkX, chunkZ);
-		HashMap<Coordinate, GiantPinkTreeGenerator> map = data.get(wc);
+		HashMap<Coordinate, GiantPinkTreeGenerator> map = treeCache.get(wc);
 		if (map != null) {
 			for (Entry<Coordinate, GiantPinkTreeGenerator> e : map.entrySet()) {
 				Coordinate c = e.getKey();
 				e.getValue().generate(world, null, c.xCoord, c.yCoord, c.zCoord);
 			}
 		}
+		ChunkSplicedGenerationCache get = blockCache.get(world.provider.dimensionId);
+		if (get != null) {
+			get.generate(world, chunkX, chunkZ);
+		}
 	}
 
 	public String getTreeData() {
-		for (WorldChunk wc : data.keySet()) {
+		return treeCache.toString();
+	}
+
+	public String getBlockData() {
+		return blockCache.toString();
+	}
+
+	public void generateAll() {
+		for (WorldChunk wc : treeCache.keySet()) {
 			World world = DimensionManager.getWorld(wc.dimensionID);
-			this.generate(world, wc.chunk.chunkXPos, wc.chunk.chunkZPos);
+			this.generateChunk(world, wc.chunk.chunkXPos, wc.chunk.chunkZPos);
 		}
-		return data.toString();
 	}
 
 	public void readFromNBT(NBTTagCompound NBT) {
-		data.clear();
+		treeCache.clear();
 		NBTTagList li = NBT.getTagList("trees", NBTTypes.COMPOUND.ID);
 		for (Object o1 : li.tagList) {
 			HashMap<Coordinate, GiantPinkTreeGenerator> mapd = new HashMap();
@@ -66,13 +80,20 @@ public class TreeGenCache {
 				GiantPinkTreeGenerator gen = GiantPinkTreeGenerator.readNBT(sub.getCompoundTag("gen"));
 				mapd.put(loc, gen);
 			}
-			data.put(key, mapd);
+			treeCache.put(key, mapd);
+		}
+
+		blockCache.clear();
+		li = NBT.getTagList("blocks", NBTTypes.COMPOUND.ID);
+		for (Object o : li.tagList) {
+			NBTTagCompound tag = (NBTTagCompound)o;
+			blockCache.put(tag.getInteger("dimension"), ChunkSplicedGenerationCache.readFromNBT(tag.getCompoundTag("blocks")));
 		}
 	}
 
 	public void writeToNBT(NBTTagCompound NBT) {
 		NBTTagList li = new NBTTagList();
-		for (Entry<WorldChunk, HashMap<Coordinate, GiantPinkTreeGenerator>> e1 : data.entrySet()) {
+		for (Entry<WorldChunk, HashMap<Coordinate, GiantPinkTreeGenerator>> e1 : treeCache.entrySet()) {
 			NBTTagCompound tag = new NBTTagCompound();
 			NBTTagList map = new NBTTagList();
 			for (Entry<Coordinate, GiantPinkTreeGenerator> e2 : e1.getValue().entrySet()) {
@@ -86,6 +107,24 @@ public class TreeGenCache {
 			li.appendTag(tag);
 		}
 		NBT.setTag("trees", li);
+
+		li = new NBTTagList();
+		for (Entry<Integer, ChunkSplicedGenerationCache> e : blockCache.entrySet()) {
+			NBTTagCompound tag = new NBTTagCompound();
+			tag.setInteger("dimension", e.getKey());
+			tag.setTag("blocks", e.getValue().writeToNBT());
+			li.appendTag(tag);
+		}
+		NBT.setTag("blocks", li);
+	}
+
+	public void addBlock(World world, int x, int y, int z, Block b, int meta) {
+		ChunkSplicedGenerationCache get = blockCache.get(world.provider.dimensionId);
+		if (get == null) {
+			get = new ChunkSplicedGenerationCache();
+			blockCache.put(world.provider.dimensionId, get);
+		}
+		get.setBlock(x, y, z, b, meta);
 	}
 
 }

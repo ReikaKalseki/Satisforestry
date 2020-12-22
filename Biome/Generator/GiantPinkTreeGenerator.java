@@ -2,6 +2,7 @@ package Reika.Satisforestry.Biome.Generator;
 
 import java.util.Random;
 
+import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
@@ -56,7 +57,7 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 		if (!readyToGenerate) {
 			readyToGenerate = true;
 			forceGen = true;
-			TreeGenCache.instance.add(world, x, y, z, this);
+			TreeGenCache.instance.addTree(world, x, y, z, this);
 			PinkForestPersistentData.initNetworkData(world).setDirty(true);
 			return true;
 		}
@@ -185,6 +186,12 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 	@Override
 	protected float leafSize(int r) {
 		return super.leafSize(r);
+	}
+
+	@Override
+	protected void setBlockAndNotifyAdequately(World world, int x, int y, int z, Block b, int meta) {
+		//world.setBlock(x+globalOffset[0], y+globalOffset[1], z+globalOffset[2], b, meta, doUpdates ? 3 : 2);
+		TreeGenCache.instance.addBlock(world, x, y, z, b, meta);
 	}
 
 	public static GiantPinkTreeGenerator readNBT(NBTTagCompound tag) {

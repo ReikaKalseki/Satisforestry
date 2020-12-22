@@ -130,7 +130,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 	@Override
 	public WorldGenAbstractTree func_150567_a(Random rand) {
-		return rand.nextInt(4) == 0 ? new GiantPinkTreeGenerator(false, false) : new PinkTreeGenerator(false);
+		return rand.nextInt(4) == 0 ? new GiantPinkTreeGenerator(false, true) : new PinkTreeGenerator(false);
 	}
 
 	@Override
