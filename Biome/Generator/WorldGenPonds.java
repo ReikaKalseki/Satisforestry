@@ -65,7 +65,7 @@ public class WorldGenPonds extends WorldGenerator {
 			};
 
 			BlockArray arr = new BlockArray();
-			arr.recursiveAddCallbackWithBounds(world, x0, y, z0, x-rx, y-2, z-rz, x+rx, y+20, z+rz, prop);
+			arr.iterativeAddCallbackWithBounds(world, x0, y, z0, x-rx, y-2, z-rz, x+rx, y+20, z+rz, prop);
 
 			Set<Coordinate> blocks = arr.keySet();
 
@@ -206,7 +206,7 @@ public class WorldGenPonds extends WorldGenerator {
 					}
 				}
 				//ReikaJavaLibrary.pConsole("Generated a swamp pond at "+x+", "+y+", "+z);
-				if (rand.nextInt(5) >= 1)
+				if (rand.nextInt(5) >= 2)
 					return true;
 			}
 		}
