@@ -22,6 +22,7 @@ public class PinkForestPersistentData extends WorldSavedData {
 	@Override
 	public void readFromNBT(NBTTagCompound NBT) {
 		BiomewideFeatureGenerator.instance.readFromNBT(NBT.getCompoundTag("biomewideFeatures"));
+		TreeGenCache.instance.readFromNBT(NBT.getCompoundTag("treegencache"));
 	}
 
 	@Override
@@ -29,6 +30,10 @@ public class PinkForestPersistentData extends WorldSavedData {
 		NBTTagCompound tag = new NBTTagCompound();
 		BiomewideFeatureGenerator.instance.writeToNBT(tag);
 		NBT.setTag("biomewideFeatures", tag);
+
+		tag = new NBTTagCompound();
+		TreeGenCache.instance.writeToNBT(tag);
+		NBT.setTag("treegencache", tag);
 	}
 
 	public static PinkForestPersistentData initNetworkData(World world) {

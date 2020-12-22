@@ -2,6 +2,7 @@ package Reika.Satisforestry.Biome.Generator;
 
 import java.util.Random;
 
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
@@ -13,20 +14,30 @@ import Reika.DragonAPI.Libraries.Registry.ReikaPlantHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
+import Reika.Satisforestry.Biome.PinkForestPersistentData;
+import Reika.Satisforestry.Biome.TreeGenCache;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 
 public class GiantPinkTreeGenerator extends ModifiableBigTree {
 
-	private final boolean forceGen;
+	private final boolean generateImmediately;
+	private final Random treeRand = new Random();
 
-	public GiantPinkTreeGenerator(boolean force) {
+	private boolean forceGen;
+
+	private boolean readyToGenerate = false;
+	private long randomSeed = 0;
+
+	public GiantPinkTreeGenerator(boolean force, boolean genImmediate) {
 		super(false);
 		trunkSize = 3;
 		forceGen = force;
+		generateImmediately = genImmediate;
+		readyToGenerate = generateImmediately;
 	}
 
 	@Override
-	public boolean generate(World world, Random rand, int x, int y, int z) {
+	public boolean generate(World world, Random chunkRand, int x, int y, int z) {
 		if (!forceGen) {
 			if (y < 108) //was 96
 				return false;
@@ -35,12 +46,23 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 			if (!ReikaPlantHelper.SAPLING.canPlantAt(world, x, y, z))
 				return false;
 			BiomeSection s = Satisforestry.pinkforest.getSubBiome(world, x, z);
-			if (rand.nextDouble() > s.treeRateLarge())
+			if (chunkRand.nextDouble() > s.treeRateLarge())
 				return false;
 		}
-		int h1 = ReikaRandomHelper.getRandomBetween(10, 18, rand); //was 20-30, then 18-25, then 12-24
-		int h2 = ReikaRandomHelper.getRandomBetween(64, 80, rand); //was 15-30, then 40-72, then 36-64, then 48-72, then 55-80
-		int h0 = ReikaRandomHelper.getRandomBetween(3, 6, rand); //was 2-5, then 3-6
+		if (chunkRand != null)
+			randomSeed = chunkRand.nextLong();
+		treeRand.setSeed(randomSeed);
+		treeRand.nextBoolean();
+		if (!readyToGenerate) {
+			readyToGenerate = true;
+			forceGen = true;
+			TreeGenCache.instance.add(world, x, y, z, this);
+			PinkForestPersistentData.initNetworkData(world).setDirty(true);
+			return true;
+		}
+		int h1 = ReikaRandomHelper.getRandomBetween(10, 18, treeRand); //was 20-30, then 18-25, then 12-24
+		int h2 = ReikaRandomHelper.getRandomBetween(64, 80, treeRand); //was 15-30, then 40-72, then 36-64, then 48-72, then 55-80
+		int h0 = ReikaRandomHelper.getRandomBetween(3, 6, treeRand); //was 2-5, then 3-6
 		/*
 		int y1 = h0+h1;
 		int y2 = y1+h2;
@@ -80,16 +102,16 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 			world.setBlock(x, y+i, z-1, Satisforestry.leaves);
 		}
 		return true;*/
-		leafDistanceLimit = rand.nextBoolean() ? 4 : 3;
+		leafDistanceLimit = treeRand.nextBoolean() ? 4 : 3;
 		heightLimitLimit = h1+h2;
-		branchSlope = ReikaRandomHelper.getRandomPlusMinus(0, BASE_SLOPE*2.5, rand);
+		branchSlope = ReikaRandomHelper.getRandomPlusMinus(0, BASE_SLOPE*2.5, treeRand);
 		heightAttenuation = BASE_ATTENUATION*1.1;
 		//minBranchHeight = hl*0+12;
 		minHeight = h1+h2;
 		globalOffset[1] = Math.max(h1+h0-4, 0);
 		leafDensity = 0.625F; //was 0.75
 		branchDensity = 0.4F; //was 0.67
-		if (super.generate(world, rand, x, y, z)) {
+		if (super.generate(world, treeRand, x, y, z)) {
 			for (int dy = h0; dy < globalOffset[1]; dy++) {
 				for (int i = -1; i <= 1; i++) {
 					for (int k = -1; k <= 1; k++) {
@@ -99,20 +121,20 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 				}
 			}
 
-			int n = ReikaRandomHelper.getRandomBetween(5, 8, rand); //was 4-8
+			int n = ReikaRandomHelper.getRandomBetween(5, 8, treeRand); //was 4-8
 			double angsplit = 360D/n;
 			for (int i = 0; i < n; i++) {
 				double dx = x+0.5;
 				double dz = z+0.5;
 				double dy = y+h0+0.5;
-				double phi = ReikaRandomHelper.getRandomPlusMinus(angsplit*i, 15, rand);//rand.nextDouble()*360;
-				double theta = ReikaRandomHelper.getRandomBetween(-15, 5, rand);
+				double phi = ReikaRandomHelper.getRandomPlusMinus(angsplit*i, 15, treeRand);//rand.nextDouble()*360;
+				double theta = ReikaRandomHelper.getRandomBetween(-15, 5, treeRand);
 				double[] xyz = ReikaPhysicsHelper.polarToCartesian(1.5, theta, phi);
 				dx += xyz[0];
 				dz += xyz[2];
-				double dt = ReikaRandomHelper.getRandomBetween(5, 20, rand);
-				double dp = ReikaRandomHelper.getRandomPlusMinus(0, 12, rand);
-				double dpa = ReikaRandomHelper.getRandomPlusMinus(0, 4, rand);
+				double dt = ReikaRandomHelper.getRandomBetween(5, 20, treeRand);
+				double dp = ReikaRandomHelper.getRandomPlusMinus(0, 12, treeRand);
+				double dpa = ReikaRandomHelper.getRandomPlusMinus(0, 4, treeRand);
 				int ix = MathHelper.floor_double(dx);
 				int iy = MathHelper.floor_double(dy);
 				int iz = MathHelper.floor_double(dz);
@@ -163,6 +185,22 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 	@Override
 	protected float leafSize(int r) {
 		return super.leafSize(r);
+	}
+
+	public static GiantPinkTreeGenerator readNBT(NBTTagCompound tag) {
+		GiantPinkTreeGenerator gen = new GiantPinkTreeGenerator(false, false);
+		gen.forceGen = tag.getBoolean("force");
+		gen.randomSeed = tag.getLong("seed");
+		gen.readyToGenerate = tag.getBoolean("ready");
+		return gen;
+	}
+
+	public NBTTagCompound getNBT() {
+		NBTTagCompound tag = new NBTTagCompound();
+		tag.setBoolean("force", forceGen);
+		tag.setLong("seed", randomSeed);
+		tag.setBoolean("ready", readyToGenerate);
+		return tag;
 	}
 
 }

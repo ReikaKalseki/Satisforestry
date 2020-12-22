@@ -23,7 +23,7 @@ public class WorldGenOreCluster extends WorldGenerator {
 		int r = 8;
 		int r2 = 16;
 		boolean flag = false;
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 5; i++) {
 			int dx = ReikaRandomHelper.getRandomPlusMinus(x, r, rand);
 			int dz = ReikaRandomHelper.getRandomPlusMinus(z, r, rand);
 
