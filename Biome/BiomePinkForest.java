@@ -254,21 +254,8 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 	public BiomeSection getSubBiome(World world, int x, int z) {
 		this.initNoise(world);
-		/*
-		int avg = 0;
-		int dd = 5;
-		for (int i = -1; i <= 1; i++) {
-			for (int k = -1; k <= 1; k++) {
-		 */
 		double val = noise.sectionNoise.getValue(x, z);
-		double n = ReikaMathLibrary.normalizeToBounds(val, 0, BiomeSection.list.length-0.001);
-		int idx = MathHelper.floor_double(n);
-		/*avg = idx;
-		avg += idx;
-			}
-		}
-		avg /= 9;*/
-		return BiomeSection.list[idx];
+		return BiomeSection.getFromScalar(val);
 	}
 
 	int getUpthrust(World world, int x, int z) {
@@ -359,7 +346,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 	}
 
 	private void initNoise(World world) {
-		if (noise == null || noise.seed != world.getSeed() | true) {
+		if (noise == null || noise.seed != world.getSeed()) {
 			noise = new PinkForestNoiseData(world);
 		}
 	}
@@ -370,6 +357,19 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 		SWAMP;
 
 		private static final BiomeSection[] list = values();
+
+		/** Assumes [-1, 1] range */
+		private static BiomeSection getFromScalar(double val) {
+			if (val < -0.5) {
+				return STREAMS;
+			}
+			else if (val > 0.4) {
+				return SWAMP;
+			}
+			else {
+				return FOREST;
+			}
+		}
 
 		public double treeRateSmall() {
 			switch(this) {

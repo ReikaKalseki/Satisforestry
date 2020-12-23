@@ -31,7 +31,6 @@ public class PinkForestTerrainShaper extends TerrainShaper {
 			}
 			up -= dep;
 		}
-		int d = 4;
 		int top = this.getTopNonAir(x, z);
 		Block at = this.getBlock(x, top, z);
 		if (at != Blocks.water) {
