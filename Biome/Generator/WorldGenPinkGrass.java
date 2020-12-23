@@ -78,9 +78,9 @@ public class WorldGenPinkGrass extends WorldGenerator {
 		}
 	}
 
-	private int paleberryChance(World world, int x, int y, int z) { //old 1/200 = 10, 2000 for a guarantee
+	private int paleberryChance(World world, int x, int y, int z) { //old 1/200 = 10, >= 2000 for a guarantee
 		double val = noise.getValue(x, z);
-		return val >= 0.975 ? 2000 : (int)ReikaMathLibrary.normalizeToBounds(val, 5, 25);
+		return val >= 0.95 ? 5000 : (int)ReikaMathLibrary.normalizeToBounds(val, 5, 25);
 	}
 
 	private BlockKey getBlockToPlace(World world, int dx, int dy, int dz, Random rand) {

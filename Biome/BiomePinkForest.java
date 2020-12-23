@@ -176,7 +176,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 		//https://i.imgur.com/1Lu8tSU.jpg
 		//https://i.imgur.com/bPN7Kqk.jpg
 		//E95F84 through FA8FAA to FFB3D1
-		int min = 108;//82;//64;
+		int min = 120;//108;//82;//64;
 		int max = 150;//112;//128;
 		float f = 0;
 		if (y >= max) {

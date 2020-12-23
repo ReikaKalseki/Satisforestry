@@ -54,7 +54,7 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 	public int colorMultiplier(IBlockAccess world, int x, int y, int z) {
 		LeafTypes l = this.getLeafType(world, x, y, z);
 		if (l == LeafTypes.GIANTTREE) {
-			y -= 50; //was 18 then 24
+			y -= 60; //was 18 then 24 then 50
 		}
 		return Satisforestry.pinkforest.getBiomeFoliageColor(x, y, z);
 	}
