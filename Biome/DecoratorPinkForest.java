@@ -134,6 +134,8 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		x = chunk_X + randomGenerator.nextInt(16) + 8;
 		z = chunk_Z + randomGenerator.nextInt(16) + 8;
 
+		rockGenerator.setFrequency(Satisforestry.pinkforest.getSubBiome(currentWorld, x, z));
+
 		top = currentWorld.getTopSolidOrLiquidBlock(x, z);
 
 		int d1 = randomGenerator.nextInt(3);

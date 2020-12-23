@@ -132,7 +132,7 @@ public class RedBambooRenderer implements ISBRH {
 			int nl = ReikaRandomHelper.getRandomBetween(0, 5, randY);
 			for (int i0 = 0; i0 < nl; i0++) {
 				double ang = ReikaRandomHelper.getRandomPlusMinus(i0*360D/nl, 90D/nl, randY);//Math.toRadians(randY.nextDouble()*360);
-				double w = ReikaRandomHelper.getRandomPlusMinus(0.875, 0.125, randY);
+				double w = ReikaRandomHelper.getRandomBetween(0.675, 1.25, randY);
 				double h = ReikaRandomHelper.getRandomPlusMinus(1, 0.25, randY);
 				double ax = w*Math.cos(Math.toRadians(ang));
 				double az = w*Math.sin(Math.toRadians(ang));

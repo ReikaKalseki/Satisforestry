@@ -12,6 +12,7 @@ import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Blocks.BlockGasEmitter.TileGasVent;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
@@ -19,6 +20,8 @@ import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 public class WorldGenPoisonRocks extends WorldGenerator {
 
 	private final boolean forceGen;
+
+	private int generationRate = 5;
 
 	public WorldGenPoisonRocks(boolean force) {
 		forceGen = force;
@@ -36,7 +39,7 @@ public class WorldGenPoisonRocks extends WorldGenerator {
 
 		boolean flag = false;
 
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < generationRate; i++) {
 			int dx = ReikaRandomHelper.getRandomPlusMinus(x, 5, rand);
 			int dz = ReikaRandomHelper.getRandomPlusMinus(z, 5, rand);
 			int dy = DecoratorPinkForest.getTrueTopAt(world, dx, dz)+1;
@@ -113,5 +116,19 @@ public class WorldGenPoisonRocks extends WorldGenerator {
 
 	private boolean isReplaceable(World world, int x, int y, int z) {
 		return ReikaWorldHelper.softBlocks(world, x, y, z) || world.getBlock(x, y, z) == SFBlocks.BAMBOO.getBlockInstance() || !world.getBlock(x, y, z).getMaterial().blocksMovement();
+	}
+
+	public void setFrequency(BiomeSection sub) {
+		switch(sub) {
+			case FOREST:
+				generationRate = 3;
+				break;
+			case STREAMS:
+				generationRate = 5;
+				break;
+			case SWAMP:
+				generationRate = 7;
+				break;
+		}
 	}
 }

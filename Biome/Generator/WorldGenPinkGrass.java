@@ -12,6 +12,8 @@ import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom.DynamicWeight;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
@@ -21,6 +23,8 @@ public class WorldGenPinkGrass extends WorldGenerator {
 	private static final GrassType BASE = new GrassType(Blocks.tallgrass, 1, new Interpolation(false).addPoint(60, 50).addPoint(90, 25).addPoint(110, 5).addPoint(120, 0));
 
 	private final WeightedRandom<GrassType> grassTypes = new WeightedRandom();
+
+	private SimplexNoiseGenerator noise;
 
 	public WorldGenPinkGrass() {
 		grassTypes.addDynamicEntry(BASE);
@@ -34,6 +38,7 @@ public class WorldGenPinkGrass extends WorldGenerator {
 
 	@Override
 	public boolean generate(World world, Random rand, int x, int y, int z) {
+		this.initNoise(world);
 		do {
 			Block at = world.getBlock(x, y, z);
 			if (!(at.isLeaves(world, x, y, z) || at.isAir(world, x, y, z))) {
@@ -51,7 +56,7 @@ public class WorldGenPinkGrass extends WorldGenerator {
 				continue;
 
 			BlockKey place = this.getBlockToPlace(world, dx, dy, dz, rand);
-			boolean paleberry = dy >= 105 && rand.nextInt(200) == 0 && world.isAirBlock(dx, dy+1, dz);
+			boolean paleberry = dy >= 105 && world.isAirBlock(dx, dy+1, dz) && rand.nextInt(2000) < this.paleberryChance(world, dx, dy, dz);
 			if (paleberry) {
 				place = new BlockKey(SFBlocks.GRASS.getBlockInstance(), GrassTypes.PALEBERRY_STALK.ordinal());
 			}
@@ -65,6 +70,17 @@ public class WorldGenPinkGrass extends WorldGenerator {
 		}
 
 		return true;
+	}
+
+	private void initNoise(World world) {
+		if (noise == null || noise.seed != world.getSeed()) {
+			noise = (SimplexNoiseGenerator)new SimplexNoiseGenerator(-world.getSeed()).setFrequency(1/3.5D);
+		}
+	}
+
+	private int paleberryChance(World world, int x, int y, int z) { //old 1/200 = 10, 2000 for a guarantee
+		double val = noise.getValue(x, z);
+		return val >= 0.975 ? 2000 : (int)ReikaMathLibrary.normalizeToBounds(val, 5, 25);
 	}
 
 	private BlockKey getBlockToPlace(World world, int dx, int dy, int dz, Random rand) {
