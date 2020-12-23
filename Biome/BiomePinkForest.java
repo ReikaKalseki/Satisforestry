@@ -412,7 +412,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 	}
 
 	@Override
-	public float getStrength(World world, EntityPlayer ep) {
+	public float getWinterSkyStrength(World world, EntityPlayer ep) {
 		float sun = ReikaWorldHelper.getSunIntensity(Minecraft.getMinecraft().theWorld, true, ReikaRenderHelper.getPartialTickTime());
 		return 1-Math.min(1, 1.1F*sun*sun);
 	}

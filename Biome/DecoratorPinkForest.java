@@ -112,7 +112,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 				at = bf;
 			}
 		}
-		if (at != null) {
+		if (at != null && at.sizeX() >= 96 && at.sizeZ() >= 96) {
 			Vec3 center = at.getCenter();
 			int x = MathHelper.floor_double(center.xCoord);
 			int z = MathHelper.floor_double(center.zCoord);

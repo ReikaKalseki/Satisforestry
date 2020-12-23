@@ -22,6 +22,11 @@ public class BiomeFootprint {
 
 	private Vec3 center = Vec3.createVectorHelper(0, 0, 0);
 
+	private int minX = Integer.MAX_VALUE;
+	private int maxX = Integer.MIN_VALUE;
+	private int minZ = Integer.MAX_VALUE;
+	private int maxZ = Integer.MIN_VALUE;
+
 	public BiomeFootprint() {
 
 	}
@@ -69,6 +74,18 @@ public class BiomeFootprint {
 		return ReikaMystcraftHelper.isMystAge(world) && ReikaMystcraftHelper.isSymbolPresent(world, BasicPages.BiomeControllerSingle);
 	}
 
+	public int blockCount() {
+		return coords.size();
+	}
+
+	public int sizeX() {
+		return maxX-minX+1;
+	}
+
+	public int sizeZ() {
+		return maxZ-minZ+1;
+	}
+
 	public Vec3 getCenter() {
 		return Vec3.createVectorHelper(center.xCoord, center.yCoord, center.zCoord);
 	}
@@ -81,6 +98,10 @@ public class BiomeFootprint {
 			coords.add(loc);
 			center.xCoord += x+0.5;
 			center.zCoord += z+0.5;
+			minX = Math.min(minX, loc.xCoord);
+			minZ = Math.min(minZ, loc.zCoord);
+			maxX = Math.max(maxX, loc.xCoord);
+			maxZ = Math.max(maxZ, loc.zCoord);
 			newNext.add(new Coordinate(x-1, 0, z));
 			newNext.add(new Coordinate(x+1, 0, z));
 			newNext.add(new Coordinate(x, 0, z-1));
