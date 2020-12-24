@@ -185,7 +185,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 		else if (y > min) {
 			f = (y-min)/(float)(max-min);
 		}
-		return ReikaColorAPI.mixColors(0xFFB3D1, 0xE95F84, f);
+		return ReikaColorAPI.getModifiedSat(ReikaColorAPI.mixColors(0xFFB3D1, 0xE95F84, f), 1.125F+f/4F);
 	}
 
 	@SideOnly(Side.CLIENT)

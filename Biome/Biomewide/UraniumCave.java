@@ -355,16 +355,31 @@ public class UraniumCave {
 						continue;
 					if (DecoratorPinkForest.getTrueTopAt(world, c2.xCoord, c2.zCoord) <= c2.yCoord+10)
 						continue;
-					if (rand.nextInt(3) == 0) {
-						c2.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal());
-						if (c2.offset(0, 1, 0).getBlock(world) == SFBlocks.GRASS.getBlockInstance())
-							ReikaJavaLibrary.pConsole("Placed stagmite into mushroom!");
-					}
-					else {
-						h = ReikaRandomHelper.getRandomBetween(0, 2, rand);
-						if (c2.getBlock(world) == SFBlocks.DECORATION.getBlockInstance())
-							ReikaJavaLibrary.pConsole("Placed mushroom into stagmite!");
-						this.generateMushroom(world, c2.xCoord, c2.yCoord, c2.zCoord, h, carveSet);
+					int n = rand.nextInt(10);
+					switch(n) {
+						case 0:
+						case 1:
+							c2.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal());
+							if (c2.offset(0, 1, 0).getBlock(world) == SFBlocks.GRASS.getBlockInstance())
+								ReikaJavaLibrary.pConsole("Placed stagmite into mushroom!");
+							break;
+						case 2:
+						case 3:
+						case 4:
+						case 5:
+							h = ReikaRandomHelper.getRandomBetween(0, 2, rand);
+							if (c2.getBlock(world) == SFBlocks.DECORATION.getBlockInstance())
+								ReikaJavaLibrary.pConsole("Placed mushroom into stagmite!");
+							this.generateMushroom(world, c2.xCoord, c2.yCoord, c2.zCoord, h, carveSet);
+							break;
+						case 6:
+						case 7:
+						case 8:
+						case 9:
+							c2.setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal());
+							if (rand.nextInt(5) == 0 && c2.offset(0, 1, 0).isEmpty(world))
+								c2.offset(0, 1, 0).setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal());
+							break;
 					}
 				}
 			}
@@ -695,9 +710,11 @@ public class UraniumCave {
 
 				OreClusterType ore = (isToBiomeEdge ? OreSpawnLocation.CAVE_ENTRY_TUNNEL : OreSpawnLocation.CAVE_NODE_TUNNEL).getRandomOreSpawn();
 
-				for (Coordinate c2 : below.getAdjacentCoordinates()) {
-					if (c2.softBlock(world)) {
-						c2.setBlock(world, ore.oreBlock.blockID, ore.oreBlock.metadata);
+				if (ore != null) {
+					for (Coordinate c2 : below.getAdjacentCoordinates()) {
+						if (c2.softBlock(world)) {
+							c2.setBlock(world, ore.oreBlock.blockID, ore.oreBlock.metadata);
+						}
 					}
 				}
 			}
