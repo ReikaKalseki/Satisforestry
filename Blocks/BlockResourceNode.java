@@ -24,9 +24,9 @@ import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.BiomeConfig;
 import Reika.Satisforestry.ResourceItem;
 import Reika.Satisforestry.SFBlocks;
+import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.SFOptions;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Render.ResourceNodeRenderer;
 
 public class BlockResourceNode extends BlockContainer {
 
@@ -76,7 +76,7 @@ public class BlockResourceNode extends BlockContainer {
 
 	@Override
 	public boolean canRenderInPass(int pass) {
-		ResourceNodeRenderer.renderPass = pass;
+		SFClient.resource.setRenderPass(pass);
 		return pass <= 1;
 	}
 

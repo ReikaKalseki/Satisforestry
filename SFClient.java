@@ -21,10 +21,10 @@ import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class SFClient extends SFCommon {
 
-	private static final RedBambooRenderer bamboo = new RedBambooRenderer();
-	private static final PinkGrassRenderer grass = new PinkGrassRenderer();
-	private static final DecorationRenderer deco = new DecorationRenderer();
-	private static final ResourceNodeRenderer resource = new ResourceNodeRenderer();
+	public static RedBambooRenderer bamboo;
+	private static PinkGrassRenderer grass;
+	private static DecorationRenderer deco;
+	public static ResourceNodeRenderer resource;
 
 	@Override
 	public void registerSounds() {
@@ -34,15 +34,19 @@ public class SFClient extends SFCommon {
 	@Override
 	public void registerRenderers() {
 		bambooRender = RenderingRegistry.getNextAvailableRenderId();
+		bamboo = new RedBambooRenderer(bambooRender);
 		RenderingRegistry.registerBlockHandler(bambooRender, bamboo);
 
 		grassRender = RenderingRegistry.getNextAvailableRenderId();
+		grass = new PinkGrassRenderer(grassRender);
 		RenderingRegistry.registerBlockHandler(grassRender, grass);
 
 		decoRender = RenderingRegistry.getNextAvailableRenderId();
+		deco = new DecorationRenderer(decoRender);
 		RenderingRegistry.registerBlockHandler(decoRender, deco);
 
 		resourceRender = RenderingRegistry.getNextAvailableRenderId();
+		resource = new ResourceNodeRenderer(resourceRender);
 		RenderingRegistry.registerBlockHandler(resourceRender, resource);
 	}
 

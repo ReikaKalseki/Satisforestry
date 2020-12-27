@@ -14,17 +14,14 @@ import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.world.IBlockAccess;
 
-import Reika.DragonAPI.Interfaces.ISBRH;
+import Reika.DragonAPI.Base.ISBRH;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 
 
-public class PinkGrassRenderer implements ISBRH {
+public class PinkGrassRenderer extends ISBRH {
 
-	public int renderPass;
-
-	@Override
-	public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
-
+	public PinkGrassRenderer(int id) {
+		super(id);
 	}
 
 	@Override
@@ -38,11 +35,6 @@ public class PinkGrassRenderer implements ISBRH {
 	@Override
 	public boolean shouldRender3DInInventory(int modelId) {
 		return false;
-	}
-
-	@Override
-	public int getRenderId() {
-		return 0;
 	}
 
 }

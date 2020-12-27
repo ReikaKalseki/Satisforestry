@@ -19,8 +19,8 @@ import net.minecraftforge.common.util.ForgeDirection;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Render.RedBambooRenderer;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -182,7 +182,7 @@ public class BlockRedBamboo extends Block implements IPlantable {
 
 	@Override
 	public boolean canRenderInPass(int pass) {
-		RedBambooRenderer.renderPass = pass;
+		SFClient.bamboo.setRenderPass(pass);
 		return pass <= 1;
 	}
 

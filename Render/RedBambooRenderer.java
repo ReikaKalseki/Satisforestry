@@ -8,24 +8,23 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.IIcon;
-import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import Reika.CritterPet.CritterClient;
-import Reika.DragonAPI.Interfaces.ISBRH;
+import Reika.DragonAPI.Base.ISBRH;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Blocks.BlockRedBamboo;
 
-public class RedBambooRenderer implements ISBRH {
-
-	public static int renderPass;
+public class RedBambooRenderer extends ISBRH {
 
 	private final Random itemRand = new Random();
 
-	private final Random rand = new Random();
 	private final Random randY = new Random();
+
+	public RedBambooRenderer(int id) {
+		super(id);
+	}
 
 	@Override
 	public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks rb) {
@@ -231,18 +230,9 @@ public class RedBambooRenderer implements ISBRH {
 		return flag;
 	}
 
-	private long calcSeed(int x, int y, int z) {
-		return ChunkCoordIntPair.chunkXZ2Int(x, z) ^ y;
-	}
-
 	@Override
 	public boolean shouldRender3DInInventory(int modelId) {
 		return true;
-	}
-
-	@Override
-	public int getRenderId() {
-		return CritterClient.bambooRender;
 	}
 
 }

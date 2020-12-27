@@ -9,20 +9,17 @@
  ******************************************************************************/
 package Reika.Satisforestry.Render;
 
-import java.util.Random;
-
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.IIcon;
-import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Base.ISBRH;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
-import Reika.DragonAPI.Interfaces.ISBRH;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
@@ -31,11 +28,11 @@ import Reika.Satisforestry.Blocks.BlockResourceNode;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 
 
-public class ResourceNodeRenderer implements ISBRH {
+public class ResourceNodeRenderer extends ISBRH {
 
-	private static final Random rand = new Random();
-
-	public static int renderPass;
+	public ResourceNodeRenderer(int id) {
+		super(id);
+	}
 
 	@Override
 	public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
@@ -251,18 +248,9 @@ public class ResourceNodeRenderer implements ISBRH {
 		v5.addVertexWithUV(x2, y, z2, u, v);
 	}
 
-	private long calcSeed(int x, int y, int z) {
-		return ChunkCoordIntPair.chunkXZ2Int(x, z) ^ y;
-	}
-
 	@Override
 	public boolean shouldRender3DInInventory(int modelId) {
 		return false;
-	}
-
-	@Override
-	public int getRenderId() {
-		return 0;
 	}
 
 }
