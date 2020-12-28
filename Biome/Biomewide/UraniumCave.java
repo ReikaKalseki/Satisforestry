@@ -542,7 +542,7 @@ public class UraniumCave {
 		}
 	}
 
-	private boolean isSpecialCaveBlock(Block b) {
+	public boolean isSpecialCaveBlock(Block b) {
 		return b == SFBlocks.CAVESHIELD.getBlockInstance() || b == SFBlocks.RESOURCENODE.getBlockInstance() || b == SFBlocks.SPAWNER.getBlockInstance() || b == SFBlocks.GASEMITTER.getBlockInstance();
 	}
 

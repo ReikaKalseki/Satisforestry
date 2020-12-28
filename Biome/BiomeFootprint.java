@@ -1,10 +1,16 @@
 package Reika.Satisforestry.Biome;
 
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.imageio.ImageIO;
+
+import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
@@ -86,6 +92,10 @@ public class BiomeFootprint {
 		return maxZ-minZ+1;
 	}
 
+	public int getArea() {
+		return coords.size();
+	}
+
 	public Vec3 getCenter() {
 		return Vec3.createVectorHelper(center.xCoord, center.yCoord, center.zCoord);
 	}
@@ -114,7 +124,7 @@ public class BiomeFootprint {
 		return Collections.unmodifiableSet(coords);
 	}
 
-	public Set<Coordinate> getEdges	() {
+	public Set<Coordinate> getEdges() {
 		return Collections.unmodifiableSet(edgeCoords);
 	}
 
@@ -157,6 +167,73 @@ public class BiomeFootprint {
 		 */
 
 		return Math.toDegrees(Math.atan(slope));
+	}
+
+	public boolean isConcave() {
+		return !coords.contains(new Coordinate(center));
+	}
+
+	public Coordinate getEdgeAt(double ang, double maxr) {
+		return this.getEdgeAt(ang, maxr, 0);
+	}
+
+	public Coordinate getEdgeAt(double ang, double maxr, double outset) {
+		Vec3 pos = Vec3.createVectorHelper(center.xCoord, center.yCoord, center.zCoord);
+		double angr = Math.toRadians(ang);
+		double dx = Math.cos(angr);
+		double dz = Math.sin(angr);
+		double dd = 0.5;
+		int n = this.isConcave() ? 2 : 1;
+		int n2 = 0;
+		for (int d = 0; d <= maxr/dd; d++) {
+			pos.xCoord += dx*dd;
+			pos.zCoord += dz*dd;
+			Coordinate at = new Coordinate(pos.xCoord, 0, pos.zCoord);
+			if (edgeCoords.contains(at)) {
+				n2++;
+				if (n2 >= n) {
+					if (outset == 0) {
+						return at;
+					}
+					else {
+						pos.xCoord += dx*outset;
+						pos.zCoord += dz*outset;
+						return new Coordinate(pos.xCoord, 0, pos.zCoord);
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public void exportToImage(File folder) {
+		folder.mkdirs();
+		File f = new File(folder, "biomefootprint "+MathHelper.floor_double(center.xCoord)+", "+MathHelper.floor_double(center.zCoord)+".png");
+		int r = 20;
+		int x0 = minX-r;
+		int x1 = maxX+r;
+		int z0 = minZ-r;
+		int z1 = maxZ+r;
+		BufferedImage buf = new BufferedImage(x1-x0+1, z1-z0+1, BufferedImage.TYPE_INT_ARGB);
+		for (int x = x0; x <= x1; x++) {
+			for (int z = z0; z <= z1; z++) {
+				int i = x-x0;
+				int k = z-z0;
+				Coordinate pos = new Coordinate(x, 0, z);
+				int clr = 0xffffff;
+				if (edgeCoords.contains(pos))
+					clr = 0xff0000;
+				else if (coords.contains(pos))
+					clr = 0x22aaff;
+				buf.setRGB(i, k, 0xff000000 | clr);
+			}
+		}
+		try {
+			ImageIO.write(buf, "png", f);
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

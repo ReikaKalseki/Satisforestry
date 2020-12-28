@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 
+import Reika.DragonAPI.Exception.InstallationException;
 import Reika.DragonAPI.IO.ReikaFileReader;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.IO.CustomRecipeList;
@@ -74,9 +75,14 @@ public class BiomeConfig {
 			levels.putData(p.name(), 10);
 		}
 		ResourceLuaBlock items = new ResourceLuaBlock("outputItems", base2, itemData);
-		items.putData("key", "some_mod:some_item");
-		items.putData("weight", 10);
-		items.putData("minimumPurity", Purity.IMPURE.name());
+		LuaBlock item = new ResourceLuaBlock("{", items, itemData);
+		item.putData("key", "some_mod:some_item");
+		item.putData("weight", 10);
+		item.putData("minimumPurity", Purity.IMPURE.name());
+		item = new ResourceLuaBlock("{", items, itemData);
+		item.putData("key", "some_mod:some_other_item");
+		item.putData("weight", 6);
+		item.putData("minimumPurity", Purity.NORMAL.name());
 		itemData.addBlock("base", base2);
 	}
 
@@ -95,10 +101,6 @@ public class BiomeConfig {
 		else {
 			try {
 				f.mkdirs();
-				File f1 = ReikaFileReader.getFileByNameAnyExt(f, "ores");
-				File f2 = ReikaFileReader.getFileByNameAnyExt(f, "resources");
-				f1.createNewFile();
-				f2.createNewFile();
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -144,12 +146,16 @@ public class BiomeConfig {
 	}
 
 	private void loadFiles(File parent) {
-		File f = new File(parent, "ores.lua");
-		File f2 = new File(parent, "resources.lua");
-		if (f.exists())
-			oreData.loadFromFile(f);
-		if (f2.exists())
-			itemData.loadFromFile(f2);
+		File f1 = ReikaFileReader.getFileByNameAnyExt(parent, "ores");
+		File f2 = ReikaFileReader.getFileByNameAnyExt(parent, "resources");
+		if (f2 == null || !f2.exists()) {
+			throw new InstallationException(Satisforestry.instance, "No resource config file found!");
+		}
+		if (f1.exists())
+			oreData.loadFromFile(f1);
+		else
+			Satisforestry.logger.log("No ore config file found; no ore clusters will generate.");
+		itemData.loadFromFile(f2);
 	}
 
 	private void parseConfigs() {
@@ -190,6 +196,9 @@ public class BiomeConfig {
 			}
 		}
 		Satisforestry.logger.log("All resource config entries parsed; files contained "+definitionCount+" definitions, for a total of "+entryAttemptsCount+" entries, of which "+entryCount+" loaded.");
+		if (resourceEntries.isEmpty()) {
+			throw new InstallationException(Satisforestry.instance, "No resource entries were loaded; at least one must be defined!");
+		}
 	}
 
 	private void parseOreEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {

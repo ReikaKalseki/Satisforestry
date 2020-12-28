@@ -28,6 +28,7 @@ import Reika.DragonAPI.Instantiable.Effects.EntityFloatingSeedsFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.ReactorCraft.API.RadiationHandler;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 
@@ -93,7 +94,7 @@ public class BlockGasEmitter extends BlockContainer {
 			else {
 				List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, activeArea);
 				for (EntityPlayer e : li) {
-					if (!e.isPotionActive(Potion.poison))
+					if (!e.isPotionActive(Potion.poison) && !RadiationHandler.hasHazmatSuit(e))
 						e.addPotionEffect(new PotionEffect(Potion.poison.id, 60, 1));
 				}
 			}
