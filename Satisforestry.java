@@ -139,6 +139,8 @@ public class Satisforestry extends DragonAPIMod {
 
 		//pinkriver = new BiomePinkRiver();
 
+		ReikaRegistryHelper.registerModEntities(instance, SFEntities.entityList);
+
 		this.finishTiming();
 	}
 

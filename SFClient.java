@@ -14,6 +14,7 @@ import net.minecraft.world.World;
 import Reika.Satisforestry.Render.DecorationRenderer;
 import Reika.Satisforestry.Render.PinkGrassRenderer;
 import Reika.Satisforestry.Render.RedBambooRenderer;
+import Reika.Satisforestry.Render.RenderEliteStinger;
 import Reika.Satisforestry.Render.ResourceNodeRenderer;
 
 import cpw.mods.fml.client.FMLClientHandler;
@@ -48,6 +49,8 @@ public class SFClient extends SFCommon {
 		resourceRender = RenderingRegistry.getNextAvailableRenderId();
 		resource = new ResourceNodeRenderer(resourceRender);
 		RenderingRegistry.registerBlockHandler(resourceRender, resource);
+
+		RenderingRegistry.registerEntityRenderingHandler(SFEntities.ELITESTINGER.getObjectClass(), new RenderEliteStinger());
 	}
 
 	// Override any other methods that need to be handled differently client side.

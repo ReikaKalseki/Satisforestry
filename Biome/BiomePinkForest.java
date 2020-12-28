@@ -25,10 +25,9 @@ import net.minecraft.world.gen.feature.WorldGenerator;
 
 import Reika.ChromatiCraft.API.Interfaces.DyeTreeBlocker;
 import Reika.ChromatiCraft.API.Interfaces.NonconvertibleBiome;
-import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.Instantiable.Math.Noise.NoiseGeneratorBase;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
-import Reika.DragonAPI.Instantiable.Worldgen.ModSpawnEntry;
+import Reika.DragonAPI.Interfaces.CustomMapColorBiome;
 import Reika.DragonAPI.Interfaces.WinterBiomeStrengthControl;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper.CubeDirections;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
@@ -39,11 +38,12 @@ import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Generator.GiantPinkTreeGenerator;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGenerator;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkGrass;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, NonconvertibleBiome, WinterBiomeStrengthControl {
+public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, NonconvertibleBiome, WinterBiomeStrengthControl, CustomMapColorBiome {
 
 	//private final PinkTreeGenerator treeGen = new PinkTreeGenerator();
 	//private final GiantPinkTreeGenerator giantTreeGen = new GiantPinkTreeGenerator();
@@ -83,10 +83,8 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntitySpider.class, 100, 4, 4)); //large stinger stand-in
 		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityCaveSpider.class, 50, 6, 6)); //basic (small) stinger stand-in
-		if (ModList.TWILIGHT.isLoaded()) {
-			ModSpawnEntry msp = new ModSpawnEntry(ModList.TWILIGHT, "twilightforest.entity.EntityTFHedgeSpider", 80, 4, 4); //elite stinger stand-in for now
-			spawnableMonsterList.add(msp.getEntry());
-		}
+		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, 25, 2, 2));
+
 		spawnableCreatureList.add(new BiomeGenBase.SpawnListEntry(EntityOcelot.class, 5, 2, 2)); //arachnophobia mode
 	}
 
@@ -415,6 +413,12 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 	public float getWinterSkyStrength(World world, EntityPlayer ep) {
 		float sun = ReikaWorldHelper.getSunIntensity(Minecraft.getMinecraft().theWorld, true, ReikaRenderHelper.getPartialTickTime());
 		return 1-Math.min(1, 1.1F*sun*sun);
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public int getMapColor(World world, int x, int z) {
+		return this.getBiomeFoliageColor(x, (int)ReikaMathLibrary.normalizeToBounds(waterColorMix.getValue(x/5D, z/5D), 120, 170), z);
 	}
 
 }
