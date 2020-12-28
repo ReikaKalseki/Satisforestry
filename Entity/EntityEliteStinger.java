@@ -29,8 +29,10 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class EntityEliteStinger extends EntitySpider {
 
-	private static final int POISON_MAX_RATE = 150;
+	private static final int POISON_DURATION = 150;
+	private static final int POISON_MAX_RATE = 500;
 
+	private int poisonGasTick;
 	private int poisonGasCooldown;
 
 	public EntityEliteStinger(World world) {
@@ -50,38 +52,43 @@ public class EntityEliteStinger extends EntitySpider {
 		super.onUpdate();
 
 
-		if (poisonGasCooldown > 0)
-			poisonGasCooldown--;
-		else
+		if (poisonGasTick > 0) {
+			poisonGasTick--;
+		}
+		else {
 			rotationPitch = -15;
+			if (poisonGasCooldown > 0)
+				poisonGasCooldown--;
+		}
 
 		if (!worldObj.isRemote) {
-			if (entityToAttack != null && poisonGasCooldown == 0 && rand.nextInt(150) == 0) {
-				this.generatePoisonCloud();
+			if (entityToAttack != null && poisonGasTick == 0 && poisonGasCooldown == 0 && rand.nextInt(150) == 0) {
+				this.startPoisonCloud();
 			}
 
 			Vec3 vec = this.getLookVec();
 			dataWatcher.updateObject(18, (float)vec.xCoord);
 			dataWatcher.updateObject(19, (float)vec.zCoord);
-			dataWatcher.updateObject(20, poisonGasCooldown);
+			dataWatcher.updateObject(20, poisonGasTick);
 
-			if (poisonGasCooldown > 0) {
+			if (poisonGasTick > 0) {
 				rotationPitch = 0;
 				rotationYawHead = rotationYaw;
-				double r = 6*(1F-poisonGasCooldown/(float)POISON_MAX_RATE);
+				double r = 9*(1F-poisonGasTick/(float)POISON_DURATION);
 				AxisAlignedBB box = ReikaAABBHelper.getEntityCenteredAABB(this, r);
 				List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
 				for (EntityPlayer ep : li) {
 					if (!ep.isPotionActive(Potion.poison))
 						ep.addPotionEffect(new PotionEffect(Potion.poison.id, 40, 0));
 				}
-				ReikaSoundHelper.playSoundAtEntity(worldObj, this, "game.player.hurt", 0.5F, 0.5F);
+				//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.chicken.plop", 0.7F, 0.2F);
+				ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.magmacube.jump", 0.7F, 2F);
 			}
 		}
 
 		if (worldObj.isRemote) {
-			poisonGasCooldown = dataWatcher.getWatchableObjectInt(20);
-			if (poisonGasCooldown > 0) {
+			poisonGasTick = dataWatcher.getWatchableObjectInt(20);
+			if (poisonGasTick > 0) {
 				this.doCloudFX();
 				rotationPitch = 0;
 				rotationYawHead = rotationYaw;
@@ -92,12 +99,12 @@ public class EntityEliteStinger extends EntitySpider {
 
 	@Override
 	protected boolean isMovementBlocked() {
-		return super.isMovementBlocked() || poisonGasCooldown > 0;
+		return super.isMovementBlocked() || poisonGasTick > 0;
 	}
 
 	@Override
 	protected boolean isMovementCeased() {
-		return super.isMovementCeased() || poisonGasCooldown > 0;
+		return super.isMovementCeased() || poisonGasTick > 0;
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -118,21 +125,23 @@ public class EntityEliteStinger extends EntitySpider {
 		}
 	}
 
-	private void generatePoisonCloud() {
+	private void startPoisonCloud() {
+		poisonGasTick = POISON_DURATION;
 		poisonGasCooldown = POISON_MAX_RATE;
+		ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.chicken.plop", 2F, 0.8F);
 	}
 
 	@SideOnly(Side.CLIENT)
 	public void doCloudFX() {
 		for (int i = 0; i < 1; i++) {
-			double dx = ReikaRandomHelper.getRandomPlusMinus(0, 0.5);
-			double dz = ReikaRandomHelper.getRandomPlusMinus(0, 0.5);
+			double dx = ReikaRandomHelper.getRandomPlusMinus(0, 2);
+			double dz = ReikaRandomHelper.getRandomPlusMinus(0, 2);
 			double dy = ReikaRandomHelper.getRandomPlusMinus(0, 0.125);
-			double v = ReikaRandomHelper.getRandomBetween(0.1, 0.16);
-			double vy = ReikaRandomHelper.getRandomBetween(0, v/2);
-			EntityBlurFX fx = new EntityBlurFX(worldObj, posX+dx, posY+dy, posZ+dz, dx*v, vy, dz*v, IconPrefabs.FADE_GENTLE.getIcon());
+			double v = ReikaRandomHelper.getRandomBetween(0.05, 0.12);
+			double vy = ReikaRandomHelper.getRandomBetween(0, v);
+			EntityBlurFX fx = new EntityBlurFX(worldObj, posX+dx, posY+dy, posZ+dz, dx*v/2, vy, dz*v/2, IconPrefabs.FADE_GENTLE.getIcon());
 			int l = ReikaRandomHelper.getRandomBetween(100, 1200);
-			float s = (float)ReikaRandomHelper.getRandomBetween(5F, 10F);
+			float s = (float)ReikaRandomHelper.getRandomBetween(8F, 15F);
 			fx.setColor(0xA4DB00).setScale(s).setRapidExpand().setAlphaFading().setLife(l).setColliding();
 			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 		}
@@ -175,14 +184,16 @@ public class EntityEliteStinger extends EntitySpider {
 	public void readEntityFromNBT(NBTTagCompound NBT) {
 		super.readEntityFromNBT(NBT);
 
-		poisonGasCooldown = NBT.getInteger("gastime");
+		poisonGasTick = NBT.getInteger("gastime");
+		poisonGasCooldown = NBT.getInteger("gascool");
 	}
 
 	@Override
 	public void writeEntityToNBT(NBTTagCompound NBT) {
 		super.writeEntityToNBT(NBT);
 
-		NBT.setInteger("gastime", poisonGasCooldown);
+		NBT.setInteger("gastime", poisonGasTick);
+		NBT.setInteger("gascool", poisonGasCooldown);
 	}
 
 }
