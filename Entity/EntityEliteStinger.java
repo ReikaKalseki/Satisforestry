@@ -14,6 +14,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
@@ -22,7 +23,9 @@ import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaVectorHelper;
+import Reika.Satisforestry.SFEntities;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -31,9 +34,11 @@ public class EntityEliteStinger extends EntitySpider {
 
 	private static final int POISON_DURATION = 150;
 	private static final int POISON_MAX_RATE = 500;
+	private static final int JUMP_MAX_RATE = 100;
 
 	private int poisonGasTick;
 	private int poisonGasCooldown;
+	private int jumpCooldown;
 
 	public EntityEliteStinger(World world) {
 		super(world);
@@ -59,6 +64,11 @@ public class EntityEliteStinger extends EntitySpider {
 			rotationPitch = -15;
 			if (poisonGasCooldown > 0)
 				poisonGasCooldown--;
+		}
+
+		if (onGround) {
+			if (jumpCooldown > 0)
+				jumpCooldown--;
 		}
 
 		if (!worldObj.isRemote) {
@@ -97,6 +107,58 @@ public class EntityEliteStinger extends EntitySpider {
 		}
 	}
 
+	/*
+	@Override
+	protected void jump() {
+		motionY = 0.5;
+
+		float f = rotationYaw * 3.1416F / 180F;
+		float v = 0.4F;
+		motionX -= MathHelper.sin(f) * v;
+		motionZ += MathHelper.cos(f) * v;
+
+		isAirBorne = true;
+		ForgeHooks.onLivingJump(this);
+	}*/
+
+	@Override
+	protected void attackEntity(Entity e, float dist) {
+		if (dist >= 6) {
+			if (onGround && jumpCooldown <= 0) {
+				this.jumpAt(e);
+			}
+		}
+		else if (attackTime <= 0 && dist < 2.0F && e.boundingBox.maxY > boundingBox.minY && e.boundingBox.minY < boundingBox.maxY) {
+			attackTime = 20;
+			this.attackEntityAsMob(e);
+		}
+	}
+
+	private void jumpAt(Entity e) {
+		double dx = e.posX - posX;
+		double dz = e.posZ - posZ;
+		double dd = ReikaMathLibrary.py3d(dx, 0, dz);
+		double vat = 1;//0.8;
+		double vf = 2;//1;//0.75;//0.5;
+		motionX = dx/dd * vf * vat + motionX * (1-vat);
+		motionZ = dz/dd * vf * vat + motionZ * (1-vat);
+		motionY = 0.375+dd/40;//0.4;
+		ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.cat.hiss", 0.8F, 1.9F+rand.nextFloat()*0.1F);
+		jumpCooldown = JUMP_MAX_RATE;
+	}
+
+	@Override
+	public boolean attackEntityFrom(DamageSource src, float amt) {
+		if (src == DamageSource.fall || src == DamageSource.drown)
+			return false;
+		return super.attackEntityFrom(src, amt);
+	}
+
+	@Override
+	public String getCommandSenderName() {
+		return SFEntities.ELITESTINGER.entityName;
+	}
+
 	@Override
 	protected boolean isMovementBlocked() {
 		return super.isMovementBlocked() || poisonGasTick > 0;
@@ -129,6 +191,7 @@ public class EntityEliteStinger extends EntitySpider {
 		poisonGasTick = POISON_DURATION;
 		poisonGasCooldown = POISON_MAX_RATE;
 		ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.chicken.plop", 2F, 0.8F);
+		ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.cat.hiss", 2, 0.5F);
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -186,6 +249,7 @@ public class EntityEliteStinger extends EntitySpider {
 
 		poisonGasTick = NBT.getInteger("gastime");
 		poisonGasCooldown = NBT.getInteger("gascool");
+		jumpCooldown = NBT.getInteger("jumpcool");
 	}
 
 	@Override
@@ -194,6 +258,7 @@ public class EntityEliteStinger extends EntitySpider {
 
 		NBT.setInteger("gastime", poisonGasTick);
 		NBT.setInteger("gascool", poisonGasCooldown);
+		NBT.setInteger("jumpcool", jumpCooldown);
 	}
 
 }
