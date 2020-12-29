@@ -15,7 +15,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -203,98 +202,40 @@ public class BlockDecoration extends Block {
 						double zb = db;
 
 						double h0 = ReikaRandomHelper.getRandomBetween(0.75, 0.9375, renderRand);
-
-						/*
-					if (side1.offsetX != 0)
-						xa = 0.5+0.5*side1.offsetX;
-					if (side1.offsetZ != 0)
-						za = 0.5+0.5*side1.offsetZ;
-					if (side2.offsetX != 0)
-						xb = 0.5+0.5*side2.offsetX;
-					if (side2.offsetZ != 0)
-						zb = 0.5+0.5*side2.offsetZ;
-						 */
-
-						double x1 = xa;
-						double z1 = za;
-
-						double x2 = xa;
-						double z2 = za;
-
-						double x3 = xb;
-						double z3 = zb;
-
-						double x4 = xb;
-						double z4 = zb;
-
-						double d1 = ReikaRandomHelper.getRandomBetween(0.03125, 0.125, renderRand);
-						double d2 = ReikaRandomHelper.getRandomBetween(0.03125, 0.125, renderRand);
+						double h1 = ReikaRandomHelper.getRandomBetween(0.75, 0.9375, renderRand);
 
 						switch(side1) {
 							case EAST:
-								x1 = 1;
-								z1 = za+d1;
-								x2 = 1;
-								z2 = za-d1;
+								xa = 1;
 								break;
 							case WEST:
-								x1 = 0;
-								z1 = za+d1;
-								x2 = 0;
-								z2 = za-d1;
+								xa = 0;
 								break;
 							case NORTH:
-								x1 = xa+d1;
-								z1 = 0;
-								x2 = xa-d1;
-								z2 = 0;
+								za = 0;
 								break;
 							case SOUTH:
-								x1 = xa+d1;
-								z1 = 1;
-								x2 = xa-d1;
-								z2 = 1;
+								za = 1;
 								break;
 							default:
 								break;
 						}
 						switch(side2) {
 							case EAST:
-								x3 = 1;
-								z3 = zb+d2;
-								x4 = 1;
-								z4 = zb-d2;
+								xb = 1;
 								break;
 							case WEST:
-								x3 = 0;
-								z3 = zb+d2;
-								x4 = 0;
-								z4 = zb-d2;
+								xb = 0;
 								break;
 							case NORTH:
-								x3 = xb+d2;
-								z3 = 0;
-								x4 = xb-d2;
-								z4 = 0;
+								zb = 0;
 								break;
 							case SOUTH:
-								x3 = xb+d2;
-								z3 = 1;
-								x4 = xb-d2;
-								z4 = 1;
+								zb = 1;
 								break;
 							default:
 								break;
 						}
-
-						x1 = MathHelper.clamp_double(x1, 0, 1);
-						x2 = MathHelper.clamp_double(x2, 0, 1);
-						x3 = MathHelper.clamp_double(x3, 0, 1);
-						x4 = MathHelper.clamp_double(x4, 0, 1);
-						z1 = MathHelper.clamp_double(z1, 0, 1);
-						z2 = MathHelper.clamp_double(z2, 0, 1);
-						z3 = MathHelper.clamp_double(z3, 0, 1);
-						z4 = MathHelper.clamp_double(z4, 0, 1);
 
 						double u1 = ico.getInterpolatedU(16*x1);
 						double u2 = ico.getInterpolatedU(16*x2);
