@@ -104,7 +104,7 @@ public class BiomeConfig {
 			}
 			catch (Exception e) {
 				e.printStackTrace();
-				Satisforestry.logger.logError("Could not create ore config folder!");
+				Satisforestry.logger.logError("Could not create biome config folder!");
 			}
 		}
 		try {
@@ -286,7 +286,7 @@ public class BiomeConfig {
 			Purity p = Purity.valueOf(s.getString("minimumPurity"));
 			while (p != null) {
 				ore.addItem(p, is, weight);
-				p = p.lower();
+				p = p.higher();
 			}
 		}
 

@@ -21,6 +21,7 @@ import net.minecraft.world.World;
 import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.ReikaEntityHelper.ClassEntitySelector;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
@@ -34,11 +35,12 @@ public class EntityEliteStinger extends EntitySpider {
 
 	private static final int POISON_DURATION = 150;
 	private static final int POISON_MAX_RATE = 500;
-	private static final int JUMP_MAX_RATE = 100;
+	private static final int JUMP_MAX_RATE = 60;//100;
 
 	private int poisonGasTick;
 	private int poisonGasCooldown;
 	private int jumpCooldown;
+	private boolean isLeaping;
 
 	public EntityEliteStinger(World world) {
 		super(world);
@@ -55,7 +57,6 @@ public class EntityEliteStinger extends EntitySpider {
 	@Override
 	public void onUpdate() {
 		super.onUpdate();
-
 
 		if (poisonGasTick > 0) {
 			poisonGasTick--;
@@ -145,6 +146,20 @@ public class EntityEliteStinger extends EntitySpider {
 		motionY = 0.375+dd/40;//0.4;
 		ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.cat.hiss", 0.8F, 1.9F+rand.nextFloat()*0.1F);
 		jumpCooldown = JUMP_MAX_RATE;
+		isLeaping = true;
+	}
+
+	@Override
+	protected void fall(float amt) {
+		super.fall(amt);
+		if (isLeaping) {
+			AxisAlignedBB box = ReikaAABBHelper.getEntityCenteredAABB(this, 1).expand(3, 0, 3);
+			List<EntityLivingBase> li = worldObj.getEntitiesWithinAABBExcludingEntity(this, box, new ClassEntitySelector(EntityLivingBase.class, false));
+			for (EntityLivingBase e : li) {
+				this.attackEntityAsMob(e);
+			}
+		}
+		isLeaping = false;
 	}
 
 	@Override

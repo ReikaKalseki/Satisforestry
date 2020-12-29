@@ -20,6 +20,7 @@ import Reika.Satisforestry.Biome.PinkForestPersistentData;
 import Reika.Satisforestry.Biome.Biomewide.MantaGenerator.MantaPath;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CachedCave;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CentralCave;
+import Reika.Satisforestry.Entity.EntityFlyingManta;
 
 public class BiomewideFeatureGenerator {
 
@@ -33,14 +34,23 @@ public class BiomewideFeatureGenerator {
 
 	}
 
+	public void clearOnUnload() {
+		caveNetworks.clear();
+		doggoSpawns.clear();
+		mantaPaths.clear();
+	}
+
 	public void generateUniqueCenterFeatures(World world, int x, int z, Random rand, BiomeFootprint bf) {
+		PinkForestPersistentData.initNetworkData(world);
 		//bf.exportToImage(new File(world.getSaveHandler().getWorldDirectory(), "pinkforest_footprint"));
 		Collection<WorldLocation> spawns = LizardDoggoSpawner.instance.createDoggoSpawnPoints(world, bf, rand);
 		for (WorldLocation loc : spawns) {
 			doggoSpawns.add(loc);
 			Satisforestry.logger.log("Doggo spawn locations around "+x+", "+z+": "+spawns);
 		}
-		MantaPath path = MantaGenerator.instance.generatePathAroundBiome(world, bf, rand);
+		MantaPath path = mantaPaths.get(new WorldLocation(world, x, 0, z));
+		if (path == null)
+			path = MantaGenerator.instance.generatePathAroundBiome(world, bf, rand);
 		Collection<Coordinate> rivers = PinkRivers.instance.generateRivers(world, x, z, rand, bf);
 		boolean flag = false;
 		if (!rivers.isEmpty()) {
@@ -59,7 +69,10 @@ public class BiomewideFeatureGenerator {
 		}
 		else {
 			mantaPaths.put(path.biomeCenter, path);
-			Satisforestry.logger.log("Generated manta path around "+x+", "+z+": "+path);
+			EntityFlyingManta e = new EntityFlyingManta(world);
+			e.setPath(path);
+			world.spawnEntityInWorld(e);
+			Satisforestry.logger.log("Generated manta path around "+x+", "+z);
 		}
 		PinkForestPersistentData.initNetworkData(world).setDirty(true);
 	}
@@ -74,6 +87,10 @@ public class BiomewideFeatureGenerator {
 			}
 		}
 		return false;
+	}
+
+	public MantaPath getPathAround(WorldLocation loc) {
+		return mantaPaths.get(loc);
 	}
 
 	public void readFromNBT(NBTTagCompound NBT) {

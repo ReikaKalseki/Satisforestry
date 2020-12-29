@@ -29,8 +29,6 @@ import Reika.DragonAPI.Instantiable.Event.GenLayerRiverEvent;
 import Reika.DragonAPI.Instantiable.Event.GetYToSpawnMobEvent;
 import Reika.DragonAPI.Instantiable.Event.IceFreezeEvent;
 import Reika.DragonAPI.Instantiable.Event.LightLevelForSpawnEvent;
-import Reika.DragonAPI.Instantiable.Event.LightVisualBrightnessEvent;
-import Reika.DragonAPI.Instantiable.Event.LightVisualBrightnessEvent.LightMixedBrightnessEvent;
 import Reika.DragonAPI.Instantiable.Event.SnowOrIceOnGenEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.GrassIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.LiquidBlockIconEvent;
@@ -141,12 +139,14 @@ public class SFEvents {
 	public void clearBiomeRiver(SinglePlayerLogoutEvent evt) {
 		WorldGenPinkRiver.clearLakeCache();
 		WorldGenUraniumCave.clearCaveCache();
+		BiomewideFeatureGenerator.instance.clearOnUnload();
 	}
 
 	//@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void clearBiomeRiver(ClientDisconnectionFromServerEvent evt) {
 		WorldGenPinkRiver.clearLakeCache();
 		WorldGenUraniumCave.clearCaveCache();
+		BiomewideFeatureGenerator.instance.clearOnUnload();
 	}
 
 	@SubscribeEvent
@@ -167,7 +167,7 @@ public class SFEvents {
 			}
 		}
 	}
-
+	/*
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void brighterDarkness(LightVisualBrightnessEvent evt) {
@@ -183,7 +183,7 @@ public class SFEvents {
 			;//evt.value = evt.getBrightnessFor(evt.blockLight, Math.max(1, evt.skyLight));
 		}
 	}
-
+	 */
 	/*
 	@SubscribeEvent
 	public void spidersAtAllBrightness(CheckSpawn evt) {

@@ -226,6 +226,10 @@ public class BlockResourceNode extends BlockContainer {
 			return (int)(MINING_COOLDOWN/yield);
 		}
 
+		public Purity higher() {
+			return this == PURE ? null : list[this.ordinal()+1];
+		}
+
 		public Purity lower() {
 			return this == IMPURE ? null : list[this.ordinal()-1];
 		}

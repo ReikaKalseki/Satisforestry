@@ -183,27 +183,39 @@ public class BiomeFootprint {
 		double dx = Math.cos(angr);
 		double dz = Math.sin(angr);
 		double dd = 0.5;
-		int n = this.isConcave() ? 2 : 1;
-		int n2 = 0;
+		//int n = this.isConcave() ? 2 : 1;
+		//int n2 = 0;
+		boolean wasIn = this.isConcave() ? false : true;
+		Coordinate ret = null;
+		int sinceFound = -1;
 		for (int d = 0; d <= maxr/dd; d++) {
 			pos.xCoord += dx*dd;
 			pos.zCoord += dz*dd;
 			Coordinate at = new Coordinate(pos.xCoord, 0, pos.zCoord);
-			if (edgeCoords.contains(at)) {
-				n2++;
-				if (n2 >= n) {
-					if (outset == 0) {
-						return at;
-					}
-					else {
-						pos.xCoord += dx*outset;
-						pos.zCoord += dz*outset;
-						return new Coordinate(pos.xCoord, 0, pos.zCoord);
-					}
-				}
+			boolean in = coords.contains(at);
+			if (in) {
+				sinceFound = -1;
+				ret = null;
 			}
+			else if (wasIn && !in) {
+				if (outset == 0) {
+					ret = at;
+				}
+				else {
+					pos.xCoord += dx*outset;
+					pos.zCoord += dz*outset;
+					ret = new Coordinate(pos.xCoord, 0, pos.zCoord);
+				}
+				if (sinceFound == -1)
+					sinceFound = d;
+			}
+			else {
+				wasIn = in;
+			}
+			if (ret != null && d-sinceFound > 20)
+				return ret;
 		}
-		return null;
+		return ret;
 	}
 
 	public void exportToImage(File folder) {
