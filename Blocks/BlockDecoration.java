@@ -18,8 +18,8 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Libraries.IO.ReikaRenderHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.SFBlocks;
@@ -120,6 +120,7 @@ public class BlockDecoration extends Block {
 		public final float resistance;
 
 		private static final Random renderRand = new Random();
+		private static final SimplexNoiseGenerator renderNoise = new SimplexNoiseGenerator(0);
 
 		public static final DecorationType[] list = values();
 
@@ -183,79 +184,39 @@ public class BlockDecoration extends Block {
 					break;
 				case TENDRILS:
 					IIcon ico = SFBlocks.CAVESHIELD.getBlockInstance().getIcon(0, 0);
-					float u = ico.getMinU();
-					float v = ico.getMinV();
-					float du = ico.getMaxU();
-					float dv = ico.getMaxV();
+					int div = 8;
+					double f = 3.2;
+					double dh = 0.075;//0.125;
+					for (int i = 0; i < div; i++) {
+						for (int k = 0; k < div; k++) {
+							double x1 = x+i/(double)div;
+							double z1 = z+k/(double)div;
+							double noise = renderNoise.getValue(x1*f, z1*f);
+							if (noise > -0.33) {
+								double x2 = x+(i+1)/(double)div;
+								double z2 = z+(k+1)/(double)div;
+								double u1 = ico.getInterpolatedU((x1-x)*16);
+								double u2 = ico.getInterpolatedU((x2-x)*16);
+								double v1 = ico.getInterpolatedV((z1-z)*16);
+								double v2 = ico.getInterpolatedV((z2-z)*16);
+								double h11 = 0.875+dh*renderNoise.getValue(x1*f, z1*f);
+								double h12 = 0.875+dh*renderNoise.getValue(x1*f, z2*f);
+								double h21 = 0.875+dh*renderNoise.getValue(x2*f, z1*f);
+								double h22 = 0.875+dh*renderNoise.getValue(x2*f, z2*f);
 
-					int n = ReikaRandomHelper.getRandomBetween(4, 10, renderRand);
-					for (int i = 0; i < n; i++) {
-						ForgeDirection side1 = ForgeDirection.VALID_DIRECTIONS[2+renderRand.nextInt(4)];
-						ForgeDirection side2 = ForgeDirection.VALID_DIRECTIONS[2+renderRand.nextInt(4)];
+								v5.addVertexWithUV(x1, y+h12, z2, u1, v2);
+								v5.addVertexWithUV(x2, y+h22, z2, u2, v2);
+								v5.addVertexWithUV(x2, y+h21, z1, u2, v1);
+								v5.addVertexWithUV(x1, y+h11, z1, u1, v1);
 
-						double da = renderRand.nextDouble();
-						double db = renderRand.nextDouble();
-
-						double xa = da;
-						double za = da;
-						double xb = db;
-						double zb = db;
-
-						double h0 = ReikaRandomHelper.getRandomBetween(0.75, 0.9375, renderRand);
-						double h1 = ReikaRandomHelper.getRandomBetween(0.75, 0.9375, renderRand);
-
-						switch(side1) {
-							case EAST:
-								xa = 1;
-								break;
-							case WEST:
-								xa = 0;
-								break;
-							case NORTH:
-								za = 0;
-								break;
-							case SOUTH:
-								za = 1;
-								break;
-							default:
-								break;
+								v5.addVertexWithUV(x1, y+h11, z1, u1, v1);
+								v5.addVertexWithUV(x2, y+h21, z1, u2, v1);
+								v5.addVertexWithUV(x2, y+h22, z2, u2, v2);
+								v5.addVertexWithUV(x1, y+h12, z2, u1, v2);
+							}
 						}
-						switch(side2) {
-							case EAST:
-								xb = 1;
-								break;
-							case WEST:
-								xb = 0;
-								break;
-							case NORTH:
-								zb = 0;
-								break;
-							case SOUTH:
-								zb = 1;
-								break;
-							default:
-								break;
-						}
-
-						double u1 = ico.getInterpolatedU(16*x1);
-						double u2 = ico.getInterpolatedU(16*x2);
-						double u3 = ico.getInterpolatedU(16*x3);
-						double u4 = ico.getInterpolatedU(16*x4);
-						double v1 = ico.getInterpolatedV(16*z1);
-						double v2 = ico.getInterpolatedV(16*z2);
-						double v3 = ico.getInterpolatedV(16*z3);
-						double v4 = ico.getInterpolatedV(16*z4);
-
-						v5.addVertexWithUV(x+x4, y+h0, z+z4, u4, v4);
-						v5.addVertexWithUV(x+x3, y+h0, z+z3, u3, v3);
-						v5.addVertexWithUV(x+x2, y+h0, z+z2, u2, v2);
-						v5.addVertexWithUV(x+x1, y+h0, z+z1, u1, v1);
-
-						v5.addVertexWithUV(x+x1, y+h0, z+z1, u1, v1);
-						v5.addVertexWithUV(x+x2, y+h0, z+z2, u2, v2);
-						v5.addVertexWithUV(x+x3, y+h0, z+z3, u3, v3);
-						v5.addVertexWithUV(x+x4, y+h0, z+z4, u4, v4);
 					}
+
 					break;
 			}
 		}
