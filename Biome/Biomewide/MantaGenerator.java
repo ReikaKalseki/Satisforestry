@@ -2,6 +2,7 @@ package Reika.Satisforestry.Biome.Biomewide;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
@@ -12,8 +13,6 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldType;
-import net.minecraft.world.gen.layer.GenLayer;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
@@ -27,13 +26,14 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Biome.BiomeFootprint;
+import Reika.Satisforestry.Biome.BiomeFootprint.EdgeProfile;
 
 public class MantaGenerator {
 
 	public static final MantaGenerator instance = new MantaGenerator();
 
-	private static final double ANGLE_STEP = 2.5;//10;
-	private static final double ANGLE_FUZZ = 1;
+	private static final double ANGLE_STEP = 6;//2.5;//10;
+	private static final double ANGLE_FUZZ = 2;
 	private static final double MAX_RISE_STEP = 5;
 	private static final double MAX_DROP_STEP = 10;
 
@@ -62,8 +62,15 @@ public class MantaGenerator {
 		double lastOut = -1;
 		double df = ANGLE_STEP/10D;
 		int misses = 0;
-		int biomeSize = GenLayer.getModdedBiomeSize(world.getWorldInfo().getTerrainType(), (byte)(world.getWorldInfo().getTerrainType() == WorldType.LARGE_BIOMES ? 6 : 4));
-		//EdgeProfile prof = bf.generateEdgeProfile(ANGLE_STEP);
+		EdgeProfile prof = bf.generateEdgeProfile(ANGLE_FUZZ);
+		prof.sort(new Comparator<Coordinate>() {
+
+			@Override
+			public int compare(Coordinate o1, Coordinate o2) {
+				return -Double.compare(o1.getDistanceTo(cc.xCoord, o1.yCoord, cc.zCoord), o2.getDistanceTo(cc.xCoord, o2.yCoord, cc.zCoord));
+			}
+
+		});
 		for (double a = 0; a < 360; a += ANGLE_STEP) {
 			double a2 = ReikaRandomHelper.getRandomPlusMinus(a, ANGLE_FUZZ, rand);
 			double out = ReikaRandomHelper.getRandomBetween(8, 24, rand);
@@ -71,7 +78,7 @@ public class MantaGenerator {
 				out = MathHelper.clamp_double(out, lastOut-5*df, lastOut+5*df);
 			}
 			lastOut = out;
-			Coordinate edge = bf.getEdgeAt(a2, 512*biomeSize, out); //was 1024, then 2048,then 1024*size
+			Coordinate edge = prof.getFirstEdge(a2); //farthest after sorting
 			if (edge == null) {
 				misses++;
 				if (misses >= 5)
@@ -79,9 +86,16 @@ public class MantaGenerator {
 				else
 					continue;
 			}
+			edge = edge.to2D();
+			double dx = edge.xCoord-cc.xCoord;
+			double dz = edge.zCoord-cc.zCoord;
+			double ddd = ReikaMathLibrary.py3d(dx, 0, dz);
+			dx /= ddd;
+			dz /= ddd;
+			edge = new Coordinate(MathHelper.floor_double(edge.xCoord+dx*out), 0, MathHelper.floor_double(edge.zCoord+dz*out));
 			misses = 0;
-			if (lastEdge != null && edge.to2D().getDistanceTo(lastEdge.to2D()) > 12) {
-				continue;
+			if (lastEdge != null && edge.getDistanceTo(lastEdge) > 12) {
+				//continue;
 			}
 			int top = ReikaWorldHelper.getTopNonAirBlock(world, edge.xCoord, edge.zCoord, true);
 			Block at = world.getBlock(edge.xCoord, top, edge.zCoord);
