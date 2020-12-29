@@ -83,7 +83,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntitySpider.class, 100, 4, 4)); //large stinger stand-in
 		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityCaveSpider.class, 40, 6, 6)); //basic (small) stinger stand-in
-		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, 25, 2, 2));
+		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, 15, 2, 2)); //was 50 then 25
 
 		spawnableCreatureList.add(new BiomeGenBase.SpawnListEntry(EntityOcelot.class, 5, 2, 2)); //arachnophobia mode
 	}

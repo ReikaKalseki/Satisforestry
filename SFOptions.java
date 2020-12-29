@@ -19,6 +19,7 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
 
 	BIOMEID("Pink Forest Biome ID", 144),
 	SIMPLEAUTO("Enable Simple Automation for Resource Node", false),
+	CAVEMOBS("Cave Mob Spawn Multiplier", 1)
 	;
 
 	private String label;
@@ -93,6 +94,8 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
 		switch(this) {
 			case BIOMEID:
 				return p.getInt() >= 40 && p.getInt() <= 255;
+			case CAVEMOBS:
+				return p.getDouble() >= 0.25 && p.getDouble() <= 5;
 			default:
 				return true;
 		}
@@ -103,6 +106,8 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
 		switch(this) {
 			case BIOMEID:
 				return "(40-255)";
+			case CAVEMOBS:
+				return "(0.25-5)";
 			default:
 				return "";
 		}

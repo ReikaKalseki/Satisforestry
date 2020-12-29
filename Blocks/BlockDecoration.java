@@ -10,8 +10,10 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
@@ -30,6 +32,7 @@ public class BlockDecoration extends Block {
 	public BlockDecoration(Material mat) {
 		super(mat);
 		this.setCreativeTab(Satisforestry.tabCreative);
+		this.setLightOpacity(0);
 	}
 
 	@Override
@@ -78,6 +81,19 @@ public class BlockDecoration extends Block {
 	}
 
 	@Override
+	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
+		return super.getCollisionBoundingBoxFromPool(world, x, y, z);
+	}
+
+	@Override
+	public void addCollisionBoxesToList(World world, int x, int y, int z, AxisAlignedBB mask, List li, Entity e) {
+		DecorationType t = DecorationType.list[world.getBlockMetadata(x, y, z)];
+		if (t == DecorationType.TENDRILS && !(e instanceof EntitySpider))
+			return;
+		super.addCollisionBoxesToList(world, x, y, z, mask, li, e);
+	}
+
+	@Override
 	public boolean isOpaqueCube() {
 		return false;
 	}
@@ -93,8 +109,9 @@ public class BlockDecoration extends Block {
 	}
 
 	public static enum DecorationType {
-		STALAGMITE("Stone Spikes", 0.75F, 5),
-		STALACTITE("Stone Spikes", 0.75F, 5),
+		STALAGMITE("Stone Spikes", 1.5F, 15),
+		STALACTITE("Stone Spikes", 1.5F, 15),
+		TENDRILS("Stony Tendrils", 2.5F, 60F),
 		;
 
 		public final String name;
@@ -162,6 +179,45 @@ public class BlockDecoration extends Block {
 							y0 = (int)(y+dy/16D);
 						}
 					}
+					break;
+				case TENDRILS:
+					IIcon ico = SFBlocks.CAVESHIELD.getBlockInstance().getIcon(0, 0);
+					float u = ico.getMinU();
+					float v = ico.getMinV();
+					float du = ico.getMaxU();
+					float dv = ico.getMaxV();
+
+					double xa = ReikaRandomHelper.getRandomBetween(0, 0.25, renderRand);
+					double xb = ReikaRandomHelper.getRandomBetween(0.75, 1, renderRand);
+					double za = ReikaRandomHelper.getRandomBetween(0, 0.25, renderRand);
+					double zb = ReikaRandomHelper.getRandomBetween(0.75, 1, renderRand);
+
+					double x1 = 0;
+					double z1 = za;
+
+					double x2 = xa;
+					double z2 = 0;
+
+					double x3 = 1;
+					double z3 = zb;
+
+					double x4 = xb;
+					double z4 = 1;
+
+					double u1 = ico.getInterpolatedU(16*x1);
+					double u2 = ico.getInterpolatedU(16*x2);
+					double u3 = ico.getInterpolatedU(16*x3);
+					double u4 = ico.getInterpolatedU(16*x4);
+					double v1 = ico.getInterpolatedV(16*z1);
+					double v2 = ico.getInterpolatedV(16*z2);
+					double v3 = ico.getInterpolatedV(16*z3);
+					double v4 = ico.getInterpolatedV(16*z4);
+
+					v5.addVertexWithUV(x+x4, y+0.875, z+z4, u4, v4);
+					v5.addVertexWithUV(x+x3, y+0.875, z+z3, u3, v3);
+					v5.addVertexWithUV(x+x2, y+0.875, z+z2, u2, v2);
+					v5.addVertexWithUV(x+x1, y+0.875, z+z1, u1, v1);
+
 					break;
 			}
 		}

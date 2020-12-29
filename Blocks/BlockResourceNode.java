@@ -9,9 +9,6 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.NetworkManager;
-import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
@@ -27,6 +24,8 @@ import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.SFOptions;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
 
 public class BlockResourceNode extends BlockContainer {
 
@@ -88,7 +87,7 @@ public class BlockResourceNode extends BlockContainer {
 		return overlayIcon;
 	}
 
-	public static class TileResourceNode extends TileEntity {
+	public static class TileResourceNode extends TileCaveSpawner {
 
 		private static final int MINING_TIME = 3; //just like in SF
 		private static final int MANUAL_MINING_COOLDOWN = 15;
@@ -102,6 +101,19 @@ public class BlockResourceNode extends BlockContainer {
 		private long lastClickTick = -1;
 		private int autoOutputTimer = purity.getCountdown();
 
+		public TileResourceNode() {
+			this.initSpawner();
+		}
+
+		private void initSpawner() {
+			activeRadius = 4;
+			spawnRadius = 3;
+			mobLimit = 2;
+			respawnTime = 50;
+
+			this.setMobType(EntityEliteStinger.class);
+		}
+
 		public void generate(Random rand) {
 			if (resourceSet.isEmpty()) {
 				for (ResourceItem ri : BiomeConfig.instance.getResourceDrops()) {
@@ -111,10 +123,12 @@ public class BlockResourceNode extends BlockContainer {
 			resourceSet.setRNG(rand);
 			resource = resourceSet.getRandomEntry();
 			purity = resource.getRandomPurity(rand);
+			this.initSpawner();
 		}
 
 		@Override
 		public void updateEntity() {
+			super.updateEntity();
 			if (SFOptions.SIMPLEAUTO.getState()) {
 				if (autoOutputTimer > 0)
 					autoOutputTimer--;
@@ -179,20 +193,6 @@ public class BlockResourceNode extends BlockContainer {
 			purity = Purity.list[NBT.getInteger("purity")];
 			if (NBT.hasKey("resource"))
 				resource = BiomeConfig.instance.getResourceByID(NBT.getString("resource"));
-		}
-
-		@Override
-		public Packet getDescriptionPacket() {
-			NBTTagCompound NBT = new NBTTagCompound();
-			this.writeToNBT(NBT);
-			S35PacketUpdateTileEntity pack = new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, NBT);
-			return pack;
-		}
-
-		@Override
-		public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity p)  {
-			this.readFromNBT(p.field_148860_e);
-			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 		}
 
 		public ResourceItem getResource() {

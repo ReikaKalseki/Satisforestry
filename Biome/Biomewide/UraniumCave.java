@@ -42,6 +42,7 @@ import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockGasEmitter.TileGasVent;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
 
 public class UraniumCave {
 
@@ -52,7 +53,7 @@ public class UraniumCave {
 	private UraniumCave() {
 		List<SpawnListEntry> li = Satisforestry.pinkforest.getSpawnableList(EnumCreatureType.monster);
 		for (SpawnListEntry e : li) {
-			if (EntitySpider.class.isAssignableFrom(e.entityClass)) {
+			if (EntitySpider.class.isAssignableFrom(e.entityClass) && e.entityClass != EntityEliteStinger.class) {
 				caveSpawns.addEntry(e, e.itemWeight);
 			}
 		}
@@ -161,7 +162,10 @@ public class UraniumCave {
 			boolean hole = Math.abs(holes.getValue(c.xCoord, c.zCoord)) >= 0.4;//rand.nextInt(5) == 0;
 			for (int i = hole ? 0 : 1; i < h; i++) {
 				Coordinate c2 = c.setY(yat-i);
-				c2.setBlock(world, Blocks.air);
+				if (i == 0)
+					c2.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.TENDRILS.ordinal());
+				else
+					c2.setBlock(world, Blocks.air);
 				carveSet.add(c2);
 			}
 			if (hole) {
@@ -190,12 +194,14 @@ public class UraniumCave {
 
 		this.generateDecorations(world, rand, carveSet, remainingFloor, pits, cc);
 
-		for (int i = 0; i < 15; i++) {
+		for (int i = 0; i < 12; i++) {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, flatFloor);
 			c = c.setY(remainingFloor.get(c));
 			while (c.offset(0, -1, 0).softBlock(world))
 				c = c.offset(0, -1, 0);
 			if (c.yCoord+1 < cc.footprint.get(c.to2D()))
+				continue;
+			if (c.isEmpty(world))
 				continue;
 			DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, c.yCoord, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4, pits);
 
@@ -204,6 +210,7 @@ public class UraniumCave {
 			lgc.spawnRadius = 8;
 			lgc.respawnTime = 12;
 			lgc.mobLimit = 6;
+			lgc.markDirty();
 		}
 
 		for (Entry<DecimalPosition, Integer> e : rm.disks.entrySet()) {
@@ -227,6 +234,7 @@ public class UraniumCave {
 			lgc.spawnRadius = 5;
 			lgc.respawnTime = 4;
 			lgc.mobLimit = 8;
+			lgc.markDirty();
 
 			/*
 			for (Coordinate c2 : c.getAdjacentCoordinates()) {
@@ -505,8 +513,9 @@ public class UraniumCave {
 		HashSet<Coordinate> secondLayer = new HashSet();
 		for (Coordinate c : carveSet) {
 			for (Coordinate c2 : c.getAdjacentCoordinates()) {
-				if (carveSet.contains(c2))
+				if (carveSet.contains(c2)) {
 					continue;
+				}
 				Block b = c2.getBlock(world);
 				if (this.isSpecialCaveBlock(b))
 					continue;
@@ -526,18 +535,27 @@ public class UraniumCave {
 				}
 			}
 		}
+		HashSet<Coordinate> realSecond = new HashSet();
 		for (Coordinate c : secondLayer) {
 			boolean allEmpty = true;
 			for (Coordinate c2 : c.getAdjacentCoordinates()) {
-				if (!carveSet.contains(c2))
+				if (!carveSet.contains(c2) && !c2.isEmpty(world))
 					allEmpty = false;
-				if (carveSet.contains(c2) || secondLayer.contains(c2))
-					continue;
-				if (c2.softBlock(world))
-					c2.setBlock(world, Blocks.stone);
 			}
 			if (allEmpty) {
 				c.setBlock(world, Blocks.air);
+				carveSet.add(c);
+			}
+			else {
+				realSecond.add(c);
+			}
+		}
+		for (Coordinate c : realSecond) {
+			for (Coordinate c2 : c.getAdjacentCoordinates()) {
+				if (carveSet.contains(c2) || realSecond.contains(c2))
+					continue;
+				if (c2.softBlock(world))
+					c2.setBlock(world, Blocks.stone);
 			}
 		}
 	}
@@ -692,7 +710,7 @@ public class UraniumCave {
 		protected void generate(World world, Random rand) {
 			super.generate(world, rand);
 
-			int n = ReikaRandomHelper.getRandomBetween(3, 6, rand);
+			int n = ReikaRandomHelper.getRandomBetween(4, 6, rand);
 			for (int i = 0; i < 5; i++) {
 				Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, carve.keySet());
 				if (c.yCoord >= DecoratorPinkForest.getTrueTopAt(world, c.xCoord, c.zCoord)-15)
@@ -707,6 +725,7 @@ public class UraniumCave {
 				lgc.spawnRadius = 3;
 				lgc.respawnTime = isToBiomeEdge ? 2 : 4;
 				lgc.mobLimit = isToBiomeEdge ? 4 : 6;
+				lgc.markDirty();
 
 				OreClusterType ore = (isToBiomeEdge ? OreSpawnLocation.CAVE_ENTRY_TUNNEL : OreSpawnLocation.CAVE_NODE_TUNNEL).getRandomOreSpawn();
 

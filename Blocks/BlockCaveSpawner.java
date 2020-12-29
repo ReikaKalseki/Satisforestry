@@ -11,15 +11,22 @@ import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.SFBlocks;
+import Reika.Satisforestry.SFOptions;
 import Reika.Satisforestry.Satisforestry;
 
 public class BlockCaveSpawner extends BlockContainer {
@@ -53,10 +60,13 @@ public class BlockCaveSpawner extends BlockContainer {
 		public int mobLimit = 6;
 		public int respawnTime = 0;
 
+		private boolean hasSpawned;
+
 		private String mobType;
 		private Class mobClass;
 
 		private AxisAlignedBB activeArea;
+		private AxisAlignedBB checkArea;
 
 		public TileCaveSpawner() {
 			this.setMobType(EntitySpider.class);
@@ -65,11 +75,15 @@ public class BlockCaveSpawner extends BlockContainer {
 		public void setMobType(Class<? extends EntityMob> c) {
 			mobClass = c;
 			mobType = (String)EntityList.classToStringMapping.get(c);
+			this.markDirty();
 		}
 
 		@Override
 		public void updateEntity() {
-			activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 0, activeRadius).addCoord(0, 4, 0);
+			if (worldObj.difficultySetting == EnumDifficulty.PEACEFUL)
+				return;
+			activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 0, activeRadius).addCoord(0, 3, 0);
+			checkArea = activeArea.expand(activeRadius*1.5+1, 2, activeRadius*1.5+1);
 			boolean player = false;
 			for (EntityPlayer ep : (List<EntityPlayer>)worldObj.playerEntities) {
 				if (ep.boundingBox.intersectsWith(activeArea)) {
@@ -77,37 +91,45 @@ public class BlockCaveSpawner extends BlockContainer {
 					break;
 				}
 			}
-			if (!worldObj.isRemote && worldObj.rand.nextInt(5+respawnTime*respawnTime) == 0) {
-				if (player) {
-					List<EntityMob> li = worldObj.getEntitiesWithinAABB(mobClass, activeArea);
-					//ReikaJavaLibrary.pConsole(li);
-					if (li.size() < mobLimit) {
-						this.trySpawnMob();
-						//ReikaJavaLibrary.pConsole("Spawn @ "+xCoord+", "+yCoord+", "+zCoord);
-					}
+			if (!worldObj.isRemote && player && (!hasSpawned || worldObj.rand.nextInt(5+respawnTime*respawnTime/SFOptions.CAVEMOBS.getValue()) == 0)) {
+				List<EntityMob> li = worldObj.getEntitiesWithinAABB(mobClass, checkArea);
+				//ReikaJavaLibrary.pConsole(li);
+				int lim = MathHelper.ceiling_double_int(mobLimit*SFOptions.CAVEMOBS.getValue());
+				if (li.size() < lim) {
+					int add = hasSpawned ? lim-li.size() : 1;
+					hasSpawned = this.trySpawnMobs(add) >= Math.max(1, add/2);
+					//ReikaJavaLibrary.pConsole("Spawn @ "+xCoord+", "+yCoord+", "+zCoord);
 				}
 			}
 		}
 
-		private boolean trySpawnMob() {
-			double x = ReikaRandomHelper.getRandomBetween(activeArea.minX, activeArea.maxX);
-			double z = ReikaRandomHelper.getRandomBetween(activeArea.minZ, activeArea.maxZ);
-			EntityMob e = (EntityMob)EntityList.createEntityByName(mobType, worldObj);
-			for (double y = yCoord; y <= activeArea.maxY; y += 0.5) {
-				e.setLocationAndAngles(x, y, z, 0, 0);
-				if (e.getCanSpawnHere()) {
-					e.rotationYaw = worldObj.rand.nextFloat()*360;
-					e.onSpawnWithEgg((IEntityLivingData)null);
-					worldObj.spawnEntityInWorld(e);
+		private int trySpawnMobs(int n) {
+			int ret = 0;
+			int i = 0;
+			while (ret < n && i < n*3) {
+				i++;
+				double x = ReikaRandomHelper.getRandomBetween(activeArea.minX, activeArea.maxX);
+				double z = ReikaRandomHelper.getRandomBetween(activeArea.minZ, activeArea.maxZ);
+				EntityMob e = (EntityMob)EntityList.createEntityByName(mobType, worldObj);
+				for (double y = yCoord; y <= activeArea.maxY; y += 0.5) {
+					if (new Coordinate(x, y, z).isEmpty(worldObj)) {
+						e.setLocationAndAngles(x, y, z, 0, 0);
+						if (e.getCanSpawnHere()) {
+							e.rotationYaw = worldObj.rand.nextFloat()*360;
+							e.onSpawnWithEgg((IEntityLivingData)null);
+							worldObj.spawnEntityInWorld(e);
 
-					//this.worldObj.playAuxSFX(2004, xCoord, yCoord, zCoord, 0);
+							//this.worldObj.playAuxSFX(2004, xCoord, yCoord, zCoord, 0);
 
-					e.spawnExplosionParticle();
+							e.spawnExplosionParticle();
 
-					return true;
+							ret++;
+							break;
+						}
+					}
 				}
 			}
-			return false;
+			return ret;
 		}
 
 		@Override
@@ -118,6 +140,8 @@ public class BlockCaveSpawner extends BlockContainer {
 			NBT.setInteger("delay", respawnTime);
 			NBT.setInteger("activeRadius", activeRadius);
 			NBT.setInteger("spawnRadius", spawnRadius);
+
+			NBT.setBoolean("spawned", hasSpawned);
 
 			if (mobType != null) {
 				NBT.setString("mob", mobType);
@@ -134,6 +158,8 @@ public class BlockCaveSpawner extends BlockContainer {
 			activeRadius = NBT.getInteger("activeRadius");
 			spawnRadius = NBT.getInteger("spawnRadius");
 
+			hasSpawned = NBT.getBoolean("spawned");
+
 			mobType = NBT.getString("mob");
 			try {
 				mobClass = Class.forName(NBT.getString("type"));
@@ -141,6 +167,20 @@ public class BlockCaveSpawner extends BlockContainer {
 			catch (ClassNotFoundException e) {
 				e.printStackTrace();
 			}
+		}
+
+		@Override
+		public final Packet getDescriptionPacket() {
+			NBTTagCompound NBT = new NBTTagCompound();
+			this.writeToNBT(NBT);
+			S35PacketUpdateTileEntity pack = new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, NBT);
+			return pack;
+		}
+
+		@Override
+		public final void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity p)  {
+			this.readFromNBT(p.field_148860_e);
+			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 		}
 
 	}
