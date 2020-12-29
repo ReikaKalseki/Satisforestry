@@ -15,9 +15,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Libraries.IO.ReikaRenderHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
@@ -187,37 +189,132 @@ public class BlockDecoration extends Block {
 					float du = ico.getMaxU();
 					float dv = ico.getMaxV();
 
-					double xa = ReikaRandomHelper.getRandomBetween(0, 0.25, renderRand);
-					double xb = ReikaRandomHelper.getRandomBetween(0.75, 1, renderRand);
-					double za = ReikaRandomHelper.getRandomBetween(0, 0.25, renderRand);
-					double zb = ReikaRandomHelper.getRandomBetween(0.75, 1, renderRand);
+					int n = ReikaRandomHelper.getRandomBetween(4, 10, renderRand);
+					for (int i = 0; i < n; i++) {
+						ForgeDirection side1 = ForgeDirection.VALID_DIRECTIONS[2+renderRand.nextInt(4)];
+						ForgeDirection side2 = ForgeDirection.VALID_DIRECTIONS[2+renderRand.nextInt(4)];
 
-					double x1 = 0;
-					double z1 = za;
+						double da = renderRand.nextDouble();
+						double db = renderRand.nextDouble();
 
-					double x2 = xa;
-					double z2 = 0;
+						double xa = da;
+						double za = da;
+						double xb = db;
+						double zb = db;
 
-					double x3 = 1;
-					double z3 = zb;
+						double h0 = ReikaRandomHelper.getRandomBetween(0.75, 0.9375, renderRand);
 
-					double x4 = xb;
-					double z4 = 1;
+						/*
+					if (side1.offsetX != 0)
+						xa = 0.5+0.5*side1.offsetX;
+					if (side1.offsetZ != 0)
+						za = 0.5+0.5*side1.offsetZ;
+					if (side2.offsetX != 0)
+						xb = 0.5+0.5*side2.offsetX;
+					if (side2.offsetZ != 0)
+						zb = 0.5+0.5*side2.offsetZ;
+						 */
 
-					double u1 = ico.getInterpolatedU(16*x1);
-					double u2 = ico.getInterpolatedU(16*x2);
-					double u3 = ico.getInterpolatedU(16*x3);
-					double u4 = ico.getInterpolatedU(16*x4);
-					double v1 = ico.getInterpolatedV(16*z1);
-					double v2 = ico.getInterpolatedV(16*z2);
-					double v3 = ico.getInterpolatedV(16*z3);
-					double v4 = ico.getInterpolatedV(16*z4);
+						double x1 = xa;
+						double z1 = za;
 
-					v5.addVertexWithUV(x+x4, y+0.875, z+z4, u4, v4);
-					v5.addVertexWithUV(x+x3, y+0.875, z+z3, u3, v3);
-					v5.addVertexWithUV(x+x2, y+0.875, z+z2, u2, v2);
-					v5.addVertexWithUV(x+x1, y+0.875, z+z1, u1, v1);
+						double x2 = xa;
+						double z2 = za;
 
+						double x3 = xb;
+						double z3 = zb;
+
+						double x4 = xb;
+						double z4 = zb;
+
+						double d1 = ReikaRandomHelper.getRandomBetween(0.03125, 0.125, renderRand);
+						double d2 = ReikaRandomHelper.getRandomBetween(0.03125, 0.125, renderRand);
+
+						switch(side1) {
+							case EAST:
+								x1 = 1;
+								z1 = za+d1;
+								x2 = 1;
+								z2 = za-d1;
+								break;
+							case WEST:
+								x1 = 0;
+								z1 = za+d1;
+								x2 = 0;
+								z2 = za-d1;
+								break;
+							case NORTH:
+								x1 = xa+d1;
+								z1 = 0;
+								x2 = xa-d1;
+								z2 = 0;
+								break;
+							case SOUTH:
+								x1 = xa+d1;
+								z1 = 1;
+								x2 = xa-d1;
+								z2 = 1;
+								break;
+							default:
+								break;
+						}
+						switch(side2) {
+							case EAST:
+								x3 = 1;
+								z3 = zb+d2;
+								x4 = 1;
+								z4 = zb-d2;
+								break;
+							case WEST:
+								x3 = 0;
+								z3 = zb+d2;
+								x4 = 0;
+								z4 = zb-d2;
+								break;
+							case NORTH:
+								x3 = xb+d2;
+								z3 = 0;
+								x4 = xb-d2;
+								z4 = 0;
+								break;
+							case SOUTH:
+								x3 = xb+d2;
+								z3 = 1;
+								x4 = xb-d2;
+								z4 = 1;
+								break;
+							default:
+								break;
+						}
+
+						x1 = MathHelper.clamp_double(x1, 0, 1);
+						x2 = MathHelper.clamp_double(x2, 0, 1);
+						x3 = MathHelper.clamp_double(x3, 0, 1);
+						x4 = MathHelper.clamp_double(x4, 0, 1);
+						z1 = MathHelper.clamp_double(z1, 0, 1);
+						z2 = MathHelper.clamp_double(z2, 0, 1);
+						z3 = MathHelper.clamp_double(z3, 0, 1);
+						z4 = MathHelper.clamp_double(z4, 0, 1);
+
+						double u1 = ico.getInterpolatedU(16*x1);
+						double u2 = ico.getInterpolatedU(16*x2);
+						double u3 = ico.getInterpolatedU(16*x3);
+						double u4 = ico.getInterpolatedU(16*x4);
+						double v1 = ico.getInterpolatedV(16*z1);
+						double v2 = ico.getInterpolatedV(16*z2);
+						double v3 = ico.getInterpolatedV(16*z3);
+						double v4 = ico.getInterpolatedV(16*z4);
+
+						v5.addVertexWithUV(x+x4, y+h0, z+z4, u4, v4);
+						v5.addVertexWithUV(x+x3, y+h0, z+z3, u3, v3);
+						v5.addVertexWithUV(x+x2, y+h0, z+z2, u2, v2);
+						v5.addVertexWithUV(x+x1, y+h0, z+z1, u1, v1);
+
+						v5.addVertexWithUV(x+x1, y+h0, z+z1, u1, v1);
+						v5.addVertexWithUV(x+x2, y+h0, z+z2, u2, v2);
+						v5.addVertexWithUV(x+x3, y+h0, z+z3, u3, v3);
+						v5.addVertexWithUV(x+x4, y+h0, z+z4, u4, v4);
+					}
 					break;
 			}
 		}
