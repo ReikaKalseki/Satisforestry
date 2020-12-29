@@ -5,7 +5,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.imageio.ImageIO;
@@ -173,6 +175,12 @@ public class BiomeFootprint {
 		return !coords.contains(new Coordinate(center));
 	}
 
+	public EdgeProfile generateEdgeProfile(double angleStep) {
+		EdgeProfile ret = new EdgeProfile(angleStep);
+		ret.populate();
+		return ret;
+	}
+
 	public Coordinate getEdgeAt(double ang, double maxr) {
 		return this.getEdgeAt(ang, maxr, 0);
 	}
@@ -185,19 +193,16 @@ public class BiomeFootprint {
 		double dd = 0.5;
 		//int n = this.isConcave() ? 2 : 1;
 		//int n2 = 0;
+		int dAtEdge = -1;
 		boolean wasIn = this.isConcave() ? false : true;
 		Coordinate ret = null;
-		int sinceFound = -1;
 		for (int d = 0; d <= maxr/dd; d++) {
 			pos.xCoord += dx*dd;
 			pos.zCoord += dz*dd;
 			Coordinate at = new Coordinate(pos.xCoord, 0, pos.zCoord);
 			boolean in = coords.contains(at);
-			if (in) {
-				sinceFound = -1;
-				ret = null;
-			}
-			else if (wasIn && !in) {
+			if (wasIn && !in) {
+				dAtEdge = d;
 				if (outset == 0) {
 					ret = at;
 				}
@@ -206,15 +211,15 @@ public class BiomeFootprint {
 					pos.zCoord += dz*outset;
 					ret = new Coordinate(pos.xCoord, 0, pos.zCoord);
 				}
-				if (sinceFound == -1)
-					sinceFound = d;
+				//ReikaJavaLibrary.pConsole(ang+": found edge @ "+d);
 			}
-			else {
-				wasIn = in;
+			wasIn = in;
+			if (ret != null && dAtEdge >= 0 && d-dAtEdge > 25+outset*2) {
+				//ReikaJavaLibrary.pConsole(ang+": break @ "+d);
+				break;
 			}
-			if (ret != null && d-sinceFound > 20)
-				return ret;
 		}
+		//ReikaJavaLibrary.pConsole(ang+": return "+ret);
 		return ret;
 	}
 
@@ -246,6 +251,53 @@ public class BiomeFootprint {
 		catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public class EdgeProfile {
+
+		public final double angleStep;
+
+		private final ArrayList<Coordinate>[] edges;
+
+		private EdgeProfile(double step) {
+			angleStep = step;
+			int n = MathHelper.ceiling_double_int(360D/step);
+			edges = new ArrayList[n];
+			for (int i = 0; i < n; i++) {
+				edges[i] = new ArrayList();
+			}
+		}
+
+		private void populate() {
+			for (Coordinate c : edgeCoords) {
+				double dy = c.zCoord-center.zCoord;
+				double dx = c.xCoord-center.xCoord;
+				double ang = Math.toDegrees(Math.atan2(dy, dx));
+				edges[this.getIndex(ang)].add(c);
+			}
+		}
+
+		public List<Coordinate> getEdgesAtAngle(double ang) {
+			return Collections.unmodifiableList(edges[this.getIndex(ang)]);
+		}
+
+		public void sort(Comparator<Coordinate> c) {
+			for (int i = 0; i < edges.length; i++) {
+				Collections.sort(edges[i], c);
+			}
+		}
+
+		public Coordinate getFirstEdge(double ang) {
+			ArrayList<Coordinate> li = edges[this.getIndex(ang)];
+			return li.isEmpty() ? null : li.get(0);
+		}
+
+		private int getIndex(double angle) {
+			angle = ((angle%360)+360)%360;
+			double base = angle-angle%angleStep;
+			return (int)(base/angleStep);
+		}
+
 	}
 
 }
