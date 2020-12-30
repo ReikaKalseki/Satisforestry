@@ -54,7 +54,10 @@ public class EntityFlyingManta extends EntityFlying {
 			}
 
 			if (pathSpline == null) {
-				this.setPath(BiomewideFeatureGenerator.instance.getPathAround(pathRoot));
+				MantaPath path = BiomewideFeatureGenerator.instance.getPathAround(pathRoot);
+				if (pathRoot != null && path == null)
+					Satisforestry.logger.logError("Could not reload manta path for "+this);
+				this.setPath(path);
 				return;
 			}
 

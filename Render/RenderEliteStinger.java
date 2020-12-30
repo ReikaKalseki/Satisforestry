@@ -16,9 +16,18 @@ import Reika.Satisforestry.Satisforestry;
 
 public class RenderEliteStinger extends RenderSpider {
 
+	public RenderEliteStinger() {
+		shadowSize *= 1.15F;
+	}
+
 	@Override
 	public void doRender(Entity e, double par2, double par4, double par6, float par8, float ptick) {
 		super.doRender(e, par2, par4, par6, par8, ptick);
+	}
+
+	@Override
+	protected void preRenderCallback(EntityLivingBase e, float ptick) {
+		GL11.glScalef(1.15F, 1.15F, 1.15F);
 	}
 
 	@Override

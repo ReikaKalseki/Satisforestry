@@ -127,7 +127,7 @@ public class UraniumCave {
 		}
 
 		double dr = cc.outerCircleRadius+5;
-		ResourceNodeRoom rm = cache != null ? cache.reconstructNode(cache.nodeTile) : new ResourceNodeRoom(cc.center.offset(-avg.xCoord*dr, 0, -avg.zCoord*dr));
+		ResourceNodeRoom rm = cache != null ? cache.reconstructNode(cc, cache.nodeTile) : new ResourceNodeRoom(cc, cc.center.offset(-avg.xCoord*dr, 0, -avg.zCoord*dr));
 		rm.calculate(world, rand);
 
 		carveSet.addAll(rm.carve.keySet());
@@ -160,7 +160,7 @@ public class UraniumCave {
 			int yat = e.getValue()-1;
 			int h = (int)Math.round(ReikaMathLibrary.normalizeToBounds(floorLevel.getValue(c.xCoord, c.zCoord), 4, 7)); //was 3,6
 			int floor = cc.lowestFloor-1-h;
-			boolean hole = Math.abs(holes.getValue(c.xCoord, c.zCoord)) >= 0.4;//rand.nextInt(5) == 0;
+			boolean hole = c.setY(yat+1).isEmpty(world) && Math.abs(holes.getValue(c.xCoord, c.zCoord)) >= 0.4;//rand.nextInt(5) == 0;
 			for (int i = hole ? 0 : 1; i < h; i++) {
 				Coordinate c2 = c.setY(yat-i);
 				if (i == 0)
@@ -193,26 +193,35 @@ public class UraniumCave {
 
 		rm.generateResourceNode(world, rand);
 
-		for (int i = 0; i < 12; i++) {
+		this.generateDecorations(world, rand, carveSet, remainingFloor, pits, cc);
+
+		int ores = 9;
+		int gen = 0;
+		int tries = 0;
+		while (gen < ores && tries < ores*3) {
+			tries++;
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, flatFloor);
 			c = c.setY(remainingFloor.get(c));
 			while (c.offset(0, -1, 0).softBlock(world))
 				c = c.offset(0, -1, 0);
 			if (c.yCoord+1 < cc.footprint.get(c.to2D()))
 				continue;
-			if (c.isEmpty(world))
+			if (!c.isEmpty(world))
 				continue;
-			DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, c.yCoord, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4, pits);
+			BlockKey prev = BlockKey.getAt(world, c.xCoord, c.yCoord, c.zCoord);
+			OreClusterType ore = DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, c.yCoord, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4, pits);
+			if (ore != null) {
+				gen++;
+				//ReikaJavaLibrary.pConsole("Generating ore clump "+ore.id+" @ "+c+" over "+prev);
 
-			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord-1, c.zCoord, rand);
-			lgc.activeRadius = 10;//8;
-			lgc.spawnRadius = 8;
-			lgc.respawnTime = 20;//12;
-			lgc.mobLimit = 6;
-			lgc.markDirty();
+				TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord-1, c.zCoord, rand);
+				lgc.activeRadius = 10;//8;
+				lgc.spawnRadius = 8;
+				lgc.respawnTime = 20;//12;
+				lgc.mobLimit = 6;
+				lgc.markDirty();
+			}
 		}
-
-		this.generateDecorations(world, rand, carveSet, remainingFloor, pits, cc);
 
 		for (Entry<DecimalPosition, Integer> e : rm.disks.entrySet()) {
 			DecimalPosition p = e.getKey();
@@ -717,7 +726,7 @@ public class UraniumCave {
 				if (c.yCoord >= DecoratorPinkForest.getTrueTopAt(world, c.xCoord, c.zCoord)-15)
 					continue;
 				Coordinate below = c.offset(0, -1, 0);
-				while (carve.containsKey(below)) {
+				while (cave.carves(below)) {
 					c = below;
 					below = c.offset(0, -1, 0);
 				}
@@ -771,6 +780,18 @@ public class UraniumCave {
 
 		public CentralCave(int x, int y, int z) {
 			super(new DecimalPosition(x+0.5, y+0.5, z+0.5));
+		}
+
+		public boolean carves(Coordinate c) {
+			if (carve.containsKey(c))
+				return true;
+			if (nodeRoom != null && nodeRoom.carve.containsKey(c))
+				return true;
+			for (Tunnel t : tunnels) {
+				if (t.carve.containsKey(c))
+					return true;
+			}
+			return false;
 		}
 
 		@Override
@@ -891,11 +912,14 @@ public class UraniumCave {
 		private final HashSet<Coordinate> adjacent = new HashSet();
 		private final HashSet<Coordinate> adjacentFloor = new HashSet();
 
+		private final CentralCave cave;
+
 		private Coordinate resourceNode;
 		private final HashSet<Coordinate> nodeClearArea = new HashSet();
 
-		protected ResourceNodeRoom(DecimalPosition p) {
+		protected ResourceNodeRoom(CentralCave cc, DecimalPosition p) {
 			super(p);
+			cave = cc;
 		}
 
 		void generateOreSpike(World world, Random rand, BlockKey ore) {
@@ -1011,7 +1035,7 @@ public class UraniumCave {
 			if (resourceNode == null) {
 				Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, disks.keySet()).getCoordinate();//new Coordinate(center);
 				Coordinate below = c.offset(0, -1, 0);
-				while (carve.containsKey(below)) {
+				while (cave.carves(below)) {
 					c = below;
 					below = c.offset(0, -1, 0);
 				}
@@ -1153,8 +1177,8 @@ public class UraniumCave {
 			}
 		}
 
-		public ResourceNodeRoom reconstructNode(Coordinate node) {
-			ResourceNodeRoom rm = new ResourceNodeRoom(nodeRoom);
+		public ResourceNodeRoom reconstructNode(CentralCave cc, Coordinate node) {
+			ResourceNodeRoom rm = new ResourceNodeRoom(cc, nodeRoom);
 			rm.resourceNode = node;
 			return rm;
 		}

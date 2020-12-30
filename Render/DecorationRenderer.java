@@ -28,8 +28,7 @@ public class DecorationRenderer extends ISBRH {
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
 		DecorationType f = DecorationType.list[world.getBlockMetadata(x, y, z)];
 		Tessellator.instance.setColorOpaque_I(0xffffff);
-		f.render(world, x, y, z, block, renderer, Tessellator.instance);
-		return true;
+		return f.render(world, x, y, z, block, renderer, Tessellator.instance);
 	}
 
 	@Override

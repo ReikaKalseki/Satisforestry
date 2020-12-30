@@ -106,7 +106,7 @@ public class BlockResourceNode extends BlockContainer {
 		}
 
 		private void initSpawner() {
-			activeRadius = 4;
+			activeRadius = 5;
 			spawnRadius = 3;
 			mobLimit = 2;
 			respawnTime = 50;

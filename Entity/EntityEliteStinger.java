@@ -45,6 +45,7 @@ public class EntityEliteStinger extends EntitySpider {
 
 	public EntityEliteStinger(World world) {
 		super(world);
+		this.setSize(1.6F, 1F);
 	}
 
 	@Override
