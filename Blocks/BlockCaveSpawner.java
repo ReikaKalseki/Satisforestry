@@ -82,7 +82,7 @@ public class BlockCaveSpawner extends BlockContainer {
 		public void updateEntity() {
 			if (worldObj.difficultySetting == EnumDifficulty.PEACEFUL)
 				return;
-			activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 0, activeRadius).addCoord(0, 3, 0);
+			activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 1, activeRadius).addCoord(0, 3, 0);
 			checkArea = activeArea.expand(activeRadius*1.5+1, 2, activeRadius*1.5+1);
 			boolean player = false;
 			for (EntityPlayer ep : (List<EntityPlayer>)worldObj.playerEntities) {
@@ -91,7 +91,7 @@ public class BlockCaveSpawner extends BlockContainer {
 					break;
 				}
 			}
-			if (!worldObj.isRemote && player && (!hasSpawned || worldObj.rand.nextInt(5+respawnTime*respawnTime/SFOptions.CAVEMOBS.getValue()) == 0)) {
+			if (!worldObj.isRemote && player && (!hasSpawned || worldObj.rand.nextInt(5+2*respawnTime*respawnTime/SFOptions.CAVEMOBS.getValue()) == 0)) {
 				List<EntityMob> li = worldObj.getEntitiesWithinAABB(mobClass, checkArea);
 				//ReikaJavaLibrary.pConsole(li);
 				int lim = MathHelper.ceiling_double_int(mobLimit*SFOptions.CAVEMOBS.getValue());

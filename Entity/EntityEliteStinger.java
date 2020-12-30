@@ -26,6 +26,7 @@ import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaVectorHelper;
+import Reika.ReactorCraft.API.RadiationHandler;
 import Reika.Satisforestry.SFEntities;
 
 import cpw.mods.fml.relauncher.Side;
@@ -89,7 +90,7 @@ public class EntityEliteStinger extends EntitySpider {
 				AxisAlignedBB box = ReikaAABBHelper.getEntityCenteredAABB(this, r);
 				List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
 				for (EntityPlayer ep : li) {
-					if (!ep.isPotionActive(Potion.poison))
+					if (!ep.isPotionActive(Potion.poison) && !RadiationHandler.hasHazmatSuit(ep))
 						ep.addPotionEffect(new PotionEffect(Potion.poison.id, 40, 0));
 				}
 				//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.chicken.plop", 0.7F, 0.2F);

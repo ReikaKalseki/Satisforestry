@@ -184,35 +184,53 @@ public class BlockDecoration extends Block {
 					break;
 				case TENDRILS:
 					IIcon ico = SFBlocks.CAVESHIELD.getBlockInstance().getIcon(0, 0);
-					int div = 8;
-					double f = 3.2;
-					double dh = 0.075;//0.125;
-					for (int i = 0; i < div; i++) {
-						for (int k = 0; k < div; k++) {
-							double x1 = x+i/(double)div;
-							double z1 = z+k/(double)div;
-							double noise = renderNoise.getValue(x1*f, z1*f);
-							if (noise > -0.33) {
-								double x2 = x+(i+1)/(double)div;
-								double z2 = z+(k+1)/(double)div;
-								double u1 = ico.getInterpolatedU((x1-x)*16);
-								double u2 = ico.getInterpolatedU((x2-x)*16);
-								double v1 = ico.getInterpolatedV((z1-z)*16);
-								double v2 = ico.getInterpolatedV((z2-z)*16);
-								double h11 = 0.875+dh*renderNoise.getValue(x1*f, z1*f);
-								double h12 = 0.875+dh*renderNoise.getValue(x1*f, z2*f);
-								double h21 = 0.875+dh*renderNoise.getValue(x2*f, z1*f);
-								double h22 = 0.875+dh*renderNoise.getValue(x2*f, z2*f);
+					for (int a = 0; a <= 1; a++) {
+						int div = 8;
+						double f = 3.2;
+						double dh = 0.125;//0.25;//0.075;//0.125;
+						double h0 = 0.85;//0.75;//0.9;//0.875;
+						double ox = a*48.2;
+						double oz = a*-27.3;
+						for (int i = 0; i < div; i++) {
+							for (int k = 0; k < div; k++) {
+								double x1 = x+i/(double)div;
+								double z1 = z+k/(double)div;
+								double noise = renderNoise.getValue(x1*f+ox, z1*f+oz);
+								if (noise > -0.25) { //was 0, then -0.5, then -0.33
+									double x2 = x+(i+1)/(double)div;
+									double z2 = z+(k+1)/(double)div;
+									double u1 = ico.getInterpolatedU((x1-x)*16);
+									double u2 = ico.getInterpolatedU((x2-x)*16);
+									double v1 = ico.getInterpolatedV((z1-z)*16);
+									double v2 = ico.getInterpolatedV((z2-z)*16);
+									double h11 = h0+dh*noise;
+									double h12 = h0+dh*renderNoise.getValue(x1*f+ox, z2*f+oz);
+									double h21 = h0+dh*renderNoise.getValue(x2*f+ox, z1*f+oz);
+									double h22 = h0+dh*renderNoise.getValue(x2*f+ox, z2*f+oz);
 
-								v5.addVertexWithUV(x1, y+h12, z2, u1, v2);
-								v5.addVertexWithUV(x2, y+h22, z2, u2, v2);
-								v5.addVertexWithUV(x2, y+h21, z1, u2, v1);
-								v5.addVertexWithUV(x1, y+h11, z1, u1, v1);
+									if (a == 0) {
+										v5.addVertexWithUV(x1, y+h12, z2, u1, v2);
+										v5.addVertexWithUV(x2, y+h22, z2, u2, v2);
+										v5.addVertexWithUV(x2, y+h21, z1, u2, v1);
+										v5.addVertexWithUV(x1, y+h11, z1, u1, v1);
 
-								v5.addVertexWithUV(x1, y+h11, z1, u1, v1);
-								v5.addVertexWithUV(x2, y+h21, z1, u2, v1);
-								v5.addVertexWithUV(x2, y+h22, z2, u2, v2);
-								v5.addVertexWithUV(x1, y+h12, z2, u1, v2);
+										v5.addVertexWithUV(x1, y+h11, z1, u1, v1);
+										v5.addVertexWithUV(x2, y+h21, z1, u2, v1);
+										v5.addVertexWithUV(x2, y+h22, z2, u2, v2);
+										v5.addVertexWithUV(x1, y+h12, z2, u1, v2);
+									}
+									else if (a == 1) {
+										v5.addVertexWithUV(x1, y+1-h12, z2, u1, v2);
+										v5.addVertexWithUV(x2, y+1-h22, z2, u2, v2);
+										v5.addVertexWithUV(x2, y+1-h21, z1, u2, v1);
+										v5.addVertexWithUV(x1, y+1-h11, z1, u1, v1);
+
+										v5.addVertexWithUV(x1, y+1-h11, z1, u1, v1);
+										v5.addVertexWithUV(x2, y+1-h21, z1, u2, v1);
+										v5.addVertexWithUV(x2, y+1-h22, z2, u2, v2);
+										v5.addVertexWithUV(x1, y+1-h12, z2, u1, v2);
+									}
+								}
 							}
 						}
 					}

@@ -42,6 +42,7 @@ import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkRiver;
 import Reika.Satisforestry.Biome.Generator.WorldGenUraniumCave;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
 
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
 import cpw.mods.fml.common.eventhandler.Event.Result;
@@ -164,6 +165,10 @@ public class SFEvents {
 				evt.list.clear();
 				evt.list.add(UraniumCave.instance.getRandomSpawn(evt.world.rand));
 				//ReikaJavaLibrary.pConsole(evt.list.get(0).entityClass+" @ "+evt.world.getTotalWorldTime());
+			}
+			else {
+				int wt = 10+evt.world.skylightSubtracted*2; //gives range of 10 in day to 32 in night //evt.world.isDaytime() ? 10 : 25;
+				evt.list.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, wt, 1, 2));
 			}
 		}
 	}

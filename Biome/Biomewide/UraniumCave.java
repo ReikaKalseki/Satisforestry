@@ -32,6 +32,7 @@ import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
@@ -192,8 +193,6 @@ public class UraniumCave {
 
 		rm.generateResourceNode(world, rand);
 
-		this.generateDecorations(world, rand, carveSet, remainingFloor, pits, cc);
-
 		for (int i = 0; i < 12; i++) {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, flatFloor);
 			c = c.setY(remainingFloor.get(c));
@@ -208,10 +207,12 @@ public class UraniumCave {
 			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord-1, c.zCoord, rand);
 			lgc.activeRadius = 10;//8;
 			lgc.spawnRadius = 8;
-			lgc.respawnTime = 12;
+			lgc.respawnTime = 20;//12;
 			lgc.mobLimit = 6;
 			lgc.markDirty();
 		}
+
+		this.generateDecorations(world, rand, carveSet, remainingFloor, pits, cc);
 
 		for (Entry<DecimalPosition, Integer> e : rm.disks.entrySet()) {
 			DecimalPosition p = e.getKey();
@@ -232,8 +233,8 @@ public class UraniumCave {
 			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord, c.zCoord, rand);
 			lgc.activeRadius = 6;
 			lgc.spawnRadius = 5;
-			lgc.respawnTime = 4;
-			lgc.mobLimit = 8;
+			lgc.respawnTime = 12;//4;
+			lgc.mobLimit = 4;
 			lgc.markDirty();
 
 			/*
@@ -723,8 +724,8 @@ public class UraniumCave {
 				TileCaveSpawner lgc = instance.generateSpawnerAt(world, below.xCoord, below.yCoord, below.zCoord, rand, EntityCaveSpider.class);
 				lgc.activeRadius = isToBiomeEdge ? 12 : 8;
 				lgc.spawnRadius = 3;
-				lgc.respawnTime = isToBiomeEdge ? 2 : 4;
-				lgc.mobLimit = isToBiomeEdge ? 4 : 6;
+				lgc.respawnTime = isToBiomeEdge ? 15 : 9;
+				lgc.mobLimit = isToBiomeEdge ? 3 : 5;
 				lgc.markDirty();
 
 				OreClusterType ore = (isToBiomeEdge ? OreSpawnLocation.CAVE_ENTRY_TUNNEL : OreSpawnLocation.CAVE_NODE_TUNNEL).getRandomOreSpawn();
@@ -794,6 +795,12 @@ public class UraniumCave {
 				 */
 				outerCircleRadius = ReikaRandomHelper.getRandomBetween(24D, 36D, rand);
 				innerCircleRadius = ReikaRandomHelper.getRandomBetween(Math.max(6D, outerCircleRadius-MIN_TUNNEL_WIDTH*6), outerCircleRadius-MIN_TUNNEL_WIDTH*4, rand);
+
+				double biomeSize = ReikaWorldHelper.getBiomeSize(world);
+				biomeSize = biomeSize*biomeSize/16D;
+				outerCircleRadius *= Math.max(1, biomeSize);
+				innerCircleRadius *= Math.max(1, biomeSize);
+
 				double maxr = outerCircleRadius-innerCircleRadius-MIN_TUNNEL_WIDTH-3;
 				double offr = ReikaRandomHelper.getRandomBetween(maxr*0.75, maxr, rand);
 				double offa = rand.nextDouble()*360;
