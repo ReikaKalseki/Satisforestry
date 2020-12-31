@@ -42,6 +42,7 @@ import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Biome.BiomePinkForest;
+import Reika.Satisforestry.Biome.CaveNightvisionHandler;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkRiver;
@@ -198,10 +199,7 @@ public class SFEvents {
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void weakenCaveNightVision(NightVisionBrightnessEvent evt) {
-		long lastCave = evt.player.getEntityData().getLong("biomecavetick");
-		if (Minecraft.getMinecraft().theWorld.getTotalWorldTime()-lastCave < 50) {
-			evt.brightness = Math.min(evt.brightness, 0.25F);
-		}
+		CaveNightvisionHandler.instance.setBrightness(evt);
 	}
 	/*
 	@SubscribeEvent

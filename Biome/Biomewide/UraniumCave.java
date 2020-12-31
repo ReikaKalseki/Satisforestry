@@ -1165,6 +1165,8 @@ public class UraniumCave {
 		public final Coordinate nodeTile;
 		final HashMap<Coordinate, Double> tunnels = new HashMap();
 
+		private CentralCave reference;
+
 		CachedCave(CentralCave cc) {
 			center = new Coordinate(cc.center);
 			outerRadius = cc.outerCircleRadius;
@@ -1175,6 +1177,7 @@ public class UraniumCave {
 			for (Tunnel t : cc.tunnels) {
 				tunnels.put(t.endpoint, t.startingAngle);
 			}
+			reference = cc;
 		}
 
 		public ResourceNodeRoom reconstructNode(CentralCave cc, Coordinate node) {
@@ -1188,6 +1191,7 @@ public class UraniumCave {
 			ret.outerCircleRadius = outerRadius;
 			ret.innerCircleRadius = innerRadius;
 			ret.innerCircleOffset = innerOffset;
+			reference = ret;
 			return ret;
 		}
 
@@ -1202,7 +1206,14 @@ public class UraniumCave {
 		}
 
 		public boolean isInside(double x, double y, double z) {
-			return (center.getDistanceTo(x, y, z) <= outerRadius && Math.abs(center.yCoord-y) <= 10) || nodeRoom.getDistanceTo(x, y, z) <= 9;
+			if (reference != null) {
+				return reference.carves(new Coordinate(x, y, z));
+			}
+			if (center.getDistanceTo(x, y, z) <= outerRadius && Math.abs(center.yCoord-y) <= 10)
+				return true;
+			if (nodeRoom.getDistanceTo(x, y, z) <= 9)
+				return true;
+			return false;
 		}
 
 		@Override

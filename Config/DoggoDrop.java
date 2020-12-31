@@ -11,6 +11,7 @@ import net.minecraft.world.EnumDifficulty;
 
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
+import Reika.DragonAPI.Libraries.ReikaNBTHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.Config.BiomeConfig.DoggoLuaBlock;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
@@ -40,7 +41,7 @@ public class DoggoDrop {
 	public LuaBlock createLuaBlock(LuaBlock parent, LuaBlockDatabase tree) {
 		LuaBlock lb = new DoggoLuaBlock("{", parent, tree);
 		lb.putData("key", this.getItemKey());
-		LuaBlock nbt = this.createNBTKey(parent, tree);
+		LuaBlock nbt = this.createNBTKey(lb, tree);
 		lb.putData("minCount", minCount);
 		lb.putData("maxCount", maxCount);
 		lb.putData("weight", baseWeight);
@@ -50,7 +51,8 @@ public class DoggoDrop {
 				LuaBlock item = new DoggoLuaBlock("{", reqs, tree);
 				item.putData("check", c.check.key);
 				item.putData("value", String.valueOf(c.value));
-				item.setComment("check", c.check.comment);
+				if (c.check.comment != null)
+					item.setComment("check", c.check.comment);
 			}
 			reqs.setComment(null, "optional, requirements to allow this item to be found");
 		}
@@ -62,7 +64,8 @@ public class DoggoDrop {
 				item.putData("check", c.check.key);
 				item.putData("value", String.valueOf(c.value));
 				item.putData("factor", en.getValue());
-				item.setComment("check", c.check.comment);
+				if (c.check.comment != null)
+					item.setComment("check", c.check.comment);
 			}
 			reqs.setComment(null, "optional, conditionally-applied multipliers to weight");
 		}
@@ -73,7 +76,7 @@ public class DoggoDrop {
 		Item i = item.getItem();
 		int dmg = item.getItemDamage();
 		String base = ReikaItemHelper.getNamespace(i)+":"+Item.itemRegistry.getNameForObject(i);
-		if (dmg == 0 && i.getHasSubtypes()) {
+		if (dmg == 0 && !i.getHasSubtypes()) {
 			return base;
 		}
 		return base+":"+dmg;
@@ -82,7 +85,9 @@ public class DoggoDrop {
 	private LuaBlock createNBTKey(LuaBlock parent, LuaBlockDatabase db) {
 		if (item.stackTagCompound == null)
 			return null;
-		return new LuaBlock.NBTLuaBlock("nbt", parent, db, item.stackTagCompound);
+		LuaBlock ret = new DoggoLuaBlock("nbt", parent, db);
+		ret.writeData(ReikaNBTHelper.readMapFromNBT(item.stackTagCompound));
+		return ret;
 	}
 
 	public float getNetWeight(EntityLizardDoggo e) {
@@ -146,7 +151,7 @@ public class DoggoDrop {
 		private static final HashMap<String, Checks> keyMap = new HashMap();
 
 		private Checks(String s) {
-			this(s, "");
+			this(s, null);
 		}
 
 		private Checks(String s, String c) {
