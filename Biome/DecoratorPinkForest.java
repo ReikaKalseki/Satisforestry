@@ -384,8 +384,10 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 		private final WeightedRandom<OreClusterType> oreSpawns = new WeightedRandom();
 
+		private static final OreSpawnLocation[] list = values();
+
 		public static void init() {
-			for (OreSpawnLocation loc : OreSpawnLocation.values()) {
+			for (OreSpawnLocation loc : list) {
 				loc.oreSpawns.clear();
 			}
 			for (OreClusterType ore : BiomeConfig.instance.getOreTypes()) {
@@ -394,13 +396,24 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		}
 
 		public static void setRNG(Random rand) {
-			for (OreSpawnLocation s : OreSpawnLocation.values()) {
+			for (OreSpawnLocation s : list) {
 				s.oreSpawns.setRNG(rand);
 			}
 		}
 
 		public OreClusterType getRandomOreSpawn() {
 			return oreSpawns.getRandomEntry();
+		}
+
+		public static String getNameList() {
+			StringBuilder sb = new StringBuilder();
+			for (int i = 0; i < list.length; i++) {
+				OreSpawnLocation loc = list[i];
+				sb.append(loc.name());
+				if (i < list.length-1)
+					sb.append(", ");
+			}
+			return sb.toString();
 		}
 	}
 

@@ -62,7 +62,11 @@ public class BiomeConfig {
 			sec.putData("sizeScale", 1F);
 			sec.putData("maxSize", 4);
 			sec.putData("spawnWeight", 10);
+			sec.setComment("maxSize", "max cluster radius");
 		}
+		base.setComment("block", "single block type, mutually exclusive with 'blocks'");
+		base.setComment("blocks", "optional, multiple block shorthand; mutually exclusive with 'block'");
+		spawns.setComment(null, "where this type can spawn, valid locations: "+OreSpawnLocation.getNameList());
 		oreData.addBlock("base", base);
 
 		itemData = new LuaBlockDatabase();
@@ -86,6 +90,10 @@ public class BiomeConfig {
 		item.putData("key", "minecraft:gold_ingot");
 		item.putData("weight", 6);
 		item.putData("minimumPurity", Purity.NORMAL.name());
+		item.setComment("minimumPurity", "minimum purity to allow this item");
+		base2.setComment("minCount", "min yield per harvest cycle");
+		base2.setComment("maxCount", "max yield per harvest cycle");
+		levels.setComment(null, "purity level distribution");
 		itemData.addBlock("base", base2);
 
 		doggoData = new LuaBlockDatabase();

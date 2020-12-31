@@ -42,6 +42,7 @@ public class DoggoDrop {
 				item.putData("check", c.check.key);
 				item.putData("value", String.valueOf(c.value));
 			}
+			reqs.setComment(null, "optional, requirements to allow this item to be found");
 		}
 		if (!weightFactors.isEmpty()) {
 			DoggoLuaBlock reqs = new DoggoLuaBlock("weightFactors", lb, tree);
@@ -52,6 +53,7 @@ public class DoggoDrop {
 				item.putData("value", String.valueOf(c.value));
 				item.putData("factor", en.getValue());
 			}
+			reqs.setComment(null, "optional, conditionally-applied multipliers to weight");
 		}
 		return lb;
 	}
