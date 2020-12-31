@@ -1,4 +1,4 @@
-package Reika.Satisforestry;
+package Reika.Satisforestry.Config;
 
 import java.util.HashMap;
 import java.util.Map.Entry;

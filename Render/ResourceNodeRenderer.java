@@ -23,9 +23,9 @@ import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
-import Reika.Satisforestry.ResourceItem;
 import Reika.Satisforestry.Blocks.BlockResourceNode;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
+import Reika.Satisforestry.Config.ResourceItem;
 
 
 public class ResourceNodeRenderer extends ISBRH {

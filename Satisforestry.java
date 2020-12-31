@@ -27,15 +27,21 @@ import net.minecraftforge.common.MinecraftForge;
 
 import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.DragonOptions;
+import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.Auxiliary.Trackers.CommandableUpdateChecker;
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.DragonAPIMod.LoadProfiler.LoadPhase;
 import Reika.DragonAPI.Instantiable.IO.ControlledConfig;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
+import Reika.DragonAPI.ModInteract.DeepInteract.ReikaThaumHelper;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
+import Reika.Satisforestry.Config.BiomeConfig;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
+import Reika.Satisforestry.Entity.EntityFlyingManta;
+import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
@@ -48,6 +54,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
+import thaumcraft.api.aspects.Aspect;
 
 @Mod( modid = "Satisforestry", name="Satisforestry", version = "v@MAJOR_VERSION@@MINOR_VERSION@", certificateFingerprint = "@GET_FINGERPRINT@", dependencies="required-after:DragonAPI;after:CritterPet")
 
@@ -150,6 +157,12 @@ public class Satisforestry extends DragonAPIMod {
 		this.startTiming(LoadPhase.POSTLOAD);
 
 		BiomeConfig.instance.loadConfigs();
+
+		if (ModList.THAUMCRAFT.isLoaded()) {
+			ReikaThaumHelper.addAspects(EntityEliteStinger.class, Aspect.BEAST, 8, Aspect.POISON, 8, Aspect.HUNGER, 4, Aspect.FLIGHT, 2);
+			ReikaThaumHelper.addAspects(EntityFlyingManta.class, Aspect.AIR, 6, Aspect.FLIGHT, 15, Aspect.TRAVEL, 9);
+			ReikaThaumHelper.addAspects(EntityLizardDoggo.class, Aspect.BEAST, 1, Aspect.GREED, 1, Aspect.HARVEST, 2);
+		}
 
 		this.finishTiming();
 	}

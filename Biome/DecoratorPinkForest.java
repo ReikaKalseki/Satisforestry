@@ -29,13 +29,13 @@ import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Instantiable.Worldgen.StackableBiomeDecorator;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
-import Reika.Satisforestry.BiomeConfig;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Generator.WorldGenOreCluster;
 import Reika.Satisforestry.Biome.Generator.WorldGenPoisonRocks;
 import Reika.Satisforestry.Biome.Generator.WorldGenPonds;
 import Reika.Satisforestry.Biome.Generator.WorldGenRedBamboo;
+import Reika.Satisforestry.Config.BiomeConfig;
 
 public class DecoratorPinkForest extends StackableBiomeDecorator {
 

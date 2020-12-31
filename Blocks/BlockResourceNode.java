@@ -18,13 +18,13 @@ import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
-import Reika.Satisforestry.BiomeConfig;
-import Reika.Satisforestry.ResourceItem;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.SFOptions;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
+import Reika.Satisforestry.Config.BiomeConfig;
+import Reika.Satisforestry.Config.ResourceItem;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 
 public class BlockResourceNode extends BlockContainer {

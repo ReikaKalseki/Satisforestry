@@ -1,29 +1,37 @@
-package Reika.Satisforestry;
+package Reika.Satisforestry.Config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumDifficulty;
 
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
-import Reika.Satisforestry.BiomeConfig.DoggoLuaBlock;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.Satisforestry.Config.BiomeConfig.DoggoLuaBlock;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
 public class DoggoDrop {
 
-	public final String itemKey;
 	public final int minCount;
 	public final int maxCount;
 	public final int baseWeight;
 
-	private final ArrayList<Condition> requirements = new ArrayList();
-	private final HashMap<Condition, Float> weightFactors = new HashMap();
+	private final ItemStack item;
 
-	public DoggoDrop(String item, int min, int max, int wt) {
-		itemKey = item;
+	private final ArrayList<Condition> requirements = new ArrayList();
+	private final HashMap<Condition, Double> weightFactors = new HashMap();
+
+	public DoggoDrop(Item i, int min, int max, int wt) {
+		this(new ItemStack(i), min, max, wt);
+	}
+
+	public DoggoDrop(ItemStack is, int min, int max, int wt) {
+		item = is;
 		minCount = min;
 		maxCount = max;
 		baseWeight = wt;
@@ -31,7 +39,8 @@ public class DoggoDrop {
 
 	public LuaBlock createLuaBlock(LuaBlock parent, LuaBlockDatabase tree) {
 		LuaBlock lb = new DoggoLuaBlock("{", parent, tree);
-		lb.putData("key", itemKey);
+		lb.putData("key", this.getItemKey());
+		LuaBlock nbt = this.createNBTKey(parent, tree);
 		lb.putData("minCount", minCount);
 		lb.putData("maxCount", maxCount);
 		lb.putData("weight", baseWeight);
@@ -41,21 +50,39 @@ public class DoggoDrop {
 				LuaBlock item = new DoggoLuaBlock("{", reqs, tree);
 				item.putData("check", c.check.key);
 				item.putData("value", String.valueOf(c.value));
+				item.setComment("check", c.check.comment);
 			}
 			reqs.setComment(null, "optional, requirements to allow this item to be found");
 		}
 		if (!weightFactors.isEmpty()) {
 			DoggoLuaBlock reqs = new DoggoLuaBlock("weightFactors", lb, tree);
-			for (Entry<Condition, Float> en : weightFactors.entrySet()) {
+			for (Entry<Condition, Double> en : weightFactors.entrySet()) {
 				Condition c = en.getKey();
 				LuaBlock item = new DoggoLuaBlock("{", reqs, tree);
 				item.putData("check", c.check.key);
 				item.putData("value", String.valueOf(c.value));
 				item.putData("factor", en.getValue());
+				item.setComment("check", c.check.comment);
 			}
 			reqs.setComment(null, "optional, conditionally-applied multipliers to weight");
 		}
 		return lb;
+	}
+
+	private String getItemKey() {
+		Item i = item.getItem();
+		int dmg = item.getItemDamage();
+		String base = ReikaItemHelper.getNamespace(i)+":"+Item.itemRegistry.getNameForObject(i);
+		if (dmg == 0 && i.getHasSubtypes()) {
+			return base;
+		}
+		return base+":"+dmg;
+	}
+
+	private LuaBlock createNBTKey(LuaBlock parent, LuaBlockDatabase db) {
+		if (item.stackTagCompound == null)
+			return null;
+		return new LuaBlock.NBTLuaBlock("nbt", parent, db, item.stackTagCompound);
 	}
 
 	public float getNetWeight(EntityLizardDoggo e) {
@@ -64,7 +91,7 @@ public class DoggoDrop {
 				return 0;
 		}
 		float val = baseWeight;
-		for (Entry<Condition, Float> en : weightFactors.entrySet()) {
+		for (Entry<Condition, Double> en : weightFactors.entrySet()) {
 			Condition c = en.getKey();
 			if (c.check.evaluate(e, c.value)) {
 				val *= en.getValue();
@@ -73,8 +100,18 @@ public class DoggoDrop {
 		return val;
 	}
 
-	public void addWeightFactor(Checks c, Object req, float f) {
+	public void addWeightFactor(LuaBlock b) {
+		Checks c = Checks.getByKey(b.getString("check"));
+		this.addWeightFactor(c, c.parseReq(b.getString("value")), b.getDouble("factor"));
+	}
+
+	public void addWeightFactor(Checks c, Object req, double f) {
 		weightFactors.put(new Condition(c, req), f);
+	}
+
+	public void addCondition(LuaBlock b) {
+		Checks c = Checks.getByKey(b.getString("check"));
+		this.addCondition(c, c.parseReq(b.getString("value")));
 	}
 
 	public void addCondition(Checks c, Object req) {
@@ -95,17 +132,26 @@ public class DoggoDrop {
 
 	public static enum Checks {
 		NIGHT("is_night"),
-		BIOME("biome_id"),
-		HEALTH("doggo_min_health"),
-		MAXY("max_y"),
+		BIOME("biome_id", "ID of the biome the doggo is in"),
+		HEALTH("health", "minimum doggo health fraction"),
+		MINY("min_y", "minimum y level of the doggo"),
+		MAXY("max_y", "maximum y level of the doggo"),
 		PEACEFUL("is_peaceful"),
-		SKY("has_sky"),
+		SKY("has_sky", "whether sky is visible from its location"),
 		;
 
 		public final String key;
+		public final String comment;
+
+		private static final HashMap<String, Checks> keyMap = new HashMap();
 
 		private Checks(String s) {
+			this(s, "");
+		}
+
+		private Checks(String s, String c) {
 			key = s;
+			comment = c;
 		}
 
 		public boolean evaluate(EntityLizardDoggo e, Object val) {
@@ -116,6 +162,8 @@ public class DoggoDrop {
 					return e.getHealth() >= e.getMaxHealth()*(float)val;
 				case MAXY:
 					return e.posY <= (double)val;
+				case MINY:
+					return e.posY >= (double)val;
 				case NIGHT:
 					return e.worldObj.isDaytime() != (boolean)val;
 				case PEACEFUL:
@@ -133,12 +181,23 @@ public class DoggoDrop {
 				case SKY:
 					return Boolean.parseBoolean(input);
 				case BIOME:
-				case MAXY:
 					return Integer.parseInt(input);
 				case HEALTH:
+				case MAXY:
+				case MINY:
 					return Float.parseFloat(input);
 			}
 			return null;
+		}
+
+		static {
+			for (Checks c : values()) {
+				keyMap.put(c.key, c);
+			}
+		}
+
+		public static Checks getByKey(String s) {
+			return keyMap.get(s);
 		}
 	}
 
