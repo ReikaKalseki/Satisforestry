@@ -5,6 +5,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.monster.EntitySpider;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.IIcon;
@@ -12,7 +13,9 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
 import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
+import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.terraingen.ChunkProviderEvent;
 import net.minecraftforge.event.terraingen.DecorateBiomeEvent.Decorate;
 import net.minecraftforge.event.world.WorldEvent;
@@ -32,6 +35,7 @@ import Reika.DragonAPI.Instantiable.Event.LightLevelForSpawnEvent;
 import Reika.DragonAPI.Instantiable.Event.SnowOrIceOnGenEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.GrassIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.LiquidBlockIconEvent;
+import Reika.DragonAPI.Instantiable.Event.Client.NightVisionBrightnessEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
@@ -159,7 +163,7 @@ public class SFEvents {
 	}
 
 	@SubscribeEvent
-	public void caveSpawns(WorldEvent.PotentialSpawns evt) {
+	public void dynamicSpawns(WorldEvent.PotentialSpawns evt) {
 		if (evt.type == EnumCreatureType.monster && Satisforestry.isPinkForest(evt.world, evt.x, evt.z)) {
 			if (BiomewideFeatureGenerator.instance.isInCave(evt.world, evt.x, evt.y, evt.z)) {
 				evt.list.clear();
@@ -170,6 +174,33 @@ public class SFEvents {
 				int wt = 10+evt.world.skylightSubtracted*2; //gives range of 10 in day to 32 in night //evt.world.isDaytime() ? 10 : 25;
 				evt.list.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, wt, 1, 2));
 			}
+		}
+	}
+
+	@SubscribeEvent
+	/** The javadoc on this event is WRONG - this cancels the onSpawnWith egg, to prevent spider jockeys and potions */
+	public void cleanSpiders(LivingSpawnEvent.SpecialSpawn evt) {
+		if (evt.entityLiving instanceof EntitySpider && Satisforestry.isPinkForest(evt.world, MathHelper.floor_double(evt.x), MathHelper.floor_double(evt.z))) {
+			evt.setCanceled(true);
+		}
+	}
+
+	@SubscribeEvent
+	public void tagCavePlayers(LivingUpdateEvent evt) {
+		if (evt.entityLiving instanceof EntityPlayer) {
+			long time = evt.entityLiving.worldObj.getTotalWorldTime();
+			if (time%10 == 0 && BiomewideFeatureGenerator.instance.isInCave(evt.entityLiving.worldObj, evt.entityLiving.posX, evt.entityLiving.posY, evt.entityLiving.posZ)) {
+				evt.entityLiving.getEntityData().setLong("biomecavetick", time);
+			}
+		}
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void weakenCaveNightVision(NightVisionBrightnessEvent evt) {
+		long lastCave = evt.player.getEntityData().getLong("biomecavetick");
+		if (Minecraft.getMinecraft().theWorld.getTotalWorldTime()-lastCave < 50) {
+			evt.brightness = Math.min(evt.brightness, 0.25F);
 		}
 	}
 	/*

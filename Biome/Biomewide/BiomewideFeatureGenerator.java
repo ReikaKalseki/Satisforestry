@@ -77,7 +77,7 @@ public class BiomewideFeatureGenerator {
 		PinkForestPersistentData.initNetworkData(world).setDirty(true);
 	}
 
-	public boolean isInCave(World world, int x, int y, int z) {
+	public boolean isInCave(World world, double x, double y, double z) {
 		for (Entry<WorldLocation, CachedCave> e : caveNetworks.entrySet()) {
 			if (e.getKey().dimensionID == world.provider.dimensionId) {
 				CachedCave cv = e.getValue();
@@ -111,7 +111,7 @@ public class BiomewideFeatureGenerator {
 				double ang = tag2.getDouble("angle");
 				map.put(end, ang);
 			}
-			WorldLocation key = WorldLocation.readTag(tag);
+			WorldLocation key = WorldLocation.readTag(tag.getCompoundTag("key"));
 			caveNetworks.put(key, new CachedCave(center, node, tile, radius, inner, off, map));
 		}
 

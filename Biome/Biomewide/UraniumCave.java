@@ -1201,7 +1201,7 @@ public class UraniumCave {
 			tunnels.putAll(map);
 		}
 
-		public boolean isInside(int x, int y, int z) {
+		public boolean isInside(double x, double y, double z) {
 			return (center.getDistanceTo(x, y, z) <= outerRadius && Math.abs(center.yCoord-y) <= 10) || nodeRoom.getDistanceTo(x, y, z) <= 9;
 		}
 

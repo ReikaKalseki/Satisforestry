@@ -27,6 +27,7 @@ import Reika.DragonAPI.Instantiable.IO.CustomRecipeList;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
+import Reika.Satisforestry.DoggoDrop.Checks;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
@@ -38,6 +39,7 @@ public class BiomeConfig {
 
 	private LuaBlockDatabase oreData;
 	private LuaBlockDatabase itemData;
+	private LuaBlockDatabase doggoData;
 
 	private int definitionCount;
 	private int entryAttemptsCount;
@@ -45,12 +47,13 @@ public class BiomeConfig {
 
 	private final HashMap<String, OreClusterType> oreEntries = new HashMap();
 	private final HashMap<String, ResourceItem> resourceEntries = new HashMap();
+	private final HashMap<String, DoggoDrop> doggoEntries = new HashMap();
 
 	private BiomeConfig() {
 		oreData = new LuaBlockDatabase();
 		OreLuaBlock base = new OreLuaBlock("base", null, oreData);
-		base.putData("type", "base");
-		base.putData("block", "some_mod:some_ore");
+		base.putData("type", "base_ores");
+		base.putData("block", "minecraft:iron_ore");
 		//base.putData("generate", "true");
 		OreLuaBlock ores = new OreLuaBlock("blocks", base, oreData);
 		OreLuaBlock spawns = new OreLuaBlock("spawnLocations", base, oreData);
@@ -64,7 +67,7 @@ public class BiomeConfig {
 
 		itemData = new LuaBlockDatabase();
 		ResourceLuaBlock base2 = new ResourceLuaBlock("base", null, itemData);
-		base2.putData("type", "base");
+		base2.putData("type", "base_resources");
 		base2.putData("minCount", 1);
 		base2.putData("maxCount", 1);
 		base2.putData("spawnWeight", 10);
@@ -72,18 +75,46 @@ public class BiomeConfig {
 		//base.putData("generate", "true");
 		ResourceLuaBlock levels = new ResourceLuaBlock("purityLevels", base2, itemData);
 		for (Purity p : Purity.list) {
-			levels.putData(p.name(), 10);
+			levels.putData(p.name(), p == Purity.NORMAL ? 25 : 10);
 		}
 		ResourceLuaBlock items = new ResourceLuaBlock("outputItems", base2, itemData);
 		LuaBlock item = new ResourceLuaBlock("{", items, itemData);
-		item.putData("key", "some_mod:some_item");
+		item.putData("key", "minecraft:iron_ingot");
 		item.putData("weight", 10);
 		item.putData("minimumPurity", Purity.IMPURE.name());
 		item = new ResourceLuaBlock("{", items, itemData);
-		item.putData("key", "some_mod:some_other_item");
+		item.putData("key", "minecraft:gold_ingot");
 		item.putData("weight", 6);
 		item.putData("minimumPurity", Purity.NORMAL.name());
 		itemData.addBlock("base", base2);
+
+		doggoData = new LuaBlockDatabase();
+		DoggoLuaBlock base3 = new DoggoLuaBlock("base", null, doggoData);
+		base3.putData("type", "base_doggo");
+		//base.putData("generate", "true");
+		DoggoLuaBlock drops = new DoggoLuaBlock("findableItems", base3, doggoData);
+
+		DoggoDrop drop = new DoggoDrop("minecraft:diamond", 1, 1, 2);
+		drop.addWeightFactor(Checks.MAXY, 16, 2);
+		drop.addWeightFactor(Checks.MAXY, 24, 1.5F);
+		drop.addWeightFactor(Checks.MAXY, 40, 1.2F);
+		drop.addCondition(Checks.HEALTH, 0.75F);
+		drop.addCondition(Checks.SKY, false);
+		drop.createLuaBlock(drops, doggoData);
+
+		drop = new DoggoDrop("minecraft:slimeball", 1, 2, 15);
+		drop.addCondition(Checks.BIOME, 6);
+		drop.addCondition(Checks.PEACEFUL, false);
+		drop.createLuaBlock(drops, doggoData);
+
+		drop = new DoggoDrop("minecraft:bone", 1, 4, 10);
+		drop.addWeightFactor(Checks.NIGHT, true, 2.5F);
+		drop.createLuaBlock(drops, doggoData);
+
+		drop = new DoggoDrop("satisforestry:paleberry", 1, 16, 50);
+		drop.createLuaBlock(drops, doggoData);
+
+		doggoData.addBlock("base", base3);
 	}
 
 	/** Returns the number of entries that loaded! */
@@ -106,6 +137,13 @@ public class BiomeConfig {
 				e.printStackTrace();
 				Satisforestry.logger.logError("Could not create biome config folder!");
 			}
+			try {
+				this.createDefaultFiles(f);;
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				Satisforestry.logger.logError("Could not create default configs!");
+			}
 		}
 		try {
 			this.createBaseFile(f);
@@ -118,6 +156,20 @@ public class BiomeConfig {
 		OreSpawnLocation.init();
 	}
 
+	private void createDefaultFiles(File folder) throws IOException {
+		File f1 = new File(folder, "ores.lua");
+		f1.createNewFile();
+		ReikaFileReader.writeLinesToFile(f1, oreData.getBlock("base").writeToStrings(), true);
+
+		File f2 = new File(folder, "resources.lua");
+		f2.createNewFile();
+		ReikaFileReader.writeLinesToFile(f2, itemData.getBlock("base").writeToStrings(), true);
+
+		File f3 = new File(folder, "doggo.lua");
+		f3.createNewFile();
+		ReikaFileReader.writeLinesToFile(f3, doggoData.getBlock("base").writeToStrings(), true);
+	}
+
 	private void createBaseFile(File f) throws IOException {
 		File out = new File(f, "base.lua");
 		if (out.exists())
@@ -126,16 +178,23 @@ public class BiomeConfig {
 		ArrayList<String> li = oreData.getBlock("base").writeToStrings();
 		li.set(li.size()-1, li.get(li.size()-1)+",");
 		li.addAll(itemData.getBlock("base").writeToStrings());
+		li.set(li.size()-1, li.get(li.size()-1)+",");
+		li.addAll(doggoData.getBlock("base").writeToStrings());
 		ReikaFileReader.writeLinesToFile(out, li, true);
 	}
 
 	private void reset() {
 		LuaBlock base = oreData.getBlock("base");
 		LuaBlock base2 = itemData.getBlock("base");
+		LuaBlock base3 = doggoData.getBlock("base");
+
 		oreData = new LuaBlockDatabase();
 		itemData = new LuaBlockDatabase();
+		doggoData = new LuaBlockDatabase();
 
 		oreEntries.clear();
+		resourceEntries.clear();
+		doggoEntries.clear();
 
 		definitionCount = 0;
 		entryAttemptsCount = 0;
@@ -143,19 +202,27 @@ public class BiomeConfig {
 
 		oreData.addBlock("base", base);
 		itemData.addBlock("base", base2);
+		doggoData.addBlock("base", base3);
 	}
 
 	private void loadFiles(File parent) {
 		File f1 = ReikaFileReader.getFileByNameAnyExt(parent, "ores");
 		File f2 = ReikaFileReader.getFileByNameAnyExt(parent, "resources");
+		File f3 = ReikaFileReader.getFileByNameAnyExt(parent, "doggo");
 		if (f2 == null || !f2.exists()) {
 			throw new InstallationException(Satisforestry.instance, "No resource config file found!");
 		}
+		itemData.loadFromFile(f2);
+
 		if (f1.exists())
 			oreData.loadFromFile(f1);
 		else
 			Satisforestry.logger.log("No ore config file found; no ore clusters will generate.");
-		itemData.loadFromFile(f2);
+
+		if (f3.exists())
+			doggoData.loadFromFile(f3);
+		else
+			Satisforestry.logger.log("No doggo config file found; doggos will not find items.");
 	}
 
 	private void parseConfigs() {
@@ -369,6 +436,20 @@ public class BiomeConfig {
 
 			requiredElements.add("purityLevels");
 			requiredElements.add("outputItems");
+		}
+
+	}
+
+	static class DoggoLuaBlock extends LuaBlock {
+
+		protected DoggoLuaBlock(String n, LuaBlock lb, LuaBlockDatabase db) {
+			super(n, lb, db);
+
+			requiredElements.add("inherit");
+			requiredElements.add("name");
+			requiredElements.add("spawnWeight");
+
+			requiredElements.add("findableItems");
 		}
 
 	}

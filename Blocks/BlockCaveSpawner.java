@@ -6,7 +6,6 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.EntityList;
-import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.player.EntityPlayer;
@@ -116,7 +115,7 @@ public class BlockCaveSpawner extends BlockContainer {
 						e.setLocationAndAngles(x, y, z, 0, 0);
 						if (e.getCanSpawnHere()) {
 							e.rotationYaw = worldObj.rand.nextFloat()*360;
-							e.onSpawnWithEgg((IEntityLivingData)null);
+							//e.onSpawnWithEgg((IEntityLivingData)null); no jockeys or potions
 							worldObj.spawnEntityInWorld(e);
 
 							//this.worldObj.playAuxSFX(2004, xCoord, yCoord, zCoord, 0);
