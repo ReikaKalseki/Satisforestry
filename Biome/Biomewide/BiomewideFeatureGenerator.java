@@ -29,8 +29,7 @@ public class BiomewideFeatureGenerator {
 	private final HashMap<WorldLocation, CachedCave> caveNetworks = new HashMap();
 	private final HashSet<WorldLocation> doggoSpawns = new HashSet();
 	private final HashMap<WorldLocation, MantaPath> mantaPaths = new HashMap();
-
-	private boolean initialized = false;
+	private final HashSet<Integer> initialized = new HashSet();
 
 	private BiomewideFeatureGenerator() {
 
@@ -40,11 +39,11 @@ public class BiomewideFeatureGenerator {
 		caveNetworks.clear();
 		doggoSpawns.clear();
 		mantaPaths.clear();
-		initialized = false;
+		initialized.clear();
 	}
 
 	public void generateUniqueCenterFeatures(World world, int x, int z, Random rand, BiomeFootprint bf) {
-		initialized = true;
+		initialized.add(world.provider.dimensionId);
 		PinkForestPersistentData.initNetworkData(world);
 		//bf.exportToImage(new File(world.getSaveHandler().getWorldDirectory(), "pinkforest_footprint"));
 		Collection<WorldLocation> spawns = LizardDoggoSpawner.instance.createDoggoSpawnPoints(world, bf, rand);
@@ -74,6 +73,7 @@ public class BiomewideFeatureGenerator {
 		else {
 			mantaPaths.put(path.biomeCenter, path);
 			EntityFlyingManta e = new EntityFlyingManta(world);
+			path.clearBlocks(world);
 			e.setPath(path);
 			world.spawnEntityInWorld(e);
 			Satisforestry.logger.log("Generated manta path around "+x+", "+z);
@@ -82,8 +82,8 @@ public class BiomewideFeatureGenerator {
 	}
 
 	public boolean isInCave(World world, double x, double y, double z) {
-		if (!initialized | true) {
-			initialized = true;
+		if (!initialized.contains(world.provider.dimensionId)) {
+			initialized.add(world.provider.dimensionId);
 			PinkForestPersistentData.initNetworkData(world);
 		}
 		for (Entry<WorldLocation, CachedCave> e : caveNetworks.entrySet()) {

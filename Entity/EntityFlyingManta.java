@@ -3,7 +3,6 @@ package Reika.Satisforestry.Entity;
 import java.util.List;
 
 import net.minecraft.entity.EntityFlying;
-import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
@@ -38,9 +37,6 @@ public class EntityFlyingManta extends EntityFlying {
 		pathSpline = path.getSpline();
 		splineIndex = 0;
 		this.setPathPosition();
-		for (DecimalPosition p : pathSpline) {
-			p.setBlock(worldObj, Blocks.diamond_block);
-		}
 	}
 
 	@Override

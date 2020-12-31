@@ -3,6 +3,7 @@ package Reika.Satisforestry.Biome.Biomewide;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -27,6 +28,7 @@ import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Biome.BiomeFootprint.EdgeProfile;
+import Reika.Satisforestry.Biome.DecoratorPinkForest;
 
 public class MantaGenerator {
 
@@ -110,14 +112,13 @@ public class MantaGenerator {
 			double spiral = 0;
 			if (lastY >= 0) {
 				double minY = lastY-MAX_DROP_STEP*df;
-				if (lastY-dy >= 8 && s.length() > 10 && false && rand.nextInt(8) == 0) {
+				if (lastY-dy >= 18 && s.length() > 10 && rand.nextInt(8/8) == 0) {
 					spiral = lastY-dy;
 				}
 				else {
 					dy = MathHelper.clamp_double(dy, minY, lastY+MAX_RISE_STEP*df);
 				}
 			}
-			lastY = dy;
 			lastEdge = edge;
 			if (spiral > 0) {
 				DecimalPosition prev = s.getLast();
@@ -130,10 +131,12 @@ public class MantaGenerator {
 				double vz2 = vx;
 				double rs = ReikaRandomHelper.getRandomBetween(8D, 15D, rand);
 				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5, lastY, edge.zCoord+0.5));
-				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5+vx*rs, lastY-spiral/3D, edge.zCoord+0.5+vz*rs));
-				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5+vx2*rs, lastY-spiral*2/3D, edge.zCoord+0.5+vz2*rs));
+				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5+vx*rs, lastY-spiral/4D, edge.zCoord+0.5+vz*rs));
+				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5+vx*rs+vx2*rs, lastY-spiral/2D, edge.zCoord+0.5+vz*rs+vz2*rs));
+				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5+vx2*rs, lastY-spiral*3/4D, edge.zCoord+0.5+vz2*rs));
 			}
 			s.addPoint(new BasicSplinePoint(edge.xCoord+0.5, dy, edge.zCoord+0.5));
+			lastY = dy;
 		}
 		return new MantaPath(ctr, s.get(64, true));
 	}
@@ -146,6 +149,28 @@ public class MantaGenerator {
 		private MantaPath(WorldLocation loc, List<DecimalPosition> li) {
 			biomeCenter = loc;
 			path = li;
+		}
+
+		public void clearBlocks(World world) {
+			HashSet<Coordinate> clear = new HashSet();
+			int r = 2;
+			for (DecimalPosition p : path) {
+				for (int i = -r; i <= r; i++) {
+					for (int j = -r; j <= r; j++) {
+						for (int k = -r; k <= r; k++) {
+							if (ReikaMathLibrary.py3d(i, j, k) <= r) {
+								Coordinate c = new Coordinate(p.xCoord+i, p.yCoord+j, p.zCoord+k);
+								clear.add(c);
+							}
+						}
+					}
+				}
+			}
+			for (Coordinate c : clear) {
+				if (DecoratorPinkForest.isTerrain(world, c.xCoord, c.yCoord, c.zCoord)) {
+					c.setBlock(world, Blocks.air);
+				}
+			}
 		}
 
 		@Override
