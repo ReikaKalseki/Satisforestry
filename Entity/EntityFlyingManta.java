@@ -83,7 +83,7 @@ public class EntityFlyingManta extends EntityFlying {
 	}
 
 	private void setPathPosition() {
-		DecimalPosition pos = pathSpline.get(splineIndex*0);
+		DecimalPosition pos = pathSpline.get(splineIndex);
 		this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 
 		DecimalPosition posNext = pathSpline.get((splineIndex+1)%pathSpline.size());

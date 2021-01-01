@@ -21,6 +21,7 @@ import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Potion;
 
 import Reika.DragonAPI.Exception.InstallationException;
 import Reika.DragonAPI.IO.ReikaFileReader;
@@ -94,10 +95,21 @@ public class BiomeConfig {
 		item.putData("key", "minecraft:gold_ingot");
 		item.putData("weight", 6);
 		item.putData("minimumPurity", Purity.NORMAL.name());
-		item.setComment("minimumPurity", "minimum purity to allow this item");
+		ResourceLuaBlock effects = new ResourceLuaBlock("effects", base2, itemData);
+		item = new ResourceLuaBlock("{", effects, itemData);
+		item.putData("effectType", "damage");
+		item.putData("amount", 0.5F);
+		item.putData("rate", 20);
+		item.setComment("rate", "ticks per hit");
+		item = new ResourceLuaBlock("{", effects, itemData);
+		item.putData("effectType", "potion");
+		item.putData("potionID", Potion.weakness.id);
+		item.putData("level", 1);
 		base2.setComment("minCount", "min yield per harvest cycle");
 		base2.setComment("maxCount", "max yield per harvest cycle");
 		levels.setComment(null, "purity level distribution");
+		effects.setComment(null, "optional, ambient AoE effects around the node");
+		item.setComment("potionID", "weakness");
 		itemData.addBlock("base", base2);
 
 		doggoData = new LuaBlockDatabase();
@@ -389,6 +401,13 @@ public class BiomeConfig {
 			while (p != null) {
 				ore.addItem(p, is, weight);
 				p = p.higher();
+			}
+		}
+
+		LuaBlock effects = b.getChild("effects");
+		if (effects != null) {
+			for (LuaBlock lb : effects.getChildren()) {
+				ore.addEffect(lb);
 			}
 		}
 

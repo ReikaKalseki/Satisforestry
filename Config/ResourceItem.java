@@ -1,12 +1,20 @@
 package Reika.Satisforestry.Config;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
+import net.minecraft.util.DamageSource;
 
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
+import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
 
 public class ResourceItem {
@@ -17,6 +25,7 @@ public class ResourceItem {
 
 	private final WeightedRandom<Purity> levels = new WeightedRandom();
 	private final HashMap<Purity, WeightedRandom<ItemStack>> items = new HashMap();
+	private final ArrayList<NodeEffect> effects = new ArrayList();
 
 	public int minCount = 1;
 	public int maxCount = 1;
@@ -39,6 +48,14 @@ public class ResourceItem {
 		wr.addEntry(is.copy(), weight);
 	}
 
+	public void addEffect(LuaBlock b) {
+		String key = b.getString("effectType");
+		EffectTypes t = EffectTypes.getByKey(key);
+		if (t == null)
+			throw new IllegalArgumentException("Invalid effect type '"+key+"'");
+		NodeEffect e = new NodeEffect(t, b.asHashMap());
+	}
+
 	public ItemStack getRandomItem(Purity p) {
 		WeightedRandom<ItemStack> wr = items.get(p);
 		return wr == null ? null : wr.getRandomEntry();
@@ -49,9 +66,73 @@ public class ResourceItem {
 		return levels.getRandomEntry();
 	}
 
+	public Collection<NodeEffect> getEffects() {
+		return Collections.unmodifiableCollection(effects);
+	}
+
 	@Override
 	public String toString() {
 		return "W="+spawnWeight+", C="+Integer.toHexString(color)+", L="+levels.toString()+", I="+items.toString();
+	}
+
+	public static class NodeEffect {
+
+		public final EffectTypes type;
+		private final HashMap<String, Object> data;
+
+		private NodeEffect(EffectTypes e, HashMap<String, Object> map) {
+			type = e;
+			data = map;
+		}
+
+		public void apply(EntityPlayer ep) {
+			type.apply(ep, data);
+		}
+
+	}
+
+	public static enum EffectTypes {
+		DAMAGE("damage"),
+		POTION("potion"),
+		;
+
+		public final String key;
+		public final String comment;
+
+		private static final HashMap<String, EffectTypes> keyMap = new HashMap();
+
+		private EffectTypes(String s) {
+			this(s, null);
+		}
+
+		private EffectTypes(String s, String c) {
+			key = s;
+			comment = c;
+		}
+
+		public void apply(EntityPlayer ep, HashMap<String, Object> data) {
+			switch(this) {
+				case DAMAGE:
+					if (ep.ticksExisted%(int)data.get("rate") == 0)
+						ep.attackEntityFrom(DamageSource.generic, (float)data.get("amount"));
+					break;
+				case POTION:
+					Potion p = Potion.potionTypes[(int)data.get("potionID")];
+					if (!ep.isPotionActive(p))
+						ep.addPotionEffect(new PotionEffect(p.id, 20, (int)data.get("level")-1));
+					break;
+			}
+		}
+
+		static {
+			for (EffectTypes c : values()) {
+				keyMap.put(c.key, c);
+			}
+		}
+
+		public static EffectTypes getByKey(String s) {
+			return keyMap.get(s);
+		}
 	}
 
 }

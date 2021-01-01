@@ -106,7 +106,10 @@ public class DoggoDrop {
 	}
 
 	public void addWeightFactor(LuaBlock b) {
-		Checks c = Checks.getByKey(b.getString("check"));
+		String key = b.getString("check");
+		Checks c = Checks.getByKey(key);
+		if (c == null)
+			throw new IllegalArgumentException("Invalid check type '"+key+"'");
 		this.addWeightFactor(c, c.parseReq(b.getString("value")), b.getDouble("factor"));
 	}
 
@@ -115,7 +118,10 @@ public class DoggoDrop {
 	}
 
 	public void addCondition(LuaBlock b) {
-		Checks c = Checks.getByKey(b.getString("check"));
+		String key = b.getString("check");
+		Checks c = Checks.getByKey(key);
+		if (c == null)
+			throw new IllegalArgumentException("Invalid check type '"+key+"'");
 		this.addCondition(c, c.parseReq(b.getString("value")));
 	}
 

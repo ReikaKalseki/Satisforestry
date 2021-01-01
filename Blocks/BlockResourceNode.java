@@ -1,5 +1,7 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 import net.minecraft.block.BlockContainer;
@@ -10,11 +12,13 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
+import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
@@ -25,6 +29,7 @@ import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.ResourceItem;
+import Reika.Satisforestry.Config.ResourceItem.NodeEffect;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 
 public class BlockResourceNode extends BlockContainer {
@@ -129,6 +134,8 @@ public class BlockResourceNode extends BlockContainer {
 		@Override
 		public void updateEntity() {
 			super.updateEntity();
+			if (resource == null)
+				return;
 			if (SFOptions.SIMPLEAUTO.getState()) {
 				if (autoOutputTimer > 0)
 					autoOutputTimer--;
@@ -142,6 +149,16 @@ public class BlockResourceNode extends BlockContainer {
 							}
 						}
 					}
+				}
+			}
+			Collection<NodeEffect> c = resource.getEffects();
+			if (c.isEmpty())
+				return;
+			AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this).expand(7, 1, 7);
+			List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
+			for (EntityPlayer ep : li) {
+				for (NodeEffect e : c) {
+					e.apply(ep);
 				}
 			}
 		}
