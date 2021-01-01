@@ -3,6 +3,7 @@ package Reika.Satisforestry.Entity;
 import java.util.List;
 
 import net.minecraft.entity.EntityFlying;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
@@ -14,7 +15,12 @@ import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.MantaGenerator.MantaPath;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 public class EntityFlyingManta extends EntityFlying {
+
+	public static final float MAX_WING_DEFLECTION = 1.5F;
 
 	private WorldLocation pathRoot;
 	private List<DecimalPosition> pathSpline;
@@ -24,6 +30,7 @@ public class EntityFlyingManta extends EntityFlying {
 	public EntityFlyingManta(World w) {
 		super(w);
 		noClip = true;
+		this.setSize(7, 2);
 	}
 
 	public void setPath(MantaPath path) {
@@ -37,6 +44,19 @@ public class EntityFlyingManta extends EntityFlying {
 		pathSpline = path.getSpline();
 		splineIndex = 0;
 		this.setPathPosition();
+	}
+
+	@Override
+	protected final void entityInit() {
+		super.entityInit();
+		//dataWatcher.addObject(28, 0F);
+		//dataWatcher.addObject(29, 0F);
+		dataWatcher.addObject(30, 0F);
+	}
+
+	@SideOnly(Side.CLIENT)
+	public float getWingDeflection() {
+		return dataWatcher.getWatchableObjectFloat(30);
 	}
 
 	@Override
@@ -63,15 +83,44 @@ public class EntityFlyingManta extends EntityFlying {
 	}
 
 	private void setPathPosition() {
-		DecimalPosition pos = pathSpline.get(splineIndex);
+		DecimalPosition pos = pathSpline.get(splineIndex*0);
 		this.setPosition(pos.xCoord, pos.yCoord, pos.zCoord);
 
 		DecimalPosition posNext = pathSpline.get((splineIndex+1)%pathSpline.size());
 
-		double[] angs = ReikaPhysicsHelper.cartesianToPolar(posNext.xCoord-pos.xCoord, posNext.yCoord-pos.yCoord, posNext.zCoord-pos.zCoord);
+		double dx = posNext.xCoord-pos.xCoord;
+		double dy = posNext.yCoord-pos.yCoord;
+		double dz = posNext.zCoord-pos.zCoord;
+
+		dataWatcher.updateObject(30, MAX_WING_DEFLECTION);
+
+		double[] angs = ReikaPhysicsHelper.cartesianToPolar(dx, dy, dz);
 		rotationYaw = (float)angs[2];
 		rotationPitch = (float)angs[1];
 		//ReikaJavaLibrary.pConsole(this);
+	}
+
+	@Override
+	public final boolean shouldRiderFaceForward(EntityPlayer player) {
+		return true;
+	}
+
+	@Override
+	public final double getMountedYOffset() {
+		return 0.55;
+	}
+
+	@Override
+	protected final boolean interact(EntityPlayer ep) {
+		if (!worldObj.isRemote) {
+			if (riddenByEntity != null && riddenByEntity.equals(ep)) {
+				ep.dismountEntity(this);
+			}
+			else {
+				ep.mountEntity(this);
+			}
+		}
+		return true;
 	}
 
 	@Override
