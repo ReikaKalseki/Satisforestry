@@ -36,6 +36,7 @@ import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
 import Reika.Satisforestry.Config.DoggoDrop.Checks;
+import Reika.Satisforestry.Config.ResourceItem.EffectTypes;
 
 
 public class BiomeConfig {
@@ -100,6 +101,7 @@ public class BiomeConfig {
 		item.putData("effectType", "damage");
 		item.putData("amount", 0.5F);
 		item.putData("rate", 20);
+		item.setComment("effectType", "type of effect, valid values: "+EffectTypes.getNameList());
 		item.setComment("rate", "ticks per hit");
 		item = new ResourceLuaBlock("{", effects, itemData);
 		item.putData("effectType", "potion");

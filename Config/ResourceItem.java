@@ -54,6 +54,7 @@ public class ResourceItem {
 		if (t == null)
 			throw new IllegalArgumentException("Invalid effect type '"+key+"'");
 		NodeEffect e = new NodeEffect(t, b.asHashMap());
+		effects.add(e);
 	}
 
 	public ItemStack getRandomItem(Purity p) {
@@ -113,8 +114,13 @@ public class ResourceItem {
 		public void apply(EntityPlayer ep, HashMap<String, Object> data) {
 			switch(this) {
 				case DAMAGE:
-					if (ep.ticksExisted%(int)data.get("rate") == 0)
-						ep.attackEntityFrom(DamageSource.generic, (float)data.get("amount"));
+					if (ep.ticksExisted%(int)data.get("rate") == 0) {
+						float amt = ((Double)data.get("amount")).floatValue();
+						if (amt > 0)
+							ep.attackEntityFrom(DamageSource.generic, amt);
+						else if (amt < 0)
+							ep.heal(amt);
+					}
 					break;
 				case POTION:
 					Potion p = Potion.potionTypes[(int)data.get("potionID")];
@@ -132,6 +138,18 @@ public class ResourceItem {
 
 		public static EffectTypes getByKey(String s) {
 			return keyMap.get(s);
+		}
+
+		public static String getNameList() {
+			StringBuilder sb = new StringBuilder();
+			EffectTypes[] list = values();
+			for (int i = 0; i < list.length; i++) {
+				EffectTypes loc = list[i];
+				sb.append(loc.name());
+				if (i < list.length-1)
+					sb.append(", ");
+			}
+			return sb.toString();
 		}
 	}
 

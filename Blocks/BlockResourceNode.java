@@ -134,8 +134,10 @@ public class BlockResourceNode extends BlockContainer {
 		@Override
 		public void updateEntity() {
 			super.updateEntity();
-			if (resource == null)
+			if (resource == null && !worldObj.isRemote) {
+				this.generate(worldObj.rand);
 				return;
+			}
 			if (SFOptions.SIMPLEAUTO.getState()) {
 				if (autoOutputTimer > 0)
 					autoOutputTimer--;

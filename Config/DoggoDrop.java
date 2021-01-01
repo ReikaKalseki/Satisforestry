@@ -12,7 +12,6 @@ import net.minecraft.world.EnumDifficulty;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper;
-import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.Config.BiomeConfig.DoggoLuaBlock;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
@@ -54,7 +53,7 @@ public class DoggoDrop {
 				if (c.check.comment != null)
 					item.setComment("check", c.check.comment);
 			}
-			reqs.setComment(null, "optional, requirements to allow this item to be found");
+			reqs.setComment(null, "optional, requirements to allow this item to be found; valid check types: "+Checks.getNameList());
 		}
 		if (!weightFactors.isEmpty()) {
 			DoggoLuaBlock reqs = new DoggoLuaBlock("weightFactors", lb, tree);
@@ -67,7 +66,7 @@ public class DoggoDrop {
 				if (c.check.comment != null)
 					item.setComment("check", c.check.comment);
 			}
-			reqs.setComment(null, "optional, conditionally-applied multipliers to weight");
+			reqs.setComment(null, "optional, conditionally-applied multipliers to weight; valid check types: "+Checks.getNameList());
 		}
 		return lb;
 	}
@@ -75,7 +74,7 @@ public class DoggoDrop {
 	private String getItemKey() {
 		Item i = item.getItem();
 		int dmg = item.getItemDamage();
-		String base = ReikaItemHelper.getNamespace(i)+":"+Item.itemRegistry.getNameForObject(i);
+		String base = Item.itemRegistry.getNameForObject(i); //already has namespace
 		if (dmg == 0 && !i.getHasSubtypes()) {
 			return base;
 		}
@@ -209,6 +208,18 @@ public class DoggoDrop {
 
 		public static Checks getByKey(String s) {
 			return keyMap.get(s);
+		}
+
+		public static String getNameList() {
+			StringBuilder sb = new StringBuilder();
+			Checks[] list = values();
+			for (int i = 0; i < list.length; i++) {
+				Checks loc = list[i];
+				sb.append(loc.name());
+				if (i < list.length-1)
+					sb.append(", ");
+			}
+			return sb.toString();
 		}
 	}
 
