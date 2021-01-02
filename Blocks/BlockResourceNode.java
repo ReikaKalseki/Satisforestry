@@ -134,33 +134,35 @@ public class BlockResourceNode extends BlockContainer {
 		@Override
 		public void updateEntity() {
 			super.updateEntity();
-			if (resource == null && !worldObj.isRemote) {
-				this.generate(worldObj.rand);
-				return;
-			}
-			if (SFOptions.SIMPLEAUTO.getState()) {
-				if (autoOutputTimer > 0)
-					autoOutputTimer--;
-				if (autoOutputTimer == 0) {
-					TileEntity te = worldObj.getTileEntity(xCoord, yCoord+1, zCoord);
-					if (te instanceof IInventory) {
-						ItemStack is = this.getRandomNodeItem();
-						if (is != null) {
-							if (ReikaInventoryHelper.addToIInv(is, (IInventory)te)) {
-								autoOutputTimer = purity.getCountdown();
+			if (!worldObj.isRemote) {
+				if (resource == null) {
+					this.generate(worldObj.rand);
+					return;
+				}
+				if (SFOptions.SIMPLEAUTO.getState()) {
+					if (autoOutputTimer > 0)
+						autoOutputTimer--;
+					if (autoOutputTimer == 0) {
+						TileEntity te = worldObj.getTileEntity(xCoord, yCoord+1, zCoord);
+						if (te instanceof IInventory) {
+							ItemStack is = this.getRandomNodeItem();
+							if (is != null) {
+								if (ReikaInventoryHelper.addToIInv(is, (IInventory)te)) {
+									autoOutputTimer = purity.getCountdown();
+								}
 							}
 						}
 					}
 				}
-			}
-			Collection<NodeEffect> c = resource.getEffects();
-			if (c.isEmpty())
-				return;
-			AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this).expand(7, 1, 7);
-			List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
-			for (EntityPlayer ep : li) {
-				for (NodeEffect e : c) {
-					e.apply(ep);
+				Collection<NodeEffect> c = resource.getEffects();
+				if (c.isEmpty())
+					return;
+				AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this).expand(7, 1, 7);
+				List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
+				for (EntityPlayer ep : li) {
+					for (NodeEffect e : c) {
+						e.apply(this, ep);
+					}
 				}
 			}
 		}

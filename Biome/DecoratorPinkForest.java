@@ -404,17 +404,6 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		public OreClusterType getRandomOreSpawn() {
 			return oreSpawns.getRandomEntry();
 		}
-
-		public static String getNameList() {
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < list.length; i++) {
-				OreSpawnLocation loc = list[i];
-				sb.append(loc.name());
-				if (i < list.length-1)
-					sb.append(", ");
-			}
-			return sb.toString();
-		}
 	}
 
 

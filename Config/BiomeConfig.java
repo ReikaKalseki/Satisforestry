@@ -72,7 +72,7 @@ public class BiomeConfig {
 		}
 		base.setComment("block", "single block type, mutually exclusive with 'blocks'");
 		base.setComment("blocks", "optional, multiple block shorthand; mutually exclusive with 'block'");
-		spawns.setComment(null, "where this type can spawn, valid locations: "+OreSpawnLocation.getNameList());
+		spawns.setComment(null, "where this type can spawn, valid locations: "+ReikaJavaLibrary.getEnumNameList(OreSpawnLocation.class));
 		oreData.addBlock("base", base);
 
 		itemData = new LuaBlockDatabase();
@@ -101,7 +101,7 @@ public class BiomeConfig {
 		item.putData("effectType", "damage");
 		item.putData("amount", 0.5F);
 		item.putData("rate", 20);
-		item.setComment("effectType", "type of effect, valid values: "+EffectTypes.getNameList());
+		item.setComment("effectType", "type of effect, valid values: "+ReikaJavaLibrary.getEnumNameList(EffectTypes.class));
 		item.setComment("rate", "ticks per hit");
 		item = new ResourceLuaBlock("{", effects, itemData);
 		item.putData("effectType", "potion");
@@ -321,14 +321,13 @@ public class BiomeConfig {
 		ArrayList<String> blocks = new ArrayList();
 		HashMap<OreSpawnLocation, LuaBlock> sections = new HashMap();
 
+		String bsk = b.getString("block");
+		if (bsk != null)
+			blocks.add(bsk);
+
 		LuaBlock set = b.getChild("blocks");
 		if (set != null) {
-			for (String s : set.getDataValues()) {
-				blocks.add(s);
-			}
-		}
-		else {
-			blocks.add(b.getString("block"));
+			blocks.addAll(set.getDataValues());
 		}
 
 		if (blocks.isEmpty())
@@ -393,9 +392,10 @@ public class BiomeConfig {
 
 		for (LuaBlock s : items) {
 			entryAttemptsCount++;
-			ItemStack is = CustomRecipeList.parseItemString(s.getString("key"), s.getChild("nbt"), true);
+			String sk = s.getString("key");
+			ItemStack is = CustomRecipeList.parseItemString(sk, s.getChild("nbt"), true);
 			if (is == null) {
-				Satisforestry.logger.logError("Could not load item type '"+s+"' for resource type '"+type+"'; skipping.");
+				Satisforestry.logger.logError("Could not load item type '"+sk+"' for resource type '"+type+"'; skipping.");
 				continue;
 			}
 			int weight = s.getInt("weight");
@@ -405,6 +405,9 @@ public class BiomeConfig {
 				p = p.higher();
 			}
 		}
+
+		if (ore.hasNoItems())
+			throw new IllegalArgumentException("Resource type found no items for any of its definitions");
 
 		LuaBlock effects = b.getChild("effects");
 		if (effects != null) {

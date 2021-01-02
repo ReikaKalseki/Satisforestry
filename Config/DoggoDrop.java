@@ -12,6 +12,7 @@ import net.minecraft.world.EnumDifficulty;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.Satisforestry.Config.BiomeConfig.DoggoLuaBlock;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
@@ -211,15 +212,7 @@ public class DoggoDrop {
 		}
 
 		public static String getNameList() {
-			StringBuilder sb = new StringBuilder();
-			Checks[] list = values();
-			for (int i = 0; i < list.length; i++) {
-				Checks loc = list[i];
-				sb.append(loc.name());
-				if (i < list.length-1)
-					sb.append(", ");
-			}
-			return sb.toString();
+			return ReikaJavaLibrary.getEnumNameList(Checks.class);
 		}
 	}
 
