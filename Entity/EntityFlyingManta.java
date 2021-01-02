@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.entity.EntityFlying;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.world.World;
@@ -43,6 +44,9 @@ public class EntityFlyingManta extends EntityFlying {
 		pathRoot = path.biomeCenter;
 		pathSpline = path.getSpline();
 		splineIndex = 0;
+		for (DecimalPosition p : pathSpline) {
+			p.setBlock(worldObj, Blocks.diamond_block);
+		}
 		this.setPathPosition();
 	}
 
@@ -95,8 +99,8 @@ public class EntityFlyingManta extends EntityFlying {
 		dataWatcher.updateObject(30, MAX_WING_DEFLECTION);
 
 		double[] angs = ReikaPhysicsHelper.cartesianToPolar(dx, dy, dz);
-		rotationYaw = (float)angs[2];
-		rotationPitch = (float)angs[1];
+		rotationYaw = 90-(float)angs[2]-45;
+		rotationPitch = -(float)angs[1]+90;
 		//ReikaJavaLibrary.pConsole(this);
 	}
 

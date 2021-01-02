@@ -8,6 +8,8 @@ package Reika.Satisforestry.Render;
 
 import java.util.ArrayList;
 
+import org.lwjgl.opengl.GL11;
+
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
@@ -444,10 +446,16 @@ public class ModelFlyingManta extends ModelBase
 		LeftWing29.setTextureSize(256, 128);
 		LeftWing29.mirror = true;
 		this.initializePart(LeftWing29, 0F, 0F, 0F);
+
+		for (ModelPart p : allParts) {
+			p.offsetX = -2;
+		}
 	}
 
 	@Override
 	public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
+		GL11.glPushMatrix();
+		GL11.glRotated(f4, 0, 0, 1);
 		Body2.render(f5);
 		Tail.render(f5);
 		BodyRidge.render(f5);
@@ -460,9 +468,17 @@ public class ModelFlyingManta extends ModelBase
 
 		for (ModelPart p : mirroredParts) {
 			p.render(f5);
-			p.offsetX = -p.rootX/8;
+			p.offsetZ = -p.rootZ/8;
+			p.rotateAngleX = -p.rotateAngleX;
+			p.rotateAngleY = -p.rotateAngleY;
+			p.rotateAngleZ = -p.rotateAngleZ;
+			if (p == UnderRidge)
+				p.offsetZ -= 0.0625;
 			p.render(f5);
-			p.offsetX = 0;
+			p.offsetZ = 0;
+			p.rotateAngleX = -p.rotateAngleX;
+			p.rotateAngleY = -p.rotateAngleY;
+			p.rotateAngleZ = -p.rotateAngleZ;
 		}
 
 		/*
@@ -481,15 +497,15 @@ public class ModelFlyingManta extends ModelBase
 
 		double t0 = System.currentTimeMillis()/750D;
 		for (ModelPart p : wingParts) {
-			double o = p.rootX-1;
+			double o = p.rootZ-1;
 			double t = t0+o*0.015;
 			double ft = o/70D;
 			p.offsetY = (float)(((EntityFlyingManta)entity).getWingDeflection()*ft*Math.sin(t));
 			p.render(f5);
 
-			p.offsetX = -p.rootX/8;
+			p.offsetZ = -p.rootZ/8;
 			p.render(f5);
-			p.offsetX = 0;
+			p.offsetZ = 0;
 		}
 
 		/*
@@ -525,6 +541,7 @@ public class ModelFlyingManta extends ModelBase
 		LeftWing28.render(f5);
 		LeftWing29.render(f5);
 		 */
+		GL11.glPopMatrix();
 	}
 
 	private void initializePart(ModelPart model, float x, float y, float z) {

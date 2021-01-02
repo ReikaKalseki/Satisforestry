@@ -29,7 +29,9 @@ public class RenderFlyingManta extends RendererLivingEntity {
 	public void doRender(Entity e, double par2, double par4, double par6, float par8, float ptick) {
 		GL11.glPushMatrix();
 		double s = 2.5;
-		GL11.glScaled(s, s, s);
+		//GL11.glTranslated(0, 0, 0);
+		//GL11.glRotated(90, 0, 1, 0);
+		//GL11.glScaled(s, s, s);
 		super.doRender(e, par2, par4, par6, par8, ptick);
 		GL11.glPopMatrix();
 	}
