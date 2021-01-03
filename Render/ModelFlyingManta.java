@@ -468,17 +468,9 @@ public class ModelFlyingManta extends ModelBase
 
 		for (ModelPart p : mirroredParts) {
 			p.render(f5);
-			p.offsetZ = -p.rootZ/8;
-			p.rotateAngleX = -p.rotateAngleX;
-			p.rotateAngleY = -p.rotateAngleY;
-			p.rotateAngleZ = -p.rotateAngleZ;
-			if (p == UnderRidge)
-				p.offsetZ -= 0.0625;
+			p.flip();
 			p.render(f5);
-			p.offsetZ = 0;
-			p.rotateAngleX = -p.rotateAngleX;
-			p.rotateAngleY = -p.rotateAngleY;
-			p.rotateAngleZ = -p.rotateAngleZ;
+			p.flip();
 		}
 
 		/*
@@ -503,9 +495,9 @@ public class ModelFlyingManta extends ModelBase
 			p.offsetY = (float)(((EntityFlyingManta)entity).getWingDeflection()*ft*Math.sin(t));
 			p.render(f5);
 
-			p.offsetZ = -p.rootZ/8;
+			p.flip();
 			p.render(f5);
-			p.offsetZ = 0;
+			p.flip();
 		}
 
 		/*
@@ -560,7 +552,7 @@ public class ModelFlyingManta extends ModelBase
 		}
 	}
 
-	private static class ModelPart extends ModelRenderer {
+	private class ModelPart extends ModelRenderer {
 
 		private float rootX;
 		private float rootY;
@@ -576,6 +568,27 @@ public class ModelFlyingManta extends ModelBase
 			rootY = y;
 			rootZ = z;
 			return super.addBox(x, y, z, sx, sy, sz);
+		}
+
+		private void flip() {
+			rotateAngleX = -rotateAngleX;
+			rotateAngleY = -rotateAngleY;
+			rotateAngleZ = -rotateAngleZ;
+
+			if (offsetZ == 0) {
+				offsetZ = -rootZ/8;
+				if (this == UnderRidge)
+					offsetZ -= 0.0625;
+			}
+			else {
+				offsetZ = 0;
+			}
+
+			this.flipUV();
+		}
+
+		private void flipUV() {
+
 		}
 
 	}
