@@ -20,9 +20,9 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Base.ISBRH;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
-import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.Blocks.BlockResourceNode;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 import Reika.Satisforestry.Config.ResourceItem;

@@ -12,8 +12,8 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Base.ISBRH;
-import Reika.DragonAPI.Libraries.IO.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.Blocks.BlockRedBamboo;
 
 public class RedBambooRenderer extends ISBRH {

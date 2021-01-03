@@ -21,8 +21,8 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Math.Noise.Simplex3DGenerator;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
-import Reika.DragonAPI.Libraries.IO.ReikaRenderHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 
