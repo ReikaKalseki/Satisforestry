@@ -11,6 +11,7 @@ package Reika.Satisforestry;
 
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Instantiable.IO.SoundLoader;
 import Reika.Satisforestry.Render.DecorationRenderer;
 import Reika.Satisforestry.Render.PinkGrassRenderer;
 import Reika.Satisforestry.Render.RedBambooRenderer;
@@ -30,7 +31,7 @@ public class SFClient extends SFCommon {
 
 	@Override
 	public void registerSounds() {
-
+		new SoundLoader(SFSounds.soundList).register();
 	}
 
 	@Override

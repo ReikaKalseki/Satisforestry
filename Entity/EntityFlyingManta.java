@@ -2,6 +2,7 @@ package Reika.Satisforestry.Entity;
 
 import java.util.List;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityFlying;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
@@ -10,7 +11,9 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
+import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
+import Reika.Satisforestry.SFSounds;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.MantaGenerator.MantaPath;
@@ -93,7 +96,18 @@ public class EntityFlyingManta extends EntityFlying {
 
 	@SideOnly(Side.CLIENT)
 	private void doFX() {
-
+		if (rand.nextInt(1000) == 0) {
+			SFSounds s = SFSounds.MANTA;
+			switch(rand.nextInt(3)) {
+				case 1:
+					s = SFSounds.MANTA2;
+					break;
+				case 2:
+					s = SFSounds.MANTA3;
+					break;
+			}
+			ReikaSoundHelper.playClientSound(s, Minecraft.getMinecraft().thePlayer, 2, 0.8F+rand.nextFloat()*0.4F);
+		}
 	}
 
 	private void setPathPosition() {
@@ -106,7 +120,9 @@ public class EntityFlyingManta extends EntityFlying {
 		double dy = posNext.yCoord-pos.yCoord;
 		double dz = posNext.zCoord-pos.zCoord;
 
-		float f = (float)Math.max(0, MAX_WING_DEFLECTION*(1+dy*0.25));
+		dy = -0.05;
+
+		float f = (float)Math.max(0, MAX_WING_DEFLECTION*Math.min(1, 1+dy*12.5));
 		dataWatcher.updateObject(30, f);
 
 		double[] angs = ReikaPhysicsHelper.cartesianToPolar(dx, dy, dz);

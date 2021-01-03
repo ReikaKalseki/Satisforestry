@@ -121,8 +121,6 @@ public class Satisforestry extends DragonAPIMod {
 		paleberry.setUnlocalizedName("paleberry");
 		GameRegistry.registerItem(paleberry, "paleberry");
 
-		proxy.registerSounds();
-
 		this.basicSetup(evt);
 		FMLCommonHandler.instance().bus().register(this);
 		this.finishTiming();
@@ -133,6 +131,7 @@ public class Satisforestry extends DragonAPIMod {
 	public void load(FMLInitializationEvent event) {
 		this.startTiming(LoadPhase.LOAD);
 		proxy.registerRenderers();
+		proxy.registerSounds();
 
 		LanguageRegistry.addName(paleberry, "Paleberries");
 
