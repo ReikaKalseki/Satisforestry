@@ -11,10 +11,16 @@ import java.util.ArrayList;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.model.ModelBase;
+import net.minecraft.client.model.ModelBox;
 import net.minecraft.client.model.ModelRenderer;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.Entity;
 
+import Reika.DragonAPI.Libraries.Rendering.ReikaModelHelper;
 import Reika.Satisforestry.Entity.EntityFlyingManta;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class ModelFlyingManta extends ModelBase
 {
@@ -456,6 +462,8 @@ public class ModelFlyingManta extends ModelBase
 	public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
 		GL11.glPushMatrix();
 		GL11.glRotated(f4, 0, 0, 1);
+		double s = 2.5;
+		GL11.glScaled(s, s, s);
 		Body2.render(f5);
 		Tail.render(f5);
 		BodyRidge.render(f5);
@@ -588,7 +596,50 @@ public class ModelFlyingManta extends ModelBase
 		}
 
 		private void flipUV() {
+			ReikaModelHelper.flipUVs(this, false, false, true);
+		}
 
+		@Override
+		@SideOnly(Side.CLIENT)
+		public void render(float f5) {
+			if (!isHidden) {
+				if (showModel) {
+					if (offsetX != 0 || offsetY != 0 || offsetZ != 0)
+						GL11.glTranslatef(offsetX, offsetY, offsetZ);
+					if (rotateAngleX == 0.0F && rotateAngleY == 0.0F && rotateAngleZ == 0.0F) {
+						if (rotationPointX != 0.0F || rotationPointY != 0.0F || rotationPointZ != 0.0F)
+							GL11.glTranslatef(rotationPointX * f5, rotationPointY * f5, rotationPointZ * f5);
+						this.drawPieces(f5);
+						if (rotationPointX != 0.0F || rotationPointY != 0.0F || rotationPointZ != 0.0F)
+							GL11.glTranslatef(-rotationPointX * f5, -rotationPointY * f5, -rotationPointZ * f5);
+					}
+					else {
+						GL11.glPushMatrix();
+						GL11.glTranslatef(rotationPointX * f5, rotationPointY * f5, rotationPointZ * f5);
+
+						if (rotateAngleZ != 0.0F)
+							GL11.glRotatef(rotateAngleZ * (180F / (float)Math.PI), 0.0F, 0.0F, 1.0F);
+						if (rotateAngleY != 0.0F)
+							GL11.glRotatef(rotateAngleY * (180F / (float)Math.PI), 0.0F, 1.0F, 0.0F);
+						if (rotateAngleX != 0.0F)
+							GL11.glRotatef(rotateAngleX * (180F / (float)Math.PI), 1.0F, 0.0F, 0.0F);
+
+						this.drawPieces(f5);
+
+						GL11.glPopMatrix();
+					}
+
+					if (offsetX != 0 || offsetY != 0 || offsetZ != 0)
+						GL11.glTranslatef(-offsetX, -offsetY, -offsetZ);
+				}
+			}
+		}
+
+		private void drawPieces(float f5) {
+			for (int i = 0; i < cubeList.size(); ++i)
+			{
+				((ModelBox)cubeList.get(i)).render(Tessellator.instance, f5);
+			}
 		}
 
 	}
