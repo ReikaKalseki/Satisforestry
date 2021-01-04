@@ -82,7 +82,7 @@ public class BiomewideFeatureGenerator {
 	}
 
 	public boolean isInCave(World world, double x, double y, double z) {
-		if (!initialized.contains(world.provider.dimensionId)) {
+		if (!world.isRemote && !initialized.contains(world.provider.dimensionId)) {
 			initialized.add(world.provider.dimensionId);
 			PinkForestPersistentData.initNetworkData(world);
 		}
@@ -98,7 +98,7 @@ public class BiomewideFeatureGenerator {
 	}
 
 	public MantaPath getPathAround(World world, WorldLocation loc) {
-		if (!initialized.contains(world.provider.dimensionId)) {
+		if (!world.isRemote && !initialized.contains(world.provider.dimensionId)) {
 			initialized.add(world.provider.dimensionId);
 			PinkForestPersistentData.initNetworkData(world);
 		}

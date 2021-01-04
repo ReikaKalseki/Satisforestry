@@ -188,7 +188,7 @@ public class SFEvents {
 
 	@SubscribeEvent
 	public void tagCavePlayers(LivingUpdateEvent evt) {
-		if (evt.entityLiving instanceof EntityPlayer) {
+		if (evt.entityLiving instanceof EntityPlayer && !evt.entityLiving.worldObj.isRemote) {
 			long time = evt.entityLiving.worldObj.getTotalWorldTime();
 			if (time%10 == 0 && BiomewideFeatureGenerator.instance.isInCave(evt.entityLiving.worldObj, evt.entityLiving.posX, evt.entityLiving.posY, evt.entityLiving.posZ)) {
 				evt.entityLiving.getEntityData().setLong("biomecavetick", time);

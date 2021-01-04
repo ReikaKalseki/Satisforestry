@@ -83,6 +83,8 @@ public class EntityFlyingManta extends EntityFlying implements ChunkLoadingEntit
 				return;
 			}
 
+			this.setHealth(this.getMaxHealth());
+
 			ChunkManager.instance.loadChunks(this);
 
 			if (pathSpline == null) {
@@ -118,7 +120,6 @@ public class EntityFlyingManta extends EntityFlying implements ChunkLoadingEntit
 					break;
 			}
 			float p = 0.8F+rand.nextFloat()*0.4F;
-			ReikaSoundHelper.playClientSound(s, posX, posY, posZ, 2, p, false);
 			ReikaSoundHelper.playClientSound(s, posX, posY, posZ, 2, p, false);
 			ReikaSoundHelper.playClientSound(s, posX, posY, posZ, 2, p, false);
 		}
