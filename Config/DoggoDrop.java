@@ -3,6 +3,7 @@ package Reika.Satisforestry.Config;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
+import java.util.Random;
 
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -13,6 +14,8 @@ import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.Config.BiomeConfig.DoggoLuaBlock;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
@@ -32,10 +35,16 @@ public class DoggoDrop {
 	}
 
 	public DoggoDrop(ItemStack is, int min, int max, int wt) {
+		if (max > is.getMaxStackSize())
+			throw new IllegalArgumentException("Invalid max-amount ("+max+") for doggo item - more than max stack size ("+is.getMaxStackSize()+")");
 		item = is;
 		minCount = min;
 		maxCount = max;
 		baseWeight = wt;
+	}
+
+	public ItemStack generateItem(Random rand) {
+		return ReikaItemHelper.getSizedItemStack(item, ReikaRandomHelper.getRandomBetween(minCount, maxCount, rand));
 	}
 
 	public LuaBlock createLuaBlock(LuaBlock parent, LuaBlockDatabase tree) {

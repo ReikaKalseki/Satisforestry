@@ -5,14 +5,17 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Random;
 
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
+import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
 public class LizardDoggoSpawner {
 
@@ -66,6 +69,9 @@ public class LizardDoggoSpawner {
 
 		public final WorldLocation location;
 
+		private boolean doggoExists = false;
+		private long lastTick;
+
 		private LizardDoggoSpawnPoint(World world, Coordinate c) {
 			location = new WorldLocation(world, c);
 		}
@@ -79,14 +85,61 @@ public class LizardDoggoSpawner {
 			return location.toString();
 		}
 
+		@Override
+		public int hashCode() {
+			return location.hashCode();
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			return o instanceof LizardDoggoSpawnPoint && location.equals(((LizardDoggoSpawnPoint)o).location);
+		}
+
 		public NBTTagCompound writeToTag() {
 			NBTTagCompound ret = new NBTTagCompound();
 			location.writeToNBT("loc", ret);
+			ret.setBoolean("exists", doggoExists);
+			ret.setLong("tick", lastTick);
 			return ret;
 		}
 
 		public static LizardDoggoSpawnPoint readTag(NBTTagCompound NBT) {
-			return new LizardDoggoSpawnPoint(WorldLocation.readFromNBT("loc", NBT));
+			LizardDoggoSpawnPoint ret = new LizardDoggoSpawnPoint(WorldLocation.readFromNBT("loc", NBT));
+			ret.doggoExists = NBT.getBoolean("exists");
+			ret.lastTick = NBT.getLong("tick");
+			return ret;
+		}
+
+		public void tick(World world, EntityPlayer ep) {
+			long time = world.getTotalWorldTime();
+			if (time == lastTick)
+				return;
+			lastTick = time;
+			if (!doggoExists && ep.getDistanceSq(location.xCoord+0.5, location.yCoord+0.5, location.zCoord+0.5) <= 350) {
+				doggoExists = this.trySpawn(world);
+			}
+		}
+
+		public void removeDoggo() {
+			doggoExists = false;
+		}
+
+		private boolean trySpawn(World world) {
+			double r = 7.5;
+			double minX = location.xCoord+0.5-r;
+			double maxX = location.xCoord+0.5+r;
+			double minZ = location.zCoord+0.5-r;
+			double maxZ = location.zCoord+0.5+r;
+			double x = ReikaRandomHelper.getRandomBetween(minX, maxX);
+			double z = ReikaRandomHelper.getRandomBetween(minZ, maxZ);
+			EntityLizardDoggo e = new EntityLizardDoggo(world);
+			e.setLocationAndAngles(x, location.yCoord+1+world.rand.nextDouble(), z, 0, 0);
+			if (e.getCanSpawnHere()) {
+				e.rotationYaw = world.rand.nextFloat()*360;
+				world.spawnEntityInWorld(e);
+				return true;
+			}
+			return false;
 		}
 
 	}

@@ -193,8 +193,8 @@ public class SFEvents {
 			EntityPlayer ep = (EntityPlayer)evt.entityLiving;
 			long time = evt.entityLiving.worldObj.getTotalWorldTime();
 			if (time%10 == 0 && Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ))) {
-				for (LizardDoggoSpawnPoint loc : BiomewideFeatureGenerator.instance.getDoggoSpawns()) {
-
+				for (LizardDoggoSpawnPoint loc : BiomewideFeatureGenerator.instance.getDoggoSpawns(ep.worldObj)) {
+					loc.tick(ep.worldObj, ep);
 				}
 			}
 		}

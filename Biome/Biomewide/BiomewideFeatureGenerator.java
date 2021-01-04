@@ -1,6 +1,5 @@
 package Reika.Satisforestry.Biome.Biomewide;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +14,7 @@ import net.minecraft.world.World;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
+import Reika.DragonAPI.Instantiable.Data.Maps.MultiMap;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
@@ -31,7 +31,7 @@ public class BiomewideFeatureGenerator {
 	public static final BiomewideFeatureGenerator instance = new BiomewideFeatureGenerator();
 
 	private final HashMap<WorldLocation, CachedCave> caveNetworks = new HashMap();
-	private final ArrayList<LizardDoggoSpawnPoint> doggoSpawns = new ArrayList();
+	private final MultiMap<Integer, LizardDoggoSpawnPoint> doggoSpawns = new MultiMap();
 	private final HashMap<WorldLocation, MantaPath> mantaPaths = new HashMap();
 	private final HashSet<Integer> initialized = new HashSet();
 
@@ -52,7 +52,7 @@ public class BiomewideFeatureGenerator {
 		//bf.exportToImage(new File(world.getSaveHandler().getWorldDirectory(), "pinkforest_footprint"));
 		Collection<LizardDoggoSpawnPoint> spawns = LizardDoggoSpawner.instance.createDoggoSpawnPoints(world, bf, rand);
 		for (LizardDoggoSpawnPoint loc : spawns) {
-			doggoSpawns.add(loc);
+			doggoSpawns.addValue(loc.location.dimensionID, loc);
 			Satisforestry.logger.log("Doggo spawn locations around "+x+", "+z+": "+spawns);
 		}
 		MantaPath path = mantaPaths.get(new WorldLocation(world, x, 0, z));
@@ -109,8 +109,17 @@ public class BiomewideFeatureGenerator {
 		return mantaPaths.get(loc);
 	}
 
-	public Collection<LizardDoggoSpawnPoint> getDoggoSpawns() {
-		return Collections.unmodifiableCollection(doggoSpawns);
+	public Collection<LizardDoggoSpawnPoint> getDoggoSpawns(World world) {
+		return Collections.unmodifiableCollection(doggoSpawns.get(world.provider.dimensionId));
+	}
+
+	public LizardDoggoSpawnPoint getDoggoSpawnAt(WorldLocation loc) {
+		for (LizardDoggoSpawnPoint spawn : doggoSpawns.get(loc.dimensionID)) {
+			if (spawn.location.equals(loc)) {
+				return spawn;
+			}
+		}
+		return null;
 	}
 
 	public void readFromNBT(NBTTagCompound NBT) {
@@ -147,7 +156,7 @@ public class BiomewideFeatureGenerator {
 		for (Object o : li.tagList) {
 			NBTTagCompound tag = (NBTTagCompound)o;
 			LizardDoggoSpawnPoint c = LizardDoggoSpawnPoint.readTag(tag);
-			doggoSpawns.add(c);
+			doggoSpawns.addValue(c.location.dimensionID, c);
 		}
 	}
 
@@ -179,7 +188,7 @@ public class BiomewideFeatureGenerator {
 		NBT.setTag("mantas", li);
 
 		li = new NBTTagList();
-		for (LizardDoggoSpawnPoint loc : doggoSpawns) {
+		for (LizardDoggoSpawnPoint loc : doggoSpawns.allValues(false)) {
 			li.appendTag(loc.writeToTag());
 		}
 		NBT.setTag("doggoSpawns", li);
