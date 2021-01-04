@@ -28,6 +28,7 @@ public enum SFSounds implements SoundEnum {
 	MANTA2("manta2"),
 	MANTA3("manta3"),
 	MANTA4("manta4"),
+	MANTAFLY("mantafly2"),
 	;
 
 	public static final SFSounds[] soundList = values();

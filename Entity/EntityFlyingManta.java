@@ -122,6 +122,8 @@ public class EntityFlyingManta extends EntityFlying implements ChunkLoadingEntit
 			ReikaSoundHelper.playClientSound(s, posX, posY, posZ, 2, p, false);
 			ReikaSoundHelper.playClientSound(s, posX, posY, posZ, 2, p, false);
 		}
+		if (ticksExisted%15 == 0)
+			ReikaSoundHelper.playClientSound(SFSounds.MANTAFLY, posX, posY, posZ, 2, 1.25F, true);
 		/*
 		Vec3 left = this.getLookVec();
 		Vec3 look = ReikaVectorHelper.rotateVector(left, -90, 0, 0);
@@ -165,6 +167,16 @@ public class EntityFlyingManta extends EntityFlying implements ChunkLoadingEntit
 	@Override
 	protected void despawnEntity() {
 
+	}
+
+	@Override
+	public boolean canBePushed() {
+		return false;
+	}
+
+	@Override
+	public boolean canBeCollidedWith() { //breaks right click if false
+		return true;
 	}
 
 	public void onDestroy() {

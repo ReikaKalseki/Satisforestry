@@ -22,7 +22,6 @@ import Reika.DragonAPI.Instantiable.Math.Spline;
 import Reika.DragonAPI.Instantiable.Math.Spline.BasicSplinePoint;
 import Reika.DragonAPI.Instantiable.Math.Spline.SplineType;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
-import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
@@ -119,10 +118,10 @@ public class MantaGenerator {
 				max = 48;
 			}
 			double dy = top+ReikaRandomHelper.getRandomBetween(min, max, rand);
-			ReikaJavaLibrary.pConsole(lastY+" - "+edge.getBiome(world).biomeName+" @ "+edge+" > "+top+" = "+at+" >> "+dy+" / "+(lastY+MAX_RISE_STEP*df));
+			//ReikaJavaLibrary.pConsole(lastY+" - "+edge.getBiome(world).biomeName+" @ "+edge+" > "+top+" = "+at+" >> "+dy+" / "+(lastY+MAX_RISE_STEP*df));
 			double spiral = 0;
+			double minY = lastY-MAX_DROP_STEP*df;
 			if (lastY >= 0) {
-				double minY = lastY-MAX_DROP_STEP*df;
 				if (lastY-dy >= 18 && s.length() > 10 && rand.nextInt(5) > 0) { //was 100%
 					spiral = lastY-dy;
 					spiral *= ReikaRandomHelper.getRandomBetween(0.75, 1, rand);
@@ -132,9 +131,9 @@ public class MantaGenerator {
 				}
 			}
 			lastEdge = edge;
+			ArrayList<DecimalPosition> spiralPath = new ArrayList();
 			if (spiral > 0) {
 				int spiralDir = rand.nextBoolean() ? 1 : -1;
-				apply spiral dir
 				DecimalPosition prev = s.getLast();
 				double vx = edge.xCoord-s.getLast().xCoord;
 				double vz = edge.zCoord-s.getLast().zCoord;
@@ -143,11 +142,25 @@ public class MantaGenerator {
 				vz /= dd;
 				double vx2 = -vz;
 				double vz2 = vx;
-				double rs = ReikaRandomHelper.getRandomBetween(15D, 25D, rand); //was 8/15
-				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5, lastY, edge.zCoord+0.5));
-				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5+vx*rs, lastY-spiral/4D, edge.zCoord+0.5+vz*rs));
-				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5+vx*rs+vx2*rs, lastY-spiral/2D, edge.zCoord+0.5+vz*rs+vz2*rs));
-				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5+vx2*rs, lastY-spiral*3/4D, edge.zCoord+0.5+vz2*rs));
+				double rs = ReikaRandomHelper.getRandomBetween(15D, 25D, rand)*spiralDir; //was 8/15
+				spiralPath.add(new DecimalPosition(edge.xCoord+0.5, lastY, edge.zCoord+0.5));
+				spiralPath.add(new DecimalPosition(edge.xCoord+0.5+vx*rs, lastY-spiral/4D, edge.zCoord+0.5+vz*rs));
+				spiralPath.add(new DecimalPosition(edge.xCoord+0.5+vx*rs+vx2*rs, lastY-spiral/2D, edge.zCoord+0.5+vz*rs+vz2*rs));
+				spiralPath.add(new DecimalPosition(edge.xCoord+0.5+vx2*rs, lastY-spiral*3/4D, edge.zCoord+0.5+vz2*rs));
+			}
+			boolean flag = true;
+			for (DecimalPosition pos : spiralPath) {
+				if (!pos.isEmpty(world)) {
+					flag = false;
+				}
+			}
+			if (flag) {
+				for (DecimalPosition pos : spiralPath) {
+					s.addPoint(new BasicSplinePoint(pos));
+				}
+			}
+			else {
+				dy = MathHelper.clamp_double(dy, minY, lastY+MAX_RISE_STEP*df);
 			}
 			s.addPoint(new BasicSplinePoint(edge.xCoord+0.5, dy, edge.zCoord+0.5));
 			lastY = dy;
