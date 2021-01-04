@@ -5,7 +5,6 @@ import java.util.List;
 
 import net.minecraft.entity.EntityFlying;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
@@ -52,9 +51,10 @@ public class EntityFlyingManta extends EntityFlying implements ChunkLoadingEntit
 		pathSpline = path.getSpline();
 		splineIndex = 0;
 
+		/*
 		for (DecimalPosition p : pathSpline) {
 			p.setBlock(worldObj, Blocks.diamond_block);
-		}
+		}*/
 
 		this.setPathPosition();
 	}

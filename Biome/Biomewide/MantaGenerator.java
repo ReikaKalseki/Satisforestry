@@ -36,7 +36,7 @@ public class MantaGenerator {
 
 	private static final double ANGLE_STEP = 6;//2.5;//10;
 	private static final double ANGLE_FUZZ = 2;
-	private static final double MAX_RISE_STEP = 20;//5;
+	private static final double MAX_RISE_STEP = 14;//20;//5;
 	private static final double MAX_DROP_STEP = 10;
 
 	private MantaGenerator() {
