@@ -1,6 +1,8 @@
 package Reika.Satisforestry.Biome.Biomewide;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -17,8 +19,10 @@ import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Biome.PinkForestPersistentData;
+import Reika.Satisforestry.Biome.Biomewide.LizardDoggoSpawner.LizardDoggoSpawnPoint;
 import Reika.Satisforestry.Biome.Biomewide.MantaGenerator.MantaPath;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CachedCave;
+import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CachedTunnel;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CentralCave;
 import Reika.Satisforestry.Entity.EntityFlyingManta;
 
@@ -27,7 +31,7 @@ public class BiomewideFeatureGenerator {
 	public static final BiomewideFeatureGenerator instance = new BiomewideFeatureGenerator();
 
 	private final HashMap<WorldLocation, CachedCave> caveNetworks = new HashMap();
-	private final HashSet<WorldLocation> doggoSpawns = new HashSet();
+	private final ArrayList<LizardDoggoSpawnPoint> doggoSpawns = new ArrayList();
 	private final HashMap<WorldLocation, MantaPath> mantaPaths = new HashMap();
 	private final HashSet<Integer> initialized = new HashSet();
 
@@ -46,8 +50,8 @@ public class BiomewideFeatureGenerator {
 		initialized.add(world.provider.dimensionId);
 		PinkForestPersistentData.initNetworkData(world);
 		//bf.exportToImage(new File(world.getSaveHandler().getWorldDirectory(), "pinkforest_footprint"));
-		Collection<WorldLocation> spawns = LizardDoggoSpawner.instance.createDoggoSpawnPoints(world, bf, rand);
-		for (WorldLocation loc : spawns) {
+		Collection<LizardDoggoSpawnPoint> spawns = LizardDoggoSpawner.instance.createDoggoSpawnPoints(world, bf, rand);
+		for (LizardDoggoSpawnPoint loc : spawns) {
 			doggoSpawns.add(loc);
 			Satisforestry.logger.log("Doggo spawn locations around "+x+", "+z+": "+spawns);
 		}
@@ -105,6 +109,10 @@ public class BiomewideFeatureGenerator {
 		return mantaPaths.get(loc);
 	}
 
+	public Collection<LizardDoggoSpawnPoint> getDoggoSpawns() {
+		return Collections.unmodifiableCollection(doggoSpawns);
+	}
+
 	public void readFromNBT(NBTTagCompound NBT) {
 		NBTTagList li = NBT.getTagList("caves", NBTTypes.COMPOUND.ID);
 		for (Object o : li.tagList) {
@@ -115,13 +123,11 @@ public class BiomewideFeatureGenerator {
 			DecimalPosition off = DecimalPosition.readTag(tag.getCompoundTag("offset"));
 			double radius = tag.getDouble("radius");
 			double inner = tag.getDouble("inner");
-			HashMap<Coordinate, Double> map = new HashMap();
+			HashMap<Coordinate, CachedTunnel> map = new HashMap();
 			NBTTagList tunnels = tag.getTagList("tunnels", NBTTypes.COMPOUND.ID);
 			for (Object o2 : tunnels.tagList) {
-				NBTTagCompound tag2 = (NBTTagCompound)o2;
-				Coordinate end = Coordinate.readTag(tag2.getCompoundTag("endpoint"));
-				double ang = tag2.getDouble("angle");
-				map.put(end, ang);
+				CachedTunnel end = CachedTunnel.readTag((NBTTagCompound)o2);
+				map.put(end.endpoint, end);
 			}
 			WorldLocation key = WorldLocation.readTag(tag.getCompoundTag("key"));
 			caveNetworks.put(key, new CachedCave(center, node, tile, radius, inner, off, map));
@@ -140,7 +146,7 @@ public class BiomewideFeatureGenerator {
 		li = NBT.getTagList("doggoSpawns", NBTTypes.COMPOUND.ID);
 		for (Object o : li.tagList) {
 			NBTTagCompound tag = (NBTTagCompound)o;
-			WorldLocation c = WorldLocation.readTag(tag);
+			LizardDoggoSpawnPoint c = LizardDoggoSpawnPoint.readTag(tag);
 			doggoSpawns.add(c);
 		}
 	}
@@ -158,11 +164,8 @@ public class BiomewideFeatureGenerator {
 			cave.setDouble("radius", cv.outerRadius);
 			cave.setDouble("inner", cv.innerRadius);
 			NBTTagList tunnels = new NBTTagList();
-			for (Entry<Coordinate, Double> e2 : cv.tunnels.entrySet()) {
-				NBTTagCompound tag = new NBTTagCompound();
-				tag.setTag("endpoint", e2.getKey().writeToTag());
-				tag.setDouble("angle", e2.getValue());
-				tunnels.appendTag(tag);
+			for (CachedTunnel e2 : cv.tunnels.values()) {
+				tunnels.appendTag(e2.writeToTag());
 			}
 			cave.setTag("tunnels", tunnels);
 			li.appendTag(cave);
@@ -176,7 +179,7 @@ public class BiomewideFeatureGenerator {
 		NBT.setTag("mantas", li);
 
 		li = new NBTTagList();
-		for (WorldLocation loc : doggoSpawns) {
+		for (LizardDoggoSpawnPoint loc : doggoSpawns) {
 			li.appendTag(loc.writeToTag());
 		}
 		NBT.setTag("doggoSpawns", li);

@@ -14,6 +14,8 @@ import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.init.Blocks;
+import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
@@ -29,9 +31,11 @@ import Reika.DragonAPI.Instantiable.Math.Spline;
 import Reika.DragonAPI.Instantiable.Math.Spline.BasicSplinePoint;
 import Reika.DragonAPI.Instantiable.Math.Spline.SplineType;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
+import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.MathSci.ReikaVectorHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
@@ -74,12 +78,19 @@ public class UraniumCave {
 		Collection<Tunnel> tunnels = new ArrayList();
 		Vec3 avg = Vec3.createVectorHelper(0, 0, 0);
 		double d = cc.outerCircleRadius*ReikaRandomHelper.getRandomBetween(1.35, 1.75, rand);
+		CachedTunnel nodeTunnelCache = null;
 		if (cache != null) {
-			for (Entry<Coordinate, Double> e : cache.tunnels.entrySet()) {
-				Tunnel add = new Tunnel(cc, e.getKey(), d, e.getValue());
-				tunnels.add(add);
-				avg.xCoord += add.startingDX;
-				avg.zCoord += add.startingDZ;
+			for (CachedTunnel ct : cache.tunnels.values()) {
+				if (ct.isEdge) {
+					Tunnel add = new Tunnel(cc, ct.endpoint, ct.run, ct.angle);
+					add.setBolt(ct.bolt);
+					tunnels.add(add);
+					avg.xCoord += add.startingDX;
+					avg.zCoord += add.startingDZ;
+				}
+				else {
+					nodeTunnelCache = ct;
+				}
 			}
 		}
 		else {
@@ -132,7 +143,14 @@ public class UraniumCave {
 
 		carveSet.addAll(rm.carve.keySet());
 
-		Tunnel path = new Tunnel(cc, new Coordinate(rm.center), cc.outerCircleRadius, Math.toDegrees(Math.atan2(-avg.xCoord, -avg.zCoord)), 2);
+		Tunnel path;
+		if (nodeTunnelCache != null) {
+			path = new Tunnel(cc, nodeTunnelCache.endpoint, nodeTunnelCache.run, nodeTunnelCache.angle);
+			path.setBolt(nodeTunnelCache.bolt);
+		}
+		else {
+			path = new Tunnel(cc, new Coordinate(rm.center), cc.outerCircleRadius, Math.toDegrees(Math.atan2(-avg.xCoord, -avg.zCoord)), 2);
+		}
 		path.targetY = path.endpoint.yCoord;
 		path.isToBiomeEdge = false;
 		path.calculate(world, rand);
@@ -609,10 +627,13 @@ public class UraniumCave {
 		private final double startingDX;
 		private final double startingDZ;
 		private final double radius;
-		private final DecimalPosition boltStart;
 
+		private DecimalPosition boltStart;
 		private boolean isToBiomeEdge = true;
 		private int targetY = -1;
+
+		private ArrayList<DecimalPosition> path = new ArrayList();
+		private ArrayList<DecimalPosition> boltPath;
 
 		private Tunnel(CentralCave cc, Coordinate c, double d, double ang) {
 			this(cc, c, d, ang, 3);
@@ -633,6 +654,11 @@ public class UraniumCave {
 			boltStart = center.offset(startingDX*initialRun, 0, startingDZ*initialRun);
 		}
 
+		private void setBolt(ArrayList<DecimalPosition> b) {
+			boltPath = b;
+			boltStart = boltPath.remove(0);
+		}
+
 		@Override
 		protected void calculate(World world, Random rand) {
 			if (targetY < 0) {
@@ -646,17 +672,25 @@ public class UraniumCave {
 			Coordinate end = new Coordinate(endpoint.xCoord, targetY, endpoint.zCoord);
 			double dd = ReikaMathLibrary.py3d(endpoint.xCoord-center.xCoord, 0, endpoint.zCoord-center.zCoord);
 			int n = (int)Math.max(4, dd/16);
-			LightningBolt b = new LightningBolt(new DecimalPosition(boltStart.xCoord, boltStart.yCoord+dyf, boltStart.zCoord), new DecimalPosition(end), n);
-			b.setRandom(rand);
-			//b.variance = 10;//15;
-			b.setVariance(10, 8, 10);
-			b.maximize();
+			if (boltPath == null) {
+				LightningBolt b = new LightningBolt(new DecimalPosition(boltStart.xCoord, boltStart.yCoord+dyf, boltStart.zCoord), new DecimalPosition(end), n);
+				b.setRandom(rand);
+				//b.variance = 10;//15;
+				b.setVariance(10, 8, 10);
+				b.maximize();
+
+				boltPath = new ArrayList();
+
+				for (int i = 0; i <= b.nsteps; i++) {
+					DecimalPosition pos = b.getPosition(i);
+					boltPath.add(pos);
+				}
+			}
 			Spline path = new Spline(SplineType.CENTRIPETAL);
 			if (!boltStart.equals(center))
 				path.addPoint(new BasicSplinePoint(center));
 
-			for (int i = 0; i <= b.nsteps; i++) {
-				DecimalPosition pos = b.getPosition(i);
+			for (DecimalPosition pos : boltPath) {
 				path.addPoint(new BasicSplinePoint(pos));
 			}
 
@@ -664,8 +698,9 @@ public class UraniumCave {
 			int last = 0;
 			for (int i = 0; i < li.size(); i++) {
 				DecimalPosition p = li.get(i);
-				int px = MathHelper.floor_double(p.xCoord);
-				int pz = MathHelper.floor_double(p.zCoord);
+				this.path.add(p);
+				//int px = MathHelper.floor_double(p.xCoord);
+				//int pz = MathHelper.floor_double(p.zCoord);
 				double w = 0;//2.5;
 				double r = 2.25;
 				if (this.carveAt(world, p, r, w, /*this.getAngleAt(li, i)*/0)) {
@@ -1163,7 +1198,7 @@ public class UraniumCave {
 		final DecimalPosition innerOffset;
 		public final DecimalPosition nodeRoom;
 		public final Coordinate nodeTile;
-		final HashMap<Coordinate, Double> tunnels = new HashMap();
+		final HashMap<Coordinate, CachedTunnel> tunnels = new HashMap();
 
 		private CentralCave reference;
 
@@ -1175,7 +1210,7 @@ public class UraniumCave {
 			nodeRoom = cc.nodeRoom.center;
 			nodeTile = cc.nodeRoom.resourceNode;
 			for (Tunnel t : cc.tunnels) {
-				tunnels.put(t.endpoint, t.startingAngle);
+				tunnels.put(t.endpoint, new CachedTunnel(t));
 			}
 			reference = cc;
 		}
@@ -1195,7 +1230,7 @@ public class UraniumCave {
 			return ret;
 		}
 
-		public CachedCave(Coordinate ctr, DecimalPosition node, Coordinate tile, double radius, double inner, DecimalPosition off, HashMap<Coordinate, Double> map) {
+		public CachedCave(Coordinate ctr, DecimalPosition node, Coordinate tile, double radius, double inner, DecimalPosition off, HashMap<Coordinate, CachedTunnel> map) {
 			center = ctr;
 			nodeRoom = node;
 			nodeTile = tile;
@@ -1213,12 +1248,92 @@ public class UraniumCave {
 				return true;
 			if (nodeRoom.getDistanceTo(x, y, z) <= 9)
 				return true;
+			for (CachedTunnel ct : tunnels.values()) {
+				if (ct.isIn(center, x, y, z))
+					return true;
+			}
 			return false;
 		}
 
 		@Override
 		public String toString() {
 			return center+" @ R = ["+innerRadius+", "+outerRadius+"] + "+innerOffset+" & "+nodeRoom+" via "+tunnels;
+		}
+
+	}
+
+	public static class CachedTunnel {
+
+		public final Coordinate endpoint;
+		public final double angle;
+		public final double run;
+		public final boolean isEdge;
+		//private ArrayList<DecimalPosition> roughPath = new ArrayList();
+		private ArrayList<DecimalPosition> bolt;
+
+		private CachedTunnel(Coordinate c, double d, double a, ArrayList<DecimalPosition> path, boolean edge) {
+			endpoint = c;
+			angle = a;
+			run = d;
+			bolt = path;
+			isEdge = edge;
+		}
+
+		private CachedTunnel(Tunnel t) {
+			endpoint = t.endpoint;
+			angle = t.startingAngle;
+			run = t.initialRun;
+			isEdge = t.isToBiomeEdge;
+			bolt = new ArrayList(t.boltPath);
+			bolt.add(0, t.boltStart);
+			/*
+			for (int i = 0; i < t.path.size(); i++) {
+				if (i%8 == 0) {
+					DecimalPosition p = t.path.get(i);
+					roughPath.add(p);
+				}
+			}*/
+		}
+
+		private boolean isIn(Coordinate ctr, double x, double y, double z) {
+			/*
+			for (DecimalPosition p : roughPath) {
+				if (p.getDistanceTo(x, y, z) <= 7)
+					return true;
+			}
+			return false;
+			 */
+			for (int i = -1; i < bolt.size()-1; i++) {
+				DecimalPosition p1 = i == -1 ? new DecimalPosition(ctr) : bolt.get(i);
+				DecimalPosition p2 = bolt.get(i+1);
+				if (ReikaVectorHelper.getDistFromPointToLine(p1.xCoord, p1.yCoord, p1.zCoord, p2.xCoord, p2.yCoord, p2.zCoord, x, y, z) <= 5) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		public NBTTagCompound writeToTag() {
+			NBTTagCompound ret = new NBTTagCompound();
+			endpoint.writeToNBT("end", ret);
+			ret.setDouble("angle", angle);
+			ret.setDouble("run", run);
+			ret.setBoolean("edge", isEdge);
+			NBTTagList li = new NBTTagList();
+			for (DecimalPosition p : bolt) {
+				li.appendTag(p.writeToTag());
+			}
+			ret.setTag("bolt", li);
+			return ret;
+		}
+
+		public static CachedTunnel readTag(NBTTagCompound NBT) {
+			ArrayList<DecimalPosition> li = new ArrayList();
+			NBTTagList list = NBT.getTagList("bolt", NBTTypes.COMPOUND.ID);
+			for (Object o : list.tagList) {
+				li.add(DecimalPosition.readTag((NBTTagCompound)o));
+			}
+			return new CachedTunnel(Coordinate.readFromNBT("end", NBT), NBT.getDouble("run"), NBT.getDouble("angle"), li, NBT.getBoolean("edge"));
 		}
 
 	}

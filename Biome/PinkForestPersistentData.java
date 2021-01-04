@@ -4,6 +4,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldSavedData;
 
+import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 
 
@@ -21,8 +22,14 @@ public class PinkForestPersistentData extends WorldSavedData {
 
 	@Override
 	public void readFromNBT(NBTTagCompound NBT) {
-		BiomewideFeatureGenerator.instance.readFromNBT(NBT.getCompoundTag("biomewideFeatures"));
-		//TreeGenCache.instance.readFromNBT(NBT.getCompoundTag("treegencache"));
+		try {
+			BiomewideFeatureGenerator.instance.readFromNBT(NBT.getCompoundTag("biomewideFeatures"));
+			//TreeGenCache.instance.readFromNBT(NBT.getCompoundTag("treegencache"));
+		}
+		catch (Exception e) {
+			Satisforestry.logger.logError("Failed reading persistent NBT data for biome. It is recommended you repair or delete /data/"+IDENTIFIER+".dat");
+			e.printStackTrace();
+		}
 	}
 
 	@Override

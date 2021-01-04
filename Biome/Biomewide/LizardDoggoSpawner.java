@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Random;
 
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
@@ -21,8 +22,8 @@ public class LizardDoggoSpawner {
 
 	}
 
-	public Collection<WorldLocation> createDoggoSpawnPoints(World world, BiomeFootprint bf, Random rand) {
-		HashSet<WorldLocation> ret = new HashSet();
+	public Collection<LizardDoggoSpawnPoint> createDoggoSpawnPoints(World world, BiomeFootprint bf, Random rand) {
+		HashSet<LizardDoggoSpawnPoint> ret = new HashSet();
 		ArrayList<Coordinate> blocks = new ArrayList(bf.getCoords());
 		int n = MathHelper.clamp_int(Math.round(bf.getArea()/24000F), 1, 6);
 		for (int i = 0; i < n && !blocks.isEmpty(); i++) {
@@ -30,14 +31,14 @@ public class LizardDoggoSpawner {
 			Coordinate c = blocks.remove(idx);
 			if (this.isValidDoggoSpawnArea(world, c)) {
 				boolean flag = true;
-				for (WorldLocation has : ret) {
-					if (c.getTaxicabDistanceTo(has.xCoord, has.yCoord, has.zCoord) <= 64) {
+				for (LizardDoggoSpawnPoint has : ret) {
+					if (has.location.getTaxicabDistanceTo(c.xCoord, c.yCoord, c.zCoord) <= 64) {
 						flag = false;
 						break;
 					}
 				}
 				if (flag)
-					ret.add(new WorldLocation(world, c));
+					ret.add(new LizardDoggoSpawnPoint(world, c));
 			}
 		}
 		return ret;
@@ -59,6 +60,35 @@ public class LizardDoggoSpawner {
 			}
 		}
 		return true;
+	}
+
+	public static class LizardDoggoSpawnPoint {
+
+		public final WorldLocation location;
+
+		private LizardDoggoSpawnPoint(World world, Coordinate c) {
+			location = new WorldLocation(world, c);
+		}
+
+		private LizardDoggoSpawnPoint(WorldLocation loc) {
+			location = loc;
+		}
+
+		@Override
+		public String toString() {
+			return location.toString();
+		}
+
+		public NBTTagCompound writeToTag() {
+			NBTTagCompound ret = new NBTTagCompound();
+			location.writeToNBT("loc", ret);
+			return ret;
+		}
+
+		public static LizardDoggoSpawnPoint readTag(NBTTagCompound NBT) {
+			return new LizardDoggoSpawnPoint(WorldLocation.readFromNBT("loc", NBT));
+		}
+
 	}
 
 }

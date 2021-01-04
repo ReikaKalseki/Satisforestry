@@ -44,6 +44,7 @@ import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.CaveNightvisionHandler;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
+import Reika.Satisforestry.Biome.Biomewide.LizardDoggoSpawner.LizardDoggoSpawnPoint;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkRiver;
 import Reika.Satisforestry.Biome.Generator.WorldGenUraniumCave;
@@ -187,6 +188,20 @@ public class SFEvents {
 	}
 
 	@SubscribeEvent
+	public void spawnLizardDoggos(LivingUpdateEvent evt) {
+		if (evt.entityLiving instanceof EntityPlayer && !evt.entityLiving.worldObj.isRemote) {
+			EntityPlayer ep = (EntityPlayer)evt.entityLiving;
+			long time = evt.entityLiving.worldObj.getTotalWorldTime();
+			if (time%10 == 0 && Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ))) {
+				for (LizardDoggoSpawnPoint loc : BiomewideFeatureGenerator.instance.getDoggoSpawns()) {
+
+				}
+			}
+		}
+	}
+
+	/*
+	@SubscribeEvent
 	public void tagCavePlayers(LivingUpdateEvent evt) {
 		if (evt.entityLiving instanceof EntityPlayer && !evt.entityLiving.worldObj.isRemote) {
 			long time = evt.entityLiving.worldObj.getTotalWorldTime();
@@ -195,7 +210,7 @@ public class SFEvents {
 			}
 		}
 	}
-
+	 */
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void weakenCaveNightVision(NightVisionBrightnessEvent evt) {
