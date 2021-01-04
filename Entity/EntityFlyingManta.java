@@ -1,16 +1,21 @@
 package Reika.Satisforestry.Entity;
 
+import java.util.Collection;
 import java.util.List;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityFlying;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.MathHelper;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Auxiliary.ChunkManager;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
+import Reika.DragonAPI.Interfaces.Entity.ChunkLoadingEntity;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.Satisforestry.SFSounds;
@@ -21,7 +26,7 @@ import Reika.Satisforestry.Biome.Biomewide.MantaGenerator.MantaPath;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class EntityFlyingManta extends EntityFlying {
+public class EntityFlyingManta extends EntityFlying implements ChunkLoadingEntity {
 
 	public static final float MAX_WING_DEFLECTION = 1.5F;
 
@@ -46,11 +51,11 @@ public class EntityFlyingManta extends EntityFlying {
 		pathRoot = path.biomeCenter;
 		pathSpline = path.getSpline();
 		splineIndex = 0;
-		/*
+
 		for (DecimalPosition p : pathSpline) {
 			p.setBlock(worldObj, Blocks.diamond_block);
 		}
-		 */
+
 		this.setPathPosition();
 	}
 
@@ -72,13 +77,16 @@ public class EntityFlyingManta extends EntityFlying {
 		super.onUpdate();
 
 		if (!worldObj.isRemote) {
+
 			if (pathRoot == null) {
 				this.setPath(null);
 				return;
 			}
 
+			ChunkManager.instance.loadChunks(this);
+
 			if (pathSpline == null) {
-				MantaPath path = BiomewideFeatureGenerator.instance.getPathAround(pathRoot);
+				MantaPath path = BiomewideFeatureGenerator.instance.getPathAround(worldObj, pathRoot);
 				if (pathRoot != null && path == null)
 					Satisforestry.logger.logError("Could not reload manta path for "+this);
 				this.setPath(path);
@@ -96,18 +104,37 @@ public class EntityFlyingManta extends EntityFlying {
 
 	@SideOnly(Side.CLIENT)
 	private void doFX() {
-		if (rand.nextInt(1000) == 0) {
-			SFSounds s = SFSounds.MANTA;
-			switch(rand.nextInt(3)) {
+		if (rand.nextInt(ridingEntity != null ? 200 : 800) == 0) {
+			SFSounds s = SFSounds.MANTA1;
+			switch(rand.nextInt(4)) {
 				case 1:
 					s = SFSounds.MANTA2;
 					break;
 				case 2:
 					s = SFSounds.MANTA3;
 					break;
+				case 3:
+					s = SFSounds.MANTA4;
+					break;
 			}
-			ReikaSoundHelper.playClientSound(s, Minecraft.getMinecraft().thePlayer, 2, 0.8F+rand.nextFloat()*0.4F);
+			float p = 0.8F+rand.nextFloat()*0.4F;
+			ReikaSoundHelper.playClientSound(s, posX, posY, posZ, 2, p, false);
+			ReikaSoundHelper.playClientSound(s, posX, posY, posZ, 2, p, false);
+			ReikaSoundHelper.playClientSound(s, posX, posY, posZ, 2, p, false);
 		}
+		/*
+		Vec3 left = this.getLookVec();
+		Vec3 look = ReikaVectorHelper.rotateVector(left, -90, 0, 0);
+		double dl = 3.5;
+		EntityBlurFX fx = new EntityBlurFX(worldObj, posX+look.xCoord*dl, posY-2, posZ+look.zCoord*dl, IconPrefabs.FADE.getIcon());
+		int c1 = 0x52B6FF;
+		int c2 = 0xA8DAFF;
+		int c = ReikaColorAPI.mixColors(c1, c2, rand.nextFloat());
+		int l = ReikaRandomHelper.getRandomBetween(20, 90);
+		float s = (float)ReikaRandomHelper.getRandomBetween(2.5, 5);
+		fx.setColor(c).setRapidExpand().setLife(l).setScale(s);
+		Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+		 */
 	}
 
 	private void setPathPosition() {
@@ -120,15 +147,37 @@ public class EntityFlyingManta extends EntityFlying {
 		double dy = posNext.yCoord-pos.yCoord;
 		double dz = posNext.zCoord-pos.zCoord;
 
-		dy = -0.05;
-
-		float f = (float)Math.max(0, MAX_WING_DEFLECTION*Math.min(1, 1+dy*12.5));
+		float f = (float)Math.max(0, MAX_WING_DEFLECTION*Math.min(1, 1+dy*7.5));
 		dataWatcher.updateObject(30, f);
 
 		double[] angs = ReikaPhysicsHelper.cartesianToPolar(dx, dy, dz);
 		rotationYaw = 90-(float)angs[2]-45;
 		rotationPitch = -(float)angs[1]+90;
 		//ReikaJavaLibrary.pConsole(this);
+	}
+
+	@Override
+	public void setDead() {
+		super.setDead();
+		this.onDestroy();
+	}
+
+	@Override
+	protected void despawnEntity() {
+
+	}
+
+	public void onDestroy() {
+		ChunkManager.instance.unloadChunks(this);
+	}
+
+	public Collection<ChunkCoordIntPair> getChunksToLoad() {
+		return ChunkManager.instance.getChunkSquare(MathHelper.floor_double(posX), MathHelper.floor_double(posZ), 2);
+	}
+
+	@Override
+	public boolean isInRangeToRenderDist(double distsq) {
+		return true;
 	}
 
 	@Override
@@ -145,7 +194,7 @@ public class EntityFlyingManta extends EntityFlying {
 	protected final boolean interact(EntityPlayer ep) {
 		if (!worldObj.isRemote) {
 			if (riddenByEntity != null && riddenByEntity.equals(ep)) {
-				ep.dismountEntity(this);
+				return false;
 			}
 			else {
 				ep.mountEntity(this);

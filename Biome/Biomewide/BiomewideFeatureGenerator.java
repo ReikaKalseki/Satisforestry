@@ -97,7 +97,11 @@ public class BiomewideFeatureGenerator {
 		return false;
 	}
 
-	public MantaPath getPathAround(WorldLocation loc) {
+	public MantaPath getPathAround(World world, WorldLocation loc) {
+		if (!initialized.contains(world.provider.dimensionId)) {
+			initialized.add(world.provider.dimensionId);
+			PinkForestPersistentData.initNetworkData(world);
+		}
 		return mantaPaths.get(loc);
 	}
 

@@ -22,6 +22,7 @@ import Reika.DragonAPI.Instantiable.Math.Spline;
 import Reika.DragonAPI.Instantiable.Math.Spline.BasicSplinePoint;
 import Reika.DragonAPI.Instantiable.Math.Spline.SplineType;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
@@ -36,7 +37,7 @@ public class MantaGenerator {
 
 	private static final double ANGLE_STEP = 6;//2.5;//10;
 	private static final double ANGLE_FUZZ = 2;
-	private static final double MAX_RISE_STEP = 5;
+	private static final double MAX_RISE_STEP = 20;//5;
 	private static final double MAX_DROP_STEP = 10;
 
 	private MantaGenerator() {
@@ -75,7 +76,7 @@ public class MantaGenerator {
 		});
 		for (double a = 0; a < 360; a += ANGLE_STEP) {
 			double a2 = ReikaRandomHelper.getRandomPlusMinus(a, ANGLE_FUZZ, rand);
-			double out = ReikaRandomHelper.getRandomBetween(8, 24, rand);
+			double out = ReikaRandomHelper.getRandomBetween(18, 40, rand); //was 8/24
 			if (lastOut >= 0) {
 				out = MathHelper.clamp_double(out, lastOut-5*df, lastOut+5*df);
 			}
@@ -99,21 +100,32 @@ public class MantaGenerator {
 			if (lastEdge != null && edge.getDistanceTo(lastEdge) > 12) {
 				//continue;
 			}
-			int top = ReikaWorldHelper.getTopNonAirBlock(world, edge.xCoord, edge.zCoord, true);
-			Block at = world.getBlock(edge.xCoord, top, edge.zCoord);
+			Block at = null;
+			int top = -1;
+			for (int i = -1; i <= 1; i++) {
+				for (int k = -1; k <= 1; k++) {
+					int top2 = ReikaWorldHelper.getTopNonAirBlock(world, edge.xCoord+i, edge.zCoord+k, true);
+					if (top2 > top) {
+						top = top2;
+						at = world.getBlock(edge.xCoord+i, top, edge.zCoord+k);
+					}
+				}
+			}
 			boolean liq = ReikaBlockHelper.isLiquid(at);
-			double min = liq ? 6 : 25;
-			double max = liq ? 18 : 90;
+			double min = liq ? 4 : 25; //was 6/25, then 6/40, then 6/25 again
+			double max = liq ? 12 : 90; //was 18/90
 			if (at == Blocks.sand) {
 				min = 12;
 				max = 48;
 			}
 			double dy = top+ReikaRandomHelper.getRandomBetween(min, max, rand);
+			ReikaJavaLibrary.pConsole(lastY+" - "+edge.getBiome(world).biomeName+" @ "+edge+" > "+top+" = "+at+" >> "+dy+" / "+(lastY+MAX_RISE_STEP*df));
 			double spiral = 0;
 			if (lastY >= 0) {
 				double minY = lastY-MAX_DROP_STEP*df;
-				if (lastY-dy >= 18 && s.length() > 10 && rand.nextInt(8/8) == 0) {
+				if (lastY-dy >= 18 && s.length() > 10 && rand.nextInt(5) > 0) { //was 100%
 					spiral = lastY-dy;
+					spiral *= ReikaRandomHelper.getRandomBetween(0.75, 1, rand);
 				}
 				else {
 					dy = MathHelper.clamp_double(dy, minY, lastY+MAX_RISE_STEP*df);
@@ -121,6 +133,8 @@ public class MantaGenerator {
 			}
 			lastEdge = edge;
 			if (spiral > 0) {
+				int spiralDir = rand.nextBoolean() ? 1 : -1;
+				apply spiral dir
 				DecimalPosition prev = s.getLast();
 				double vx = edge.xCoord-s.getLast().xCoord;
 				double vz = edge.zCoord-s.getLast().zCoord;
@@ -129,7 +143,7 @@ public class MantaGenerator {
 				vz /= dd;
 				double vx2 = -vz;
 				double vz2 = vx;
-				double rs = ReikaRandomHelper.getRandomBetween(8D, 15D, rand);
+				double rs = ReikaRandomHelper.getRandomBetween(15D, 25D, rand); //was 8/15
 				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5, lastY, edge.zCoord+0.5));
 				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5+vx*rs, lastY-spiral/4D, edge.zCoord+0.5+vz*rs));
 				s.addPoint(new BasicSplinePoint(edge.xCoord+0.5+vx*rs+vx2*rs, lastY-spiral/2D, edge.zCoord+0.5+vz*rs+vz2*rs));
@@ -153,12 +167,12 @@ public class MantaGenerator {
 
 		public void clearBlocks(World world) {
 			HashSet<Coordinate> clear = new HashSet();
-			int r = 2;
+			int r = 4;
 			for (DecimalPosition p : path) {
 				for (int i = -r; i <= r; i++) {
 					for (int j = -r; j <= r; j++) {
 						for (int k = -r; k <= r; k++) {
-							if (ReikaMathLibrary.py3d(i, j, k) <= r) {
+							if (ReikaMathLibrary.py3d(i, j, k) <= r+0.5) {
 								Coordinate c = new Coordinate(p.xCoord+i, p.yCoord+j, p.zCoord+k);
 								clear.add(c);
 							}

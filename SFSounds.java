@@ -24,9 +24,10 @@ import cpw.mods.fml.relauncher.Side;
 
 public enum SFSounds implements SoundEnum {
 
-	MANTA("manta"),
+	MANTA1("manta1"),
 	MANTA2("manta2"),
 	MANTA3("manta3"),
+	MANTA4("manta4"),
 	;
 
 	public static final SFSounds[] soundList = values();
