@@ -14,9 +14,9 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
-import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 public class WorldGenPinkGrass extends WorldGenerator {
 

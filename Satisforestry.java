@@ -42,6 +42,9 @@ import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntityFlyingManta;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
+import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFEntities;
+import Reika.Satisforestry.Registry.SFOptions;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;

@@ -7,9 +7,9 @@ import net.minecraft.world.World;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
-import Reika.Satisforestry.SFBlocks;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
+import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 
 public class WorldGenRedBamboo {

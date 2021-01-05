@@ -7,7 +7,7 @@
  * Distribution of the software in any form is only allowed with
  * explicit, prior permission from the owner.
  ******************************************************************************/
-package Reika.Satisforestry;
+package Reika.Satisforestry.Registry;
 
 import net.minecraft.entity.Entity;
 

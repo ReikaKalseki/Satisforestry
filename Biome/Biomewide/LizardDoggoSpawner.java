@@ -32,6 +32,7 @@ public class LizardDoggoSpawner {
 		for (int i = 0; i < n && !blocks.isEmpty(); i++) {
 			int idx = rand.nextInt(blocks.size());
 			Coordinate c = blocks.remove(idx);
+			c = c.setY(DecoratorPinkForest.getTrueTopAt(world, c.xCoord, c.zCoord)+1);
 			if (this.isValidDoggoSpawnArea(world, c)) {
 				boolean flag = true;
 				for (LizardDoggoSpawnPoint has : ret) {
@@ -48,7 +49,6 @@ public class LizardDoggoSpawner {
 	}
 
 	private boolean isValidDoggoSpawnArea(World world, Coordinate c) {
-		c = c.setY(DecoratorPinkForest.getTrueTopAt(world, c.xCoord, c.zCoord)+1);
 		if (!c.isEmpty(world))
 			return false;
 		for (int i = -1; i <= 1; i++) {
@@ -116,12 +116,13 @@ public class LizardDoggoSpawner {
 				return;
 			lastTick = time;
 			if (!doggoExists && ep.getDistanceSq(location.xCoord+0.5, location.yCoord+0.5, location.zCoord+0.5) <= 350) {
-				doggoExists = this.trySpawn(world);
+				;//doggoExists = this.trySpawn(world);
 			}
 		}
 
-		public void removeDoggo() {
+		public void removeDoggo(EntityLizardDoggo e) {
 			doggoExists = false;
+			BiomewideFeatureGenerator.instance.save(e.worldObj);
 		}
 
 		private boolean trySpawn(World world) {
@@ -133,9 +134,10 @@ public class LizardDoggoSpawner {
 			double x = ReikaRandomHelper.getRandomBetween(minX, maxX);
 			double z = ReikaRandomHelper.getRandomBetween(minZ, maxZ);
 			EntityLizardDoggo e = new EntityLizardDoggo(world);
-			e.setLocationAndAngles(x, location.yCoord+1+world.rand.nextDouble(), z, 0, 0);
+			e.setLocationAndAngles(x, location.yCoord+1+world.rand.nextDouble()*1.5, z, 0, 0);
 			if (e.getCanSpawnHere()) {
 				e.rotationYaw = world.rand.nextFloat()*360;
+				e.setSpawn(location);
 				world.spawnEntityInWorld(e);
 				return true;
 			}

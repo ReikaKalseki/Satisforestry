@@ -12,11 +12,14 @@ package Reika.Satisforestry;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.IO.SoundLoader;
+import Reika.Satisforestry.Registry.SFEntities;
+import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.DecorationRenderer;
 import Reika.Satisforestry.Render.PinkGrassRenderer;
 import Reika.Satisforestry.Render.RedBambooRenderer;
 import Reika.Satisforestry.Render.RenderEliteStinger;
 import Reika.Satisforestry.Render.RenderFlyingManta;
+import Reika.Satisforestry.Render.RenderLizardDoggo;
 import Reika.Satisforestry.Render.ResourceNodeRenderer;
 
 import cpw.mods.fml.client.FMLClientHandler;
@@ -54,6 +57,7 @@ public class SFClient extends SFCommon {
 
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.ELITESTINGER.getObjectClass(), new RenderEliteStinger());
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.MANTA.getObjectClass(), new RenderFlyingManta());
+		RenderingRegistry.registerEntityRenderingHandler(SFEntities.DOGGO.getObjectClass(), new RenderLizardDoggo());
 	}
 
 	// Override any other methods that need to be handled differently client side.

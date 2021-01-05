@@ -7,7 +7,7 @@
  * Distribution of the software in any form is only allowed with
  * explicit, prior permission from the owner.
  ******************************************************************************/
-package Reika.Satisforestry;
+package Reika.Satisforestry.Registry;
 
 import java.net.URL;
 
@@ -18,6 +18,7 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Interfaces.Registry.SoundEnum;
+import Reika.Satisforestry.Satisforestry;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -29,6 +30,7 @@ public enum SFSounds implements SoundEnum {
 	MANTA3("manta3"),
 	MANTA4("manta4"),
 	MANTAFLY("mantafly2"),
+	DOGGOPANT("doggopant"),
 	;
 
 	public static final SFSounds[] soundList = values();

@@ -179,7 +179,7 @@ public class DoggoDrop {
 				case BIOME:
 					return e.worldObj.getBiomeGenForCoords(MathHelper.floor_double(e.posX), MathHelper.floor_double(e.posZ)) == val;
 				case HEALTH:
-					return e.getHealth() >= e.getMaxHealth()*(float)val;
+					return e.getHealth() >= e.getMaxHealth()*(double)val;
 				case MAXY:
 					return e.posY <= (double)val;
 				case MINY:
@@ -205,7 +205,7 @@ public class DoggoDrop {
 				case HEALTH:
 				case MAXY:
 				case MINY:
-					return Float.parseFloat(input);
+					return Double.parseDouble(input);
 			}
 			return null;
 		}

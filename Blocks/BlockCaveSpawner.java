@@ -24,9 +24,9 @@ import net.minecraft.world.World;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
-import Reika.Satisforestry.SFBlocks;
-import Reika.Satisforestry.SFOptions;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFOptions;
 
 public class BlockCaveSpawner extends BlockContainer {
 

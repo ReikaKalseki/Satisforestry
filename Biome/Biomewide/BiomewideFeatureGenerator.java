@@ -82,6 +82,10 @@ public class BiomewideFeatureGenerator {
 			world.spawnEntityInWorld(e);
 			Satisforestry.logger.log("Generated manta path around "+x+", "+z);
 		}
+		this.save(world);
+	}
+
+	public void save(World world) {
 		PinkForestPersistentData.initNetworkData(world).setDirty(true);
 	}
 

@@ -7,13 +7,14 @@
  * Distribution of the software in any form is only allowed with
  * explicit, prior permission from the owner.
  ******************************************************************************/
-package Reika.Satisforestry;
+package Reika.Satisforestry.Registry;
 
 import net.minecraftforge.common.config.Property;
 
 import Reika.DragonAPI.Interfaces.Configuration.BooleanConfig;
 import Reika.DragonAPI.Interfaces.Configuration.BoundedConfig;
 import Reika.DragonAPI.Interfaces.Configuration.IntegerConfig;
+import Reika.Satisforestry.Satisforestry;
 
 public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
 

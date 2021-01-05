@@ -17,10 +17,11 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Interfaces.Entity.ChunkLoadingEntity;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
-import Reika.Satisforestry.SFSounds;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.MantaGenerator.MantaPath;
+import Reika.Satisforestry.Registry.SFEntities;
+import Reika.Satisforestry.Registry.SFSounds;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -57,6 +58,11 @@ public class EntityFlyingManta extends EntityFlying implements ChunkLoadingEntit
 		}*/
 
 		this.setPathPosition();
+	}
+
+	@Override
+	public String getCommandSenderName() {
+		return SFEntities.MANTA.entityName;
 	}
 
 	@Override
