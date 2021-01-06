@@ -36,8 +36,10 @@ import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.DragonAPI.ModInteract.DeepInteract.ReikaThaumHelper;
 import Reika.Satisforestry.Biome.BiomePinkForest;
+import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
+import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntityFlyingManta;
@@ -161,9 +163,27 @@ public class Satisforestry extends DragonAPIMod {
 		BiomeConfig.instance.loadConfigs();
 
 		if (ModList.THAUMCRAFT.isLoaded()) {
-			ReikaThaumHelper.addAspects(EntityEliteStinger.class, Aspect.BEAST, 8, Aspect.POISON, 8, Aspect.HUNGER, 4, Aspect.FLIGHT, 2);
-			ReikaThaumHelper.addAspects(EntityFlyingManta.class, Aspect.AIR, 6, Aspect.FLIGHT, 15, Aspect.TRAVEL, 9);
+			ReikaThaumHelper.addAspectsToItem(paleberry, Aspect.HEAL, 4, Aspect.HUNGER, 1, Aspect.EXCHANGE, 1);
+
+			ReikaThaumHelper.addAspects(EntityEliteStinger.class, Aspect.BEAST, 12, Aspect.POISON, 10, Aspect.HUNGER, 6, Aspect.FLIGHT, 2);
+			ReikaThaumHelper.addAspects(EntityFlyingManta.class, Aspect.AIR, 6, Aspect.FLIGHT, 24, Aspect.TRAVEL, 18);
 			ReikaThaumHelper.addAspects(EntityLizardDoggo.class, Aspect.BEAST, 1, Aspect.GREED, 1, Aspect.HARVEST, 2);
+
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.BAMBOO.getBlockInstance(), Aspect.PLANT, 3, Aspect.TREE, 1);
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.LOG.getBlockInstance(), Aspect.TREE, 6, Aspect.ARMOR, 4, Aspect.TRAVEL, 1);
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.LEAVES.getBlockInstance(), Aspect.TREE, 4, Aspect.PLANT, 4, Aspect.SENSES, 2);
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.GRASS.getBlockInstance(), Aspect.PLANT, 2, Aspect.LIFE, 1);
+
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.CAVESHIELD.getBlockInstance(), Aspect.DARKNESS, 8, Aspect.ARMOR, 8, Aspect.VOID, 4, Aspect.EARTH, 6, Aspect.MINE, 3);
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.GASEMITTER.getBlockInstance(), Aspect.POISON, 8, Aspect.TRAP, 6, Aspect.AURA, 4);
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.RESOURCENODE.getBlockInstance(), Aspect.GREED, 12, Aspect.MINE, 8, Aspect.HARVEST, 8);
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.SPAWNER.getBlockInstance(), Aspect.DARKNESS, 8, Aspect.ARMOR, 8, Aspect.BEAST, 12);
+
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.TERRAIN.getBlockInstance(), TerrainType.POISONROCK.ordinal(), Aspect.EARTH, 3, Aspect.POISON, 1);
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), Aspect.EARTH, 3, Aspect.WATER, 2);
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.DECORATION.getBlockInstance(), DecorationType.TENDRILS.ordinal(), Aspect.EARTH, 4, Aspect.TRAP, 2);
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALACTITE.ordinal(), Aspect.EARTH, 3, Aspect.DARKNESS, 1);
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal(), Aspect.EARTH, 3, Aspect.DARKNESS, 1);
 		}
 
 		this.finishTiming();

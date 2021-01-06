@@ -133,7 +133,7 @@ public class EntityLizardDoggo extends EntityTameable {
 
 		if (!worldObj.isRemote && foundItem == null && ticksExisted >= 900 && this.isTamed()) {
 			long tick = worldObj.getTotalWorldTime();
-			if (rand.nextInt(10000*0+1) == 0 || worldObj.getTotalWorldTime()-lastItemTick >= 20*60*15) {
+			if (rand.nextInt(10000) == 0 || worldObj.getTotalWorldTime()-lastItemTick >= 20*60*15) {
 				this.generateItem();
 			}
 		}
