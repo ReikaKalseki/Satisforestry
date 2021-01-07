@@ -28,6 +28,7 @@ import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Auxiliary.EntityAIRunFromPlayer;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.LizardDoggoSpawner.LizardDoggoSpawnPoint;
 import Reika.Satisforestry.Config.BiomeConfig;
@@ -64,10 +65,12 @@ public class EntityLizardDoggo extends EntityTameable {
 		//args: priority (lower is more priority), task
 		tasks.addTask(1, new EntityAISwimming(this));
 		tasks.addTask(2, aiSit);
+		tasks.addTask(3, new EntityAIRunFromPlayer(this, 24, 0.4, 0.7));
+		tasks.addTask(4, new EntitySlowlyBackFromPlayer(this, 8, 0.2));
 		tasks.addTask(6, new EntityAIFollowOwner(this, 0.4, 4, 2.5F)); //args: speed, dist to start follow, dist to consider "reached them"
-		tasks.addTask(5, new EntityAIFollowOwner(this, 0.6, 15, 2.5F));
-		tasks.addTask(7, new EntityAIWander(this, 0.5)); //speed
-		tasks.addTask(8, new EntityAIWatchClosest(this, EntityPlayer.class, 15)); //max dist
+		tasks.addTask(5, new EntityAIFollowOwner(this, 0.6, 12, 2.5F));
+		tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 30)); //max dist
+		tasks.addTask(8, new EntityAIWander(this, 0.5)); //speed
 		tasks.addTask(9, new EntityAILookIdle(this));
 		//targetTasks.addTask(1, new EntityAIOwnerHurtByTarget(this));
 		//targetTasks.addTask(2, new EntityAIOwnerHurtTarget(this));
@@ -139,7 +142,7 @@ public class EntityLizardDoggo extends EntityTameable {
 		}
 
 		if (worldObj.isRemote) {
-			if (this.getHealth() > 0 && ticksExisted%9 == 0)
+			if (this.isTamed() && this.getHealth() > 0 && ticksExisted%9 == 0)
 				ReikaSoundHelper.playClientSound(SFSounds.DOGGOPANT, this, 0.4F+rand.nextFloat()*0.1F, 0.9F+rand.nextFloat()*0.1F);
 			if (needsItemUpdate) {
 				renderItem = foundItem != null ? new InertItem(worldObj, foundItem) : null;
@@ -248,6 +251,8 @@ public class EntityLizardDoggo extends EntityTameable {
 			if (ep.getCurrentEquippedItem() == null) {
 				ep.setCurrentItemOrArmor(0, foundItem);
 				foundItem = null;
+				needsItemUpdate = true;
+				ReikaPacketHelper.sendEntitySyncPacket(DragonAPIInit.packetChannel, this, 128);
 				return true;
 			}
 		}

@@ -2,7 +2,6 @@ package Reika.Satisforestry.Render;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.model.ModelQuadruped;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -22,7 +21,8 @@ import Reika.Satisforestry.Entity.EntityLizardDoggo;
 public class RenderLizardDoggo extends RenderLiving {
 
 	public RenderLizardDoggo() {
-		super(new ModelQuadruped(12, 0), 0.7F);
+		super(new ModelLizardDoggo(), 0.7F);
+		shadowSize *= 0.8;
 	}
 
 	@Override

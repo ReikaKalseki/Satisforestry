@@ -116,7 +116,7 @@ public class LizardDoggoSpawner {
 				return;
 			lastTick = time;
 			if (!doggoExists && ep.getDistanceSq(location.xCoord+0.5, location.yCoord+0.5, location.zCoord+0.5) <= 350) {
-				;//doggoExists = this.trySpawn(world);
+				doggoExists = this.trySpawn(world);
 			}
 		}
 
