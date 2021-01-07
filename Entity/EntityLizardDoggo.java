@@ -28,6 +28,7 @@ import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Auxiliary.EntityAIComeGetPaleberry;
 import Reika.Satisforestry.Auxiliary.EntityAIRunFromPlayer;
 import Reika.Satisforestry.Auxiliary.EntityAISlowlyBackFromPlayer;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
@@ -42,11 +43,20 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class EntityLizardDoggo extends EntityTameable {
 
+	private static final int SNEEZE_LENGTH_1 = 8;
+	private static final int SNEEZE_LENGTH_2 = 40;
+
 	private WorldLocation spawnPoint;
 	private ItemStack foundItem;
 	private long lastItemTick;
 
+	private boolean backwards;
+	private boolean lured;
+	private boolean running;
+	private boolean isJumpingInPlace;
 	private int sprintJumpTick;
+	private int sneezeTick1 = 0;
+	private int sneezeTick2 = 0;
 
 	private EntityItem renderItem;
 	private boolean needsItemUpdate;
@@ -67,7 +77,8 @@ public class EntityLizardDoggo extends EntityTameable {
 		tasks.addTask(1, new EntityAISwimming(this));
 		tasks.addTask(2, aiSit);
 		tasks.addTask(3, new EntityAIRunFromPlayer(this, 24, 0.4, 0.7));
-		tasks.addTask(4, new EntityAISlowlyBackFromPlayer(this, 8, 0.2));
+		tasks.addTask(4, new EntityAIComeGetPaleberry(this, 10, 0.28));
+		tasks.addTask(5, new EntityAISlowlyBackFromPlayer(this, 8, 0.2));
 		tasks.addTask(6, new EntityAIFollowOwner(this, 0.4, 4, 2.5F)); //args: speed, dist to start follow, dist to consider "reached them"
 		tasks.addTask(5, new EntityAIFollowOwner(this, 0.6, 12, 2.5F));
 		EntityAIWatchClosest look = new EntityAIWatchClosest(this, EntityPlayer.class, 30);
@@ -84,9 +95,10 @@ public class EntityLizardDoggo extends EntityTameable {
 	protected final void entityInit() {
 		super.entityInit();
 
-		dataWatcher.addObject(15, (byte)0);
 		dataWatcher.addObject(14, 0);
-		dataWatcher.addObject(13, (byte)0);
+		dataWatcher.addObject(15, 0);
+		dataWatcher.addObject(19, 0);
+		dataWatcher.addObject(20, 0);
 	}
 
 	@Override
@@ -114,8 +126,12 @@ public class EntityLizardDoggo extends EntityTameable {
 		}
 	}
 
-	public void setBackwards(boolean backwards) {
-		dataWatcher.updateObject(13, backwards ? (byte)1 : (byte)0);
+	public void setLured(boolean lure) {
+		lured = lure;
+	}
+
+	public void setBackwards(boolean back) {
+		backwards = back;
 	}
 
 	@Override
@@ -156,6 +172,19 @@ public class EntityLizardDoggo extends EntityTameable {
 				renderItem = foundItem != null ? new InertItem(worldObj, foundItem) : null;
 			}
 		}
+		else {
+			this.updateFlags();
+		}
+	}
+
+	private void updateFlags() {
+		int flags = 0;
+		for (DoggoFlags f : DoggoFlags.list) {
+			if (f.evaluate(this)) {
+				flags |= f.getBit();
+			}
+		}
+		dataWatcher.updateObject(15, flags);
 	}
 
 	private void generateItem() {
@@ -177,55 +206,76 @@ public class EntityLizardDoggo extends EntityTameable {
 			if (sprintJumpTick > 0)
 				sprintJumpTick--;
 
-			boolean run = false;
+			running = false;
+
+			if (sneezeTick1 > 0)
+				sneezeTick1--;
+			if (sneezeTick2 > 0)
+				sneezeTick2--;
 
 			if (onGround && this.isTamed()) {
-				double vel = ReikaMathLibrary.py3d(motionX, 0, motionZ);
-				boolean flag = vel > 0.125;
-				if (flag || (!flag && rand.nextInt(50) == 0)) {
-					if (sprintJumpTick == 0) {
-						sprintJumpTick = 12;
-						this.jump();
-						if (!flag) {
-							motionX = motionZ = 0;
-							this.playLivingSound();
+				if (sneezeTick1 == 0 && sneezeTick2 == 0 && rand.nextInt(300) == 0)
+					this.sneeze();
+				if (this.isSitting()) {
+
+				}
+				else {
+					isJumpingInPlace = false;
+					double vel = ReikaMathLibrary.py3d(motionX, 0, motionZ);
+					boolean flag = vel > 0.125;
+					if (flag || (!flag && sneezeTick1 == 0 && sneezeTick2 == 0 && rand.nextInt(150) == 0)) {
+						if (sprintJumpTick == 0) {
+							sprintJumpTick = 12;
+							isJumpingInPlace = !flag;
+							this.jump();
 						}
 					}
+					running = flag;
 				}
-				run = flag;
 			}
-			dataWatcher.updateObject(15, run ? (byte)1 : (byte)0);
 			dataWatcher.updateObject(14, sprintJumpTick);
+			dataWatcher.updateObject(20, sneezeTick1);
+			dataWatcher.updateObject(19, sneezeTick2);
+		}
+	}
+
+	private void sneeze() {
+		if (rand.nextBoolean()) {
+			sneezeTick1 = SNEEZE_LENGTH_1;
+		}
+		else {
+			sneezeTick2 = SNEEZE_LENGTH_2;
 		}
 	}
 
 	@Override
 	protected void jump() {
-		motionY = sprintJumpTick == 0 ? 0.55 : 0.35;//0.42;
+		motionY = sprintJumpTick == 0 || isJumpingInPlace ? 0.45 : 0.35;//0.42;
 		if (this.isPotionActive(Potion.jump)) {
 			motionY += (this.getActivePotionEffect(Potion.jump).getAmplifier() + 1) * 0.1F;
 		}
 
-		if (sprintJumpTick > 0) {
+		if (sprintJumpTick > 0 && !isJumpingInPlace) {
 			float f = rotationYaw * 0.017453292F;
 			double v = 0.45;//0.35;//0.2;
 			motionX -= MathHelper.sin(f) * v;
 			motionZ += MathHelper.cos(f) * v;
 		}
 		else {
-			//make sound
+			this.playLivingSound();
 		}
 
+		isJumpingInPlace = false;
 		isAirBorne = true;
 		ForgeHooks.onLivingJump(this);
 	}
 
-	public boolean isBackwards() {
-		return dataWatcher.getWatchableObjectByte(13) > 0;
+	public float getSneezeTick2() {
+		return Math.min(1, dataWatcher.getWatchableObjectInt(19)*1.5F/SNEEZE_LENGTH_2);
 	}
 
-	public boolean isSprintingToPlayer() {
-		return dataWatcher.getWatchableObjectByte(15) > 0;
+	public float getSneezeTick1() {
+		return dataWatcher.getWatchableObjectInt(20)/(float)SNEEZE_LENGTH_1;
 	}
 
 	public int getSprintJumpTick() {
@@ -258,13 +308,19 @@ public class EntityLizardDoggo extends EntityTameable {
 				if (is.stackSize <= 0)
 					is = null;
 				ep.setCurrentItemOrArmor(0, is);
+				isJumpingInPlace = true;
+				this.jump();
 				return true;
 			}
 		}
 		if (super.interact(ep))
 			return true;
+		if (this.isTamed() && onGround && !this.isSitting() && rand.nextInt(5) == 0) {
+			isJumpingInPlace = true;
+			this.jump();
+		}
 		this.playLivingSound();
-		if (!worldObj.isRemote && foundItem != null && this.func_152114_e(ep)) {
+		if (!worldObj.isRemote && !ep.isSneaking() && foundItem != null && this.func_152114_e(ep)) {
 			if (ep.getCurrentEquippedItem() == null) {
 				ep.setCurrentItemOrArmor(0, foundItem);
 				foundItem = null;
@@ -310,6 +366,7 @@ public class EntityLizardDoggo extends EntityTameable {
 		needsItemUpdate = true;
 
 		sprintJumpTick = NBT.getInteger("sprintJump");
+		backwards = NBT.getBoolean("backwards");
 	}
 
 	@Override
@@ -326,6 +383,7 @@ public class EntityLizardDoggo extends EntityTameable {
 		}
 
 		NBT.setInteger("sprintJump", sprintJumpTick);
+		NBT.setBoolean("backwards", backwards);
 	}
 
 	private class DoggoDropHook implements DynamicWeight {
@@ -339,6 +397,45 @@ public class EntityLizardDoggo extends EntityTameable {
 		@Override
 		public double getWeight() {
 			return drop.getNetWeight(EntityLizardDoggo.this);
+		}
+
+	}
+
+	public static enum DoggoFlags {
+
+		BACKWARDS,
+		SPRINTING,
+		JUMP,
+		LURED,
+		;
+
+		private static final DoggoFlags[] list = values();
+
+		private DoggoFlags() {
+
+		}
+
+		private int getBit() {
+			return 1 << this.ordinal();
+		}
+
+		private boolean evaluate(EntityLizardDoggo e) {
+			switch(this) {
+				case BACKWARDS:
+					return e.backwards;
+				case JUMP:
+					return e.isJumpingInPlace;
+				case LURED:
+					return e.lured;
+				case SPRINTING:
+					break;
+			}
+			return false;
+		}
+
+		@SideOnly(Side.CLIENT)
+		public boolean get(EntityLizardDoggo e) {
+			return (e.dataWatcher.getWatchableObjectInt(15) & this.getBit()) != 0;
 		}
 
 	}

@@ -8,6 +8,8 @@ package Reika.Satisforestry.Render;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map.Entry;
 
 import org.lwjgl.opengl.GL11;
 
@@ -20,6 +22,7 @@ import net.minecraft.util.MathHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
+import Reika.Satisforestry.Entity.EntityLizardDoggo.DoggoFlags;
 
 public class ModelLizardDoggo extends ModelBase {
 
@@ -58,6 +61,7 @@ public class ModelLizardDoggo extends ModelBase {
 	ModelRenderer BackScale4;
 
 	private final Collection<ModelRenderer> headParts = new ArrayList();
+	private final HashMap<ModelRenderer, Float> scaleParts = new HashMap();
 
 	private double rightEarXTarget;
 	private double rightEarX;
@@ -266,39 +270,81 @@ public class ModelLizardDoggo extends ModelBase {
 		headParts.add(Jaw2);
 		headParts.add(Tongue);
 		headParts.add(Neck);
+
+		scaleParts.put(BackScale1, BackScale1.rotateAngleX);
+		scaleParts.put(BackScale2, BackScale2.rotateAngleX);
+		scaleParts.put(BackScale3, BackScale3.rotateAngleX);
+		scaleParts.put(BackScale4, BackScale4.rotateAngleX);
+		scaleParts.put(BackScale5, BackScale5.rotateAngleX);
+
+		scaleParts.put(Scale1, Scale1.rotateAngleX);
+		scaleParts.put(Scale2, Scale2.rotateAngleX);
+		scaleParts.put(Scale3, Scale3.rotateAngleX);
+		scaleParts.put(Scale4, Scale4.rotateAngleX);
+		scaleParts.put(Scale5, Scale5.rotateAngleX);
 	}
 
 	@Override
 	public void render(Entity e, float f, float f1, float f2, float f3, float f4, float f5) {
 		EntityLizardDoggo el = (EntityLizardDoggo)e;
 		GL11.glPushMatrix();
-		if (el.isBackwards())
+		if (DoggoFlags.BACKWARDS.get(el))
 			GL11.glRotated(180, 0, 1, 0);
 		super.render(e, f, f1, f2, f3, f4, f5);
 
 		this.setRotationAngles(f, f1, f2, f3, f4, f5, e);
 
+		boolean jump = DoggoFlags.JUMP.get(el);
+		boolean lure = DoggoFlags.LURED.get(el);
 		int tick = el.getSprintJumpTick();
 
 		double dt = tick >= 4 ? (8-(tick-4))*0.018 : tick*0.036;
-		dt *= 2.5;
-		boolean run = el.isSprintingToPlayer();
+		if (jump)
+			dt *= 1.5;
+		else
+			dt *= 2.5;
 
 		double t = System.currentTimeMillis()/72D;
 		double dy = 0;
 		double ang = 0;
 		boolean tame = el.isTamed();
 
+		float sneeze1 = el.getSneezeTick1();
+		float sneeze2 = el.getSneezeTick2();
+		float sneeze = Math.max(Math.min(1, sneeze1*2), sneeze2);
+		for (Entry<ModelRenderer, Float> en : scaleParts.entrySet()) {
+			ModelRenderer mr = en.getKey();
+			float base = en.getValue();
+			mr.rotateAngleX = base+(float)Math.toRadians(30)*sneeze;
+			float df = Math.abs(base-scaleParts.get(BackScale1))*1.25F;
+			mr.offsetY = sneeze*0.03125F+df*sneeze;
+		}
+
 		if (tame) {
 			dy = 0.008*Math.sin(t);
 			ang = 1.8*Math.sin(t/2+238);
+		}
+		else if (lure) {
+			dy = MathHelper.clamp_double(0.06*Math.sin(t*1.2), -0.04, 0.04);
+			ang = 2.5*Math.sin(t/1.5+238);
+		}
+		if (sneeze2 >= 0.9) {
+			ang += 350*Math.sin(11*t*(sneeze2-0.9)-349)*(sneeze2-0.9)*(sneeze2-0.9);
+		}
+
+		double stretch = 1;
+		if (sneeze1 > 0.75) {
+			stretch += sneeze1*0.375*(1-sneeze1);
+		}
+		else {
+			stretch += sneeze1*0.125;
 		}
 
 		Tongue.rotateAngleY -= Math.toRadians(ang*2);
 		Tongue.rotateAngleX -= dy*1.7;
 
-		if (run) {
-			this.updateEars(e);
+		if (DoggoFlags.SPRINTING.get(el) || jump) {
+			this.updateEars(el, jump);
 		}
 		else {
 			leftEarX = 0;
@@ -306,7 +352,8 @@ public class ModelLizardDoggo extends ModelBase {
 		}
 
 		GL11.glPushMatrix();
-		GL11.glTranslated(0, dy+dt, 0);
+		GL11.glScaled(1, 1, stretch);
+		GL11.glTranslated(0, dy+dt, -(stretch-1));
 		GL11.glRotated(ang, 0, 0, 1);
 		EarAttachmentR.render(f5);
 		Nose.render(f5);
@@ -336,6 +383,7 @@ public class ModelLizardDoggo extends ModelBase {
 		Neck.render(f5);
 		Body.render(f5);
 		Body2.render(f5);
+
 		BackScale1.render(f5);
 		BackScale2.render(f5);
 		BackScale3.render(f5);
@@ -349,6 +397,7 @@ public class ModelLizardDoggo extends ModelBase {
 		Tail3.render(f5);
 		Tail2.render(f5);
 		Tail.render(f5);
+
 		Scale2.render(f5);
 		Scale3.render(f5);
 		Scale5.render(f5);
@@ -364,13 +413,15 @@ public class ModelLizardDoggo extends ModelBase {
 		GL11.glPopMatrix();
 	}
 
-	private void updateEars(Entity e) {
+	private void updateEars(EntityLizardDoggo e, boolean jump) {
 		//EarL.rotateAngleX = (float)(dt*7.5*Math.sin(t-3478));
 		//EarL.rotateAngleZ = EarL.rotateAngleX;
 
-		double v = 0.12*3;
+		double v = 0.12*2;
+		if (jump)
+			v *= 1.25;
 
-		if (ReikaMathLibrary.approxrAbs(rightEarXTarget, rightEarX, 0.08)) { //aprox 8 degrees
+		if (ReikaMathLibrary.approxrAbs(rightEarXTarget, rightEarX, 0.3)) {
 			rightEarXTarget = Math.toRadians(ReikaRandomHelper.getRandomBetween(0, 360));
 		}
 		if (rightEarXTarget > rightEarX) {
@@ -380,7 +431,7 @@ public class ModelLizardDoggo extends ModelBase {
 			rightEarX -= v;
 		}
 
-		if (ReikaMathLibrary.approxrAbs(leftEarXTarget, leftEarX, 0.08)) { //aprox 8 degrees
+		if (ReikaMathLibrary.approxrAbs(leftEarXTarget, leftEarX, 0.3)) {
 			leftEarXTarget = Math.toRadians(ReikaRandomHelper.getRandomBetween(0, 360));
 		}
 		if (leftEarXTarget > leftEarX) {
@@ -400,7 +451,11 @@ public class ModelLizardDoggo extends ModelBase {
 	@Override
 	public void setRotationAngles(float f, float f1, float f2, float f3, float f4, float f5, Entity e) {
 		super.setRotationAngles(f, f1, f2, f3, f4, f5, e);
-		float f6 = (180F / (float)Math.PI);
+
+		float sneeze = ((EntityLizardDoggo)e).getSneezeTick2();
+		if (sneeze >= 0.8) {
+			f3 += 250*Math.sin(12*e.ticksExisted*(sneeze-0.8)-349)*(sneeze-0.8)*(sneeze-0.8);
+		}
 
 		for (ModelRenderer head : headParts) {
 			head.rotateAngleX = f4 / (180F / (float)Math.PI);

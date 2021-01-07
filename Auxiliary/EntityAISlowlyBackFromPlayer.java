@@ -9,7 +9,7 @@ import net.minecraft.util.Vec3;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
 public class EntityAISlowlyBackFromPlayer extends EntityAIBase {
-	/** The entity we are attached to */
+
 	private EntityLizardDoggo doggo;
 	private double speed;
 	private EntityPlayer closestPlayer;
@@ -18,11 +18,8 @@ public class EntityAISlowlyBackFromPlayer extends EntityAIBase {
 	private PathEntity entityPath;
 	/** The PathNavigate of our entity */
 	private PathNavigate pathfinder;
-	/** The class of the entity we should avoid */
-	private static final String __OBFID = "CL_00001574";
 
-	public EntityAISlowlyBackFromPlayer(EntityLizardDoggo e, double dd, double sp)
-	{
+	public EntityAISlowlyBackFromPlayer(EntityLizardDoggo e, double dd, double sp) {
 		doggo = e;
 		maximumDistance = dd;
 		speed = sp;
@@ -30,12 +27,8 @@ public class EntityAISlowlyBackFromPlayer extends EntityAIBase {
 		this.setMutexBits(1);
 	}
 
-	/**
-	 * Returns whether the EntityAIBase should begin execution.
-	 */
 	@Override
-	public boolean shouldExecute()
-	{
+	public boolean shouldExecute() {
 		if (doggo.isTamed()) {
 			return false;
 		}
