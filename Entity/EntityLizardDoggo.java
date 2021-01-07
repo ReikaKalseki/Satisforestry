@@ -29,6 +29,7 @@ import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Auxiliary.EntityAIRunFromPlayer;
+import Reika.Satisforestry.Auxiliary.EntityAISlowlyBackFromPlayer;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.LizardDoggoSpawner.LizardDoggoSpawnPoint;
 import Reika.Satisforestry.Config.BiomeConfig;
@@ -66,10 +67,12 @@ public class EntityLizardDoggo extends EntityTameable {
 		tasks.addTask(1, new EntityAISwimming(this));
 		tasks.addTask(2, aiSit);
 		tasks.addTask(3, new EntityAIRunFromPlayer(this, 24, 0.4, 0.7));
-		tasks.addTask(4, new EntitySlowlyBackFromPlayer(this, 8, 0.2));
+		tasks.addTask(4, new EntityAISlowlyBackFromPlayer(this, 8, 0.2));
 		tasks.addTask(6, new EntityAIFollowOwner(this, 0.4, 4, 2.5F)); //args: speed, dist to start follow, dist to consider "reached them"
 		tasks.addTask(5, new EntityAIFollowOwner(this, 0.6, 12, 2.5F));
-		tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 30)); //max dist
+		EntityAIWatchClosest look = new EntityAIWatchClosest(this, EntityPlayer.class, 30);
+		look.setMutexBits(0);
+		tasks.addTask(6, look); //max dist
 		tasks.addTask(8, new EntityAIWander(this, 0.5)); //speed
 		tasks.addTask(9, new EntityAILookIdle(this));
 		//targetTasks.addTask(1, new EntityAIOwnerHurtByTarget(this));
@@ -83,6 +86,7 @@ public class EntityLizardDoggo extends EntityTameable {
 
 		dataWatcher.addObject(15, (byte)0);
 		dataWatcher.addObject(14, 0);
+		dataWatcher.addObject(13, (byte)0);
 	}
 
 	@Override
@@ -108,6 +112,10 @@ public class EntityLizardDoggo extends EntityTameable {
 				spawn.removeDoggo(this);
 			}
 		}
+	}
+
+	public void setBackwards(boolean backwards) {
+		dataWatcher.updateObject(13, backwards ? (byte)1 : (byte)0);
 	}
 
 	@Override
@@ -173,13 +181,18 @@ public class EntityLizardDoggo extends EntityTameable {
 
 			if (onGround && this.isTamed()) {
 				double vel = ReikaMathLibrary.py3d(motionX, 0, motionZ);
-				if (vel > 0.125) {
+				boolean flag = vel > 0.125;
+				if (flag || (!flag && rand.nextInt(50) == 0)) {
 					if (sprintJumpTick == 0) {
 						sprintJumpTick = 12;
 						this.jump();
+						if (!flag) {
+							motionX = motionZ = 0;
+							this.playLivingSound();
+						}
 					}
-					run = true;
 				}
+				run = flag;
 			}
 			dataWatcher.updateObject(15, run ? (byte)1 : (byte)0);
 			dataWatcher.updateObject(14, sprintJumpTick);
@@ -205,6 +218,10 @@ public class EntityLizardDoggo extends EntityTameable {
 
 		isAirBorne = true;
 		ForgeHooks.onLivingJump(this);
+	}
+
+	public boolean isBackwards() {
+		return dataWatcher.getWatchableObjectByte(13) > 0;
 	}
 
 	public boolean isSprintingToPlayer() {

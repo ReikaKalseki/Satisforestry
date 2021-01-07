@@ -8,6 +8,7 @@ import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.util.Vec3;
 
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
@@ -22,8 +23,7 @@ public class EntityAIRunFromPlayer extends EntityAIBase {
 	private PathEntity entityPath;
 	/** The PathNavigate of our entity */
 	private PathNavigate pathfinder;
-	/** The class of the entity we should avoid */
-	private static final String __OBFID = "CL_00001574";
+	private int scaredTick;
 
 	public EntityAIRunFromPlayer(EntityLizardDoggo e, double dd, double sfar, double sclose)
 	{
@@ -39,8 +39,7 @@ public class EntityAIRunFromPlayer extends EntityAIBase {
 	 * Returns whether the EntityAIBase should begin execution.
 	 */
 	@Override
-	public boolean shouldExecute()
-	{
+	public boolean shouldExecute() {
 		if (doggo.isTamed()) {
 			return false;
 		}
@@ -72,26 +71,32 @@ public class EntityAIRunFromPlayer extends EntityAIBase {
 			return false;
 		if (ep.isJumping || !ep.onGround || ep.isSprinting())
 			return true;
-		ItemStack held = ep.getCurrentEquippedItem();
-		if (held != null && held.getItem() == Satisforestry.paleberry)
+		if (hasPaleberry(ep))
 			return false;
-		double vel = 0;//ReikaMathLibrary.py3d(closestPlayer.lastTickPosX-closestPlayer.posX, 0, closestPlayer.lastTickPosZ-closestPlayer.posZ);
-		return vel >= 0.2 || ep.getDistanceSqToEntity(e) <= 12;
+		double vel = ReikaMathLibrary.py3d(ep.lastTickPosX-ep.posX, 0, ep.lastTickPosZ-ep.posZ); //always zero speed no matter how it is measured!?
+		return vel >= 0.2 || ep.getDistanceSqToEntity(e) <= 9;
+	}
+
+	static boolean hasPaleberry(EntityPlayer ep) {
+		ItemStack held = ep.getCurrentEquippedItem();
+		return held != null && held.getItem() == Satisforestry.paleberry;
 	}
 
 	@Override
 	public boolean continueExecuting() {
-		return !pathfinder.noPath() && isThreatening(doggo, closestPlayer);
+		return !pathfinder.noPath() && (isThreatening(doggo, closestPlayer) || scaredTick > 0);
 	}
 
 	@Override
 	public void startExecuting() {
 		pathfinder.setPath(entityPath, speedWhenFar);
+		scaredTick = 15;
 	}
 
 	@Override
 	public void resetTask() {
 		closestPlayer = null;
+		scaredTick = 0;
 	}
 
 	@Override
@@ -102,5 +107,7 @@ public class EntityAIRunFromPlayer extends EntityAIBase {
 		else {
 			doggo.getNavigator().setSpeed(speedWhenFar);
 		}
+		if (scaredTick > 0)
+			scaredTick--;
 	}
 }

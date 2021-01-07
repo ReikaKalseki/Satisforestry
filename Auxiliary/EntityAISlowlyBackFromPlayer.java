@@ -1,7 +1,6 @@
 package Reika.Satisforestry.Auxiliary;
 
 import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathNavigate;
@@ -46,10 +45,13 @@ public class EntityAISlowlyBackFromPlayer extends EntityAIBase {
 		if (closestPlayer == null)
 			return false;
 
-		if (!EntityAIRunFromPlayer.isThreatening(doggo, closestPlayer))
+		if (EntityAIRunFromPlayer.hasPaleberry(closestPlayer))
 			return false;
 
-		Vec3 vec3 = RandomPositionGenerator.findRandomTargetBlockAwayFrom(doggo, 20, 4, Vec3.createVectorHelper(closestPlayer.posX, closestPlayer.posY, closestPlayer.posZ));
+		double dx = doggo.posX*2-closestPlayer.posX;
+		double dy = doggo.posY*2-closestPlayer.posY;
+		double dz = doggo.posZ*2-closestPlayer.posZ;
+		Vec3 vec3 = Vec3.createVectorHelper(dx, dy, dz);//RandomPositionGenerator.findRandomTargetBlockAwayFrom(doggo, 8, 2, Vec3.createVectorHelper(closestPlayer.posX, closestPlayer.posY, closestPlayer.posZ));
 
 		if (vec3 == null) {
 			return false;
@@ -65,7 +67,7 @@ public class EntityAISlowlyBackFromPlayer extends EntityAIBase {
 
 	@Override
 	public boolean continueExecuting() {
-		return !pathfinder.noPath() && this.isThreatened();
+		return !pathfinder.noPath() && !EntityAIRunFromPlayer.hasPaleberry(closestPlayer);
 	}
 
 	@Override
@@ -76,10 +78,13 @@ public class EntityAISlowlyBackFromPlayer extends EntityAIBase {
 	@Override
 	public void resetTask() {
 		closestPlayer = null;
+		doggo.setBackwards(false);
 	}
 
 	@Override
 	public void updateTask() {
 		doggo.getNavigator().setSpeed(speed);
+		doggo.setBackwards(true);
+		doggo.rotationYawHead = -(float)Math.toDegrees(Math.atan2(doggo.posX-closestPlayer.posX, doggo.posZ-closestPlayer.posZ));
 	}
 }

@@ -270,11 +270,14 @@ public class ModelLizardDoggo extends ModelBase {
 
 	@Override
 	public void render(Entity e, float f, float f1, float f2, float f3, float f4, float f5) {
+		EntityLizardDoggo el = (EntityLizardDoggo)e;
+		GL11.glPushMatrix();
+		if (el.isBackwards())
+			GL11.glRotated(180, 0, 1, 0);
 		super.render(e, f, f1, f2, f3, f4, f5);
 
 		this.setRotationAngles(f, f1, f2, f3, f4, f5, e);
 
-		EntityLizardDoggo el = (EntityLizardDoggo)e;
 		int tick = el.getSprintJumpTick();
 
 		double dt = tick >= 4 ? (8-(tick-4))*0.018 : tick*0.036;
@@ -357,6 +360,8 @@ public class ModelLizardDoggo extends ModelBase {
 		Leg2.render(f5);
 		Leg3.render(f5);
 		Leg4.render(f5);
+
+		GL11.glPopMatrix();
 	}
 
 	private void updateEars(Entity e) {
