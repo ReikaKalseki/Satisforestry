@@ -9,7 +9,6 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.Vec3;
 
 import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaGLHelper.BlendMode;
@@ -20,14 +19,20 @@ import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
 public class RenderLizardDoggo extends RenderLiving {
 
-	public RenderLizardDoggo() {
+	public static final RenderLizardDoggo instance = new RenderLizardDoggo();
+
+	private float bodyYaw;
+	private float relativeHeadYaw;
+	private float headPitch;
+	private double headBob;
+
+	private RenderLizardDoggo() {
 		super(new ModelLizardDoggo(), 0.7F);
 		shadowSize *= 0.8;
 	}
 
 	@Override
 	public void doRender(Entity e, double par2, double par4, double par6, float par8, float ptick) {
-		e.rotationPitch = 5;
 		super.doRender(e, par2, par4, par6, par8, ptick);
 
 		EntityLizardDoggo el = (EntityLizardDoggo)e;
@@ -50,9 +55,10 @@ public class RenderLizardDoggo extends RenderLiving {
 		//GL11.glTranslated(0.0625, 0.75, 0.875);
 		//GL11.glRotated(te.rotationPitch, 1, 0, 0);
 		//GL11.glRotated(-22.5, 1, 0, 0);
-		Vec3 vec = te.getLookVec();
-		GL11.glRotated(180-te.rotationYawHead, 0, 1, 0);
-		GL11.glTranslated(vec.xCoord, te.getEyeHeight()+vec.yCoord, vec.zCoord);
+		GL11.glRotated(172-bodyYaw, 0, 1, 0);
+		GL11.glTranslated(0, te.getEyeHeight()+0.12-headPitch/128+headBob, -0.875);
+		GL11.glRotated(relativeHeadYaw*1.1, 0, 1, 0);
+		GL11.glRotated(90-headPitch, 1, 0, 0);
 		BlendMode.DEFAULT.apply();
 		GL11.glEnable(GL11.GL_BLEND);
 		double c = 0.2;
@@ -80,6 +86,13 @@ public class RenderLizardDoggo extends RenderLiving {
 	@Override
 	protected boolean func_110813_b(EntityLivingBase e) {
 		return false;
+	}
+
+	public void setOffsetsAndAngles(float f, float f1, float f2, float f3, float f4, float body, double dy) {
+		headPitch = f4;
+		relativeHeadYaw = f3;
+		bodyYaw = body;
+		headBob = dy;
 	}
 
 }

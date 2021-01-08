@@ -55,7 +55,7 @@ public class SFClient extends SFCommon {
 
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.ELITESTINGER.getObjectClass(), new RenderEliteStinger());
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.MANTA.getObjectClass(), new RenderFlyingManta());
-		RenderingRegistry.registerEntityRenderingHandler(SFEntities.DOGGO.getObjectClass(), new RenderLizardDoggo());
+		RenderingRegistry.registerEntityRenderingHandler(SFEntities.DOGGO.getObjectClass(), RenderLizardDoggo.instance);
 	}
 
 	// Override any other methods that need to be handled differently client side.

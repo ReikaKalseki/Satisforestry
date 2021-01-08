@@ -38,6 +38,8 @@ public enum SFSounds implements SoundEnum {
 	DOGGO3("doggo3"),
 	DOGGO4("doggo4"),
 	DOGGO5("doggo5"),
+	DOGGO6("doggo6"),
+	DOGGO7("doggo7"),
 	DOGGOSNEEZE1("doggosneeze1"),
 	DOGGOSNEEZE2("doggosneeze2"),
 	;
@@ -118,7 +120,15 @@ public enum SFSounds implements SoundEnum {
 
 	@Override
 	public boolean attenuate() {
-		return false;
+		switch(this) {
+			case MANTA1:
+			case MANTA2:
+			case MANTA3:
+			case MANTA4:
+				return false;
+			default:
+				return true;
+		}
 	}
 
 	@Override

@@ -340,6 +340,8 @@ public class ModelLizardDoggo extends ModelBase {
 			stretch += sneeze1*0.125;
 		}
 
+		RenderLizardDoggo.instance.setOffsetsAndAngles(f, f1, f2, f3, f4, el.renderYawOffset, -dy);
+
 		Tongue.rotateAngleY -= Math.toRadians(ang*2);
 		Tongue.rotateAngleX -= dy*1.7;
 

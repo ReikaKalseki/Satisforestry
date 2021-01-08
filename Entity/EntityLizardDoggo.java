@@ -158,11 +158,15 @@ public class EntityLizardDoggo extends EntityTameable {
 	public void onUpdate() {
 		super.onUpdate();
 
-		if (!worldObj.isRemote && foundItem == null && ticksExisted >= 900 && this.isTamed()) {
-			long tick = worldObj.getTotalWorldTime();
-			if (rand.nextInt(10000) == 0 || worldObj.getTotalWorldTime()-lastItemTick >= 20*60*15) {
-				this.generateItem();
+		long tick = worldObj.getTotalWorldTime();
+		if (!worldObj.isRemote && this.isTamed()) {
+			if (foundItem == null && ticksExisted >= 900) {
+				if (rand.nextInt(10000) == 0 || worldObj.getTotalWorldTime()-lastItemTick >= 20*60*15) {
+					this.generateItem();
+				}
 			}
+			else if (tick%100 == 0)
+				ReikaPacketHelper.sendEntitySyncPacket(DragonAPIInit.packetChannel, this, 128);
 		}
 
 		if (worldObj.isRemote) {
@@ -170,6 +174,7 @@ public class EntityLizardDoggo extends EntityTameable {
 				ReikaSoundHelper.playClientSound(SFSounds.DOGGOPANT, this, 0.4F+rand.nextFloat()*0.1F, 0.9F+rand.nextFloat()*0.1F);
 			if (needsItemUpdate) {
 				renderItem = foundItem != null ? new InertItem(worldObj, foundItem) : null;
+				needsItemUpdate = false;
 			}
 		}
 		else {
@@ -215,6 +220,7 @@ public class EntityLizardDoggo extends EntityTameable {
 
 			if (this.isSneezing()) {
 				rotationYawHead = rotationYaw;
+				rotationPitch = 0;
 			}
 
 			if (onGround && this.isTamed()) {
@@ -379,6 +385,12 @@ public class EntityLizardDoggo extends EntityTameable {
 			case 4:
 				s = SFSounds.DOGGO5;
 				break;
+			case 5:
+				s = SFSounds.DOGGO6;
+				break;
+			case 6:
+				s = SFSounds.DOGGO7;
+				break;
 		}
 		s.playSound(this, v, p);
 	}
@@ -442,6 +454,9 @@ public class EntityLizardDoggo extends EntityTameable {
 		lastItemTick = NBT.getLong("lastItem");
 		if (NBT.hasKey("foundItem")) {
 			foundItem = ItemStack.loadItemStackFromNBT(NBT.getCompoundTag("foundItem"));
+		}
+		else {
+			foundItem = null;
 		}
 		needsItemUpdate = true;
 
