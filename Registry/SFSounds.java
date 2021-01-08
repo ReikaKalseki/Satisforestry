@@ -18,6 +18,7 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Interfaces.Registry.SoundEnum;
+import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.Satisforestry.Satisforestry;
 
 import cpw.mods.fml.common.FMLCommonHandler;
@@ -31,9 +32,15 @@ public enum SFSounds implements SoundEnum {
 	MANTA4("manta4"),
 	MANTAFLY("mantafly2"),
 	DOGGOPANT("doggopant"),
+	DOGGOHURT("doggohurt"),
+	DOGGO1("doggo1"),
+	DOGGO2("doggo2"),
+	DOGGO3("doggo3"),
+	DOGGO4("doggo4"),
+	DOGGO5("doggo5"),
+	DOGGOSNEEZE1("doggosneeze1"),
+	DOGGOSNEEZE2("doggosneeze2"),
 	;
-
-	public static final SFSounds[] soundList = values();
 
 	public static final String PREFIX = "Reika/Satisforestry/";
 	public static final String SOUND_FOLDER = "Sounds/";
@@ -60,11 +67,11 @@ public enum SFSounds implements SoundEnum {
 	public void playSound(World world, double x, double y, double z, float vol, float pitch) {
 		if (FMLCommonHandler.instance().getEffectiveSide() != Side.SERVER)
 			return;
-		;//ReikaPacketHelper.sendSoundPacket(Satisforestry.packetChannel, this, world, x, y, z, vol, pitch);
+		ReikaSoundHelper.playSound(this, world, x, y, z, vol/* *this.getModulatedVolume()*/, pitch);
 	}
 
 	public void playSound(World world, double x, double y, double z, float vol, float pitch, boolean attenuate) {
-
+		ReikaSoundHelper.playSound(this, world, x, y, z, vol/* *this.getModulatedVolume()*/, pitch, attenuate);
 	}
 
 	public void playSoundAtBlock(World world, int x, int y, int z, float vol, float pitch) {
@@ -97,15 +104,6 @@ public enum SFSounds implements SoundEnum {
 
 	public URL getURL() {
 		return Satisforestry.class.getResource(SOUND_DIR+name+SOUND_EXT);
-	}
-
-	public static SFSounds getSoundByName(String name) {
-		for (int i = 0; i < soundList.length; i++) {
-			if (soundList[i].name().equals(name))
-				return soundList[i];
-		}
-		Satisforestry.logger.logError("\""+name+"\" does not correspond to a registered sound!");
-		return null;
 	}
 
 	@Override

@@ -311,7 +311,7 @@ public class ModelLizardDoggo extends ModelBase {
 
 		float sneeze1 = el.getSneezeTick1();
 		float sneeze2 = el.getSneezeTick2();
-		float sneeze = Math.max(Math.min(1, sneeze1*2), sneeze2);
+		float sneeze = Math.max(Math.min(1, sneeze1*3), sneeze2);
 		for (Entry<ModelRenderer, Float> en : scaleParts.entrySet()) {
 			ModelRenderer mr = en.getKey();
 			float base = en.getValue();

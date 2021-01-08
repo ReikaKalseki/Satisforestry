@@ -213,8 +213,12 @@ public class EntityLizardDoggo extends EntityTameable {
 			if (sneezeTick2 > 0)
 				sneezeTick2--;
 
+			if (this.isSneezing()) {
+				rotationYawHead = rotationYaw;
+			}
+
 			if (onGround && this.isTamed()) {
-				if (sneezeTick1 == 0 && sneezeTick2 == 0 && rand.nextInt(300) == 0)
+				if (!this.isSneezing() && rand.nextInt(300) == 0)
 					this.sneeze();
 				if (this.isSitting()) {
 
@@ -223,7 +227,7 @@ public class EntityLizardDoggo extends EntityTameable {
 					isJumpingInPlace = false;
 					double vel = ReikaMathLibrary.py3d(motionX, 0, motionZ);
 					boolean flag = vel > 0.125;
-					if (flag || (!flag && sneezeTick1 == 0 && sneezeTick2 == 0 && rand.nextInt(150) == 0)) {
+					if (flag || (!flag && !this.isSneezing() && rand.nextInt(150) == 0)) {
 						if (sprintJumpTick == 0) {
 							sprintJumpTick = 12;
 							isJumpingInPlace = !flag;
@@ -242,9 +246,11 @@ public class EntityLizardDoggo extends EntityTameable {
 	private void sneeze() {
 		if (rand.nextBoolean()) {
 			sneezeTick1 = SNEEZE_LENGTH_1;
+			SFSounds.DOGGOSNEEZE1.playSound(this);
 		}
 		else {
 			sneezeTick2 = SNEEZE_LENGTH_2;
+			SFSounds.DOGGOSNEEZE2.playSound(this);
 		}
 	}
 
@@ -282,6 +288,10 @@ public class EntityLizardDoggo extends EntityTameable {
 		return dataWatcher.getWatchableObjectInt(14);
 	}
 
+	public boolean isSneezing() {
+		return sneezeTick1 > 0 || sneezeTick2 > 0;
+	}
+
 	private ItemStack getRandomDrop() {
 		if (dropTable.isEmpty()) {
 			for (DoggoDrop dd : BiomeConfig.instance.getDoggoDrops()) {
@@ -293,6 +303,8 @@ public class EntityLizardDoggo extends EntityTameable {
 
 	@Override
 	public final boolean interact(EntityPlayer ep) {
+		if (this.isSneezing())
+			return false;
 		if (!this.isTamed()) {
 			ItemStack is = ep.getCurrentEquippedItem();
 			if (is != null && is.getItem() == Satisforestry.paleberry && is.stackSize > 0) {
@@ -335,13 +347,81 @@ public class EntityLizardDoggo extends EntityTameable {
 	}
 
 	@Override
+	protected boolean isMovementBlocked() {
+		return super.isMovementBlocked() || this.isSneezing();
+	}
+
+	@Override
+	protected boolean isMovementCeased() {
+		return super.isMovementCeased() || this.isSneezing();
+	}
+
+	@Override
 	public void playLivingSound() {
+		if (sneezeTick1 > 0 || sneezeTick2 > 0)
+			return;
+		float v = 0.7F+rand.nextFloat()*0.3F;
+		float p = 0.75F+rand.nextFloat()*0.75F;
+		SFSounds s = null;
+		switch(rand.nextInt(5)) {
+			case 0:
+				s = SFSounds.DOGGO1;
+				break;
+			case 1:
+				s = SFSounds.DOGGO2;
+				break;
+			case 2:
+				s = SFSounds.DOGGO3;
+				break;
+			case 3:
+				s = SFSounds.DOGGO4;
+				break;
+			case 4:
+				s = SFSounds.DOGGO5;
+				break;
+		}
+		s.playSound(this, v, p);
+	}
+
+	public void playHurtSound() {
+		SFSounds.DOGGOHURT.playSound(this);
+	}
+
+	public void playDeathSound() {
 
 	}
 
 	@Override
+	public void playSound(String s, float vol, float p) {
+		if ("HURTKEY".equals(s)) {
+			this.playHurtSound();
+		}
+		else if ("DIEKEY".equals(s)) {
+			this.playDeathSound();
+		}
+		else {
+			super.playSound(s, vol, p);
+		}
+	}
+
+	@Override
+	protected String getHurtSound() {
+		return "HURTKEY";
+	}
+
+	@Override
+	protected String getDeathSound() {
+		return this.getHurtSound();//"DIEKEY";
+	}
+
+	@Override
+	protected String func_146067_o(int dist) {
+		return this.getHurtSound();
+	}
+
+	@Override
 	public int getTalkInterval() {
-		return 120;
+		return 220;
 	}
 
 	@Override
