@@ -11,12 +11,17 @@ package Reika.Satisforestry;
 
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Instantiable.IO.SoundLoader;
+import Reika.Satisforestry.Registry.SFSounds;
+
 public class SFCommon {
 
 	public static int bambooRender;
 	public static int grassRender;
 	public static int decoRender;
 	public static int resourceRender;
+
+	protected SoundLoader sounds = new SoundLoader(SFSounds.class);
 
 	/**
 	 * Client side only register stuff...
