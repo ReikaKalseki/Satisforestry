@@ -6,17 +6,12 @@
 
 package Reika.Satisforestry.Render;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map.Entry;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.MathHelper;
 
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
@@ -24,49 +19,10 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
 import Reika.Satisforestry.Entity.EntityLizardDoggo.DoggoFlags;
 
-public class ModelLizardDoggo extends ModelBase {
-
-
-	//fields
-	ModelRenderer EarAttachmentR;
-	ModelRenderer Body;
-	ModelRenderer Body2;
-	ModelRenderer Leg1;
-	ModelRenderer Leg2;
-	ModelRenderer Leg3;
-	ModelRenderer Leg4;
-	ModelRenderer Tail3;
-	ModelRenderer Nose;
-	ModelRenderer TailFin;
-	ModelRenderer Tail2;
-	ModelRenderer Tail;
-	ModelRenderer BackScale5;
-	ModelRenderer Scale2;
-	ModelRenderer Scale3;
-	ModelRenderer Scale5;
-	ModelRenderer Scale4;
-	ModelRenderer Scale1;
-	ModelRenderer BackScale1;
-	ModelRenderer BackScale2;
-	ModelRenderer BackScale3;
-	ModelRenderer Tongue;
-	ModelRenderer EarR;
-	ModelRenderer EarAttachmentL;
-	ModelRenderer EarL;
-	ModelRenderer Jaw1;
-	ModelRenderer Neck;
-	ModelRenderer Jaw2;
-	ModelRenderer Head2;
-	ModelRenderer Head1;
-	ModelRenderer BackScale4;
-
-	private final Collection<ModelRenderer> headParts = new ArrayList();
-	private final HashMap<ModelRenderer, Float> scaleParts = new HashMap();
+public class ModelLizardDoggo extends ModelDoggoBase {
 
 	private double rightEarXTarget;
-	private double rightEarX;
 	private double leftEarXTarget;
-	private double leftEarX;
 
 	public ModelLizardDoggo() {
 		textureWidth = 128;
@@ -259,29 +215,7 @@ public class ModelLizardDoggo extends ModelBase {
 		BackScale4.mirror = true;
 		this.setRotation(BackScale4, 1.710423F, 0F, 0F);
 
-		headParts.add(EarAttachmentL);
-		headParts.add(EarAttachmentR);
-		headParts.add(EarL);
-		headParts.add(EarR);
-		headParts.add(Head1);
-		headParts.add(Head2);
-		headParts.add(Nose);
-		headParts.add(Jaw1);
-		headParts.add(Jaw2);
-		headParts.add(Tongue);
-		headParts.add(Neck);
-
-		scaleParts.put(BackScale1, BackScale1.rotateAngleX);
-		scaleParts.put(BackScale2, BackScale2.rotateAngleX);
-		scaleParts.put(BackScale3, BackScale3.rotateAngleX);
-		scaleParts.put(BackScale4, BackScale4.rotateAngleX);
-		scaleParts.put(BackScale5, BackScale5.rotateAngleX);
-
-		scaleParts.put(Scale1, Scale1.rotateAngleX);
-		scaleParts.put(Scale2, Scale2.rotateAngleX);
-		scaleParts.put(Scale3, Scale3.rotateAngleX);
-		scaleParts.put(Scale4, Scale4.rotateAngleX);
-		scaleParts.put(Scale5, Scale5.rotateAngleX);
+		this.init();
 	}
 
 	@Override
@@ -442,49 +376,6 @@ public class ModelLizardDoggo extends ModelBase {
 		else {
 			leftEarX -= v;
 		}
-	}
-
-	private void setRotation(ModelRenderer model, float x, float y, float z) {
-		model.rotateAngleX = x;
-		model.rotateAngleY = y;
-		model.rotateAngleZ = z;
-	}
-
-	@Override
-	public void setRotationAngles(float f, float f1, float f2, float f3, float f4, float f5, Entity e) {
-		super.setRotationAngles(f, f1, f2, f3, f4, f5, e);
-
-		float sneeze = ((EntityLizardDoggo)e).getSneezeTick2();
-		if (sneeze >= 0.8) {
-			f3 += 250*Math.sin(12*e.ticksExisted*(sneeze-0.8)-349)*(sneeze-0.8)*(sneeze-0.8);
-		}
-
-		for (ModelRenderer head : headParts) {
-			head.rotateAngleX = f4 / (180F / (float)Math.PI);
-			head.rotateAngleY = f3 / (180F / (float)Math.PI);
-			if (head == EarL) {
-				head.rotateAngleX += leftEarX;
-			}
-			else if (head == EarR) {
-				head.rotateAngleX += rightEarX;
-			}
-		}
-
-		Neck.rotateAngleX += Math.toRadians(10);
-		Tongue.rotateAngleY += Math.toRadians(30);
-
-		Body.rotateAngleX = ((float)Math.PI / 2F);
-		Body2.rotateAngleX = ((float)Math.PI / 2F);
-
-		Leg1.rotateAngleX = MathHelper.cos(f * 0.6662F) * 1.4F * f1;
-		Leg2.rotateAngleX = MathHelper.cos(f * 0.6662F + (float)Math.PI) * 1.4F * f1;
-		Leg3.rotateAngleX = MathHelper.cos(f * 0.6662F + (float)Math.PI) * 1.4F * f1;
-		Leg4.rotateAngleX = MathHelper.cos(f * 0.6662F) * 1.4F * f1;
-	}
-
-	@Override
-	public void setLivingAnimations(EntityLivingBase e, float a, float b, float c) {
-
 	}
 
 }

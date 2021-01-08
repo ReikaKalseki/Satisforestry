@@ -6,47 +6,20 @@
 
 package Reika.Satisforestry.Render;
 
-import net.minecraft.client.model.ModelBase;
+import java.util.Map.Entry;
+
+import org.lwjgl.opengl.GL11;
+
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 
-public class ModelLizardDoggo extends ModelBase
-{
-	//fields
-	ModelRenderer EarAttachmentR;
-	ModelRenderer Body3;
-	ModelRenderer Body2;
-	ModelRenderer Leg1;
-	ModelRenderer Leg2;
-	ModelRenderer Leg3;
-	ModelRenderer Leg4;
-	ModelRenderer Tail3;
-	ModelRenderer Nose;
-	ModelRenderer TailFin;
-	ModelRenderer Tail2;
-	ModelRenderer Tail;
-	ModelRenderer BackScale5;
-	ModelRenderer Scale2;
-	ModelRenderer Scale3;
-	ModelRenderer Scale5;
-	ModelRenderer Scale4;
-	ModelRenderer Scale1;
-	ModelRenderer BackScale1;
-	ModelRenderer BackScale2;
-	ModelRenderer BackScale3;
-	ModelRenderer Tongue;
-	ModelRenderer EarR;
-	ModelRenderer EarAttachmentL;
-	ModelRenderer EarL;
-	ModelRenderer Jaw1;
-	ModelRenderer Neck;
-	ModelRenderer Jaw2;
-	ModelRenderer Head2;
-	ModelRenderer Head1;
-	ModelRenderer BackScale4;
-	ModelRenderer Body;
+import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
-	public ModelLizardDoggo()
+public class ModelLizardDoggoSit extends ModelDoggoBase {
+
+	private ModelRenderer Body3;
+
+	public ModelLizardDoggoSit()
 	{
 		textureWidth = 128;
 		textureHeight = 64;
@@ -243,36 +216,53 @@ public class ModelLizardDoggo extends ModelBase
 		Body.setTextureSize(128, 64);
 		Body.mirror = true;
 		this.setRotation(Body, 1.570796F, 0F, 0F);
+
+		this.init();
 	}
 
 	@Override
-	public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5)
-	{
+	public void render(Entity entity, float f, float f1, float f2, float f3, float f4, float f5) {
 		super.render(entity, f, f1, f2, f3, f4, f5);
-		this.setRotationAngles(f, f1, f2, f3, f4, f5);
-		EarAttachmentR.render(f5);
-		Body3.render(f5);
-		Body2.render(f5);
-		Leg1.render(f5);
-		Leg2.render(f5);
-		Leg3.render(f5);
-		Leg4.render(f5);
-		Tail3.render(f5);
-		Nose.render(f5);
-		TailFin.render(f5);
-		Tail2.render(f5);
-		Tail.render(f5);
-		BackScale5.render(f5);
-		Scale2.render(f5);
-		Scale3.render(f5);
-		Scale5.render(f5);
-		Scale4.render(f5);
-		Scale1.render(f5);
-		BackScale1.render(f5);
-		BackScale2.render(f5);
-		BackScale3.render(f5);
-		Tongue.render(f5);
+		this.setRotationAngles(f, f1, f2, f3, f4, f5, entity);
+
+		EntityLizardDoggo el = (EntityLizardDoggo)entity;
+
+		double t = System.currentTimeMillis()/72D;
+		double dy = 0.007*Math.sin(t);
+		double ang = 1.5*Math.sin(t/2+238);
+
+		float sneeze1 = el.getSneezeTick1();
+		float sneeze = Math.max(Math.min(1, sneeze1*3), el.getSneezeTick2());
+		for (Entry<ModelRenderer, Float> en : scaleParts.entrySet()) {
+			ModelRenderer mr = en.getKey();
+			float base = en.getValue();
+			mr.rotateAngleX = base+(float)Math.toRadians(10)*sneeze;
+			float df = Math.abs(base-scaleParts.get(BackScale1))*1.25F;
+			mr.offsetY = (sneeze*0.03125F+df*sneeze)*0.33F;
+		}
+
+		double stretch = 1;
+		if (sneeze1 > 0.75) {
+			stretch += sneeze1*0.375*(1-sneeze1);
+		}
+		else {
+			stretch += sneeze1*0.125;
+		}
+
+		RenderLizardDoggo.instance.setOffsetsAndAngles(f, f1, f2, f3, f4, el.renderYawOffset, -dy);
+
+		Tongue.rotateAngleY -= Math.toRadians(ang*2);
+		Tongue.rotateAngleX -= dy*1.7;
+
+		GL11.glPushMatrix();
+		GL11.glScaled(1, 1, stretch);
+		GL11.glTranslated(0, dy, -(stretch-1));
+		GL11.glRotated(ang, 0, 0, 1);
+
 		EarR.render(f5);
+		EarAttachmentR.render(f5);
+		Nose.render(f5);
+		Tongue.render(f5);
 		EarAttachmentL.render(f5);
 		EarL.render(f5);
 		Jaw1.render(f5);
@@ -280,20 +270,36 @@ public class ModelLizardDoggo extends ModelBase
 		Jaw2.render(f5);
 		Head2.render(f5);
 		Head1.render(f5);
-		BackScale4.render(f5);
+
+		GL11.glTranslated(0, -dy/2, 0);
+		GL11.glRotated(-ang*0.75, 0, 0, 1);
+
 		Body.render(f5);
-	}
+		Body3.render(f5);
+		Body2.render(f5);
+		BackScale5.render(f5);
+		BackScale1.render(f5);
+		BackScale2.render(f5);
+		BackScale3.render(f5);
+		BackScale4.render(f5);
 
-	private void setRotation(ModelRenderer model, float x, float y, float z)
-	{
-		model.rotateAngleX = x;
-		model.rotateAngleY = y;
-		model.rotateAngleZ = z;
-	}
+		GL11.glPopMatrix();
 
-	public void setRotationAngles(float f, float f1, float f2, float f3, float f4, float f5)
-	{
-		super.setRotationAngles(f, f1, f2, f3, f4, f5);
+		Tail3.render(f5);
+		TailFin.render(f5);
+		Tail2.render(f5);
+		Tail.render(f5);
+
+		Leg1.render(f5);
+		Leg2.render(f5);
+		Leg3.render(f5);
+		Leg4.render(f5);
+
+		Scale2.render(f5);
+		Scale3.render(f5);
+		Scale5.render(f5);
+		Scale4.render(f5);
+		Scale1.render(f5);
 	}
 
 }

@@ -2,6 +2,7 @@ package Reika.Satisforestry.Render;
 
 import org.lwjgl.opengl.GL11;
 
+import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.renderer.entity.RenderItem;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -26,16 +27,22 @@ public class RenderLizardDoggo extends RenderLiving {
 	private float headPitch;
 	private double headBob;
 
+	private static final ModelLizardDoggo standModel = new ModelLizardDoggo();
+	private static final ModelLizardDoggoSit sitModel = new ModelLizardDoggoSit();
+
 	private RenderLizardDoggo() {
-		super(new ModelLizardDoggo(), 0.7F);
+		super(standModel, 0.7F);
 		shadowSize *= 0.8;
 	}
 
 	@Override
 	public void doRender(Entity e, double par2, double par4, double par6, float par8, float ptick) {
+		EntityLizardDoggo el = (EntityLizardDoggo)e;
+
+		this.setModel(el);
+
 		super.doRender(e, par2, par4, par6, par8, ptick);
 
-		EntityLizardDoggo el = (EntityLizardDoggo)e;
 		EntityItem is = el.getHeldItemForRender();
 		if (is != null) {
 			GL11.glPushMatrix();
@@ -43,6 +50,15 @@ public class RenderLizardDoggo extends RenderLiving {
 			this.renderHeldItem(el, is, ptick);
 			GL11.glPopMatrix();
 		}
+	}
+
+	private void setModel(EntityLizardDoggo el) {
+		mainModel = el.isSitting() ? sitModel : standModel;
+	}
+
+	@Override
+	public void setRenderPassModel(ModelBase model) {
+		super.setRenderPassModel(mainModel);
 	}
 
 	private void renderHeldItem(EntityLizardDoggo te, EntityItem ei, float par8) {
