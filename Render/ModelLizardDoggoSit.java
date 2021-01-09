@@ -18,6 +18,8 @@ import Reika.Satisforestry.Entity.EntityLizardDoggo;
 public class ModelLizardDoggoSit extends ModelDoggoBase {
 
 	private ModelRenderer Body3;
+	private ModelRenderer Leg1b;
+	private ModelRenderer Leg2b;
 
 	public ModelLizardDoggoSit()
 	{
@@ -217,6 +219,19 @@ public class ModelLizardDoggoSit extends ModelDoggoBase {
 		Body.mirror = true;
 		this.setRotation(Body, 1.570796F, 0F, 0F);
 
+		Leg1b = new ModelRenderer(this, 100, 52);
+		Leg1b.addBox(-4.5F, 5F, -6F, 3, 3, 4);
+		Leg1b.setRotationPoint(-2.5F, 16F, 7F);
+		Leg1b.setTextureSize(128, 64);
+		Leg1b.mirror = true;
+		this.setRotation(Leg1b, 0F, 0F, 0F);
+		Leg2b = new ModelRenderer(this, 115, 52);
+		Leg2b.addBox(1.5F, 5F, -6F, 3, 3, 4);
+		Leg2b.setRotationPoint(0.5F, 16F, 7F);
+		Leg2b.setTextureSize(128, 64);
+		Leg2b.mirror = true;
+		this.setRotation(Leg2b, 0F, 0F, 0F);
+
 		this.init();
 	}
 
@@ -229,7 +244,7 @@ public class ModelLizardDoggoSit extends ModelDoggoBase {
 
 		double t = System.currentTimeMillis()/72D;
 		double dy = 0.007*Math.sin(t);
-		double ang = 1.5*Math.sin(t/2+238);
+		double ang = 1*Math.sin(t/2+238);
 
 		float sneeze1 = el.getSneezeTick1();
 		float sneeze = Math.max(Math.min(1, sneeze1*3), el.getSneezeTick2());
@@ -294,6 +309,8 @@ public class ModelLizardDoggoSit extends ModelDoggoBase {
 		Leg2.render(f5);
 		Leg3.render(f5);
 		Leg4.render(f5);
+		Leg1b.render(f5);
+		Leg2b.render(f5);
 
 		Scale2.render(f5);
 		Scale3.render(f5);

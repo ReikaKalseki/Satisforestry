@@ -347,8 +347,10 @@ public class EntityLizardDoggo extends EntityTameable {
 				return true;
 			}
 		}
-		aiSit.setSitting(!this.isSitting());
-		isJumping = false;
+		if (onGround) {
+			aiSit.setSitting(!this.isSitting());
+			isJumping = false;
+		}
 		return false;
 	}
 

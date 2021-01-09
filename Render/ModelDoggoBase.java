@@ -64,7 +64,7 @@ public class ModelDoggoBase extends ModelBase {
 		headParts.add(Jaw1);
 		headParts.add(Jaw2);
 		headParts.add(Tongue);
-		headParts.add(Neck);
+		//headParts.add(Neck);
 
 		scaleParts.put(BackScale1, BackScale1.rotateAngleX);
 		scaleParts.put(BackScale2, BackScale2.rotateAngleX);
@@ -105,7 +105,7 @@ public class ModelDoggoBase extends ModelBase {
 			}
 		}
 
-		Neck.rotateAngleX += Math.toRadians(10);
+		Neck.rotateAngleX = (float)Math.toRadians(12);
 		Tongue.rotateAngleY += Math.toRadians(30);
 
 		Body.rotateAngleX = ((float)Math.PI / 2F);
