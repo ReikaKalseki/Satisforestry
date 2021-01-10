@@ -74,9 +74,15 @@ public class BlockTerrain extends Block {
 		}
 	}
 
+	@Override
+	public boolean isReplaceableOreGen(World world, int x, int y, int z, Block target) {
+		return super.isReplaceableOreGen(world, x, y, z, target);
+	}
+
 	public static enum TerrainType {
 		POISONROCK("Spore Rock", 3, 45),
 		PONDROCK("Pond Rock", 1, 30),
+		OUTCROP("Rocky Outcrop", 2, 30),
 		;
 
 		private IIcon iconTop;
@@ -100,6 +106,7 @@ public class BlockTerrain extends Block {
 				case POISONROCK:
 					return true;
 				case PONDROCK:
+				case OUTCROP:
 					return false;
 			}
 			return false;

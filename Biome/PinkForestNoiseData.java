@@ -20,6 +20,9 @@ public class PinkForestNoiseData {
 	//final SimplexNoiseGenerator riverNoise;
 	//final VoronoiNoiseGenerator riverNoise;
 
+	final SimplexNoiseGenerator outcropHeightNoise;
+	final SimplexNoiseGenerator outcropBooleanNoise;
+
 	PinkForestNoiseData(World world) {
 		seed = world.getSeed();
 		double f = 1/85D;//1/90D;//1/72D;
@@ -49,6 +52,9 @@ public class PinkForestNoiseData {
 		df = 1/50D*5;
 		//riverNoise.setDisplacementSimple(78337221-seed/7, df, 245356-seed*7, df, 2*0+0.8);
 		 */
+
+		outcropHeightNoise = (SimplexNoiseGenerator)new SimplexNoiseGenerator(seed*24897).setFrequency(1/4.5D); //was 7
+		outcropBooleanNoise = (SimplexNoiseGenerator)new SimplexNoiseGenerator(seed ^ 249253).setFrequency(1/22D);
 	}
 
 }

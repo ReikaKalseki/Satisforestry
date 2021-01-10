@@ -30,9 +30,9 @@ import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Interfaces.CustomMapColorBiome;
 import Reika.DragonAPI.Interfaces.WinterBiomeStrengthControl;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper.CubeDirections;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
-import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Generator.GiantPinkTreeGenerator;
@@ -303,6 +303,26 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 	int getDirtThickness(World world, int x, int z) {
 		return (int)Math.round(ReikaMathLibrary.normalizeToBounds(noise.dirtThicknessNoise.getValue(x, z), 1, 3.6));
+	}
+
+	int getOutcropValue(World world, int x, int z, BiomeSection b) {
+		this.initNoise(world);
+		switch(b) {
+			case FOREST: {
+				if (noise.outcropBooleanNoise.getValue(x, z) <= 0.45) //was 0 then 0.25 then 0.66 then 0.5
+					return -50;
+				double val = noise.outcropHeightNoise.getValue(x, z);
+				val = ReikaMathLibrary.normalizeToBounds(val, -5, 3);
+				return (int)Math.round(val);
+			}
+			case STREAMS:
+				return -500;
+			case SWAMP: {
+				double val = noise.outcropHeightNoise.getValue(x/3D, z/3D);
+				return (int)Math.round(1.5-Math.abs(val)*14);
+			}
+		}
+		return -500;
 	}
 
 	public double getRoadFactor(World world, int x, int z) {

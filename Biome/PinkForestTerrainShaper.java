@@ -9,6 +9,8 @@ import net.minecraft.world.biome.BiomeGenBase;
 
 import Reika.DragonAPI.Instantiable.Worldgen.TerrainShaper;
 import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
+import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 public class PinkForestTerrainShaper extends TerrainShaper {
 
@@ -38,8 +40,10 @@ public class PinkForestTerrainShaper extends TerrainShaper {
 			double f = top >= 90 ? 1 : (top-60)/30D;
 			double road = f*bp.getRoadFactor(world, x, z);
 			int y = this.getTopNonAir(x, z);
+			boolean placedRoad = false;
 			if (road > 0 && road >= 0.875 || rand.nextDouble() < road*0.6) { //was 0.875 and 0.75
 				this.setBlock(x, y, z, Blocks.sand);
+				placedRoad = true;
 			}
 			int dirtThickness = bp.getDirtThickness(world, x, z);
 			if (thinDirt) {
@@ -48,6 +52,15 @@ public class PinkForestTerrainShaper extends TerrainShaper {
 			dirtThickness = Math.max(1, dirtThickness);
 			for (int dt = 1; dt <= dirtThickness; dt++) {
 				this.setBlock(x, y-dt, z, Blocks.dirt);
+			}
+
+			int outcrop = bp.getOutcropValue(world, x, z, sub);
+			outcrop -= road*2;
+			if (outcrop >= -1 && !placedRoad) {
+				int y2 = this.getLowestSurface(x, z);
+				for (int i = -1; i <= outcrop; i++) {
+					this.setBlock(x, y2+i, z, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.OUTCROP.ordinal());
+				}
 			}
 
 			this.cleanColumn(world, x, z, biome);
