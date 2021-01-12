@@ -37,9 +37,9 @@ import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 
 public enum SFBlocks implements BlockEnum {
 
-	LOG(BlockPinkLog.class, null, "Pink Birch Log"),
+	LOG(BlockPinkLog.class, MetadataItemBlock.class, "Pink Birch Log"),
 	BAMBOO(BlockRedBamboo.class, null, "Red Bamboo"),
-	LEAVES(BlockPinkLeaves.class, null, "Pink Birch Leaves"),
+	LEAVES(BlockPinkLeaves.class, MetadataItemBlock.class, "Pink Birch Leaves"),
 	GRASS(BlockPinkGrass.class, MetadataItemBlock.class, "Pink Grass"),
 	CAVESHIELD(BlockCaveShield.class, null, "Cave Stone"),
 	SPAWNER(BlockCaveSpawner.class, null, "Cracked Cave Stone"),

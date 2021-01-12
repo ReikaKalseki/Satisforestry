@@ -20,6 +20,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public class BlockPinkLog extends BlockOldLog {
 
+	private IIcon jungleIcon;
+
 	public BlockPinkLog() {
 		super();
 		this.setResistance(120);
@@ -31,28 +33,33 @@ public class BlockPinkLog extends BlockOldLog {
 	@SideOnly(Side.CLIENT)
 	public void registerBlockIcons(IIconRegister ico) {
 		blockIcon = ico.registerIcon("Satisforestry:pink-log");
+		jungleIcon = ico.registerIcon("Satisforestry:jungle-log");
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
 	protected IIcon getSideIcon(int meta) {
+		if (meta%4 == 2)
+			return jungleIcon;
 		return blockIcon;
 	}
 
 	@Override
 	@SideOnly(Side.CLIENT)
 	protected IIcon getTopIcon(int meta) {
-		return Blocks.log.getIcon(1, meta);
+		return Blocks.log.getIcon(1, 0);
 	}
 
 	@Override
 	public void getSubBlocks(Item i, CreativeTabs cr, List li) {
 		li.add(new ItemStack(i));
+		li.add(new ItemStack(i, 1, 2));
 	}
 
 	@Override
 	public int damageDropped(int worldMeta) {
-		return 0;//worldMeta & 3;
+		int base = worldMeta & 3;
+		return base == 1 ? 0 : base;
 	}
 
 	@Override

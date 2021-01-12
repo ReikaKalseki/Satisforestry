@@ -68,8 +68,7 @@ public class UraniumCave {
 		caveSpawns.setRNG(rand);
 		OreSpawnLocation.setRNG(rand);
 
-		int top = DecoratorPinkForest.getTrueTopAt(world, x, z);
-		CentralCave cc = cache != null ? cache.reconstruct() : new CentralCave(x, ReikaRandomHelper.getRandomBetween(40, Math.min(72, top-50), rand), z);
+		CentralCave cc = cache != null ? cache.reconstruct() : new CentralCave(x, this.getRandomY(world, x, z, rand), z);
 
 		Satisforestry.logger.log("Generating biome cave @ "+cc.center+", from rivers "+rivers+" and cache "+cache);
 
@@ -273,6 +272,12 @@ public class UraniumCave {
 		}
 
 		return cc;
+	}
+
+	private int getRandomY(World world, int x, int z, Random rand) {
+		int top = DecoratorPinkForest.getTrueTopAt(world, x, z);
+		int min = 40;
+		return ReikaRandomHelper.getRandomBetween(min, Math.max(Math.min(min+20, top), Math.min(72, top-50)), rand);
 	}
 
 	private void generateDecorations(World world, Random rand, HashSet<Coordinate> carveSet, HashMap<Coordinate, Integer> floor, HashSet<Coordinate> pits, CentralCave cc) {

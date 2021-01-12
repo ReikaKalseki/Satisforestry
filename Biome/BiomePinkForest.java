@@ -414,6 +414,15 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 			}
 		}
 
+		public double jungleTreeRate() {
+			switch(this) {
+				case STREAMS:--
+				return 0.3;
+				default:
+					return 0;
+			}
+		}
+
 		public double getRoadThickness() {
 			switch(this) {
 				case FOREST:
@@ -429,6 +438,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public float getWinterSkyStrength(World world, EntityPlayer ep) {
 		float sun = ReikaWorldHelper.getSunIntensity(Minecraft.getMinecraft().theWorld, true, ReikaRenderHelper.getPartialTickTime());
 		return 1-Math.min(1, 1.1F*sun*sun);

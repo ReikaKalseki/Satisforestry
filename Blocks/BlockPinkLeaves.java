@@ -1,21 +1,25 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.List;
 import java.util.Random;
 
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Base.BlockCustomLeaf;
+import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.Satisforestry;
 
 public class BlockPinkLeaves extends BlockCustomLeaf {
 
 	public static enum LeafTypes {
 		TREE,
-		GIANTTREE;
+		GIANTTREE,
+		JUNGLE;
 
 		private final String fastIcon;
 		private final String fancyIcon;
@@ -31,6 +35,15 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 		public boolean isValidLogMeta(int meta) {
 			return meta%4 == this.ordinal();
 		}
+
+		public int getMetaDropped() {
+			switch(this) {
+				case GIANTTREE:
+					return TREE.getMetaDropped();
+				default:
+					return this.ordinal();
+			}
+		}
 	}
 
 	public BlockPinkLeaves() {
@@ -38,6 +51,12 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 		this.setLightOpacity(0);
 		this.setCreativeTab(Satisforestry.tabCreative);
 		this.setStepSound(soundTypeGrass);
+	}
+
+	@Override
+	public void getSubBlocks(Item i, CreativeTabs cr, List li) {
+		for (int m = 0; m < LeafTypes.list.length; m++)
+			li.add(new ItemStack(i, 1, m));
 	}
 
 	@Override
@@ -56,14 +75,20 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 		if (l == LeafTypes.GIANTTREE) {
 			y -= 60; //was 18 then 24 then 50
 		}
-		return Satisforestry.pinkforest.getBiomeFoliageColor(x, y, z);
+		int ret = Satisforestry.pinkforest.getBiomeFoliageColor(x, y, z);
+		if (l == LeafTypes.JUNGLE) {
+			ret = ReikaColorAPI.getModifiedHue(ret, 355);
+			ret = ReikaColorAPI.getModifiedSat(ret, 0.95F);
+			ret = ReikaColorAPI.getColorWithBrightnessMultiplier(ret, 0.8F);
+		}
+		return ret;
 	}
 
-	private LeafTypes getLeafType(IBlockAccess world, int x, int y, int z) {
-		return this.getLeafType(world.getBlockMetadata(x, y, z));
+	public static LeafTypes getLeafType(IBlockAccess world, int x, int y, int z) {
+		return getLeafType(world.getBlockMetadata(x, y, z));
 	}
 
-	private LeafTypes getLeafType(int meta) {
+	public static LeafTypes getLeafType(int meta) {
 		return LeafTypes.list[meta%8];
 	}
 	/*
@@ -181,7 +206,7 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 
 	@Override
 	public int damageDropped(int meta) {
-		return 0;
+		return this.getLeafType(meta).getMetaDropped();
 	}
 
 	@Override

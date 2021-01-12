@@ -25,15 +25,19 @@ import net.minecraftforge.common.EnumPlantType;
 import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.DragonAPI.DragonAPICore;
+import Reika.DragonAPI.Instantiable.Math.Noise.Simplex3DGenerator;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockPinkLeaves.LeafTypes;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 import cpw.mods.fml.relauncher.Side;
@@ -53,12 +57,14 @@ public class BlockPinkGrass extends BlockTallGrass {
 		FERN(),
 		PALEBERRY_NEW("Paleberry", 1),
 		PALEBERRY_EMPTY("Paleberry", 1),
-		PALEBERRY_STALK("Paleberry", 1)
+		PALEBERRY_STALK("Paleberry", 1),
+		TREE_VINE("Vines", 3),
 		;
 
 		public final String name;
 		private IIcon[] icons;
 
+		private static final Simplex3DGenerator renderNoise = new Simplex3DGenerator(DragonAPICore.getLaunchTime());
 		private static final Random renderRand = new Random();
 
 		public static final GrassTypes[] list = values();
@@ -115,6 +121,8 @@ public class BlockPinkGrass extends BlockTallGrass {
 					return 0xffffff;
 				case VINE:
 					return ReikaColorAPI.mixColors(0xa0a0a0, base, 0.25F);
+				case TREE_VINE:
+					return ReikaColorAPI.getColorWithBrightnessMultiplier(ReikaColorAPI.getModifiedSat(base, 0.5F), 0.67F);
 				default:
 					return base;
 			}
@@ -123,6 +131,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 		public ForgeDirection getDirection() {
 			switch(this) {
 				case VINE:
+				case TREE_VINE:
 					return ForgeDirection.DOWN;
 				default:
 					return ForgeDirection.UP;
@@ -137,6 +146,8 @@ public class BlockPinkGrass extends BlockTallGrass {
 			Block at = world.getBlock(dx, dy, dz);
 			Block b = SFBlocks.GRASS.getBlockInstance();
 			switch(this) {
+				case TREE_VINE:
+					return (at == SFBlocks.LEAVES.getBlockInstance() && BlockPinkLeaves.getLeafType(world, dx, dy, dz) == LeafTypes.JUNGLE) || this.matchAt(world, dx, dy, dz);
 				case VINE:
 				case BLUE_MUSHROOM_STALK:
 				case STALKS:
@@ -208,6 +219,10 @@ public class BlockPinkGrass extends BlockTallGrass {
 					if (light >= 4)
 						v5.setBrightness(240);
 					ReikaRenderHelper.renderCrossTex(world, x, y, z, berryIcon, v5, rb, 1);
+					break;
+				case TREE_VINE:
+					renderNoise.setFrequency(1/2D);
+					ReikaRenderHelper.renderCropTypeTex(world, x, y, z, ico, v5, rb, ReikaMathLibrary.normalizeToBounds(renderNoise.getValue(x, y, z), 0.03125, 0.375), 1);
 					break;
 				default:
 					ReikaRenderHelper.renderCrossTex(world, x, y, z, ico, v5, rb, 1); //not h, since icon is already part of a block
