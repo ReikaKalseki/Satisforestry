@@ -65,15 +65,6 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 			return meta%4 == this.ordinal();
 		}
 
-		public int getMetaDropped() {
-			switch(this) {
-				case GIANTTREE:
-					return TREE.getMetaDropped();
-				default:
-					return this.ordinal();
-			}
-		}
-
 		public String getDisplayName(String base) {
 			switch(this) {
 				case TREE:
@@ -86,7 +77,7 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 			return base;
 		}
 
-		public PinkTreeGeneratorBase getTreeGenerator() {
+		public PinkTreeGeneratorBase constructTreeGenerator() {
 			switch(this) {
 				case TREE:
 					return new PinkTreeGenerator(true);
@@ -98,7 +89,7 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 			return null;
 		}
 
-		public double getLeafChance() {
+		public double getSaplingDropChance() {
 			switch(this) {
 				case TREE:
 					return 0.08;
@@ -108,6 +99,15 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 					return 0.04;
 			}
 			return 0;
+		}
+
+		public PinkTreeTypes getTypeDropped() {
+			switch(this) {
+				case GIANTTREE:
+					return TREE;
+				default:
+					return this;
+			}
 		}
 
 		@SideOnly(Side.CLIENT)

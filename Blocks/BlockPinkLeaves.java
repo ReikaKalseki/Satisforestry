@@ -162,12 +162,12 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 
 	@Override
 	public Item getItemDropped(int meta, Random rand, int fortune) {
-		return rand.nextDouble() <= this.getLeafType(meta).getLeafChance() ? Item.getItemFromBlock(SFBlocks.SAPLING.getBlockInstance()) : null;
+		return rand.nextDouble() <= this.getLeafType(meta).getSaplingDropChance() ? Item.getItemFromBlock(SFBlocks.SAPLING.getBlockInstance()) : null;
 	}
 
 	@Override
 	public int damageDropped(int meta) {
-		return this.getLeafType(meta).getMetaDropped();
+		return this.getLeafType(meta).getTypeDropped().ordinal();
 	}
 
 	@Override

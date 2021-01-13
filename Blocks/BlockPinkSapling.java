@@ -47,7 +47,7 @@ public class BlockPinkSapling extends BlockSapling {
 
 	@Override
 	public void func_149878_d(World world, int x, int y, int z, Random rand) {
-		BlockPinkLeaves.getLeafType(world, x, y, z).getTreeGenerator().generate(world, rand, x, y, z);
+		BlockPinkLeaves.getLeafType(world, x, y, z).constructTreeGenerator().generate(world, rand, x, y, z);
 	}
 
 	@Override
