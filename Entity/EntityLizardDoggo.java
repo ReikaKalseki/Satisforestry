@@ -20,13 +20,18 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 
 import Reika.DragonAPI.DragonAPIInit;
+import Reika.DragonAPI.Auxiliary.Trackers.TickScheduler;
 import Reika.DragonAPI.Instantiable.InertItem;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom.DynamicWeight;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
+import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent;
+import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent.ScheduledSoundEvent;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.Registry.ReikaParticleHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Auxiliary.EntityAIComeGetPaleberry;
 import Reika.Satisforestry.Auxiliary.EntityAIRunFromPlayer;
@@ -206,8 +211,6 @@ public class EntityLizardDoggo extends EntityTameable {
 		velocityChanged = true;
 
 		if (!worldObj.isRemote) {
-			this.heal(0.1F);
-
 			if (sprintJumpTick > 0)
 				sprintJumpTick--;
 
@@ -338,18 +341,34 @@ public class EntityLizardDoggo extends EntityTameable {
 			this.jump();
 		}
 		this.playLivingSound();
-		if (!worldObj.isRemote && !ep.isSneaking() && foundItem != null && this.func_152114_e(ep)) {
-			if (ep.getCurrentEquippedItem() == null) {
-				ep.setCurrentItemOrArmor(0, foundItem);
-				foundItem = null;
-				needsItemUpdate = true;
-				ReikaPacketHelper.sendEntitySyncPacket(DragonAPIInit.packetChannel, this, 128);
+		if (!worldObj.isRemote && !ep.isSneaking() && this.isTamed()) {
+			ItemStack is = ep.getCurrentEquippedItem();
+			if (is != null && is.getItem() == Satisforestry.paleberry && this.getHealth() < this.getMaxHealth()) {
+				//this.playTameEffect(true); does not work onserverside
+				ReikaParticleHelper.HEART.spawnAroundServer(this, 7, 0.25);
+				this.heal(4);
+				int l = ReikaRandomHelper.getRandomBetween(75, 125, rand);
+				for (int i = 10; i < l; i += 10) {
+					TickScheduler.instance.scheduleEvent(new ScheduledTickEvent(new ScheduledSoundEvent(this.getRandomLivingSound(false), this, 1, 1)), ReikaRandomHelper.getRandomPlusMinus(i, 5));
+				}
+				if (!ep.capabilities.isCreativeMode)
+					is.stackSize--;
+				ep.setCurrentItemOrArmor(0, is);
 				return true;
 			}
-		}
-		if (onGround) {
-			aiSit.setSitting(!this.isSitting());
-			isJumping = false;
+			if (foundItem != null && this.func_152114_e(ep)) {
+				if (ep.getCurrentEquippedItem() == null) {
+					ep.setCurrentItemOrArmor(0, foundItem);
+					foundItem = null;
+					needsItemUpdate = true;
+					ReikaPacketHelper.sendEntitySyncPacket(DragonAPIInit.packetChannel, this, 128);
+					return true;
+				}
+			}
+			if (onGround) {
+				aiSit.setSitting(!this.isSitting());
+				isJumping = false;
+			}
 		}
 		return false;
 	}
@@ -370,35 +389,35 @@ public class EntityLizardDoggo extends EntityTameable {
 			return;
 		float v = 0.7F+rand.nextFloat()*0.3F;
 		float p = 0.75F+rand.nextFloat()*0.75F;
-		SFSounds s = null;
-		switch(rand.nextInt(5)) {
+		this.getRandomLivingSound(true).playSound(this, v, p);
+	}
+
+	private SFSounds getRandomLivingSound(boolean allowHurt) {
+		if (allowHurt && this.getHealth() < this.getMaxHealth()*0.33 && rand.nextBoolean())
+			return this.getRandomHurtSound();
+		switch(rand.nextInt(6)) {
 			case 0:
-				s = SFSounds.DOGGO1;
-				break;
+				return SFSounds.DOGGO1;
 			case 1:
-				s = SFSounds.DOGGO2;
-				break;
+				return SFSounds.DOGGO2;
 			case 2:
-				s = SFSounds.DOGGO3;
-				break;
+				return SFSounds.DOGGO3;
 			case 3:
-				s = SFSounds.DOGGO4;
-				break;
+				return SFSounds.DOGGO4;
 			case 4:
-				s = SFSounds.DOGGO5;
-				break;
+				return SFSounds.DOGGO5;
 			case 5:
-				s = SFSounds.DOGGO6;
-				break;
-			case 6:
-				s = SFSounds.DOGGO7;
-				break;
-		}
-		s.playSound(this, v, p);
+				return SFSounds.DOGGO6;
+		};
+		return null;
 	}
 
 	public void playHurtSound() {
-		SFSounds.DOGGOHURT.playSound(this);
+		this.getRandomHurtSound().playSound(this);
+	}
+
+	private SFSounds getRandomHurtSound() {
+		return rand.nextBoolean() ? SFSounds.DOGGOHURT : SFSounds.DOGGOHURT2;
 	}
 
 	public void playDeathSound() {
