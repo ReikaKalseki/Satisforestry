@@ -6,39 +6,25 @@ import java.util.Random;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
-import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Math.Spline;
 import Reika.DragonAPI.Instantiable.Math.Spline.BasicSplinePoint;
 import Reika.DragonAPI.Instantiable.Math.Spline.SplineType;
-import Reika.DragonAPI.Instantiable.Worldgen.ModifiableBigTree;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
-import Reika.DragonAPI.Libraries.Registry.ReikaPlantHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
-import Reika.Satisforestry.Blocks.BlockPinkLeaves;
+import Reika.Satisforestry.Blocks.BlockPinkLeaves.LeafTypes;
 
-public class PinkTreeGenerator extends ModifiableBigTree {
-
-	private final boolean forceGen;
+public class PinkTreeGenerator extends PinkTreeGeneratorBase {
 
 	public PinkTreeGenerator(boolean force) {
-		super(false);
-		forceGen = force;
+		super(force, LeafTypes.TREE);
 	}
 
 	@Override
 	public boolean generate(World world, Random rand, int x, int y, int z) {
 		if (!forceGen) {
 			if (y < 96) //was 90
-				return false;
-			if (Satisforestry.pinkforest.isRoad(world, x, z))
-				return false;
-			if (!ReikaPlantHelper.SAPLING.canPlantAt(world, x, y, z))
-				return false;
-			BiomeSection s = Satisforestry.pinkforest.getSubBiome(world, x, z);
-			if (rand.nextDouble() > s.treeRateSmall())
 				return false;
 		}
 		int h = ReikaRandomHelper.getRandomBetween(10, 16, rand)-2;
@@ -191,16 +177,6 @@ public class PinkTreeGenerator extends ModifiableBigTree {
 	private double generateBranch(World world, Random rand, int x, int y, int z	) {
 
 	}*/
-
-	@Override
-	protected BlockKey getLogBlock(int x, int y, int z) {
-		return new BlockKey(Satisforestry.log, 0);
-	}
-
-	@Override
-	protected BlockKey getLeafBlock(int x, int y, int z) {
-		return new BlockKey(Satisforestry.leaves, BlockPinkLeaves.LeafTypes.TREE.ordinal());
-	}
 
 	@Override
 	protected float layerSize(int layer) {

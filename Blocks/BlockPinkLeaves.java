@@ -3,6 +3,7 @@ package Reika.Satisforestry.Blocks;
 import java.util.List;
 import java.util.Random;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -13,6 +14,14 @@ import net.minecraftforge.common.util.ForgeDirection;
 import Reika.DragonAPI.Base.BlockCustomLeaf;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.Generator.GiantPinkTreeGenerator;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGenerator;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase;
+import Reika.Satisforestry.Biome.Generator.RedJungleTreeGenerator;
+import Reika.Satisforestry.Registry.SFBlocks;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class BlockPinkLeaves extends BlockCustomLeaf {
 
@@ -44,6 +53,61 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 					return this.ordinal();
 			}
 		}
+
+		public String getDisplayName(String base) {
+			switch(this) {
+				case TREE:
+					return "Pink "+base;
+				case GIANTTREE:
+					return "Giant Pink "+base;
+				case JUNGLE:
+					return "Red "+base;
+			}
+			return base;
+		}
+
+		public PinkTreeGeneratorBase getTreeGenerator() {
+			switch(this) {
+				case TREE:
+					return new PinkTreeGenerator(true);
+				case GIANTTREE:
+					return new GiantPinkTreeGenerator(true, true);
+				case JUNGLE:
+					return new RedJungleTreeGenerator(true);
+			}
+			return null;
+		}
+
+		public double getLeafChance() {
+			switch(this) {
+				case TREE:
+					return 0.08;
+				case GIANTTREE:
+					return 0.002;
+				case JUNGLE:
+					return 0.04;
+			}
+			return 0;
+		}
+
+		@SideOnly(Side.CLIENT)
+		public int getRenderColor(IBlockAccess world, int x, int y, int z) {
+			if (this == LeafTypes.GIANTTREE) {
+				y -= 60; //was 18 then 24 then 50
+			}
+			int ret = Satisforestry.pinkforest.getBiomeFoliageColor(x, y, z);
+			if (this == LeafTypes.JUNGLE) {
+				ret = ReikaColorAPI.getModifiedHue(ret, 355);
+				ret = ReikaColorAPI.getModifiedSat(ret, 0.95F);
+				ret = ReikaColorAPI.getColorWithBrightnessMultiplier(ret, 0.8F);
+			}
+			return ret;
+		}
+
+		@SideOnly(Side.CLIENT)
+		public int getBasicRenderColor() {
+			return this.getRenderColor(Minecraft.getMinecraft().theWorld, 0, 118, 0);
+		}
 	}
 
 	public BlockPinkLeaves() {
@@ -65,23 +129,13 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 	}
 
 	@Override
-	public int getRenderColor(int mta) {
-		return Satisforestry.pinkforest.getBiomeFoliageColor(0, 64, 0);
+	public int getRenderColor(int meta) {
+		return getLeafType(meta).getBasicRenderColor();
 	}
 
 	@Override
 	public int colorMultiplier(IBlockAccess world, int x, int y, int z) {
-		LeafTypes l = this.getLeafType(world, x, y, z);
-		if (l == LeafTypes.GIANTTREE) {
-			y -= 60; //was 18 then 24 then 50
-		}
-		int ret = Satisforestry.pinkforest.getBiomeFoliageColor(x, y, z);
-		if (l == LeafTypes.JUNGLE) {
-			ret = ReikaColorAPI.getModifiedHue(ret, 355);
-			ret = ReikaColorAPI.getModifiedSat(ret, 0.95F);
-			ret = ReikaColorAPI.getColorWithBrightnessMultiplier(ret, 0.8F);
-		}
-		return ret;
+		return getLeafType(world, x, y, z).getRenderColor(world, x, y, z);
 	}
 
 	public static LeafTypes getLeafType(IBlockAccess world, int x, int y, int z) {
@@ -195,13 +249,13 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 	}
 
 	@Override
-	public Item getItemDropped(int meta, Random rand, int fortune) {
-		return Item.getItemFromBlock(this);
+	public int quantityDropped(Random rand) {
+		return 1;
 	}
 
 	@Override
-	public int quantityDropped(Random rand) {
-		return 1;
+	public Item getItemDropped(int meta, Random rand, int fortune) {
+		return rand.nextDouble() <= this.getLeafType(meta).getLeafChance() ? Item.getItemFromBlock(SFBlocks.SAPLING.getBlockInstance()) : null;
 	}
 
 	@Override

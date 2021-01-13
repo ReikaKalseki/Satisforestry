@@ -35,8 +35,7 @@ import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Biome.Generator.GiantPinkTreeGenerator;
-import Reika.Satisforestry.Biome.Generator.PinkTreeGenerator;
+import Reika.Satisforestry.Biome.Generator.PinkTreeChooser;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkGrass;
 
 import cpw.mods.fml.relauncher.Side;
@@ -51,6 +50,8 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 	PinkForestNoiseData noise;
 	private final PinkForestTerrainShaper terrain = new PinkForestTerrainShaper();
+
+	private final PinkTreeChooser treeSelection = new PinkTreeChooser();
 
 	/** Fades between zero and one as the biome is entered or left */
 	@SideOnly(Side.CLIENT)
@@ -127,7 +128,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 	@Override
 	public WorldGenAbstractTree func_150567_a(Random rand) {
-		return rand.nextInt(4) == 0 ? new GiantPinkTreeGenerator(false, true) : new PinkTreeGenerator(false);
+		return treeSelection;//rand.nextInt(4) == 0 ? new GiantPinkTreeGenerator(false, true) : new PinkTreeGenerator(false);
 	}
 
 	@Override
@@ -388,12 +389,25 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 			}
 		}
 
-		public double treeRateSmall() {
+		public double largeTreeFraction() {
+			switch(this) {
+				case FOREST:
+					return 0.25;
+				case STREAMS:
+					return 0.67;
+				case SWAMP:
+					return 0.4;
+				default:
+					return 0;
+			}
+		}
+
+		public double treeFrequency() {
 			switch(this) {
 				case FOREST:
 					return 1;
 				case STREAMS:
-					return 0.25;
+					return 0.15;
 				case SWAMP:
 					return 0.8;
 				default:
@@ -401,23 +415,10 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 			}
 		}
 
-		public double treeRateLarge() {
-			switch(this) {
-				case FOREST:
-					return 1;
-				case STREAMS:
-					return 0.2;
-				case SWAMP:
-					return 0.9;
-				default:
-					return 0;
-			}
-		}
-
 		public double jungleTreeRate() {
 			switch(this) {
-				case STREAMS:--
-				return 0.3;
+				case STREAMS:
+					return 0.5;
 				default:
 					return 0;
 			}

@@ -54,8 +54,14 @@ public class PinkForestTerrainShaper extends TerrainShaper {
 				this.setBlock(x, y-dt, z, Blocks.dirt);
 			}
 
-			int outcrop = bp.getOutcropValue(world, x, z, sub);
+			int outcrop = y >= 96 ? bp.getOutcropValue(world, x, z, sub) : -50;
 			outcrop -= road*2;
+			if (outcrop >= -1) {
+				int dist = BiomePinkForest.getNearestBiomeEdge(world, x, z, 12);
+				if (dist != -1) {
+					outcrop += -12+dist;
+				}
+			}
 			if (outcrop >= -1 && !placedRoad) {
 				int y2 = this.getLowestSurface(x, z);
 				for (int i = -1; i <= outcrop; i++) {

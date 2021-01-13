@@ -7,31 +7,24 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
-import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
-import Reika.DragonAPI.Instantiable.Worldgen.ModifiableBigTree;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
-import Reika.DragonAPI.Libraries.Registry.ReikaPlantHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
-import Reika.Satisforestry.Blocks.BlockPinkLeaves;
+import Reika.Satisforestry.Blocks.BlockPinkLeaves.LeafTypes;
 import Reika.Satisforestry.Registry.SFBlocks;
 
-public class GiantPinkTreeGenerator extends ModifiableBigTree {
+public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 
 	private final boolean generateImmediately;
 	private final Random treeRand = new Random();
-
-	private boolean forceGen;
 
 	private boolean readyToGenerate = false;
 	private long randomSeed = 0;
 
 	public GiantPinkTreeGenerator(boolean force, boolean genImmediate) {
-		super(false);
+		super(force, LeafTypes.GIANTTREE);
 		trunkSize = 3;
-		forceGen = force;
 		generateImmediately = genImmediate;
 		readyToGenerate = generateImmediately;
 	}
@@ -40,13 +33,6 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 	public boolean generate(World world, Random chunkRand, int x, int y, int z) {
 		if (!forceGen) {
 			if (y < 108) //was 96
-				return false;
-			if (Satisforestry.pinkforest.isRoad(world, x, z))
-				return false;
-			if (!ReikaPlantHelper.SAPLING.canPlantAt(world, x, y, z))
-				return false;
-			BiomeSection s = Satisforestry.pinkforest.getSubBiome(world, x, z);
-			if (chunkRand.nextDouble() > s.treeRateLarge())
 				return false;
 		}
 		if (chunkRand != null)
@@ -157,16 +143,6 @@ public class GiantPinkTreeGenerator extends ModifiableBigTree {
 		else {
 			return false;
 		}
-	}
-
-	@Override
-	protected BlockKey getLogBlock(int x, int y, int z) {
-		return new BlockKey(Satisforestry.log, 1);
-	}
-
-	@Override
-	protected BlockKey getLeafBlock(int x, int y, int z) {
-		return new BlockKey(Satisforestry.leaves, BlockPinkLeaves.LeafTypes.GIANTTREE.ordinal());
 	}
 
 	@Override

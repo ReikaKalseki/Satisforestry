@@ -7,7 +7,6 @@ import java.util.Random;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.gen.feature.WorldGenAbstractTree;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
@@ -15,22 +14,32 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaPlantHelper;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
+import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves.LeafTypes;
 import Reika.Satisforestry.Registry.SFBlocks;
 
-public class RedJungleTreeGenerator extends WorldGenAbstractTree {
+public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
+
+	public RedJungleTreeGenerator(boolean force) {
+		super(force, LeafTypes.JUNGLE);
+	}
 
 	@Override
 	public boolean generate(World world, Random rand, int x, int y, int z) {
 		if (!ReikaPlantHelper.SAPLING.canPlantAt(world, x, y, z))
 			return false;
 		int h0 = ReikaRandomHelper.getRandomBetween(8, 12, rand);
-		for (int i = 0; i <= 1; i++) {
-			world.setBlock(x+1, y+i, z, SFBlocks.LOG.getBlockInstance(), 2, 2);
-			world.setBlock(x-1, y+i, z, SFBlocks.LOG.getBlockInstance(), 2, 2);
-			world.setBlock(x, y+i, z+1, SFBlocks.LOG.getBlockInstance(), 2, 2);
-			world.setBlock(x, y+i, z-1, SFBlocks.LOG.getBlockInstance(), 2, 2);
+		for (int d = 2; d < 6; d++) {
+			ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[d];
+			int i = 1;
+			while (ReikaWorldHelper.softBlocks(world, x+dir.offsetX, y+i, z+dir.offsetZ)) {
+				if (i >= -3)
+					world.setBlock(x+dir.offsetX, y+i, z+dir.offsetZ, SFBlocks.LOG.getBlockInstance(), 2, 2);
+				else
+					world.setBlock(x+dir.offsetX, y+i, z+dir.offsetZ, Blocks.dirt);
+				i--;
+			}
 		}
 		for (int i = 0; i < h0; i++) {
 			world.setBlock(x, y+i, z, SFBlocks.LOG.getBlockInstance(), 2, 2);
@@ -79,25 +88,17 @@ public class RedJungleTreeGenerator extends WorldGenAbstractTree {
 			wr.addEntry(e.getKey(), e.getValue());
 		}
 		double f = 0.83;
-		for (int i = 0; i <= h0-2; i++) {
+		for (int i = -2; i <= h0-2; i++) {
 			int d = i >= 2 ? 1 : 2;
-			if (rand.nextDouble() < f)
-				world.setBlock(x+d, y+i, z, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(ForgeDirection.WEST), 2);
-			if (rand.nextDouble() < f)
-				world.setBlock(x-d, y+i, z, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(ForgeDirection.EAST), 2);
-			if (rand.nextDouble() < f)
-				world.setBlock(x, y+i, z+d, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(ForgeDirection.NORTH), 2);
-			if (rand.nextDouble() < f)
-				world.setBlock(x, y+i, z-d, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(ForgeDirection.SOUTH), 2);
+			this.tryPlaceVine(world, rand, x+d, y+i, z, ForgeDirection.WEST);
+			this.tryPlaceVine(world, rand, x-d, y+i, z, ForgeDirection.EAST);
+			this.tryPlaceVine(world, rand, x, y+i, z+d, ForgeDirection.NORTH);
+			this.tryPlaceVine(world, rand, x, y+i, z-d, ForgeDirection.SOUTH);
 			if (i < 2) {
-				if (rand.nextDouble() < f)
-					world.setBlock(x+1, y+i, z+1, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(ForgeDirection.WEST, ForgeDirection.NORTH), 2);
-				if (rand.nextDouble() < f)
-					world.setBlock(x+1, y+i, z-1, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(ForgeDirection.WEST, ForgeDirection.SOUTH), 2);
-				if (rand.nextDouble() < f)
-					world.setBlock(x-1, y+i, z+1, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(ForgeDirection.EAST, ForgeDirection.NORTH), 2);
-				if (rand.nextDouble() < f)
-					world.setBlock(x-1, y+i, z-1, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(ForgeDirection.EAST, ForgeDirection.SOUTH), 2);
+				this.tryPlaceVine(world, rand, x+1, y+i, z+1, ForgeDirection.WEST, ForgeDirection.NORTH);
+				this.tryPlaceVine(world, rand, x+1, y+i, z-1, ForgeDirection.WEST, ForgeDirection.SOUTH);
+				this.tryPlaceVine(world, rand, x-1, y+i, z+1, ForgeDirection.EAST, ForgeDirection.NORTH);
+				this.tryPlaceVine(world, rand, x-1, y+i, z-1, ForgeDirection.EAST, ForgeDirection.SOUTH);
 			}
 		}
 		int n = ReikaRandomHelper.getRandomBetween(15, 20, rand);
@@ -110,6 +111,11 @@ public class RedJungleTreeGenerator extends WorldGenAbstractTree {
 				c = c.offset(0, -1, 0);
 			}
 		}
+	}
+
+	private void tryPlaceVine(World world, Random rand, int x, int y, int z, ForgeDirection... sides) {
+		if (rand.nextDouble() <= 0.9 && world.getBlock(x, y, z).isAir(world, x, y, z))
+			world.setBlock(x, y, z, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(sides), 2);
 	}
 
 }

@@ -16,6 +16,8 @@ import net.minecraft.world.IBlockAccess;
 
 import Reika.DragonAPI.Base.ISBRH;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
+import Reika.Satisforestry.Blocks.BlockPinkSapling;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 
 public class PinkGrassRenderer extends ISBRH {
@@ -26,6 +28,10 @@ public class PinkGrassRenderer extends ISBRH {
 
 	@Override
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
+		if (block == SFBlocks.SAPLING.getBlockInstance()) {
+			BlockPinkSapling.render(world, x, y, z, renderer);
+			return true;
+		}
 		GrassTypes f = GrassTypes.list[world.getBlockMetadata(x, y, z)];
 		Tessellator.instance.setColorOpaque_I(0xffffff);
 		f.render(world, x, y, z, block, renderer, Tessellator.instance);

@@ -20,6 +20,7 @@ import net.minecraft.item.ItemStack;
 import Reika.DragonAPI.Instantiable.MetadataItemBlock;
 import Reika.DragonAPI.Interfaces.Registry.BlockEnum;
 import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
+import Reika.Satisforestry.ItemPinkSapling;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveShield;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner;
@@ -30,6 +31,7 @@ import Reika.Satisforestry.Blocks.BlockPinkGrass;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
+import Reika.Satisforestry.Blocks.BlockPinkSapling;
 import Reika.Satisforestry.Blocks.BlockRedBamboo;
 import Reika.Satisforestry.Blocks.BlockResourceNode;
 import Reika.Satisforestry.Blocks.BlockTerrain;
@@ -37,9 +39,9 @@ import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 
 public enum SFBlocks implements BlockEnum {
 
-	LOG(BlockPinkLog.class, MetadataItemBlock.class, "Pink Birch Log"),
+	LOG(BlockPinkLog.class, MetadataItemBlock.class, "Birch Log"),
 	BAMBOO(BlockRedBamboo.class, null, "Red Bamboo"),
-	LEAVES(BlockPinkLeaves.class, MetadataItemBlock.class, "Pink Birch Leaves"),
+	LEAVES(BlockPinkLeaves.class, MetadataItemBlock.class, "Birch Leaves"),
 	GRASS(BlockPinkGrass.class, MetadataItemBlock.class, "Pink Grass"),
 	CAVESHIELD(BlockCaveShield.class, null, "Cave Stone"),
 	SPAWNER(BlockCaveSpawner.class, null, "Cracked Cave Stone"),
@@ -47,6 +49,7 @@ public enum SFBlocks implements BlockEnum {
 	RESOURCENODE(BlockResourceNode.class, null, "Resource Node"),
 	TERRAIN(BlockTerrain.class, MetadataItemBlock.class, ""),
 	DECORATION(BlockDecoration.class, MetadataItemBlock.class, ""),
+	SAPLING(BlockPinkSapling.class, ItemPinkSapling.class, "Birch Sapling"),
 	;
 
 	private final Class blockClass;
@@ -108,6 +111,7 @@ public enum SFBlocks implements BlockEnum {
 		switch(this) {
 			case GRASS:
 			case LEAVES:
+			case SAPLING:
 			case BAMBOO:
 			case LOG:
 				return new Class[0];
@@ -121,6 +125,7 @@ public enum SFBlocks implements BlockEnum {
 		switch(this) {
 			case GRASS:
 			case LEAVES:
+			case SAPLING:
 			case BAMBOO:
 			case LOG:
 				return new Object[0];
@@ -154,6 +159,10 @@ public enum SFBlocks implements BlockEnum {
 			case GRASS:
 				String s = GrassTypes.list[meta].name;
 				return s != null ? s : this.getBasicName();
+			case LEAVES:
+			case SAPLING:
+			case LOG:
+				return BlockPinkLeaves.getLeafType(meta).getDisplayName(this.getBasicName());
 			default:
 				return "";
 		}
@@ -165,6 +174,9 @@ public enum SFBlocks implements BlockEnum {
 			case TERRAIN:
 			case DECORATION:
 			case GRASS:
+			case LEAVES:
+			case SAPLING:
+			case LOG:
 				return true;
 			default:
 				return false;
