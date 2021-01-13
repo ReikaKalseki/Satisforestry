@@ -89,14 +89,14 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 			return null;
 		}
 
-		public double getSaplingDropChance() {
+		public double getSaplingDropChance() { //5% base
 			switch(this) {
 				case TREE:
-					return 0.08;
+					return 8;
 				case GIANTTREE:
-					return 0.002;
+					return 0.2;
 				case JUNGLE:
-					return 0.04;
+					return 4;
 			}
 			return 0;
 		}
@@ -127,6 +127,14 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 		@SideOnly(Side.CLIENT)
 		public int getBasicRenderColor() {
 			return this.getRenderColor(Minecraft.getMinecraft().theWorld, 0, 118, 0);
+		}
+
+		public static PinkTreeTypes getLeafType(IBlockAccess world, int x, int y, int z) {
+			return getLeafType(world.getBlockMetadata(x, y, z));
+		}
+
+		public static PinkTreeTypes getLeafType(int meta) {
+			return PinkTreeTypes.list[meta%4];
 		}
 	}
 

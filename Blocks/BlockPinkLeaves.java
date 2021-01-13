@@ -37,20 +37,12 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 
 	@Override
 	public int getRenderColor(int meta) {
-		return getLeafType(meta).getBasicRenderColor();
+		return PinkTreeTypes.getLeafType(meta).getBasicRenderColor();
 	}
 
 	@Override
 	public int colorMultiplier(IBlockAccess world, int x, int y, int z) {
-		return getLeafType(world, x, y, z).getRenderColor(world, x, y, z);
-	}
-
-	public static PinkTreeTypes getLeafType(IBlockAccess world, int x, int y, int z) {
-		return getLeafType(world.getBlockMetadata(x, y, z));
-	}
-
-	public static PinkTreeTypes getLeafType(int meta) {
-		return PinkTreeTypes.list[meta%8];
+		return PinkTreeTypes.getLeafType(world, x, y, z).getRenderColor(world, x, y, z);
 	}
 	/*
 	@Override
@@ -102,12 +94,12 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 
 	@Override
 	public String getFastGraphicsIcon(int meta) {
-		return this.getLeafType(meta).fastIcon;
+		return PinkTreeTypes.getLeafType(meta).fastIcon;
 	}
 
 	@Override
 	public String getFancyGraphicsIcon(int meta) {
-		return this.getLeafType(meta).fancyIcon;
+		return PinkTreeTypes.getLeafType(meta).fancyIcon;
 	}
 
 	@Override
@@ -162,12 +154,17 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 
 	@Override
 	public Item getItemDropped(int meta, Random rand, int fortune) {
-		return rand.nextDouble() <= this.getLeafType(meta).getSaplingDropChance() ? Item.getItemFromBlock(SFBlocks.SAPLING.getBlockInstance()) : null;
+		return Item.getItemFromBlock(SFBlocks.SAPLING.getBlockInstance());
+	}
+
+	@Override
+	protected int func_150123_b(int meta) {
+		return (int)(100/PinkTreeTypes.getLeafType(meta).getSaplingDropChance());
 	}
 
 	@Override
 	public int damageDropped(int meta) {
-		return this.getLeafType(meta).getTypeDropped().ordinal();
+		return PinkTreeTypes.getLeafType(meta).getTypeDropped().ordinal();
 	}
 
 	@Override

@@ -47,7 +47,11 @@ public class BlockPinkSapling extends BlockSapling {
 
 	@Override
 	public void func_149878_d(World world, int x, int y, int z, Random rand) {
-		BlockPinkLeaves.getLeafType(world, x, y, z).constructTreeGenerator().generate(world, rand, x, y, z);
+		PinkTreeTypes type = PinkTreeTypes.getLeafType(world, x, y, z);
+		if (type.constructTreeGenerator().generate(world, rand, x, y, z)) {
+			if (type == PinkTreeTypes.GIANTTREE)
+				world.setBlock(x, y, z, Blocks.air);
+		}
 	}
 
 	@Override
@@ -63,7 +67,7 @@ public class BlockPinkSapling extends BlockSapling {
 
 	@SideOnly(Side.CLIENT)
 	public static void render(IBlockAccess world, int x, int y, int z, RenderBlocks rb) {
-		PinkTreeTypes type = BlockPinkLeaves.getLeafType(world, x, y, z);
+		PinkTreeTypes type = PinkTreeTypes.getLeafType(world, x, y, z);
 		double h = type == PinkTreeTypes.GIANTTREE ? 1.5 : 1;
 		Tessellator.instance.setColorOpaque_I(0xffffff);
 		ReikaRenderHelper.renderCrossTex(world, x, y, z, base, Tessellator.instance, rb, h);

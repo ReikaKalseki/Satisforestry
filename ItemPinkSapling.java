@@ -5,7 +5,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 
 import Reika.DragonAPI.Instantiable.MetadataItemBlock;
-import Reika.Satisforestry.Blocks.BlockPinkLeaves;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockPinkSapling;
 
 import cpw.mods.fml.relauncher.Side;
@@ -41,7 +41,7 @@ public class ItemPinkSapling extends MetadataItemBlock {
 			case 0:
 				return 0xffffff;
 			case 1:
-				return BlockPinkLeaves.getLeafType(stack.getItemDamage()).getBasicRenderColor();
+				return PinkTreeTypes.getLeafType(stack.getItemDamage()).getBasicRenderColor();
 		}
 		return 0xffffff;
 	}

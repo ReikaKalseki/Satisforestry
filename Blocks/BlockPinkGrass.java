@@ -147,7 +147,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 			Block b = SFBlocks.GRASS.getBlockInstance();
 			switch(this) {
 				case TREE_VINE:
-					return (at == SFBlocks.LEAVES.getBlockInstance() && BlockPinkLeaves.getLeafType(world, dx, dy, dz) == PinkTreeTypes.JUNGLE) || this.matchAt(world, dx, dy, dz);
+					return (at == SFBlocks.LEAVES.getBlockInstance() && PinkTreeTypes.getLeafType(world, dx, dy, dz) == PinkTreeTypes.JUNGLE) || this.matchAt(world, dx, dy, dz);
 				case VINE:
 				case BLUE_MUSHROOM_STALK:
 				case STALKS:

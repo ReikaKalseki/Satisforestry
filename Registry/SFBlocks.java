@@ -22,6 +22,7 @@ import Reika.DragonAPI.Interfaces.Registry.BlockEnum;
 import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 import Reika.Satisforestry.ItemPinkSapling;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockCaveShield;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner;
 import Reika.Satisforestry.Blocks.BlockDecoration;
@@ -162,7 +163,7 @@ public enum SFBlocks implements BlockEnum {
 			case LEAVES:
 			case SAPLING:
 			case LOG:
-				return BlockPinkLeaves.getLeafType(meta).getDisplayName(this.getBasicName());
+				return PinkTreeTypes.getLeafType(meta).getDisplayName(this.getBasicName());
 			default:
 				return "";
 		}
