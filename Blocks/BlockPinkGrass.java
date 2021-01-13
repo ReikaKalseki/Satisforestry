@@ -37,7 +37,7 @@ import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Blocks.BlockPinkLeaves.LeafTypes;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 import cpw.mods.fml.relauncher.Side;
@@ -147,7 +147,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 			Block b = SFBlocks.GRASS.getBlockInstance();
 			switch(this) {
 				case TREE_VINE:
-					return (at == SFBlocks.LEAVES.getBlockInstance() && BlockPinkLeaves.getLeafType(world, dx, dy, dz) == LeafTypes.JUNGLE) || this.matchAt(world, dx, dy, dz);
+					return (at == SFBlocks.LEAVES.getBlockInstance() && BlockPinkLeaves.getLeafType(world, dx, dy, dz) == PinkTreeTypes.JUNGLE) || this.matchAt(world, dx, dy, dz);
 				case VINE:
 				case BLUE_MUSHROOM_STALK:
 				case STALKS:

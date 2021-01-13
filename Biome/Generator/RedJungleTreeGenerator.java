@@ -16,13 +16,12 @@ import Reika.DragonAPI.Libraries.Registry.ReikaPlantHelper;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
-import Reika.Satisforestry.Blocks.BlockPinkLeaves.LeafTypes;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 
 	public RedJungleTreeGenerator(boolean force) {
-		super(force, LeafTypes.JUNGLE);
+		super(force, PinkTreeTypes.JUNGLE);
 	}
 
 	@Override
@@ -68,7 +67,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 							continue;
 						if (i != 0 || k != 0 || h >= 0) {
 							Coordinate c = new Coordinate(x+i, dy+h, z+k);
-							c.setBlock(world, SFBlocks.LEAVES.getBlockInstance(), LeafTypes.JUNGLE.ordinal(), 2);
+							c.setBlock(world, SFBlocks.LEAVES.getBlockInstance(), PinkTreeTypes.JUNGLE.ordinal(), 2);
 							if (i != 0 || k != 0) {
 								leaves.put(c, dd);
 							}

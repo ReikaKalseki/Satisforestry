@@ -17,7 +17,7 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Blocks.BlockPinkLeaves.LeafTypes;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 import cpw.mods.fml.relauncher.Side;
@@ -57,14 +57,14 @@ public class BlockPinkSapling extends BlockSapling {
 
 	@Override
 	public void getSubBlocks(Item i, CreativeTabs cr, List li) {
-		for (LeafTypes l : LeafTypes.values())
+		for (PinkTreeTypes l : PinkTreeTypes.list)
 			li.add(new ItemStack(i, 1, l.ordinal()));
 	}
 
 	@SideOnly(Side.CLIENT)
 	public static void render(IBlockAccess world, int x, int y, int z, RenderBlocks rb) {
-		LeafTypes type = BlockPinkLeaves.getLeafType(world, x, y, z);
-		double h = type == LeafTypes.GIANTTREE ? 1.5 : 1;
+		PinkTreeTypes type = BlockPinkLeaves.getLeafType(world, x, y, z);
+		double h = type == PinkTreeTypes.GIANTTREE ? 1.5 : 1;
 		Tessellator.instance.setColorOpaque_I(0xffffff);
 		ReikaRenderHelper.renderCrossTex(world, x, y, z, base, Tessellator.instance, rb, h);
 		Tessellator.instance.setColorOpaque_I(SFBlocks.LEAVES.getBlockInstance().colorMultiplier(world, x, y, z));

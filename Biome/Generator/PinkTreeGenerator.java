@@ -13,12 +13,11 @@ import Reika.DragonAPI.Instantiable.Math.Spline.SplineType;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Blocks.BlockPinkLeaves.LeafTypes;
 
 public class PinkTreeGenerator extends PinkTreeGeneratorBase {
 
 	public PinkTreeGenerator(boolean force) {
-		super(force, LeafTypes.TREE);
+		super(force, PinkTreeTypes.TREE);
 	}
 
 	@Override

@@ -11,7 +11,6 @@ import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Blocks.BlockPinkLeaves.LeafTypes;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
@@ -23,7 +22,7 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 	private long randomSeed = 0;
 
 	public GiantPinkTreeGenerator(boolean force, boolean genImmediate) {
-		super(force, LeafTypes.GIANTTREE);
+		super(force, PinkTreeTypes.GIANTTREE);
 		trunkSize = 3;
 		generateImmediately = genImmediate;
 		readyToGenerate = generateImmediately;
