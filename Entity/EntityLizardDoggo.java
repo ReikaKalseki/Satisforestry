@@ -1,5 +1,7 @@
 package Reika.Satisforestry.Entity;
 
+import java.util.ArrayList;
+
 import net.minecraft.entity.EntityAgeable;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -19,6 +21,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ForgeHooks;
 
+import Reika.DragonAPI.APIPacketHandler.PacketIDs;
 import Reika.DragonAPI.DragonAPIInit;
 import Reika.DragonAPI.Auxiliary.Trackers.TickScheduler;
 import Reika.DragonAPI.Instantiable.InertItem;
@@ -27,10 +30,13 @@ import Reika.DragonAPI.Instantiable.Data.WeightedRandom.DynamicWeight;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent;
 import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent.ScheduledSoundEvent;
+import Reika.DragonAPI.Instantiable.IO.PacketTarget;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMusicHelper.MusicKey;
 import Reika.DragonAPI.Libraries.Registry.ReikaParticleHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Auxiliary.EntityAIComeGetPaleberry;
@@ -51,6 +57,40 @@ public class EntityLizardDoggo extends EntityTameable {
 	private static final int SNEEZE_LENGTH_1 = 8;
 	private static final int SNEEZE_LENGTH_2 = 40;
 
+	private static final ArrayList<MusicKey>[] melody = new ArrayList[4];
+
+	static {
+		melody[0] = new ArrayList();
+		melody[1] = new ArrayList();
+		melody[2] = new ArrayList();
+		melody[3] = new ArrayList();
+
+		melody[0].add(MusicKey.G5);
+		melody[0].add(MusicKey.A4);
+		melody[0].add(MusicKey.E5);
+		melody[0].add(MusicKey.A5);
+
+		melody[1].add(MusicKey.E5);
+		melody[1].add(MusicKey.C6);
+		melody[1].add(MusicKey.A5);
+		melody[1].add(MusicKey.G5);
+		melody[1].add(MusicKey.E5);
+		melody[1].add(MusicKey.G5);
+
+		melody[2].add(MusicKey.E5);
+		melody[2].add(MusicKey.C6);
+		melody[2].add(MusicKey.A5);
+		melody[2].add(MusicKey.G5);
+		melody[2].add(MusicKey.E5);
+		melody[2].add(MusicKey.D5);
+
+		melody[3].add(MusicKey.E5);
+		melody[3].add(MusicKey.G5);
+		melody[3].add(MusicKey.E5);
+		melody[3].add(MusicKey.G5);
+		melody[3].add(MusicKey.A5);
+	}
+
 	private WorldLocation spawnPoint;
 	private ItemStack foundItem;
 	private long lastItemTick;
@@ -62,6 +102,8 @@ public class EntityLizardDoggo extends EntityTameable {
 	private int sprintJumpTick;
 	private int sneezeTick1 = 0;
 	private int sneezeTick2 = 0;
+	private int healTick = 0;
+	private int songIndex = 0;
 
 	private EntityItem renderItem;
 	private boolean needsItemUpdate;
@@ -220,6 +262,8 @@ public class EntityLizardDoggo extends EntityTameable {
 				sneezeTick1--;
 			if (sneezeTick2 > 0)
 				sneezeTick2--;
+			if (healTick > 0)
+				healTick--;
 
 			if (this.isSneezing()) {
 				rotationYawHead = rotationYaw;
@@ -227,7 +271,7 @@ public class EntityLizardDoggo extends EntityTameable {
 			}
 
 			if (onGround && this.isTamed()) {
-				if (!this.isSneezing() && rand.nextInt(300) == 0)
+				if (!this.isSneezing() && healTick == 0 && rand.nextInt(300) == 0)
 					this.sneeze();
 				if (this.isSitting()) {
 
@@ -340,22 +384,36 @@ public class EntityLizardDoggo extends EntityTameable {
 			isJumpingInPlace = true;
 			this.jump();
 		}
-		this.playLivingSound();
 		if (!worldObj.isRemote && !ep.isSneaking() && this.isTamed()) {
 			ItemStack is = ep.getCurrentEquippedItem();
 			if (is != null && is.getItem() == Satisforestry.paleberry && this.getHealth() < this.getMaxHealth()) {
-				//this.playTameEffect(true); does not work onserverside
-				ReikaParticleHelper.HEART.spawnAroundServer(this, 7, 0.25);
-				this.heal(4);
-				int l = ReikaRandomHelper.getRandomBetween(75, 125, rand);
-				for (int i = 10; i < l; i += 10) {
-					TickScheduler.instance.scheduleEvent(new ScheduledTickEvent(new ScheduledSoundEvent(this.getRandomLivingSound(false), this, 1, 1)), ReikaRandomHelper.getRandomPlusMinus(i, 5));
+				if (healTick == 0) {
+					//this.playTameEffect(true); does not work onserverside
+					for (int i = 0; i < 7; i++) {
+						int[] x = ReikaJavaLibrary.splitDoubleToInts(ReikaRandomHelper.getRandomPlusMinus(posX, width));
+						int[] y = ReikaJavaLibrary.splitDoubleToInts(ReikaRandomHelper.getRandomBetween(posY, posY+height));
+						int[] z = ReikaJavaLibrary.splitDoubleToInts(ReikaRandomHelper.getRandomPlusMinus(posZ, width));
+						ArrayList<Integer> li = ReikaJavaLibrary.makeIntListFromArray(ReikaParticleHelper.HEART.ordinal(), 1, x[0], x[1], y[0], y[1], z[0], z[1]);
+						ReikaPacketHelper.sendDataPacket(DragonAPIInit.packetChannel, PacketIDs.PARTICLEWITHPOS.ordinal(), new PacketTarget.RadiusTarget(this, 64), li);
+					}
+					healTick = 50;
+					this.heal(4);
+					ArrayList<MusicKey> line = melody[songIndex];
+					int t = 5;
+					for (int i = 0; i < line.size(); i++) {
+						MusicKey m = line.get(i);
+						float f = (float)m.getRatio(MusicKey.G5);
+						TickScheduler.instance.scheduleEvent(new ScheduledTickEvent(new ScheduledSoundEvent(SFSounds.DOGGOSING, this, 1, f)), t);
+						t += i == 0 && songIndex != 3 ? 8 : 4;
+					}
+					songIndex = (songIndex+1)%melody.length;
+					if (!ep.capabilities.isCreativeMode)
+						is.stackSize--;
+					ep.setCurrentItemOrArmor(0, is);
 				}
-				if (!ep.capabilities.isCreativeMode)
-					is.stackSize--;
-				ep.setCurrentItemOrArmor(0, is);
 				return true;
 			}
+			this.playLivingSound();
 			if (foundItem != null && this.func_152114_e(ep)) {
 				if (ep.getCurrentEquippedItem() == null) {
 					ep.setCurrentItemOrArmor(0, foundItem);
@@ -385,7 +443,7 @@ public class EntityLizardDoggo extends EntityTameable {
 
 	@Override
 	public void playLivingSound() {
-		if (sneezeTick1 > 0 || sneezeTick2 > 0)
+		if (sneezeTick1 > 0 || sneezeTick2 > 0 || healTick > 0)
 			return;
 		float v = 0.7F+rand.nextFloat()*0.3F;
 		float p = 0.75F+rand.nextFloat()*0.75F;
@@ -483,6 +541,7 @@ public class EntityLizardDoggo extends EntityTameable {
 
 		sprintJumpTick = NBT.getInteger("sprintJump");
 		backwards = NBT.getBoolean("backwards");
+		healTick = NBT.getInteger("healing");
 	}
 
 	@Override
@@ -500,6 +559,7 @@ public class EntityLizardDoggo extends EntityTameable {
 
 		NBT.setInteger("sprintJump", sprintJumpTick);
 		NBT.setBoolean("backwards", backwards);
+		NBT.setInteger("healing", healTick);
 	}
 
 	private class DoggoDropHook implements DynamicWeight {

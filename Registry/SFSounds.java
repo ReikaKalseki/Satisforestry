@@ -40,6 +40,7 @@ public enum SFSounds implements SoundEnum {
 	DOGGO4("doggo4"),
 	DOGGO5("doggo5"),
 	DOGGO6("doggo6"),
+	DOGGOSING("doggosing3"),
 	DOGGOSNEEZE1("doggosneeze1"),
 	DOGGOSNEEZE2("doggosneeze2"),
 	;
