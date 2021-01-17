@@ -1,4 +1,4 @@
-package Reika.Satisforestry.Auxiliary;
+package Reika.Satisforestry.Entity.AI;
 
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.player.EntityPlayer;

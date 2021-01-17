@@ -13,6 +13,7 @@ import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.passive.EntityTameable;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.pathfinding.PathEntity;
@@ -31,6 +32,7 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent;
 import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent.ScheduledSoundEvent;
 import Reika.DragonAPI.Instantiable.IO.PacketTarget;
+import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
@@ -39,13 +41,14 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMusicHelper.MusicKey;
 import Reika.DragonAPI.Libraries.Registry.ReikaParticleHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Auxiliary.EntityAIComeGetPaleberry;
-import Reika.Satisforestry.Auxiliary.EntityAIRunFromPlayer;
-import Reika.Satisforestry.Auxiliary.EntityAISlowlyBackFromPlayer;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.LizardDoggoSpawner.LizardDoggoSpawnPoint;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.DoggoDrop;
+import Reika.Satisforestry.Entity.AI.EntityAIComeGetPaleberry;
+import Reika.Satisforestry.Entity.AI.EntityAIDepositItem;
+import Reika.Satisforestry.Entity.AI.EntityAIRunFromPlayer;
+import Reika.Satisforestry.Entity.AI.EntityAISlowlyBackFromPlayer;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFSounds;
 
@@ -104,6 +107,7 @@ public class EntityLizardDoggo extends EntityTameable {
 	private int sneezeTick2 = 0;
 	private int healTick = 0;
 	private int songIndex = 0;
+	private int itemDeposit = 0;
 
 	private EntityItem renderItem;
 	private boolean needsItemUpdate;
@@ -122,15 +126,18 @@ public class EntityLizardDoggo extends EntityTameable {
 
 		//args: priority (lower is more priority), task
 		tasks.addTask(1, new EntityAISwimming(this));
+		EntityAIDepositItem deposit = new EntityAIDepositItem(this, 12);
+		tasks.addTask(1, deposit);
 		tasks.addTask(2, aiSit);
 		tasks.addTask(3, new EntityAIRunFromPlayer(this, 24, 0.4, 0.7));
 		tasks.addTask(4, new EntityAIComeGetPaleberry(this, 10, 0.28));
 		tasks.addTask(5, new EntityAISlowlyBackFromPlayer(this, 8, 0.2));
-		tasks.addTask(6, new EntityAIFollowOwner(this, 0.4, 4, 2.5F)); //args: speed, dist to start follow, dist to consider "reached them"
+		EntityAIFollowOwner seek = new EntityAIFollowOwner(this, 0.4, 4, 2.5F); //args: speed, dist to start follow, dist to consider "reached them"
+		tasks.addTask(6, seek);
 		tasks.addTask(5, new EntityAIFollowOwner(this, 0.6, 12, 2.5F));
 		EntityAIWatchClosest look = new EntityAIWatchClosest(this, EntityPlayer.class, 30);
-		look.setMutexBits(0);
-		tasks.addTask(6, look); //max dist
+		look.setMutexBits(4);
+		tasks.addTask(7, look); //max dist
 		tasks.addTask(8, new EntityAIWander(this, 0.5)); //speed
 		tasks.addTask(9, new EntityAILookIdle(this));
 		//targetTasks.addTask(1, new EntityAIOwnerHurtByTarget(this));
@@ -208,12 +215,18 @@ public class EntityLizardDoggo extends EntityTameable {
 		long tick = worldObj.getTotalWorldTime();
 		if (!worldObj.isRemote && this.isTamed()) {
 			if (foundItem == null && ticksExisted >= 900) {
-				if (rand.nextInt(10000) == 0 || worldObj.getTotalWorldTime()-lastItemTick >= 20*60*15) {
+				if (rand.nextInt(10000) == 0 || this.ticksSinceLastItem() >= 20*60*15) {
 					this.generateItem();
 				}
 			}
 			else if (tick%100 == 0)
 				ReikaPacketHelper.sendEntitySyncPacket(DragonAPIInit.packetChannel, this, 128);
+
+			if (this.hasItem())
+				lastItemTick = tick;
+
+			if (itemDeposit > 0)
+				itemDeposit--;
 		}
 
 		if (worldObj.isRemote) {
@@ -227,6 +240,10 @@ public class EntityLizardDoggo extends EntityTameable {
 		else {
 			this.updateFlags();
 		}
+	}
+
+	public long ticksSinceLastItem() {
+		return worldObj.getTotalWorldTime()-lastItemTick;
 	}
 
 	private void updateFlags() {
@@ -404,7 +421,7 @@ public class EntityLizardDoggo extends EntityTameable {
 						MusicKey m = line.get(i);
 						float f = (float)m.getRatio(MusicKey.G5);
 						TickScheduler.instance.scheduleEvent(new ScheduledTickEvent(new ScheduledSoundEvent(SFSounds.DOGGOSING, this, 1, f)), t);
-						t += i == 0 && songIndex != 3 ? 8 : 4;
+						t += i == 0 || (songIndex == 3 && i == 1) ? 6 : 3;
 					}
 					songIndex = (songIndex+1)%melody.length;
 					if (!ep.capabilities.isCreativeMode)
@@ -525,6 +542,25 @@ public class EntityLizardDoggo extends EntityTameable {
 		return renderItem;
 	}
 
+	public boolean hasItem() {
+		return foundItem != null;
+	}
+
+	public boolean justDepositedItem() {
+		return itemDeposit > 0;
+	}
+
+	public boolean tryPutItemInChest(IInventory te) {
+		if (ReikaInventoryHelper.addToIInv(foundItem, te)) {
+			foundItem = null;
+			needsItemUpdate = true;
+			ReikaPacketHelper.sendEntitySyncPacket(DragonAPIInit.packetChannel, this, 128);
+			itemDeposit = 90;
+			return true;
+		}
+		return false;
+	}
+
 	@Override
 	public void readEntityFromNBT(NBTTagCompound NBT) {
 		super.readEntityFromNBT(NBT);
@@ -542,6 +578,7 @@ public class EntityLizardDoggo extends EntityTameable {
 		sprintJumpTick = NBT.getInteger("sprintJump");
 		backwards = NBT.getBoolean("backwards");
 		healTick = NBT.getInteger("healing");
+		itemDeposit = NBT.getInteger("deposit");
 	}
 
 	@Override
@@ -560,6 +597,7 @@ public class EntityLizardDoggo extends EntityTameable {
 		NBT.setInteger("sprintJump", sprintJumpTick);
 		NBT.setBoolean("backwards", backwards);
 		NBT.setInteger("healing", healTick);
+		NBT.setInteger("deposit", itemDeposit);
 	}
 
 	private class DoggoDropHook implements DynamicWeight {
