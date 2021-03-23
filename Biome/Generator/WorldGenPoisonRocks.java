@@ -101,6 +101,10 @@ public class WorldGenPoisonRocks extends WorldGenerator {
 			}
 		}
 		int dy = y+h-1;
+		if (dy < 0 || dy >= 256) {
+			Satisforestry.logger.logError("Tried to place poison rocks out of bounds ("+dy+") @ "+x+", "+z+"!");
+			return false;
+		}
 		world.setBlock(x, dy, z, SFBlocks.GASEMITTER.getBlockInstance(), 0, 3);
 		TileGasVent te = (TileGasVent)world.getTileEntity(x, dy, z);
 		te.activeRadius = ReikaRandomHelper.getRandomBetween(3, 5, rand);

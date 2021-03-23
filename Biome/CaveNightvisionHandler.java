@@ -13,7 +13,6 @@ public class CaveNightvisionHandler {
 
 	public static final CaveNightvisionHandler instance = new CaveNightvisionHandler();
 
-	private float targetBrightness;
 	private float currentBrightness;
 	private long lastTick;
 
@@ -34,6 +33,8 @@ public class CaveNightvisionHandler {
 		int y = MathHelper.floor_double(ep.posY);
 		int z = MathHelper.floor_double(ep.posZ);
 		boolean biome = Satisforestry.isPinkForest(mc.theWorld.getBiomeGenForCoords(x, z));
+		if (!biome)
+			return;
 		//boolean inCave = tick-lastCave < 50;
 		int light = mc.theWorld.getSavedLightValue(EnumSkyBlock.Sky, x, y, z);
 		float max = (float)ReikaMathLibrary.normalizeToBounds(light, 0.1, 1, 0, 15);//0.1F;

@@ -32,6 +32,9 @@ import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFOptions;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 public class BlockResourceNode extends BlockContainer {
 
 	private static IIcon crystalIcon;
@@ -79,6 +82,7 @@ public class BlockResourceNode extends BlockContainer {
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public boolean canRenderInPass(int pass) {
 		SFClient.resource.setRenderPass(pass);
 		return pass <= 1;

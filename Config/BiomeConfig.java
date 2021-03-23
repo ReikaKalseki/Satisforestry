@@ -149,8 +149,7 @@ public class BiomeConfig {
 	public void loadConfigs() {
 		this.reset();
 		Satisforestry.logger.log("Loading configs.");
-		String sg = this.getSaveFolder();
-		File f = new File(sg); //parent dir
+		File f = this.getSaveFolder(); //parent dir
 		if (f.exists()) {
 			this.loadFiles(f);
 			this.parseConfigs();
@@ -395,7 +394,7 @@ public class BiomeConfig {
 			String sk = s.getString("key");
 			ItemStack is = CustomRecipeList.parseItemString(sk, s.getChild("nbt"), true);
 			if (is == null) {
-				Satisforestry.logger.logError("Could not load item type '"+sk+"' for resource type '"+type+"'; skipping.");
+				Satisforestry.logger.logError("Could not load item type '"+sk+"' for resource type '"+type+"' - no item found. Skipping.");
 				continue;
 			}
 			int weight = s.getInt("weight");
@@ -497,8 +496,8 @@ public class BiomeConfig {
 		return b != null ? new BlockKey(b, meta) : null;
 	}
 
-	private final String getSaveFolder() {
-		return Satisforestry.config.getConfigFolder().getAbsolutePath()+"/Satisforestry_Files/";
+	private final File getSaveFolder() {
+		return new File(Satisforestry.config.getConfigFolder(), "Satisforestry_Files");
 	}
 
 	public Collection<OreClusterType> getOreTypes() {
