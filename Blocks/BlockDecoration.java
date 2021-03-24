@@ -5,6 +5,7 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -19,10 +20,13 @@ import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Extras.IconPrefabs;
+import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Instantiable.Math.Noise.Simplex3DGenerator;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
+import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Registry.SFBlocks;
 
@@ -72,6 +76,13 @@ public class BlockDecoration extends Block {
 		for (int i = 0; i < DecorationType.list.length; i++) {
 			li.add(new ItemStack(it, 1, i));
 		}
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void randomDisplayTick(World world, int x, int y, int z, Random rand) {
+		DecorationType t = DecorationType.list[world.getBlockMetadata(x, y, z)];
+		t.randomDisplayTick(world, x, y, z, rand);
 	}
 
 	@Override
@@ -130,6 +141,27 @@ public class BlockDecoration extends Block {
 			hardness = h;
 			resistance = r;
 			name = s;
+		}
+
+		public void randomDisplayTick(World world, int x, int y, int z, Random rand) {
+			switch(this) {
+				case TENDRILS:
+					if (rand.nextInt(4) == 0 && !ReikaWorldHelper.isAirBlock(world, x+1, y, z) && !ReikaWorldHelper.isAirBlock(world, x-1, y, z) && !ReikaWorldHelper.isAirBlock(world, x, y, z+1) && !ReikaWorldHelper.isAirBlock(world, x, y, z-1)) {
+						double px = ReikaRandomHelper.getRandomBetween(x, x+1D);
+						double py = ReikaRandomHelper.getRandomBetween(y, y+0.5D);
+						double pz = ReikaRandomHelper.getRandomBetween(z, z+1D);
+						int c = 0xBAFF21;//0xC9FF21;
+						EntityBlurFX fx = new EntityBlurFX(world, px, py, pz, IconPrefabs.FADE.getIcon());
+						float s = (float)ReikaRandomHelper.getRandomBetween(3.5, 7.5);
+						float g = -(float)ReikaRandomHelper.getRandomBetween(0.01, 0.03);
+						fx.setRapidExpand().setAlphaFading().forceIgnoreLimits();
+						fx.setColor(c).setScale(s).setGravity(g);
+						Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+					}
+					break;
+				default:
+					break;
+			}
 		}
 
 		public float width(int x, int y, int z) {

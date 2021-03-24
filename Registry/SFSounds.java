@@ -23,6 +23,7 @@ import Reika.Satisforestry.Satisforestry;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public enum SFSounds implements SoundEnum {
 
@@ -110,6 +111,7 @@ public enum SFSounds implements SoundEnum {
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public SoundCategory getCategory() {
 		return SoundCategory.MOBS;
 	}

@@ -105,9 +105,17 @@ public class BlockGasEmitter extends BlockContainer {
 			EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
 			double dd = Math.sqrt(this.getDistanceFrom(ep.posX, ep.posY, ep.posZ));
 			int n = 1;
+			boolean cave = yCoord < 70 && Satisforestry.isPinkForest(worldObj, xCoord, zCoord);
+			if (cave) {
+				if (ep.posY > 70)
+					dd = 1000;
+				else
+					dd *= 3;
+			}
 			n += Math.max(0, (dd-32)/16D);
-			if (yCoord < 70 && ep.posY > 70)
-				dd = 1000;
+			if (cave) {
+				n *= 3;
+			}
 			if (dd <= 256 && DragonAPICore.rand.nextInt(n) == 0) {
 				double px = ReikaRandomHelper.getRandomBetween(activeArea.minX, activeArea.maxX);
 				double py = ReikaRandomHelper.getRandomBetween(activeArea.minY, activeArea.maxY);
@@ -122,13 +130,15 @@ public class BlockGasEmitter extends BlockContainer {
 				fx.setColor(c);
 				Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 
-				EntityFloatingSeedsFX fx2 = new EntityFloatingSeedsFX(worldObj, px, py, pz, 0, 90, IconPrefabs.FADE_GENTLE.getIcon());
-				fx2.setRapidExpand().setAlphaFading().forceIgnoreLimits();
-				fx2.setScale((float)ReikaRandomHelper.getRandomBetween(12D, 25D));
-				fx2.setColor(ReikaColorAPI.getColorWithBrightnessMultiplier(c, 0.25F));
-				fx2.setColliding();
-				fx2.lockTo(fx);
-				Minecraft.getMinecraft().effectRenderer.addEffect(fx2);
+				if (!cave || DragonAPICore.rand.nextInt(8) == 0) {
+					EntityFloatingSeedsFX fx2 = new EntityFloatingSeedsFX(worldObj, px, py, pz, 0, 90, IconPrefabs.FADE_GENTLE.getIcon());
+					fx2.setRapidExpand().setAlphaFading().forceIgnoreLimits();
+					fx2.setScale((float)ReikaRandomHelper.getRandomBetween(12D, 25D));
+					fx2.setColor(ReikaColorAPI.getColorWithBrightnessMultiplier(c, 0.25F));
+					fx2.setColliding();
+					fx2.lockTo(fx);
+					Minecraft.getMinecraft().effectRenderer.addEffect(fx2);
+				}
 			}
 		}
 

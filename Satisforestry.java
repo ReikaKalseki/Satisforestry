@@ -34,6 +34,7 @@ import Reika.DragonAPI.Base.DragonAPIMod.LoadProfiler.LoadPhase;
 import Reika.DragonAPI.Instantiable.IO.ControlledConfig;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
+import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.ModInteract.DeepInteract.ReikaThaumHelper;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
@@ -47,6 +48,7 @@ import Reika.Satisforestry.Entity.EntityLizardDoggo;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFOptions;
+import Reika.Satisforestry.Render.ShaderActivation;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
@@ -59,6 +61,7 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.common.registry.LanguageRegistry;
+import cpw.mods.fml.relauncher.Side;
 import thaumcraft.api.aspects.Aspect;
 
 @Mod( modid = "Satisforestry", name="Satisforestry", version = "v@MAJOR_VERSION@@MINOR_VERSION@", certificateFingerprint = "@GET_FINGERPRINT@", dependencies="required-after:DragonAPI;after:CritterPet")
@@ -67,6 +70,8 @@ public class Satisforestry extends DragonAPIMod {
 
 	@Instance("Satisforestry")
 	public static Satisforestry instance = new Satisforestry();
+
+	public static final String packetChannel = "SFPacketData";
 
 	public static final ControlledConfig config = new ControlledConfig(instance, SFOptions.optionList, null);
 
@@ -101,6 +106,8 @@ public class Satisforestry extends DragonAPIMod {
 		MinecraftForge.TERRAIN_GEN_BUS.register(SFEvents.instance);
 		MinecraftForge.EVENT_BUS.register(SFEvents.instance);
 		FMLCommonHandler.instance().bus().register(SFEvents.instance);
+
+		ReikaPacketHelper.registerPacketHandler(instance, packetChannel, new SFPacketHandler());
 
 		ReikaRegistryHelper.instantiateAndRegisterBlocks(instance, SFBlocks.blockList, blocks);
 
@@ -139,6 +146,10 @@ public class Satisforestry extends DragonAPIMod {
 		proxy.registerSounds();
 
 		LanguageRegistry.addName(paleberry, "Paleberries");
+
+		if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
+			MinecraftForge.EVENT_BUS.register(ShaderActivation.instance);
+		}
 
 		pinkforest = new BiomePinkForest(SFOptions.BIOMEID.getValue());
 		BiomeManager.addBiome(BiomeType.COOL, new BiomeEntry(pinkforest, 4));
@@ -230,7 +241,7 @@ public class Satisforestry extends DragonAPIMod {
 	}
 
 	public static boolean isPinkForest(World world, int x, int z) {
-		return isPinkForest(world.getWorldChunkManager().getBiomeGenAt(x, z));
+		return isPinkForest(world.isRemote ? world.getBiomeGenForCoords(x, z) : world.getWorldChunkManager().getBiomeGenAt(x, z));
 	}
 
 	public static boolean isPinkForest(BiomeGenBase b) {

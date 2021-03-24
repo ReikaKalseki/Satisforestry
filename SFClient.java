@@ -12,6 +12,7 @@ package Reika.Satisforestry;
 import net.minecraft.world.World;
 
 import Reika.Satisforestry.Registry.SFEntities;
+import Reika.Satisforestry.Registry.SFShaders;
 import Reika.Satisforestry.Render.DecorationRenderer;
 import Reika.Satisforestry.Render.PinkGrassRenderer;
 import Reika.Satisforestry.Render.RedBambooRenderer;
@@ -56,6 +57,8 @@ public class SFClient extends SFCommon {
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.ELITESTINGER.getObjectClass(), new RenderEliteStinger());
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.MANTA.getObjectClass(), new RenderFlyingManta());
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.DOGGO.getObjectClass(), RenderLizardDoggo.instance);
+
+		SFShaders.registerAll();
 	}
 
 	// Override any other methods that need to be handled differently client side.

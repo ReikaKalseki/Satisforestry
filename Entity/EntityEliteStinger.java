@@ -9,6 +9,7 @@ import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.potion.Potion;
@@ -22,12 +23,16 @@ import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.ReikaEntityHelper.ClassEntitySelector;
+import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaVectorHelper;
 import Reika.ReactorCraft.API.RadiationHandler;
+import Reika.Satisforestry.SFPacketHandler.PacketInfo;
+import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Registry.SFEntities;
+import Reika.Satisforestry.Registry.SFShaders;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -244,8 +249,23 @@ public class EntityEliteStinger extends EntitySpider {
 		boolean flag = super.attackEntityAsMob(e);
 		if (flag && e instanceof EntityLivingBase) {
 			((EntityLivingBase)e).addPotionEffect(new PotionEffect(Potion.poison.id, 20, 1));
+			if (e instanceof EntityPlayerMP) {
+				this.activateShaders(e);
+			}
 		}
 		return flag;
+	}
+
+	private void activateShaders(Entity e) {
+		ReikaPacketHelper.sendDataPacket(Satisforestry.packetChannel, PacketInfo.STINGERHIT.ordinal(), (EntityPlayerMP)e);
+	}
+
+	@SideOnly(Side.CLIENT)
+	public static void activateShader() {
+		SFShaders.STINGERBITE.setIntensity(1);
+		SFShaders.STINGERBITE.lingerTime = 20;
+		SFShaders.STINGERBITE.rampDownAmount = 0.05F;
+		SFShaders.STINGERBITE.rampDownFactor = 1F;
 	}
 
 	@Override
