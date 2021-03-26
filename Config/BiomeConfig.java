@@ -321,7 +321,7 @@ public class BiomeConfig {
 		HashMap<OreSpawnLocation, LuaBlock> sections = new HashMap();
 
 		String bsk = b.getString("block");
-		if (bsk != null)
+		if (!LuaBlock.isErrorCode(bsk))
 			blocks.add(bsk);
 
 		LuaBlock set = b.getChild("blocks");
@@ -347,7 +347,14 @@ public class BiomeConfig {
 		entryAttemptsCount += blocks.size()*sections.size();
 
 		for (String s : blocks) {
-			BlockKey bk = this.parseBlockKey(s);
+			BlockKey bk = null;
+			try {
+				bk = this.parseBlockKey(s);
+			}
+			catch (Exception e) {
+				Satisforestry.logger.logError("Threw exception parsing block ID '"+s+"':");
+				e.printStackTrace();
+			}
 			if (bk == null) {
 				Satisforestry.logger.logError("Could not load block type '"+s+"' for ore type '"+type+"'; skipping.");
 				continue;
