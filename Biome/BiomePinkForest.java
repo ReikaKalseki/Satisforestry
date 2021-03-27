@@ -151,9 +151,12 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 		else if (y > min) {
 			f = (y-min)/(float)(max-min);
 		}
+		int c1 = 0xEDBFB1;
 		World world = Minecraft.getMinecraft().theWorld;
+		if (world == null)
+			return c1;
 		this.initNoise(world);
-		return ReikaColorAPI.mixColors(0xEDBFB1, 0xCD8988, f); //this.isRoad(world, x, z) ? ReikaColorAPI.getModifiedHue(0xff0000, this.getSubBiome(world, x, z).ordinal()*120) : 0;//
+		return ReikaColorAPI.mixColors(c1, 0xCD8988, f); //this.isRoad(world, x, z) ? ReikaColorAPI.getModifiedHue(0xff0000, this.getSubBiome(world, x, z).ordinal()*120) : 0;//
 		//return this.getRoadFactor(world, x, z) > Math.abs(noise.roadEdgeNoise.getValue(x, z)*0.75) ? 0xffffff : 0;
 		//return ReikaColorAPI.mixColors(0, 0xffffff, (float)ReikaMathLibrary.normalizeToBounds(noise.riverNoise.getValue(x, z), 0, 1));
 		//return ReikaColorAPI.getModifiedHue(0xff0000,  noise.riverNoise.getEdgeRatio(x, z) < 5 ? 0 : (int)((noise.riverNoise.getEdgeRatio(x, z)-5)*5));

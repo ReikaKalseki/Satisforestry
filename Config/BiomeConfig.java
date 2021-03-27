@@ -24,6 +24,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 
 import Reika.DragonAPI.Exception.InstallationException;
+import Reika.DragonAPI.Exception.RegistrationException;
 import Reika.DragonAPI.IO.ReikaFileReader;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.IO.CustomRecipeList;
@@ -152,7 +153,12 @@ public class BiomeConfig {
 		File f = this.getSaveFolder(); //parent dir
 		if (f.exists()) {
 			this.loadFiles(f);
-			this.parseConfigs();
+			try {
+				this.parseConfigs();
+			}
+			catch (Exception e) {
+				throw new RegistrationException(Satisforestry.instance, "Configs could not be loaded! Delete them and try again.", e);
+			}
 
 			Satisforestry.logger.log("Configs loaded.");
 		}
@@ -165,7 +171,7 @@ public class BiomeConfig {
 				Satisforestry.logger.logError("Could not create biome config folder!");
 			}
 			try {
-				this.createDefaultFiles(f);;
+				this.createDefaultFiles(f);
 			}
 			catch (Exception e) {
 				e.printStackTrace();

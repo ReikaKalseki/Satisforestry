@@ -143,6 +143,7 @@ public class BlockDecoration extends Block {
 			name = s;
 		}
 
+		@SideOnly(Side.CLIENT)
 		public void randomDisplayTick(World world, int x, int y, int z, Random rand) {
 			switch(this) {
 				case TENDRILS:
