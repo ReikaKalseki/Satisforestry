@@ -8,6 +8,7 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Worldgen.ModifiableBigTree;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.API.PinkTreeType;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 import cpw.mods.fml.relauncher.Side;
@@ -45,7 +46,7 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 		return b == SFBlocks.SAPLING.getBlockInstance();
 	}
 
-	public static enum PinkTreeTypes {
+	public static enum PinkTreeTypes implements PinkTreeType {
 		TREE,
 		GIANTTREE,
 		JUNGLE;
@@ -134,6 +135,14 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 		}
 
 		public static PinkTreeTypes getLeafType(int meta) {
+			return PinkTreeTypes.list[meta%4];
+		}
+
+		public static PinkTreeTypes getLogType(IBlockAccess world, int x, int y, int z) {
+			return getLeafType(world.getBlockMetadata(x, y, z));
+		}
+
+		public static PinkTreeTypes getLogType(int meta) {
 			return PinkTreeTypes.list[meta%4];
 		}
 	}

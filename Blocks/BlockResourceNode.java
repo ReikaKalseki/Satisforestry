@@ -224,11 +224,15 @@ public class BlockResourceNode extends BlockContainer {
 			return resource;
 		}
 
-		private ItemStack getRandomNodeItem() {
+		public ItemStack getRandomNodeItem() {
 			ItemStack ri = resource.getRandomItem(purity);
 			if (ri == null)
 				return null;
 			return ReikaItemHelper.getSizedItemStack(ri, ReikaRandomHelper.getRandomBetween(resource.minCount, resource.maxCount));
+		}
+
+		public Purity getPurity() {
+			return purity;
 		}
 
 	}

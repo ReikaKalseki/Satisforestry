@@ -83,6 +83,15 @@ public class ResourceItem {
 		return items.isEmpty();
 	}
 
+	public HashMap<ItemStack, Double> getItemSet(Purity p) {
+		HashMap<ItemStack, Double> ret = new HashMap();
+		WeightedRandom<ItemStack> wr = items.get(p);
+		for (ItemStack is : wr.getValues()) {
+			ret.put(is.copy(), wr.getWeight(is));
+		}
+		return ret;
+	}
+
 	@Override
 	public String toString() {
 		return "W="+spawnWeight+", C="+Integer.toHexString(color)+", L="+levels.toString()+", I="+items.toString();

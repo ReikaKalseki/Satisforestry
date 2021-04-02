@@ -147,6 +147,8 @@ public class Satisforestry extends DragonAPIMod {
 
 		LanguageRegistry.addName(paleberry, "Paleberries");
 
+		APIObjects.load();
+
 		if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
 			MinecraftForge.EVENT_BUS.register(ShaderActivation.instance);
 		}

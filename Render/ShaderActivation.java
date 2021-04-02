@@ -34,8 +34,8 @@ public class ShaderActivation {
 	public void renderHUD(RenderGameOverlayEvent.Pre evt) {
 		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
 		int gsc = evt.resolution.getScaleFactor();
-		if (ep.isPotionActive(Potion.poison)) {
-			if (ep.posY < 70 && Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ))) {
+		if (ep.isPotionActive(Potion.poison) && Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ))) {
+			if (ep.posY < 70) {
 				SFShaders.CAVEGAS.setIntensity(1);
 				SFShaders.CAVEGAS.lingerTime = 0;
 				SFShaders.CAVEGAS.rampDownAmount = 0.025F;
