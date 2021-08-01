@@ -79,6 +79,8 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		return tier;
 	}
 
+	public abstract float getSpeedFactor();
+
 	protected abstract boolean hasEnergy(boolean operation);
 
 	protected abstract void useEnergy(boolean operation);
@@ -126,8 +128,8 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 			maxEnergy = m;
 			maxFlowRate = f;
 			standbyCost = s;
-			if (maxFlowRate*Purity.PURE.getCountdown() < energyPerCycle)
-				throw new RegistrationException(Satisforestry.instance, this+" max energy flow rate too low to sustain continuous operation!");
+			if (maxFlowRate*Purity.PURE.getCountdown() < energyPerCycle*this.getSpeedFactor())
+				throw new RegistrationException(Satisforestry.instance, this+" max energy flow rate ("+maxFlowRate+"/"+energyPerCycle+") too low to sustain continuous operation!");
 		}
 
 		@Override
@@ -203,13 +205,18 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 			return (int)maxEnergy;
 		}
 
+		@Override
+		public float getSpeedFactor() {
+			return 0.4F;
+		}
+
 	}
 
 	@Strippable(value={"ic2.api.energy.tile.IEnergySink"})
 	public static class TileNodeHarvesterEU extends TileNodeHarvesterBasicEnergy implements IEnergySink {
 
 		public TileNodeHarvesterEU() {
-			super(3072, 6144, 256, 4);
+			super(1536, 6144, 256, 4);
 		}
 
 		@Override
@@ -236,6 +243,11 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		public double injectEnergy(ForgeDirection directionFrom, double amount, double voltage) {
 			long add = this.addEnergy((long)amount, false);
 			return amount-add;
+		}
+
+		@Override
+		public float getSpeedFactor() {
+			return 0.8F;
 		}
 	}
 
@@ -351,6 +363,11 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		@Override
 		public boolean isReceiving() {
 			return true;
+		}
+
+		@Override
+		public float getSpeedFactor() {
+			return 1F;
 		}
 
 	}
