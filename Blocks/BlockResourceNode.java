@@ -7,7 +7,9 @@ import java.util.Random;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -17,10 +19,14 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.ModList;
+import Reika.DragonAPI.ASM.APIStripper.Strippable;
+import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
@@ -34,8 +40,13 @@ import Reika.Satisforestry.Registry.SFOptions;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import framesapi.IMoveCheck;
+import mcp.mobius.waila.api.IWailaConfigHandler;
+import mcp.mobius.waila.api.IWailaDataAccessor;
+import mcp.mobius.waila.api.IWailaDataProvider;
 
-public class BlockResourceNode extends BlockContainer {
+@Strippable(value = {"mcp.mobius.waila.api.IWailaDataProvider", "framesapi.IMoveCheck", "vazkii.botania.api.mana.ILaputaImmobile"})
+public class BlockResourceNode extends BlockContainer implements IWailaDataProvider, IMoveCheck {
 
 	private static IIcon crystalIcon;
 	private static IIcon overlayIcon;
@@ -96,6 +107,48 @@ public class BlockResourceNode extends BlockContainer {
 		return overlayIcon;
 	}
 
+	@Override
+	public boolean canEntityDestroy(IBlockAccess world, int x, int y, int z, Entity e) {
+		return false;
+	}
+
+	@Override
+	public boolean canMove(World world, int x, int y, int z) {
+		return false;
+	}
+
+	@Override
+	@ModDependent(ModList.WAILA)
+	public ItemStack getWailaStack(IWailaDataAccessor acc, IWailaConfigHandler config) {
+		return null;
+	}
+
+	@Override
+	@ModDependent(ModList.WAILA)
+	public final List<String> getWailaHead(ItemStack is, List<String> tip, IWailaDataAccessor acc, IWailaConfigHandler config) {
+		return tip;
+	}
+
+	@Override
+	@ModDependent(ModList.WAILA)
+	public final List<String> getWailaBody(ItemStack is, List<String> tip, IWailaDataAccessor acc, IWailaConfigHandler config) {
+		TileEntity te = acc.getTileEntity();
+		if (te instanceof TileResourceNode) {
+			tip.add(((TileResourceNode)te).purity.getDisplayName());
+		}
+		return tip;
+	}
+
+	@ModDependent(ModList.WAILA)
+	public final List<String> getWailaTail(ItemStack itemStack, List<String> currenttip, IWailaDataAccessor acc, IWailaConfigHandler config) {
+		return currenttip;
+	}
+
+	@Override
+	public NBTTagCompound getNBTData(EntityPlayerMP player, TileEntity te, NBTTagCompound tag, World world, int x, int y, int z) {
+		return tag;
+	}
+
 	public static class TileResourceNode extends TileCaveSpawner {
 
 		private static final int MINING_TIME = 3; //just like in SF
@@ -143,17 +196,15 @@ public class BlockResourceNode extends BlockContainer {
 					this.generate(worldObj.rand);
 					return;
 				}
-				if (SFOptions.SIMPLEAUTO.getState()) {
-					if (autoOutputTimer > 0)
-						autoOutputTimer--;
-					if (autoOutputTimer == 0) {
-						TileEntity te = worldObj.getTileEntity(xCoord, yCoord+1, zCoord);
-						if (te instanceof IInventory) {
-							ItemStack is = this.getRandomNodeItem();
-							if (is != null) {
-								if (ReikaInventoryHelper.addToIInv(is, (IInventory)te)) {
-									autoOutputTimer = purity.getCountdown();
-								}
+				if (autoOutputTimer > 0)
+					autoOutputTimer--;
+				if (autoOutputTimer == 0 && SFOptions.SIMPLEAUTO.getState()) {
+					TileEntity te = worldObj.getTileEntity(xCoord, yCoord+1, zCoord);
+					if (te instanceof IInventory && !(te instanceof TileNodeHarvester)) {
+						ItemStack is = this.getRandomNodeItem();
+						if (is != null) {
+							if (ReikaInventoryHelper.addToIInv(is, (IInventory)te)) {
+								this.resetTimer();
 							}
 						}
 					}
@@ -169,6 +220,25 @@ public class BlockResourceNode extends BlockContainer {
 					}
 				}
 			}
+		}
+
+		private void resetTimer() {
+			autoOutputTimer = purity.getCountdown();
+		}
+
+		public ItemStack tryHarvest(TileNodeHarvester te) {
+			int tier = te.getTier();
+			for (int i = 0; i < tier; i++) {
+				if (autoOutputTimer > 0)
+					autoOutputTimer--;
+			}
+			if (autoOutputTimer > 0)
+				return null;
+			if (resource == null)
+				return null;
+			ItemStack is = this.getRandomNodeItem(tier);
+			this.resetTimer();
+			return is;
 		}
 
 		public void onManualClick() {
@@ -225,7 +295,11 @@ public class BlockResourceNode extends BlockContainer {
 		}
 
 		public ItemStack getRandomNodeItem() {
-			ItemStack ri = resource.getRandomItem(purity);
+			return this.getRandomNodeItem(Integer.MAX_VALUE);
+		}
+
+		private ItemStack getRandomNodeItem(int tier) {
+			ItemStack ri = resource.getRandomItem(tier, purity);
 			if (ri == null)
 				return null;
 			return ReikaItemHelper.getSizedItemStack(ri, ReikaRandomHelper.getRandomBetween(resource.minCount, resource.maxCount));
@@ -249,6 +323,10 @@ public class BlockResourceNode extends BlockContainer {
 
 		private Purity(float d) {
 			yield = d;
+		}
+
+		public String getDisplayName() {
+			return ReikaStringParser.capFirstChar(this.name());
 		}
 
 		public int getCountdown() {

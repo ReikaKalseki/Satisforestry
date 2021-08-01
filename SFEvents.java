@@ -49,6 +49,7 @@ import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkRiver;
 import Reika.Satisforestry.Biome.Generator.WorldGenUraniumCave;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
 import cpw.mods.fml.common.eventhandler.Event.Result;
@@ -330,7 +331,7 @@ public class SFEvents {
 	}
 
 	private boolean isMovable(Block b) {
-		return !UraniumCave.instance.isSpecialCaveBlock(b);
+		return b != SFBlocks.HARVESTER.getBlockInstance() && !UraniumCave.instance.isSpecialCaveBlock(b);
 	}
 
 }

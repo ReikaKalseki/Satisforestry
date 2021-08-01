@@ -53,6 +53,8 @@ public class SFAPI {
 
 		public HashMap<ItemStack, Double> getPotentialItemsHere(TileEntity node);
 
+		public void registerCustomNodeEffect(String name, NodeEffectCallback eff);
+
 	}
 
 }

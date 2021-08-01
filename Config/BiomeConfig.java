@@ -58,12 +58,12 @@ public class BiomeConfig {
 
 	private BiomeConfig() {
 		oreData = new LuaBlockDatabase();
-		OreLuaBlock base = new OreLuaBlock("base", null, oreData);
-		base.putData("type", "base_ores");
-		base.putData("block", "minecraft:iron_ore");
-		//base.putData("generate", "true");
-		OreLuaBlock ores = new OreLuaBlock("blocks", base, oreData);
-		OreLuaBlock spawns = new OreLuaBlock("spawnLocations", base, oreData);
+		OreLuaBlock example = new OreLuaBlock("example", null, oreData);
+		example.putData("type", "example_ores");
+		example.putData("block", "minecraft:iron_ore");
+		//example.putData("generate", "true");
+		OreLuaBlock ores = new OreLuaBlock("blocks", example, oreData);
+		OreLuaBlock spawns = new OreLuaBlock("spawnLocations", example, oreData);
 		for (OreSpawnLocation s : OreSpawnLocation.values()) {
 			OreLuaBlock sec = new OreLuaBlock(s.name(), spawns, oreData);
 			sec.putData("sizeScale", 1F);
@@ -71,24 +71,24 @@ public class BiomeConfig {
 			sec.putData("spawnWeight", 10);
 			sec.setComment("maxSize", "max cluster radius");
 		}
-		base.setComment("block", "single block type, mutually exclusive with 'blocks'");
-		base.setComment("blocks", "optional, multiple block shorthand; mutually exclusive with 'block'");
+		example.setComment("block", "single block type, mutually exclusive with 'blocks'");
+		example.setComment("blocks", "optional, multiple block shorthand; mutually exclusive with 'block'");
 		spawns.setComment(null, "where this type can spawn, valid locations: "+ReikaJavaLibrary.getEnumNameList(OreSpawnLocation.class));
-		oreData.addBlock("base", base);
+		oreData.addBlock("example", example);
 
 		itemData = new LuaBlockDatabase();
-		ResourceLuaBlock base2 = new ResourceLuaBlock("base", null, itemData);
-		base2.putData("type", "base_resources");
-		base2.putData("minCount", 1);
-		base2.putData("maxCount", 1);
-		base2.putData("spawnWeight", 10);
-		base2.putData("renderColor", "0xffffff");
-		//base.putData("generate", "true");
-		ResourceLuaBlock levels = new ResourceLuaBlock("purityLevels", base2, itemData);
+		ResourceLuaBlock example2 = new ResourceLuaBlock("example", null, itemData);
+		example2.putData("type", "example_resources");
+		example2.putData("minCount", 1);
+		example2.putData("maxCount", 1);
+		example2.putData("spawnWeight", 10);
+		example2.putData("renderColor", "0xffffff");
+		//example2.putData("generate", "true");
+		ResourceLuaBlock levels = new ResourceLuaBlock("purityLevels", example2, itemData);
 		for (Purity p : Purity.list) {
 			levels.putData(p.name(), p == Purity.NORMAL ? 25 : 10);
 		}
-		ResourceLuaBlock items = new ResourceLuaBlock("outputItems", base2, itemData);
+		ResourceLuaBlock items = new ResourceLuaBlock("outputItems", example2, itemData);
 		LuaBlock item = new ResourceLuaBlock("{", items, itemData);
 		item.putData("key", "minecraft:iron_ingot");
 		item.putData("weight", 10);
@@ -97,7 +97,7 @@ public class BiomeConfig {
 		item.putData("key", "minecraft:gold_ingot");
 		item.putData("weight", 6);
 		item.putData("minimumPurity", Purity.NORMAL.name());
-		ResourceLuaBlock effects = new ResourceLuaBlock("effects", base2, itemData);
+		ResourceLuaBlock effects = new ResourceLuaBlock("effects", example2, itemData);
 		item = new ResourceLuaBlock("{", effects, itemData);
 		item.putData("effectType", "damage");
 		item.putData("amount", 0.5F);
@@ -108,18 +108,18 @@ public class BiomeConfig {
 		item.putData("effectType", "potion");
 		item.putData("potionID", Potion.weakness.id);
 		item.putData("level", 1);
-		base2.setComment("minCount", "min yield per harvest cycle");
-		base2.setComment("maxCount", "max yield per harvest cycle");
+		example2.setComment("minCount", "min yield per harvest cycle");
+		example2.setComment("maxCount", "max yield per harvest cycle");
 		levels.setComment(null, "purity level distribution");
 		effects.setComment(null, "optional, ambient AoE effects around the node");
 		item.setComment("potionID", "weakness");
-		itemData.addBlock("base", base2);
+		itemData.addBlock("example", example2);
 
 		doggoData = new LuaBlockDatabase();
-		DoggoLuaBlock base3 = new DoggoLuaBlock("base", null, doggoData);
-		base3.putData("type", "base_doggo");
-		//base.putData("generate", "true");
-		DoggoLuaBlock drops = new DoggoLuaBlock("findableItems", base3, doggoData);
+		DoggoLuaBlock example3 = new DoggoLuaBlock("example", null, doggoData);
+		example3.putData("type", "example_doggo");
+		//example3.putData("generate", "true");
+		DoggoLuaBlock drops = new DoggoLuaBlock("findableItems", example3, doggoData);
 
 		DoggoDrop drop = new DoggoDrop(Items.diamond, 1, 1, 2);
 		drop.addWeightFactor(Checks.MAXY, 16, 2);
@@ -143,7 +143,7 @@ public class BiomeConfig {
 		drop = new DoggoDrop(Satisforestry.paleberry, 1, 16, 50);
 		drop.createLuaBlock(drops, doggoData);
 
-		doggoData.addBlock("base", base3);
+		doggoData.addBlock("example", example3);
 	}
 
 	/** Returns the number of entries that loaded! */
@@ -179,11 +179,11 @@ public class BiomeConfig {
 			}
 		}
 		try {
-			this.createBaseFile(f);
+			this.createExampleFile(f);
 		}
 		catch (IOException e) {
 			e.printStackTrace();
-			Satisforestry.logger.logError("Could not create base data file!");
+			Satisforestry.logger.logError("Could not create example data file!");
 		}
 
 		OreSpawnLocation.init();
@@ -192,34 +192,34 @@ public class BiomeConfig {
 	private void createDefaultFiles(File folder) throws IOException {
 		File f1 = new File(folder, "ores.lua");
 		f1.createNewFile();
-		ReikaFileReader.writeLinesToFile(f1, oreData.getBlock("base").writeToStrings(), true);
+		ReikaFileReader.writeLinesToFile(f1, oreData.getBlock("example").writeToStrings(), true);
 
 		File f2 = new File(folder, "resources.lua");
 		f2.createNewFile();
-		ReikaFileReader.writeLinesToFile(f2, itemData.getBlock("base").writeToStrings(), true);
+		ReikaFileReader.writeLinesToFile(f2, itemData.getBlock("example").writeToStrings(), true);
 
 		File f3 = new File(folder, "doggo.lua");
 		f3.createNewFile();
-		ReikaFileReader.writeLinesToFile(f3, doggoData.getBlock("base").writeToStrings(), true);
+		ReikaFileReader.writeLinesToFile(f3, doggoData.getBlock("example").writeToStrings(), true);
 	}
 
-	private void createBaseFile(File f) throws IOException {
-		File out = new File(f, "base.lua");
+	private void createExampleFile(File f) throws IOException {
+		File out = new File(f, "example.lua");
 		if (out.exists())
 			out.delete();
 		out.createNewFile();
-		ArrayList<String> li = oreData.getBlock("base").writeToStrings();
+		ArrayList<String> li = oreData.getBlock("example").writeToStrings();
 		li.set(li.size()-1, li.get(li.size()-1)+",");
-		li.addAll(itemData.getBlock("base").writeToStrings());
+		li.addAll(itemData.getBlock("example").writeToStrings());
 		li.set(li.size()-1, li.get(li.size()-1)+",");
-		li.addAll(doggoData.getBlock("base").writeToStrings());
+		li.addAll(doggoData.getBlock("example").writeToStrings());
 		ReikaFileReader.writeLinesToFile(out, li, true);
 	}
 
 	private void reset() {
-		LuaBlock base = oreData.getBlock("base");
-		LuaBlock base2 = itemData.getBlock("base");
-		LuaBlock base3 = doggoData.getBlock("base");
+		LuaBlock example = oreData.getBlock("example");
+		LuaBlock example2 = itemData.getBlock("example");
+		LuaBlock example3 = doggoData.getBlock("example");
 
 		oreData = new LuaBlockDatabase();
 		itemData = new LuaBlockDatabase();
@@ -233,9 +233,9 @@ public class BiomeConfig {
 		entryAttemptsCount = 0;
 		entryCount = 0;
 
-		oreData.addBlock("base", base);
-		itemData.addBlock("base", base2);
-		doggoData.addBlock("base", base3);
+		oreData.addBlock("example", example);
+		itemData.addBlock("example", example2);
+		doggoData.addBlock("example", example3);
 	}
 
 	private void loadFiles(File parent) {
@@ -411,9 +411,10 @@ public class BiomeConfig {
 				continue;
 			}
 			int weight = s.getInt("weight");
+			int tier = s.getInt("tier");
 			Purity p = Purity.valueOf(s.getString("minimumPurity"));
 			while (p != null) {
-				ore.addItem(p, is, weight);
+				ore.addItem(p, is, weight, tier);
 				p = p.higher();
 			}
 		}

@@ -9,6 +9,8 @@ import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Random;
 
+import com.google.common.base.Strings;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
@@ -22,6 +24,7 @@ import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.API.NodeEffectCallback;
 import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 
@@ -32,7 +35,7 @@ public class ResourceItem {
 	public final int spawnWeight;
 
 	private final WeightedRandom<Purity> levels = new WeightedRandom();
-	private final HashMap<Purity, WeightedRandom<ItemStack>> items = new HashMap();
+	private final HashMap<Purity, WeightedRandom<NodeItem>> items = new HashMap();
 	private final ArrayList<NodeEffect> effects = new ArrayList();
 
 	public int minCount = 1;
@@ -47,13 +50,13 @@ public class ResourceItem {
 		}
 	}
 
-	public void addItem(Purity p, ItemStack is, int weight) {
-		WeightedRandom<ItemStack> wr = items.get(p);
+	public void addItem(Purity p, ItemStack is, int weight, int tier) {
+		WeightedRandom<NodeItem> wr = items.get(p);
 		if (wr == null) {
 			wr = new WeightedRandom();
 			items.put(p, wr);
 		}
-		wr.addEntry(is.copy(), weight);
+		wr.addEntry(new NodeItem(is, tier), weight);
 	}
 
 	public void addEffect(LuaBlock b) {
@@ -65,9 +68,9 @@ public class ResourceItem {
 		effects.add(e);
 	}
 
-	public ItemStack getRandomItem(Purity p) {
-		WeightedRandom<ItemStack> wr = items.get(p);
-		return wr == null ? null : wr.getRandomEntry();
+	public ItemStack getRandomItem(int tier, Purity p) {
+		WeightedRandom<NodeItem> wr = items.get(p);
+		return wr == null ? null : wr.getRandomEntry().item;
 	}
 
 	public Purity getRandomPurity(Random rand) {
@@ -85,16 +88,33 @@ public class ResourceItem {
 
 	public HashMap<ItemStack, Double> getItemSet(Purity p) {
 		HashMap<ItemStack, Double> ret = new HashMap();
-		WeightedRandom<ItemStack> wr = items.get(p);
-		for (ItemStack is : wr.getValues()) {
-			ret.put(is.copy(), wr.getWeight(is));
+		WeightedRandom<NodeItem> wr = items.get(p);
+		for (NodeItem is : wr.getValues()) {
+			ret.put(is.item.copy(), wr.getWeight(is));
 		}
 		return ret;
 	}
 
 	@Override
 	public String toString() {
-		return "W="+spawnWeight+", C="+Integer.toHexString(color)+", L="+levels.toString()+", I="+items.toString();
+		return "W="+spawnWeight+", C="+Integer.toHexString(color)+", L="+levels.toString()+", #="+minCount+"-"+maxCount+", I="+items.toString();
+	}
+
+	private static class NodeItem {
+
+		private final ItemStack item;
+		private final int tier;
+
+		private NodeItem(ItemStack is, int t) {
+			item = is.copy();
+			tier = t;
+		}
+
+		@Override
+		public String toString() {
+			return item.toString()+" > "+tier;
+		}
+
 	}
 
 	public static class NodeEffect {
@@ -158,7 +178,7 @@ public class ResourceItem {
 					Class[] argTypes = new Class[argArr.length];
 					for (int i = 0; i < argArr.length; i++) {
 						argArr[i] = MethodArgument.parse(args.get(i));
-						argTypes[i] = argArr[i].type;
+						argTypes[i] = argArr[i].type.type;
 					}
 					map.put("args", argArr);
 					String mn = (String)map.get("method");
@@ -245,19 +265,12 @@ public class ResourceItem {
 		}
 	}
 
-	/** Implement this to use code-based custom node proximity effects. */
-	public static interface NodeEffectCallback {
+	private static enum MethodArgumentType {
 
-		/** The descriptive comment added to any generated LuaBlock entries. Use null for none, not empty string. */
-		String getComment();
-
-		/** Apply the effect. This is called every tick - serverside only - for every player in the AoE of the node TE. */
-		public void apply(TileEntity node, EntityPlayer ep);
-
-	}
-
-	private static enum MethodArgument {
-
+		INT(int.class),
+		FLOAT(float.class),
+		BOOLEAN(boolean.class),
+		STRING(String.class),
 		PLAYER(EntityPlayer.class),
 		WORLD(World.class),
 		X(int.class),
@@ -268,12 +281,17 @@ public class ResourceItem {
 
 		private final Class type;
 
-		private MethodArgument(Class c) {
+		private MethodArgumentType(Class c) {
 			type = c;
 		}
 
-		private Object getValue(TileEntity te, EntityPlayer ep) {
+		private Object getValue(Object data, TileEntity te, EntityPlayer ep) {
 			switch(this) {
+				case INT:
+				case FLOAT:
+				case BOOLEAN:
+				case STRING:
+					return data;
 				case PLAYER:
 					return ep;
 				case WORLD:
@@ -290,15 +308,54 @@ public class ResourceItem {
 			return null;
 		}
 
-		private static MethodArgument parse(String s) {
-			try {
-				return MethodArgument.valueOf(s.toUpperCase(Locale.ENGLISH));
-			}
-			catch (IllegalArgumentException e) {
-				throw new IllegalArgumentException("Invalid argument type. Valid types: "+ReikaJavaLibrary.getEnumNameList(MethodArgument.class));
+		private Object parseLiteralValue(String val) {
+			if (Strings.isNullOrEmpty(val))
+				return null;
+			switch(this) {
+				case INT:
+					return Integer.parseInt(val);
+				case FLOAT:
+					return (float)Double.parseDouble(val);
+				case BOOLEAN:
+					return Boolean.parseBoolean(val);
+				case STRING:
+					return val;
+				default:
+					return null;
 			}
 		}
 
+	}
+
+	private static class MethodArgument {
+
+		private final MethodArgumentType type;
+		private final Object data;
+
+		private MethodArgument(MethodArgumentType t, Object o) {
+			type = t;
+			data = o;
+		}
+
+		private Object getValue(TileEntity te, EntityPlayer ep) {
+			return type.getValue(data, te, ep);
+		}
+
+		private static MethodArgument parse(String s) {
+			try {
+				int idx = s.indexOf('(');
+				String val = null;
+				if (idx >= 0) {
+					val = s.substring(idx+1, s.length()-1);
+					s = s.substring(0, idx);
+				}
+				MethodArgumentType type = MethodArgumentType.valueOf(s.toUpperCase(Locale.ENGLISH));
+				return new MethodArgument(type, type.parseLiteralValue(val));
+			}
+			catch (IllegalArgumentException e) {
+				throw new IllegalArgumentException("Invalid argument type. Valid types: "+ReikaJavaLibrary.getEnumNameList(MethodArgumentType.class));
+			}
+		}
 	}
 
 }

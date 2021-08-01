@@ -11,6 +11,7 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 
+import Reika.Satisforestry.API.NodeEffectCallback;
 import Reika.Satisforestry.API.PinkTreeType;
 import Reika.Satisforestry.API.SFAPI;
 import Reika.Satisforestry.API.SFAPI.PinkForestBiomeHandler;
@@ -100,6 +101,10 @@ public class APIObjects {
 		public HashMap<ItemStack, Double> getPotentialItemsHere(TileEntity node) {
 			ResourceItem item = ((TileResourceNode)node).getResource();
 			return item.getItemSet(((TileResourceNode)node).getPurity());
+		}
+
+		public void registerCustomNodeEffect(String name, NodeEffectCallback eff) {
+			ResourceItem.EffectTypes.addCustomCallback(name, eff);
 		}
 
 	}

@@ -28,6 +28,7 @@ import Reika.Satisforestry.Blocks.BlockCaveSpawner;
 import Reika.Satisforestry.Blocks.BlockDecoration;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockGasEmitter;
+import Reika.Satisforestry.Blocks.BlockNodeHarvester;
 import Reika.Satisforestry.Blocks.BlockPinkGrass;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
@@ -37,6 +38,7 @@ import Reika.Satisforestry.Blocks.BlockRedBamboo;
 import Reika.Satisforestry.Blocks.BlockResourceNode;
 import Reika.Satisforestry.Blocks.BlockTerrain;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
+import Reika.Satisforestry.Blocks.ItemBlockNodeHarvester;
 
 public enum SFBlocks implements BlockEnum {
 
@@ -51,6 +53,7 @@ public enum SFBlocks implements BlockEnum {
 	TERRAIN(BlockTerrain.class, MetadataItemBlock.class, ""),
 	DECORATION(BlockDecoration.class, MetadataItemBlock.class, ""),
 	SAPLING(BlockPinkSapling.class, ItemPinkSapling.class, "Birch Sapling"),
+	HARVESTER(BlockNodeHarvester.class, ItemBlockNodeHarvester.class, "Resource Node Extractor"),
 	;
 
 	private final Class blockClass;
@@ -102,6 +105,8 @@ public enum SFBlocks implements BlockEnum {
 				return Material.leaves;
 			case LOG:
 				return Material.wood;
+			case HARVESTER:
+				return Material.iron;
 			default:
 				return Material.rock;
 		}
@@ -193,6 +198,8 @@ public enum SFBlocks implements BlockEnum {
 				return TerrainType.list.length;
 			case GRASS:
 				return GrassTypes.list.length;
+			case HARVESTER:
+				return 3;
 			default:
 				return 1;
 		}

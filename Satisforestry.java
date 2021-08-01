@@ -41,6 +41,7 @@ import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
+import Reika.Satisforestry.Blocks.TileNodeHarvester;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntityFlyingManta;
@@ -126,6 +127,14 @@ public class Satisforestry extends DragonAPIMod {
 						GameRegistry.registerTileEntity(in, s);
 					}
 				}
+			}
+		}
+		Class[] cs = TileNodeHarvester.class.getClasses();
+		for (int k = 0; k < cs.length; k++) {
+			Class in = cs[k];
+			if (TileEntity.class.isAssignableFrom(in) && (in.getModifiers() & Modifier.ABSTRACT) == 0) {
+				String s = "SF"+in.getSimpleName();
+				GameRegistry.registerTileEntity(in, s);
 			}
 		}
 
@@ -220,6 +229,11 @@ public class Satisforestry extends DragonAPIMod {
 	@Override
 	public URL getDocumentationSite() {
 		return DragonAPICore.getReikaForumPage();
+	}
+
+	@Override
+	public URL getBugSite() {
+		return DragonAPICore.getReikaGithubPage();
 	}
 
 	@Override
