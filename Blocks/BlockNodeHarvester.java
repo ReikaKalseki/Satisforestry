@@ -33,7 +33,7 @@ public class BlockNodeHarvester extends BlockTEBase {
 
 	@Override
 	public boolean hasTileEntity(int meta) {
-		return true;
+		return meta <= 2;
 	}
 
 	@Override
@@ -48,6 +48,16 @@ public class BlockNodeHarvester extends BlockTEBase {
 			default:
 				return null;
 		}
+	}
+
+	@Override
+	public boolean isOpaqueCube() {
+		return false;
+	}
+
+	@Override
+	public boolean renderAsNormalBlock() {
+		return false;
 	}
 
 

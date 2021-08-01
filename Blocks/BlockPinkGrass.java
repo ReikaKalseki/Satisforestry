@@ -50,18 +50,18 @@ public class BlockPinkGrass extends BlockTallGrass {
 		PEACH_FRINGE(),
 		TINY_PINK_LUMPS(),
 		RED_STRANDS(2),
-		BLUE_MUSHROOM_STALK("Blue Mushroom", 1),
-		BLUE_MUSHROOM_TOP("Blue Mushroom", 3),
-		VINE("Cave Vine", 3),
-		STALKS("Stony Stalks", 2),
+		BLUE_MUSHROOM_STALK("bluemushroom", 1),
+		BLUE_MUSHROOM_TOP("bluemushroom", 3),
+		VINE(3),
+		STALKS(2),
 		FERN(),
-		PALEBERRY_NEW("Paleberry", 1),
-		PALEBERRY_EMPTY("Paleberry", 1),
-		PALEBERRY_STALK("Paleberry", 1),
-		TREE_VINE("Vines", 3),
+		PALEBERRY_NEW("paleberry", 1),
+		PALEBERRY_EMPTY("paleberry", 1),
+		PALEBERRY_STALK("paleberry", 1),
+		TREE_VINE(3),
 		;
 
-		public final String name;
+		public final String nameKey;
 		private IIcon[] icons;
 
 		private static final Simplex3DGenerator renderNoise = new Simplex3DGenerator(DragonAPICore.getLaunchTime());
@@ -78,7 +78,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 		}
 
 		private GrassTypes(String s, int n) {
-			name = s;
+			nameKey = s;
 			icons = new IIcon[n];
 		}
 

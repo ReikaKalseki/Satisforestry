@@ -122,12 +122,11 @@ public class BlockDecoration extends Block {
 	}
 
 	public static enum DecorationType {
-		STALAGMITE("Stone Spikes", 1.5F, 15),
-		STALACTITE("Stone Spikes", 1.5F, 15),
-		TENDRILS("Stony Tendrils", 2.5F, 60F),
+		STALAGMITE(1.5F, 15),
+		STALACTITE(1.5F, 15),
+		TENDRILS(2.5F, 60F),
 		;
 
-		public final String name;
 		public final float hardness;
 		public final float resistance;
 
@@ -137,10 +136,9 @@ public class BlockDecoration extends Block {
 
 		public static final DecorationType[] list = values();
 
-		private DecorationType(String s, float h, float r) {
+		private DecorationType(float h, float r) {
 			hardness = h;
 			resistance = r;
-			name = s;
 		}
 
 		@SideOnly(Side.CLIENT)

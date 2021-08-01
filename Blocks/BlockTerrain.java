@@ -80,25 +80,23 @@ public class BlockTerrain extends Block {
 	}
 
 	public static enum TerrainType {
-		POISONROCK("Spore Rock", 3, 45),
-		PONDROCK("Pond Rock", 1, 30),
-		OUTCROP("Rocky Outcrop", 2, 30),
+		POISONROCK(3, 45),
+		PONDROCK(1, 30),
+		OUTCROP(2, 30),
 		;
 
 		private IIcon iconTop;
 		private IIcon iconSide;
 		private IIcon iconBottom;
 
-		public final String name;
 		public final float hardness;
 		public final float resistance;
 
 		public static final TerrainType[] list = values();
 
-		private TerrainType(String s, float h, float r) {
+		private TerrainType(float h, float r) {
 			hardness = h;
 			resistance = r;
-			name = s;
 		}
 
 		public boolean hasSideIcons() {

@@ -372,4 +372,10 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 
 	}
 
+	static { //Validate values
+		new TileNodeHarvesterRF();
+		new TileNodeHarvesterEU();
+		new TileNodeHarvesterRC();
+	}
+
 }

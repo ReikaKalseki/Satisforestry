@@ -66,18 +66,6 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 			return meta%4 == this.ordinal();
 		}
 
-		public String getDisplayName(String base) {
-			switch(this) {
-				case TREE:
-					return "Pink "+base;
-				case GIANTTREE:
-					return "Giant Pink "+base;
-				case JUNGLE:
-					return "Red "+base;
-			}
-			return base;
-		}
-
 		public PinkTreeGeneratorBase constructTreeGenerator() {
 			switch(this) {
 				case TREE:

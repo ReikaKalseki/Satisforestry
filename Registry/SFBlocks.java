@@ -10,16 +10,17 @@
 package Reika.Satisforestry.Registry;
 
 import java.util.HashMap;
+import java.util.Locale;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.StatCollector;
 
 import Reika.DragonAPI.Instantiable.MetadataItemBlock;
 import Reika.DragonAPI.Interfaces.Registry.BlockEnum;
-import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 import Reika.Satisforestry.ItemPinkSapling;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
@@ -28,6 +29,7 @@ import Reika.Satisforestry.Blocks.BlockCaveSpawner;
 import Reika.Satisforestry.Blocks.BlockDecoration;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockGasEmitter;
+import Reika.Satisforestry.Blocks.BlockMinerMulti;
 import Reika.Satisforestry.Blocks.BlockNodeHarvester;
 import Reika.Satisforestry.Blocks.BlockPinkGrass;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
@@ -38,35 +40,35 @@ import Reika.Satisforestry.Blocks.BlockRedBamboo;
 import Reika.Satisforestry.Blocks.BlockResourceNode;
 import Reika.Satisforestry.Blocks.BlockTerrain;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
+import Reika.Satisforestry.Blocks.ItemBlockMinerMulti;
 import Reika.Satisforestry.Blocks.ItemBlockNodeHarvester;
 
 public enum SFBlocks implements BlockEnum {
 
-	LOG(BlockPinkLog.class, MetadataItemBlock.class, "Birch Log"),
-	BAMBOO(BlockRedBamboo.class, null, "Red Bamboo"),
-	LEAVES(BlockPinkLeaves.class, MetadataItemBlock.class, "Birch Leaves"),
-	GRASS(BlockPinkGrass.class, MetadataItemBlock.class, "Pink Grass"),
-	CAVESHIELD(BlockCaveShield.class, null, "Cave Stone"),
-	SPAWNER(BlockCaveSpawner.class, null, "Cracked Cave Stone"),
-	GASEMITTER(BlockGasEmitter.class, null, "Gas Vent"),
-	RESOURCENODE(BlockResourceNode.class, null, "Resource Node"),
-	TERRAIN(BlockTerrain.class, MetadataItemBlock.class, ""),
-	DECORATION(BlockDecoration.class, MetadataItemBlock.class, ""),
-	SAPLING(BlockPinkSapling.class, ItemPinkSapling.class, "Birch Sapling"),
-	HARVESTER(BlockNodeHarvester.class, ItemBlockNodeHarvester.class, "Resource Node Extractor"),
+	LOG(BlockPinkLog.class, MetadataItemBlock.class),
+	BAMBOO(BlockRedBamboo.class, null),
+	LEAVES(BlockPinkLeaves.class, MetadataItemBlock.class),
+	GRASS(BlockPinkGrass.class, MetadataItemBlock.class),
+	CAVESHIELD(BlockCaveShield.class, null),
+	SPAWNER(BlockCaveSpawner.class, null),
+	GASEMITTER(BlockGasEmitter.class, null),
+	RESOURCENODE(BlockResourceNode.class, null),
+	TERRAIN(BlockTerrain.class, MetadataItemBlock.class),
+	DECORATION(BlockDecoration.class, MetadataItemBlock.class),
+	SAPLING(BlockPinkSapling.class, ItemPinkSapling.class),
+	HARVESTER(BlockNodeHarvester.class, ItemBlockNodeHarvester.class),
+	MINERMULTI(BlockMinerMulti.class, ItemBlockMinerMulti.class);
 	;
 
 	private final Class blockClass;
-	private final String blockName;
 	private final Class itemBlock;
 
 	public static final SFBlocks[] blockList = values();
 
 	private static final HashMap<Block, SFBlocks> IDMap = new HashMap();
 
-	private SFBlocks(Class <? extends Block> cl, Class<? extends ItemBlock> ib, String n) {
+	private SFBlocks(Class <? extends Block> cl, Class<? extends ItemBlock> ib) {
 		blockClass = cl;
-		blockName = n;
 		itemBlock = ib;
 	}
 
@@ -106,6 +108,7 @@ public enum SFBlocks implements BlockEnum {
 			case LOG:
 				return Material.wood;
 			case HARVESTER:
+			case MINERMULTI:
 				return Material.iron;
 			default:
 				return Material.rock;
@@ -142,7 +145,7 @@ public enum SFBlocks implements BlockEnum {
 
 	@Override
 	public String getUnlocalizedName() {
-		return ReikaStringParser.stripSpaces(blockName);
+		return this.name().toLowerCase();
 	}
 
 	@Override
@@ -152,23 +155,28 @@ public enum SFBlocks implements BlockEnum {
 
 	@Override
 	public String getBasicName() {
-		return blockName;
+		return StatCollector.translateToLocal(this.getUnlocalizedName());
 	}
 
 	@Override
 	public String getMultiValuedName(int meta) {
 		switch(this) {
 			case DECORATION:
-				return DecorationType.list[meta].name;
+				return StatCollector.translateToLocal("pinkforest.deco."+DecorationType.list[meta].name().toLowerCase(Locale.ENGLISH));
 			case TERRAIN:
-				return TerrainType.list[meta].name;
+				return StatCollector.translateToLocal("pinkforest.terrain."+TerrainType.list[meta].name().toLowerCase(Locale.ENGLISH));
 			case GRASS:
-				String s = GrassTypes.list[meta].name;
-				return s != null ? s : this.getBasicName();
+				String key = GrassTypes.list[meta].nameKey;
+				String s = key != null ? key : GrassTypes.list[meta].name().toLowerCase(Locale.ENGLISH);
+				return StatCollector.translateToLocal(s);
 			case LEAVES:
 			case SAPLING:
 			case LOG:
-				return PinkTreeTypes.getLeafType(meta).getDisplayName(this.getBasicName());
+				String tree = StatCollector.translateToLocal("pinkforest.tree."+PinkTreeTypes.getLeafType(meta).name().toLowerCase(Locale.ENGLISH));
+				String block = StatCollector.translateToLocal("pinkforest.tree.")+this.name().toLowerCase(Locale.ENGLISH);
+				return tree+" "+block;
+			case HARVESTER:
+				return StatCollector.translateToLocal("sfminer.type."+meta)+" "+this.getBasicName();
 			default:
 				return "";
 		}
@@ -183,6 +191,7 @@ public enum SFBlocks implements BlockEnum {
 			case LEAVES:
 			case SAPLING:
 			case LOG:
+			case HARVESTER:
 				return true;
 			default:
 				return false;
