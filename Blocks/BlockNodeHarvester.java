@@ -1,11 +1,18 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.List;
+
 import net.minecraft.block.material.Material;
+import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Base.BlockTEBase;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.TileNodeHarvester.TileNodeHarvesterEU;
+import Reika.Satisforestry.Blocks.TileNodeHarvester.TileNodeHarvesterRC;
 import Reika.Satisforestry.Blocks.TileNodeHarvester.TileNodeHarvesterRF;
 
 public class BlockNodeHarvester extends BlockTEBase {
@@ -18,6 +25,13 @@ public class BlockNodeHarvester extends BlockTEBase {
 	}
 
 	@Override
+	public void getSubBlocks(Item it, CreativeTabs tab, List li) {
+		for (int i = 0; i < 3; i++) {
+			li.add(new ItemStack(it, 1, i));
+		}
+	}
+
+	@Override
 	public boolean hasTileEntity(int meta) {
 		return true;
 	}
@@ -27,6 +41,10 @@ public class BlockNodeHarvester extends BlockTEBase {
 		switch(meta) {
 			case 0:
 				return new TileNodeHarvesterRF();
+			case 1:
+				return new TileNodeHarvesterEU();
+			case 2:
+				return new TileNodeHarvesterRC();
 			default:
 				return null;
 		}

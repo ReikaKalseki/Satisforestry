@@ -25,8 +25,12 @@ import ic2.api.energy.tile.IEnergySink;
 
 public abstract class TileNodeHarvester extends TileEntityBase {
 
+	public static final int ACTIVITY_RAMP_TIME = 250; //12.5s
+
 	private int tier = 0;
 	private int activityTimer = 0;
+
+	private int activityRamp;
 
 	@Override
 	public final Block getTileEntityBlockID() {
@@ -42,14 +46,23 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		}
 		else {
 			Block b = world.getBlock(x, y-1, z);
-			if (b == SFBlocks.RESOURCENODE.getBlockInstance() && this.hasEnergy()) {
-				TileResourceNode te = (TileResourceNode)world.getTileEntity(x, y-1, z);
-				ItemStack is = te.tryHarvest(this);
-				if (is != null) {
-					activityTimer = 20;
-					ReikaItemHelper.dropItem(world, x+0.5, y+1, z+0.5, is);
-					//ReikaJavaLibrary.pConsole(world.getTotalWorldTime());
-					this.useEnergy();
+			if (b == SFBlocks.RESOURCENODE.getBlockInstance()) {
+				if (this.hasEnergy(false)) {
+					this.useEnergy(false);
+					activityRamp = Math.min(activityRamp+1, ACTIVITY_RAMP_TIME);
+					if (activityRamp == ACTIVITY_RAMP_TIME && this.hasEnergy(true)) {
+						TileResourceNode te = (TileResourceNode)world.getTileEntity(x, y-1, z);
+						ItemStack is = te.tryHarvest(this);
+						if (is != null) {
+							activityTimer = 20;
+							ReikaItemHelper.dropItem(world, x+0.5, y+1, z+0.5, is);
+							//ReikaJavaLibrary.pConsole(world.getTotalWorldTime());
+							this.useEnergy(true);
+						}
+					}
+				}
+				else {
+					activityRamp = Math.max(activityRamp-1, 0);
 				}
 			}
 			if (activityTimer > 0) {
@@ -66,9 +79,9 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		return tier;
 	}
 
-	protected abstract boolean hasEnergy();
+	protected abstract boolean hasEnergy(boolean operation);
 
-	protected abstract void useEnergy();
+	protected abstract void useEnergy(boolean operation);
 
 	@Override
 	protected void writeSyncTag(NBTTagCompound NBT) {
@@ -104,25 +117,27 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		protected final long energyPerCycle;
 		protected final long maxEnergy;
 		protected final long maxFlowRate;
+		protected final long standbyCost;
 
 		private long energy;
 
-		protected TileNodeHarvesterBasicEnergy(long c, long m, long f) {
+		protected TileNodeHarvesterBasicEnergy(long c, long m, long f, long s) {
 			energyPerCycle = c;
 			maxEnergy = m;
 			maxFlowRate = f;
+			standbyCost = s;
 			if (maxFlowRate*Purity.PURE.getCountdown() < energyPerCycle)
 				throw new RegistrationException(Satisforestry.instance, this+" max energy flow rate too low to sustain continuous operation!");
 		}
 
 		@Override
-		protected final boolean hasEnergy() {
-			return energy >= energyPerCycle;
+		protected final boolean hasEnergy(boolean operation) {
+			return energy >= (operation ? energyPerCycle : standbyCost);
 		}
 
 		@Override
-		protected final void useEnergy() {
-			energy -= energyPerCycle;
+		protected final void useEnergy(boolean operation) {
+			energy -= (operation ? energyPerCycle : standbyCost);
 		}
 
 		protected final long addEnergy(long amt, boolean simulate) {
@@ -159,8 +174,8 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 
 	public static class TileNodeHarvesterRF extends TileNodeHarvesterBasicEnergy implements IEnergyReceiver {
 
-		protected TileNodeHarvesterRF() {
-			super(20000, 600000, 2500);
+		public TileNodeHarvesterRF() {
+			super(20000, 600000, 2500, 100);
 		}
 
 		@Override
@@ -193,8 +208,8 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 	@Strippable(value={"ic2.api.energy.tile.IEnergySink"})
 	public static class TileNodeHarvesterEU extends TileNodeHarvesterBasicEnergy implements IEnergySink {
 
-		protected TileNodeHarvesterEU() {
-			super(3072, 6144, 256);
+		public TileNodeHarvesterEU() {
+			super(3072, 6144, 256, 4);
 		}
 
 		@Override
@@ -228,6 +243,7 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 	public static class TileNodeHarvesterRC extends TileNodeHarvester implements ShaftPowerReceiver {
 
 		private static final int MINPOWER = 262144;
+		private static final int STANDBY = 4096;
 		private static final int MINTORQUE = 2048;
 
 		private int torque;
@@ -262,12 +278,12 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		}
 
 		@Override
-		protected boolean hasEnergy() {
-			return power >= MINPOWER && torque >= MINTORQUE;
+		protected boolean hasEnergy(boolean operation) {
+			return operation ? (power >= STANDBY) : power >= MINPOWER && torque >= MINTORQUE;
 		}
 
 		@Override
-		protected void useEnergy() {
+		protected void useEnergy(boolean operation) {
 
 		}
 
