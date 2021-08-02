@@ -2,6 +2,7 @@ package Reika.Satisforestry.Blocks;
 
 import java.util.ArrayList;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.StatCollector;
@@ -12,9 +13,11 @@ import net.minecraftforge.common.util.ForgeDirection;
 import Reika.DragonAPI.Base.BlockMultiBlock;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.StructuredBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.Satisforestry.MinerStructure;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Registry.SFBlocks;
 
-public class BlockMinerMulti extends BlockMultiBlock {
+public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 
 	private static final int SEARCH = 8;
 
@@ -56,21 +59,24 @@ public class BlockMinerMulti extends BlockMultiBlock {
 	}
 
 	@Override
-	public boolean checkForFullMultiBlock(World world, int x, int y, int z, ForgeDirection dir) {
-		// TODO Auto-generated method stub
-		return false;
+	public ForgeDirection checkForFullMultiBlock(World world, int x, int y, int z, ForgeDirection placeDir) {
+		TileEntity te = this.getTileEntityForPosition(world, x, y, z);
+		//ReikaJavaLibrary.pConsole(te);
+		if (te instanceof TileNodeHarvester) {
+			return MinerStructure.getStructureDirection(world, te.xCoord, te.yCoord, te.zCoord);
+		}
+		return null;
 	}
 
 	@Override
 	public void breakMultiBlock(World world, int x, int y, int z) {
 		StructuredBlockArray blocks = new StructuredBlockArray(world);
-		blocks.recursiveAddWithBoundsRanged(world, x, y, z, this, x-SEARCH, y-SEARCH, z-SEARCH, x+SEARCH, y+SEARCH, z+SEARCH, 1);
-		blocks.recursiveAddWithBoundsRanged(world, x+1, y, z, this, x-SEARCH, y-SEARCH, z-SEARCH, x+SEARCH, y+SEARCH, z+SEARCH, 1);
-		blocks.recursiveAddWithBoundsRanged(world, x-1, y, z, this, x-SEARCH, y-SEARCH, z-SEARCH, x+SEARCH, y+SEARCH, z+SEARCH, 1);
-		blocks.recursiveAddWithBoundsRanged(world, x, y+1, z, this, x-SEARCH, y-SEARCH, z-SEARCH, x+SEARCH, y+SEARCH, z+SEARCH, 1);
-		blocks.recursiveAddWithBoundsRanged(world, x, y-1, z, this, x-SEARCH, y-SEARCH, z-SEARCH, x+SEARCH, y+SEARCH, z+SEARCH, 1);
-		blocks.recursiveAddWithBoundsRanged(world, x, y, z+1, this, x-SEARCH, y-SEARCH, z-SEARCH, x+SEARCH, y+SEARCH, z+SEARCH, 1);
-		blocks.recursiveAddWithBoundsRanged(world, x, y, z-1, this, x-SEARCH, y-SEARCH, z-SEARCH, x+SEARCH, y+SEARCH, z+SEARCH, 1);
+		blocks.extraSpread = true;
+		blocks.recursiveMultiAddWithBounds(world, x, y, z, x-SEARCH, y-SEARCH*2, z-SEARCH, x+SEARCH, y+SEARCH*2, z+SEARCH, this, SFBlocks.HARVESTER.getBlockInstance());
+		for (int i = 0; i < 6; i++) {
+			ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i];
+			blocks.recursiveMultiAddWithBounds(world, x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ, x-SEARCH, y-SEARCH*2, z-SEARCH, x+SEARCH, y+SEARCH*2, z+SEARCH, this, SFBlocks.HARVESTER.getBlockInstance());
+		}
 		for (int i = 0; i < blocks.getSize(); i++) {
 			Coordinate c = blocks.getNthBlock(i);
 			int meta = c.getBlockMetadata(world);
@@ -80,14 +86,15 @@ public class BlockMinerMulti extends BlockMultiBlock {
 		}
 		TileEntity te = this.getTileEntityForPosition(world, x, y, z);
 		if (te instanceof TileNodeHarvester) {
-			((TileNodeHarvester)te).setHasStructure(false);
+			((TileNodeHarvester)te).setHasStructure(null);
 		}
 	}
 
 	@Override
-	protected void onCreateFullMultiBlock(World world, int x, int y, int z) {
+	protected void onCreateFullMultiBlock(World world, int x, int y, int z, ForgeDirection dir) {
 		StructuredBlockArray blocks = new StructuredBlockArray(world);
-		blocks.recursiveAddWithBoundsRanged(world, x, y, z, this, x-SEARCH, y-SEARCH, z-SEARCH, x+SEARCH, y+SEARCH, z+SEARCH, 1);
+		blocks.extraSpread = true;
+		blocks.recursiveMultiAddWithBounds(world, x, y, z, x-SEARCH, y-SEARCH*2, z-SEARCH, x+SEARCH, y+SEARCH*2, z+SEARCH, this, SFBlocks.HARVESTER.getBlockInstance());
 		for (int i = 0; i < blocks.getSize(); i++) {
 			Coordinate c = blocks.getNthBlock(i);
 			int meta = c.getBlockMetadata(world);
@@ -97,7 +104,7 @@ public class BlockMinerMulti extends BlockMultiBlock {
 		}
 		TileEntity te = this.getTileEntityForPosition(world, x, y, z);
 		if (te instanceof TileNodeHarvester) {
-			((TileNodeHarvester)te).setHasStructure(true);
+			((TileNodeHarvester)te).setHasStructure(dir);
 		}
 	}
 
@@ -123,7 +130,15 @@ public class BlockMinerMulti extends BlockMultiBlock {
 
 	@Override
 	protected TileEntity getTileEntityForPosition(World world, int x, int y, int z) {
-		// TODO Auto-generated method stub
+		StructuredBlockArray blocks = new StructuredBlockArray(world);
+		blocks.extraSpread = true;
+		blocks.recursiveMultiAddWithBounds(world, x, y, z, x-SEARCH, y-SEARCH*2, z-SEARCH, x+SEARCH, y+SEARCH*2, z+SEARCH, this, SFBlocks.HARVESTER.getBlockInstance());
+		for (int i = 0; i < blocks.getSize(); i++) {
+			Coordinate c = blocks.getNthBlock(i);
+			Block b = c.getBlock(world);
+			if (b == SFBlocks.HARVESTER.getBlockInstance())
+				return c.getTileEntity(world);
+		}
 		return null;
 	}
 

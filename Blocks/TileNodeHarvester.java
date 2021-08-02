@@ -35,7 +35,7 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 	private int activityTimer = 0;
 
 	private int activityRamp;
-	private boolean hasStructure;
+	private ForgeDirection hasStructure = null;
 
 	@Override
 	public final Block getTileEntityBlockID() {
@@ -84,6 +84,10 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		return tier;
 	}
 
+	public final boolean hasStructure() {
+		return hasStructure != null;
+	}
+
 	public abstract float getSpeedFactor();
 
 	protected abstract boolean hasEnergy(boolean operation);
@@ -95,7 +99,7 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		super.writeSyncTag(NBT);
 
 		NBT.setInteger("activity", activityTimer);
-		NBT.setBoolean("structure", hasStructure);
+		NBT.setInteger("structure", hasStructure != null ? hasStructure.ordinal() : -1);
 	}
 
 	@Override
@@ -103,7 +107,8 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		super.readSyncTag(NBT);
 
 		activityTimer = NBT.getInteger("activity");
-		hasStructure = NBT.getBoolean("structure");
+		int struct = NBT.getInteger("structure");
+		hasStructure = struct == -1 ? null : dirs[struct];
 	}
 
 	@Override
@@ -121,7 +126,8 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		return pass == 0;
 	}
 
-	public final void setHasStructure(boolean flag) {
+	public final void setHasStructure(ForgeDirection flag) {
+		//ReikaJavaLibrary.pConsole(flag);
 		hasStructure = flag;
 		this.syncAllData(false);
 	}
