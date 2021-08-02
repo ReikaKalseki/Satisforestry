@@ -1,5 +1,7 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.ArrayList;
+
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -10,6 +12,8 @@ import net.minecraftforge.common.util.ForgeDirection;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Exception.RegistrationException;
+import Reika.DragonAPI.Libraries.MathSci.ReikaEngLibrary;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.ModInteract.Power.ReikaEUHelper;
 import Reika.RotaryCraft.API.Power.PowerTransferHelper;
@@ -31,6 +35,7 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 	private int activityTimer = 0;
 
 	private int activityRamp;
+	private boolean hasStructure;
 
 	@Override
 	public final Block getTileEntityBlockID() {
@@ -90,6 +95,7 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		super.writeSyncTag(NBT);
 
 		NBT.setInteger("activity", activityTimer);
+		NBT.setBoolean("structure", hasStructure);
 	}
 
 	@Override
@@ -97,6 +103,7 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		super.readSyncTag(NBT);
 
 		activityTimer = NBT.getInteger("activity");
+		hasStructure = NBT.getBoolean("structure");
 	}
 
 	@Override
@@ -113,6 +120,13 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 	public boolean shouldRenderInPass(int pass) {
 		return pass == 0;
 	}
+
+	public final void setHasStructure(boolean flag) {
+		hasStructure = flag;
+		this.syncAllData(false);
+	}
+
+	public abstract ArrayList getMessages(World world, int x, int y, int z, int side);
 
 	private static abstract class TileNodeHarvesterBasicEnergy extends TileNodeHarvester {
 
@@ -172,6 +186,15 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 			energy = NBT.getLong("energy");
 		}
 
+		@Override
+		public final ArrayList getMessages(World world, int x, int y, int z, int side) {
+			ArrayList<String> li = new ArrayList();
+			li.add("Contains "+energy+" of "+maxEnergy+" "+this.getEnergyUnit());
+			return li;
+		}
+
+		protected abstract String getEnergyUnit();
+
 	}
 
 	public static class TileNodeHarvesterRF extends TileNodeHarvesterBasicEnergy implements IEnergyReceiver {
@@ -208,6 +231,11 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		@Override
 		public float getSpeedFactor() {
 			return 0.4F;
+		}
+
+		@Override
+		protected String getEnergyUnit() {
+			return "RF";
 		}
 
 	}
@@ -248,6 +276,11 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		@Override
 		public float getSpeedFactor() {
 			return 0.8F;
+		}
+
+		@Override
+		protected String getEnergyUnit() {
+			return "EU";
 		}
 	}
 
@@ -368,6 +401,15 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		@Override
 		public float getSpeedFactor() {
 			return 1F;
+		}
+
+		@Override
+		public final ArrayList getMessages(World world, int x, int y, int z, int side) {
+			ArrayList<String> li = new ArrayList();
+			String pre = ReikaEngLibrary.getSIPrefix(this.getPower());
+			double base = ReikaMathLibrary.getThousandBase(this.getPower());
+			li.add(String.format("%s receiving %.3f %sW @ %d rad/s.", this.getName(), base, pre, this.getOmega()));
+			return li;
 		}
 
 	}

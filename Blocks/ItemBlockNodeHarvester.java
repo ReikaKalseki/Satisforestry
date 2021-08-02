@@ -1,10 +1,11 @@
 package Reika.Satisforestry.Blocks;
 
 import net.minecraft.block.Block;
-import net.minecraft.item.ItemBlock;
+
+import Reika.DragonAPI.Instantiable.MetadataItemBlock;
 
 
-public class ItemBlockNodeHarvester extends ItemBlock {
+public class ItemBlockNodeHarvester extends MetadataItemBlock {
 
 	public ItemBlockNodeHarvester(Block b) {
 		super(b);

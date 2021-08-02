@@ -155,28 +155,30 @@ public enum SFBlocks implements BlockEnum {
 
 	@Override
 	public String getBasicName() {
-		return StatCollector.translateToLocal(this.getUnlocalizedName());
+		return StatCollector.translateToLocal("sfblock."+this.getUnlocalizedName());
 	}
 
 	@Override
 	public String getMultiValuedName(int meta) {
 		switch(this) {
 			case DECORATION:
-				return StatCollector.translateToLocal("pinkforest.deco."+DecorationType.list[meta].name().toLowerCase(Locale.ENGLISH));
+				return StatCollector.translateToLocal("pinkforest.deco."+DecorationType.list[meta].name().toLowerCase(Locale.ENGLISH).replace("_", ""));
 			case TERRAIN:
-				return StatCollector.translateToLocal("pinkforest.terrain."+TerrainType.list[meta].name().toLowerCase(Locale.ENGLISH));
+				return StatCollector.translateToLocal("pinkforest.terrain."+TerrainType.list[meta].name().toLowerCase(Locale.ENGLISH).replace("_", ""));
 			case GRASS:
 				String key = GrassTypes.list[meta].nameKey;
-				String s = key != null ? key : GrassTypes.list[meta].name().toLowerCase(Locale.ENGLISH);
-				return StatCollector.translateToLocal(s);
+				String s = key != null ? key : GrassTypes.list[meta].name().toLowerCase(Locale.ENGLISH).replace("_", "");
+				return StatCollector.translateToLocal("pinkforest.grass."+s);
 			case LEAVES:
 			case SAPLING:
 			case LOG:
 				String tree = StatCollector.translateToLocal("pinkforest.tree."+PinkTreeTypes.getLeafType(meta).name().toLowerCase(Locale.ENGLISH));
-				String block = StatCollector.translateToLocal("pinkforest.tree.")+this.name().toLowerCase(Locale.ENGLISH);
+				String block = StatCollector.translateToLocal("pinkforest.tree."+this.name().toLowerCase(Locale.ENGLISH));
 				return tree+" "+block;
 			case HARVESTER:
 				return StatCollector.translateToLocal("sfminer.type."+meta)+" "+this.getBasicName();
+			case MINERMULTI:
+				return StatCollector.translateToLocal("multiblock.sfminer."+meta);
 			default:
 				return "";
 		}
@@ -192,6 +194,7 @@ public enum SFBlocks implements BlockEnum {
 			case SAPLING:
 			case LOG:
 			case HARVESTER:
+			case MINERMULTI:
 				return true;
 			default:
 				return false;
