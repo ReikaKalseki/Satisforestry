@@ -30,6 +30,7 @@ import Reika.Satisforestry.Blocks.BlockDecoration;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockGasEmitter;
 import Reika.Satisforestry.Blocks.BlockMinerMulti;
+import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Blocks.BlockNodeHarvester;
 import Reika.Satisforestry.Blocks.BlockPinkGrass;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
@@ -178,7 +179,7 @@ public enum SFBlocks implements BlockEnum {
 			case HARVESTER:
 				return StatCollector.translateToLocal("sfminer.type."+meta)+" "+this.getBasicName();
 			case MINERMULTI:
-				return StatCollector.translateToLocal("multiblock.sfminer."+meta);
+				return StatCollector.translateToLocal("multiblock.sfminer."+MinerBlocks.list[meta&7].name().toLowerCase(Locale.ENGLISH));
 			default:
 				return "";
 		}
@@ -212,6 +213,8 @@ public enum SFBlocks implements BlockEnum {
 				return GrassTypes.list.length;
 			case HARVESTER:
 				return 3;
+			case MINERMULTI:
+				return 8;
 			default:
 				return 1;
 		}

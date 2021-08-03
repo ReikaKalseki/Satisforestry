@@ -9,9 +9,14 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
+import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Exception.RegistrationException;
+import Reika.DragonAPI.Interfaces.TileEntity.BreakAction;
+import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
+import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaEngLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
@@ -19,6 +24,10 @@ import Reika.DragonAPI.ModInteract.Power.ReikaEUHelper;
 import Reika.RotaryCraft.API.Power.PowerTransferHelper;
 import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerConnection;
+import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerConveyorPort;
+import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerPowerConnection;
+import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerShaftConnection;
 import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 import Reika.Satisforestry.Registry.SFBlocks;
@@ -27,7 +36,7 @@ import cofh.api.energy.IEnergyReceiver;
 import ic2.api.energy.tile.IEnergySink;
 
 
-public abstract class TileNodeHarvester extends TileEntityBase {
+public abstract class TileNodeHarvester extends TileEntityBase implements BreakAction {
 
 	public static final int ACTIVITY_RAMP_TIME = 250; //12.5s
 
@@ -35,7 +44,9 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 	private int activityTimer = 0;
 
 	private int activityRamp;
-	private ForgeDirection hasStructure = null;
+	private ForgeDirection structureDir = null;
+
+	public float progressFactor;
 
 	@Override
 	public final Block getTileEntityBlockID() {
@@ -52,28 +63,55 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		else {
 			Block b = world.getBlock(x, y-1, z);
 			if (b == SFBlocks.RESOURCENODE.getBlockInstance()) {
+				boolean flag = false;
 				if (this.hasEnergy(false)) {
+					flag = true;
 					this.useEnergy(false);
 					activityRamp = Math.min(activityRamp+1, ACTIVITY_RAMP_TIME);
-					if (activityRamp == ACTIVITY_RAMP_TIME && this.hasEnergy(true)) {
-						TileResourceNode te = (TileResourceNode)world.getTileEntity(x, y-1, z);
-						ItemStack is = te.tryHarvest(this);
-						if (is != null) {
-							activityTimer = 20;
-							ReikaItemHelper.dropItem(world, x+0.5, y+1, z+0.5, is);
-							//ReikaJavaLibrary.pConsole(world.getTotalWorldTime());
-							this.useEnergy(true);
+					TileResourceNode te = (TileResourceNode)world.getTileEntity(x, y-1, z);
+					if (activityRamp == ACTIVITY_RAMP_TIME) {
+						if (this.hasEnergy(true)) {
+							ItemStack is = te.tryHarvest(this);
+							if (is != null) {
+								activityTimer = 20;
+								if (!this.trySpawnItem(is)) {
+									flag = false;
+								}
+								//ReikaJavaLibrary.pConsole(world.getTotalWorldTime());
+								this.useEnergy(true);
+							}
 						}
+						float f = this.getOperationEnergyFraction();
+						progressFactor = Math.min(f >= 0 ? f : 1, te.getAutomationProgress());
+						//ReikaJavaLibrary.pConsole("F="+progressFactor);
 					}
 				}
-				else {
+				if (!flag) {
 					activityRamp = Math.max(activityRamp-1, 0);
+					progressFactor = 0;
 				}
+			}
+			else {
+				progressFactor = 0;
 			}
 			if (activityTimer > 0) {
 				activityTimer--;
 			}
 		}
+	}
+
+	private boolean trySpawnItem(ItemStack is) {
+		TileMinerConveyorPort te = this.getOutput();
+		if (te != null) {
+			ItemStack has = te.getStackInSlot(0);
+			int fit = is.stackSize;
+			if (has != null) {
+				fit = ReikaItemHelper.areStacksCombinable(is, has, is.getMaxStackSize()) ? Math.min(has.getMaxStackSize()-has.stackSize, is.stackSize) : 0;
+			}
+			if (fit > 0)
+				return ReikaInventoryHelper.addToIInv(ReikaItemHelper.getSizedItemStack(is, fit), te, true);
+		}
+		return false;
 	}
 
 	protected void doActivityFX(World world, int x, int y, int z) {
@@ -85,21 +123,52 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 	}
 
 	public final boolean hasStructure() {
-		return hasStructure != null;
+		return structureDir != null;
+	}
+
+	public final ForgeDirection getDirection() {
+		return structureDir;
+	}
+
+	public final int getMineProgressScaled(int px) {
+		return (int)(px*progressFactor);
 	}
 
 	public abstract float getSpeedFactor();
 
+	protected abstract float getOperationEnergyFraction();
+
 	protected abstract boolean hasEnergy(boolean operation);
 
 	protected abstract void useEnergy(boolean operation);
+
+	public abstract TileMinerConnection getInput();
+
+	protected final TileMinerPowerConnection getWirePowerConnection() {
+		if (!this.hasStructure())
+			return null;
+		ForgeDirection right = ReikaDirectionHelper.getRightBy90(structureDir);
+		return (TileMinerPowerConnection)worldObj.getTileEntity(xCoord+right.offsetX*2, yCoord+13, zCoord+right.offsetZ*2);
+	}
+
+	protected final TileMinerShaftConnection getShaftPowerConnection() {
+		return this.hasStructure() ? (TileMinerShaftConnection)worldObj.getTileEntity(xCoord-structureDir.offsetX, yCoord+12, zCoord-structureDir.offsetZ) : null;
+	}
+
+	public final TileMinerConveyorPort getOutput() {
+		return this.hasStructure() ? (TileMinerConveyorPort)worldObj.getTileEntity(xCoord+structureDir.offsetX*8, yCoord+1, zCoord+structureDir.offsetZ*8) : null;
+	}
+
+	public final void breakBlock() {
+		this.updateInputs(false);
+	}
 
 	@Override
 	protected void writeSyncTag(NBTTagCompound NBT) {
 		super.writeSyncTag(NBT);
 
 		NBT.setInteger("activity", activityTimer);
-		NBT.setInteger("structure", hasStructure != null ? hasStructure.ordinal() : -1);
+		NBT.setInteger("structure", structureDir != null ? structureDir.ordinal() : -1);
 	}
 
 	@Override
@@ -108,7 +177,7 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 
 		activityTimer = NBT.getInteger("activity");
 		int struct = NBT.getInteger("structure");
-		hasStructure = struct == -1 ? null : dirs[struct];
+		structureDir = struct == -1 ? null : dirs[struct];
 	}
 
 	@Override
@@ -128,8 +197,21 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 
 	public final void setHasStructure(ForgeDirection flag) {
 		//ReikaJavaLibrary.pConsole(flag);
-		hasStructure = flag;
+		structureDir = flag;
 		this.syncAllData(false);
+		this.updateInputs(flag != null);
+	}
+
+	private void updateInputs(boolean has) {
+		TileMinerConnection te = this.getWirePowerConnection();
+		if (te != null)
+			te.connectTo(has ? this : null);
+		te = this.getShaftPowerConnection();
+		if (te != null)
+			te.connectTo(has ? this : null);
+		te = this.getOutput();
+		if (te != null)
+			te.connectTo(has ? this : null);
 	}
 
 	public abstract ArrayList getMessages(World world, int x, int y, int z, int side);
@@ -201,6 +283,11 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 
 		protected abstract String getEnergyUnit();
 
+		@Override
+		protected final float getOperationEnergyFraction() {
+			return energy/(float)energyPerCycle;
+		}
+
 	}
 
 	public static class TileNodeHarvesterRF extends TileNodeHarvesterBasicEnergy implements IEnergyReceiver {
@@ -216,7 +303,7 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 
 		@Override
 		public boolean canConnectEnergy(ForgeDirection from) {
-			return true;
+			return false;
 		}
 
 		@Override
@@ -244,6 +331,11 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 			return "RF";
 		}
 
+		@Override
+		public TileMinerConnection getInput() {
+			return this.getWirePowerConnection();
+		}
+
 	}
 
 	@Strippable(value={"ic2.api.energy.tile.IEnergySink"})
@@ -259,21 +351,25 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		}
 
 		@Override
+		@ModDependent(ModList.IC2)
 		public boolean acceptsEnergyFrom(TileEntity emitter, ForgeDirection direction) {
-			return true;
+			return false;
 		}
 
 		@Override
+		@ModDependent(ModList.IC2)
 		public double getDemandedEnergy() {
 			return this.addEnergy(Integer.MAX_VALUE, true);
 		}
 
 		@Override
+		@ModDependent(ModList.IC2)
 		public int getSinkTier() {
 			return ReikaEUHelper.getIC2TierFromEUVoltage(this.getActualMaxFlow());
 		}
 
 		@Override
+		@ModDependent(ModList.IC2)
 		public double injectEnergy(ForgeDirection directionFrom, double amount, double voltage) {
 			long add = this.addEnergy((long)amount, false);
 			return amount-add;
@@ -288,14 +384,19 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		protected String getEnergyUnit() {
 			return "EU";
 		}
+
+		@Override
+		public TileMinerConnection getInput() {
+			return this.getWirePowerConnection();
+		}
 	}
 
 
 	public static class TileNodeHarvesterRC extends TileNodeHarvester implements ShaftPowerReceiver {
 
-		private static final int MINPOWER = 262144;
-		private static final int STANDBY = 4096;
-		private static final int MINTORQUE = 2048;
+		public static final int MINPOWER = 262144;
+		public static final int STANDBY = 4096;
+		public static final int MINTORQUE = 2048;
 
 		private int torque;
 		private int omega;
@@ -303,8 +404,14 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 		private int iotick;
 
 		@Override
+		protected final float getOperationEnergyFraction() {
+			return -1;
+		}
+
+		@Override
 		public void updateEntity(World world, int x, int y, int z, int meta) {
-			if (!PowerTransferHelper.checkPowerFrom(this, ForgeDirection.DOWN) && !PowerTransferHelper.checkPowerFrom(this, ForgeDirection.UP)) {
+			TileEntity te = this.getShaftPowerConnection();
+			if (!PowerTransferHelper.checkPowerFrom(te, ForgeDirection.DOWN) && !PowerTransferHelper.checkPowerFrom(te, ForgeDirection.UP)) {
 				this.noInputMachine();
 			}
 			super.updateEntity(world, x, y, z, meta);
@@ -396,12 +503,12 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 
 		@Override
 		public boolean canReadFrom(ForgeDirection dir) {
-			return true;
+			return false;
 		}
 
 		@Override
 		public boolean isReceiving() {
-			return true;
+			return false;
 		}
 
 		@Override
@@ -416,6 +523,11 @@ public abstract class TileNodeHarvester extends TileEntityBase {
 			double base = ReikaMathLibrary.getThousandBase(this.getPower());
 			li.add(String.format("%s receiving %.3f %sW @ %d rad/s.", this.getName(), base, pre, this.getOmega()));
 			return li;
+		}
+
+		@Override
+		public TileMinerConnection getInput() {
+			return this.getShaftPowerConnection();
 		}
 
 	}
