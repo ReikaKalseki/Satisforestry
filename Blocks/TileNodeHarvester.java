@@ -165,6 +165,11 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		return overclockLevel;
 	}
 
+	public final void setOverclock(int level) {
+		overclockLevel = level;
+		this.syncAllData(false);
+	}
+
 	public final float getOverclockingLevel() {
 		return 1+this.getOverclockingStep()*0.5F;
 	}

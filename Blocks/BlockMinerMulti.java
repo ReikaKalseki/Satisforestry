@@ -363,7 +363,7 @@ public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 		public void readFromNBT(NBTTagCompound NBT) {
 			super.readFromNBT(NBT);
 
-			NBTTagCompound tag = NBT.getCompoundTag("content");
+			NBTTagCompound tag = NBT.getCompoundTag("contents");
 			currentSlot = ItemStack.loadItemStackFromNBT(tag);
 		}
 

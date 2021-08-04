@@ -1,5 +1,7 @@
 package Reika.Satisforestry;
 
+import java.util.Arrays;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ICrafting;
 import net.minecraft.inventory.Slot;
@@ -24,11 +26,11 @@ public class ContainerSFMiner extends CoreContainer {
 		tile = te;
 		clock = new OverclockingInvDelegate(te);
 
-		this.addSlot(0, 80, 55);
+		this.addSlotNoClick(0, 80, 55);
 
-		this.addSlotToContainer(new Slot(clock, 1, 80, 104));
-		this.addSlotToContainer(new Slot(clock, 2, 105, 104));
-		this.addSlotToContainer(new Slot(clock, 3, 130, 104));
+		this.addSlotToContainer(new OverclockSlot(clock, 1, 80, 104));
+		this.addSlotToContainer(new OverclockSlot(clock, 2, 105, 104));
+		this.addSlotToContainer(new OverclockSlot(clock, 3, 130, 104));
 
 		this.addPlayerInventoryWithOffset(player, 0, 53);
 	}
@@ -58,15 +60,35 @@ public class ContainerSFMiner extends CoreContainer {
 	public boolean canInteractWith(EntityPlayer player) {
 		return super.canInteractWith(player) || ReikaMathLibrary.py3d(tile.xCoord+0.5-player.posX, (tile.yCoord+0.5-player.posY)/2, tile.zCoord+0.5-player.posZ) <= 12;
 	}
-
+	/*
 	@Override
 	public ItemStack slotClick(int ID, int par2, int par3, EntityPlayer ep) {
 		ItemStack is = super.slotClick(ID, par2, par3, ep);
-		Slot s = (Slot)inventorySlots.get(ID);
-		if (s.inventory == clock) {
-			ReikaJavaLibrary.pConsole(s.slotNumber);
+		if (ID >= 0 && ID < inventorySlots.size() && !ep.worldObj.isRemote && ((Slot)inventorySlots.get(ID)).inventory == clock) {
+			clock.setOverclockLevels();
 		}
 		return is;
+	}*/
+
+	private static class OverclockSlot extends Slot {
+
+		private final OverclockingInvDelegate reference;
+
+		public OverclockSlot(OverclockingInvDelegate ii, int idx, int x, int y) {
+			super(ii, idx, x, y);
+			reference = ii;
+		}
+
+		@Override
+		public boolean isItemValid(ItemStack is) {
+			return reference.isItemValidForSlot(slotNumber, is);
+		}
+
+		@Override
+		public boolean canTakeStack(EntityPlayer ep) {
+			return slotNumber == 3 || reference.getItems()[slotNumber+1] == null;
+		}
+
 	}
 
 	private static class OverclockingInvDelegate extends BasicInventory {
@@ -74,7 +96,7 @@ public class ContainerSFMiner extends CoreContainer {
 		private final TileNodeHarvester tile;
 
 		public OverclockingInvDelegate(TileNodeHarvester te) {
-			super("Overclock", 4);
+			super("Overclock", 4, 1);
 			tile = te;
 			ItemStack is = te.getOverclockingItem();
 			for (int i = 0; i < te.getOverclockingStep(); i++)
@@ -83,8 +105,24 @@ public class ContainerSFMiner extends CoreContainer {
 		}
 
 		@Override
+		protected void onSlotChange(int slot) {
+			if (tile != null && tile.worldObj != null && !tile.worldObj.isRemote)
+				this.setOverclockLevels();
+		}
+
+		private void setOverclockLevels() {
+			int lvl = 0;
+			for (int i = 1; i <= 3; i++) {
+				if (this.getItems()[i] != null)
+					lvl++;
+			}
+			tile.setOverclock(lvl);
+			ReikaJavaLibrary.pConsole(lvl+" from "+Arrays.toString(this.getItems()));
+		}
+
+		@Override
 		public boolean isItemValidForSlot(int slot, ItemStack is) {
-			return ReikaItemHelper.matchStacks(is, tile.getOverclockingItem());
+			return (slot == 1 || this.getItems()[slot-1] != null) && ReikaItemHelper.matchStacks(is, tile.getOverclockingItem());
 		}
 
 	}
