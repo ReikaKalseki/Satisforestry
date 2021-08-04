@@ -1,5 +1,7 @@
 package Reika.Satisforestry;
 
+import java.util.Iterator;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -16,6 +18,7 @@ import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.event.terraingen.ChunkProviderEvent;
 import net.minecraftforge.event.terraingen.DecorateBiomeEvent.Decorate;
 import net.minecraftforge.event.world.WorldEvent;
@@ -39,8 +42,10 @@ import Reika.DragonAPI.Instantiable.Event.Client.NightVisionBrightnessEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
+import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.CaveNightvisionHandler;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
@@ -71,6 +76,20 @@ public class SFEvents {
 
 	private SFEvents() {
 
+	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent(priority=EventPriority.LOWEST)
+	@ModDependent(ModList.IC2)
+	public void removeIncorrectIC2OverclockingValues(ItemTooltipEvent event) {
+		if (Minecraft.getMinecraft().currentScreen instanceof GuiSFMiner && ReikaItemHelper.matchStacks(event.itemStack, IC2Handler.IC2Stacks.OVERCLOCK.getItem())) {
+			Iterator<String> it = event.toolTip.iterator();
+			while (it.hasNext()) {
+				String s = it.next();
+				if (s.contains("Decrease process time") || s.contains("Increase power to"))
+					it.remove();
+			}
+		}
 	}
 
 	@SubscribeEvent

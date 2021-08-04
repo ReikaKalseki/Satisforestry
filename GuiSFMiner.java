@@ -51,11 +51,11 @@ public class GuiSFMiner extends GuiContainer {
 		ReikaTextureHelper.bindTexture(Satisforestry.class, "/Reika/Satisforestry/Textures/minergui.png");
 		this.drawTexturedModalRect(j, k, 0, 0, xSize, ySize);
 
-		int f = Math.min(76, tile.getMineProgressScaled(76));
-		this.drawTexturedModalRect(j + 50, k + 27, 0, 220, f, 6);
+		int f = Math.min(74, tile.getMineProgressScaled(74));
+		this.drawTexturedModalRect(j + 56, k + 21, 0, 220, f, 6);
 
-		f = (int)Math.min(64, tile.powerBar*64);
-		this.drawTexturedModalRect(j + 56, k + 37, 0, 230, f, 6);
+		f = (int)Math.min(74, tile.powerBar*74);
+		this.drawTexturedModalRect(j + 56, k + 38, 0, 230, f, 6);
 
 		int o = tile.getOverclockingStep();
 		int dx = 0;
@@ -79,8 +79,8 @@ public class GuiSFMiner extends GuiContainer {
 			int baseyield = 20*60/basetime;
 			float sp = tile.getNetSpeedFactor();
 			float time = basetime/sp;
-			float yield = baseyield/sp;
-			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, String.format("%.2fs", time/20F), (int)((j+88)/sc), (int)((k+36)/sc), 0xFA9549);
+			float yield = baseyield*sp;
+			fontRendererObj.drawString(String.format("%.2fs", time/20F), (int)((j+83)/sc), (int)((k+29)/sc), 0xFA9549);
 
 			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, ri.minCount+"-"+ri.maxCount+" "+ri.displayName, (int)((j+90)/sc), (int)((k+76)/sc), 0x646464);
 			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, baseyield+"/min Base", (int)((j+90)/sc), (int)((k+76+fontRendererObj.FONT_HEIGHT*sc)/sc), 0x646464);

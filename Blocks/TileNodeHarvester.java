@@ -20,7 +20,9 @@ import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaEngLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.DragonAPI.ModInteract.Power.ReikaEUHelper;
+import Reika.RotaryCraft.API.ItemFetcher;
 import Reika.RotaryCraft.API.Power.PowerTransferHelper;
 import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
 import Reika.Satisforestry.Satisforestry;
@@ -253,6 +255,8 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	public abstract ArrayList getMessages(World world, int x, int y, int z, int side);
 
+	public abstract ItemStack getOverclockingItem();
+
 	private static abstract class TileNodeHarvesterBasicEnergy extends TileNodeHarvester {
 
 		private final long energyPerCycle;
@@ -381,6 +385,11 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 			return this.getWirePowerConnection();
 		}
 
+		@Override
+		public ItemStack getOverclockingItem() {
+			return ReikaItemHelper.lookupItem("ThermalExpansion:augment:129"); //Overclocked Modular Gearbox = T2 speed booster
+		}
+
 	}
 
 	@Strippable(value={"ic2.api.energy.tile.IEnergySink"})
@@ -433,6 +442,11 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		@Override
 		public TileMinerConnection getInput() {
 			return this.getWirePowerConnection();
+		}
+
+		@Override
+		public ItemStack getOverclockingItem() {
+			return IC2Handler.IC2Stacks.OVERCLOCK.getItem();
 		}
 	}
 
@@ -589,6 +603,11 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		@Override
 		public TileMinerConnection getInput() {
 			return this.getShaftPowerConnection();
+		}
+
+		@Override
+		public ItemStack getOverclockingItem() {
+			return new ItemStack(ItemFetcher.getItemByOrdinal(55), 1, 2); //t2 magneto upgrade
 		}
 
 	}
