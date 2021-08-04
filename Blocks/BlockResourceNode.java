@@ -222,7 +222,7 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 			}
 		}
 
-		private void resetTimer() {
+		public void resetTimer() {
 			autoOutputTimer = purity.getCountdown();
 		}
 

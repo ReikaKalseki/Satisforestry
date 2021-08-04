@@ -84,6 +84,9 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 								this.useEnergy(true);
 							}
 						}
+						else {
+							te.resetTimer();
+						}
 						float f = this.getOperationEnergyFraction();
 						progressFactor = Math.min(f >= 0 ? f : 1, te.getAutomationProgress());
 						//ReikaJavaLibrary.pConsole("F="+progressFactor);
