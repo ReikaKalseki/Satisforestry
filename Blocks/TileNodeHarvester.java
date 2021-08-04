@@ -47,6 +47,9 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 	private ForgeDirection structureDir = null;
 
 	public float progressFactor;
+	public float powerBar;
+
+	private int overclockLevel;
 
 	@Override
 	public final Block getTileEntityBlockID() {
@@ -94,6 +97,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 			else {
 				progressFactor = 0;
 			}
+			powerBar = this.getOperationEnergyFractionForDisplay();
 			if (activityTimer > 0) {
 				activityTimer--;
 			}
@@ -134,9 +138,21 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		return (int)(px*progressFactor);
 	}
 
+	public final int getOverclockingStep() {
+		return overclockLevel;
+	}
+
+	public final float getOverclockingLevel() {
+		return 1+this.getOverclockingStep()*0.5F;
+	}
+
 	public abstract float getSpeedFactor();
 
 	protected abstract float getOperationEnergyFraction();
+
+	public float getOperationEnergyFractionForDisplay() {
+		return this.getOperationEnergyFraction();
+	}
 
 	protected abstract boolean hasEnergy(boolean operation);
 
@@ -169,6 +185,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 		NBT.setInteger("activity", activityTimer);
 		NBT.setInteger("structure", structureDir != null ? structureDir.ordinal() : -1);
+		NBT.setInteger("overclock", overclockLevel);
 	}
 
 	@Override
@@ -178,6 +195,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		activityTimer = NBT.getInteger("activity");
 		int struct = NBT.getInteger("structure");
 		structureDir = struct == -1 ? null : dirs[struct];
+		overclockLevel = NBT.getInteger("overclock");
 	}
 
 	@Override
@@ -218,10 +236,10 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	private static abstract class TileNodeHarvesterBasicEnergy extends TileNodeHarvester {
 
-		protected final long energyPerCycle;
+		private final long energyPerCycle;
 		protected final long maxEnergy;
-		protected final long maxFlowRate;
-		protected final long standbyCost;
+		private final long maxFlowRate;
+		private final long standbyCost;
 
 		private long energy;
 
@@ -236,12 +254,12 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 		@Override
 		protected final boolean hasEnergy(boolean operation) {
-			return energy >= (operation ? energyPerCycle : standbyCost);
+			return energy >= this.getActualOperationCost(operation);
 		}
 
 		@Override
 		protected final void useEnergy(boolean operation) {
-			energy -= (operation ? energyPerCycle : standbyCost);
+			energy -= this.getActualOperationCost(operation);
 		}
 
 		protected final long addEnergy(long amt, boolean simulate) {
@@ -253,7 +271,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		}
 
 		protected final long getActualMaxFlow() {
-			return maxFlowRate*(1+this.getTier());
+			return (long)(maxFlowRate*(1+this.getTier())*this.getOverclockingPowerFactor());
 		}
 
 		protected final long getEnergy() {
@@ -285,7 +303,15 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 		@Override
 		protected final float getOperationEnergyFraction() {
-			return energy/(float)energyPerCycle;
+			return energy/(float)this.getActualOperationCost(true);
+		}
+
+		protected final long getActualOperationCost(boolean operation) {
+			return (long)((operation ? energyPerCycle : standbyCost)*this.getOverclockingPowerFactor());
+		}
+
+		protected final float getOverclockingPowerFactor() {
+			return (float)ReikaMathLibrary.roundToNearestFraction(Math.pow(this.getOverclockingLevel(), 1.82), 0.25); //SF uses 1.6
 		}
 
 	}
@@ -394,8 +420,8 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	public static class TileNodeHarvesterRC extends TileNodeHarvester implements ShaftPowerReceiver {
 
-		public static final int MINPOWER = 262144;
-		public static final int STANDBY = 4096;
+		private static final int MINPOWER_BASE = 262144;
+		private static final int STANDBY_BASE = 4096;
 		public static final int MINTORQUE = 2048;
 
 		private int torque;
@@ -437,7 +463,28 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 		@Override
 		protected boolean hasEnergy(boolean operation) {
-			return operation ? (power >= STANDBY) : power >= MINPOWER && torque >= MINTORQUE;
+			return operation ? power >= this.getMinPowerCost() && torque >= MINTORQUE && omega >= this.getMinSpeed() : (power >= this.getStandbyPowerCost());
+		}
+
+		private long getStandbyPowerCost() {
+			return STANDBY_BASE*this.getPowerScalar();
+		}
+
+		private int getMinSpeed() {
+			return (int)(this.getMinPowerCost()/MINTORQUE);
+		}
+
+		private long getMinPowerCost() {
+			return MINPOWER_BASE*this.getPowerScalar();
+		}
+
+		private int getPowerScalar() {
+			return ReikaMathLibrary.intpow2(2, this.getOverclockingStep());
+		}
+
+		@Override
+		public float getOperationEnergyFractionForDisplay() {
+			return ReikaMathLibrary.multiMin(1F, power/(float)this.getMinPowerCost(), torque/(float)MINTORQUE, omega/(float)this.getMinSpeed());
 		}
 
 		@Override
