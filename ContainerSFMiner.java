@@ -16,7 +16,7 @@ public class ContainerSFMiner extends CoreContainer {
 		super(player, te, te.getOutput());
 		tile = te;
 
-		this.addSlot(0, 80, 57);
+		this.addSlot(0, 80, 55);
 
 		this.addPlayerInventoryWithOffset(player, 0, 53);
 	}

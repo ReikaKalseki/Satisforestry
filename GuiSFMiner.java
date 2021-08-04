@@ -6,7 +6,11 @@ import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.entity.player.EntityPlayer;
 
 import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
+import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
+import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 import Reika.Satisforestry.Blocks.TileNodeHarvester;
+import Reika.Satisforestry.Config.ResourceItem;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 public class GuiSFMiner extends GuiContainer {
 
@@ -57,8 +61,35 @@ public class GuiSFMiner extends GuiContainer {
 		int dx = 0;
 		for (int i = 0; i <= o; i++) {
 			int w = i == 0 ? 43 : 21;
-			this.drawTexturedModalRect(j + 28+dx, k + 121, dx, 242, w, 3);
+			this.drawTexturedModalRect(j+28+dx, k+122, dx, 243, w, 2);
 			dx += w+4;
+		}
+
+		ReikaTextureHelper.bindFontTexture();
+
+		fontRendererObj.drawString(SFBlocks.HARVESTER.getBasicName(), j+6, k+5, 0xffffff);
+
+		TileResourceNode te = tile.getResourceNode();
+		if (te != null) {
+			float sc = 1F;
+			GL11.glPushMatrix();
+			GL11.glScaled(sc, sc, sc);
+			ResourceItem ri = te.getResource();
+			int basetime = te.getPurity().getCountdown();
+			int baseyield = 20*60/basetime;
+			float sp = tile.getNetSpeedFactor();
+			float time = basetime/sp;
+			float yield = baseyield/sp;
+			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, String.format("%.2fs", time/20F), (int)((j+88)/sc), (int)((k+36)/sc), 0xFA9549);
+
+			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, ri.minCount+"-"+ri.maxCount+" "+ri.displayName, (int)((j+90)/sc), (int)((k+76)/sc), 0x646464);
+			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, baseyield+"/min Base", (int)((j+90)/sc), (int)((k+76+fontRendererObj.FONT_HEIGHT*sc)/sc), 0x646464);
+
+			fontRendererObj.drawString(String.format("%.0f%s", tile.getOverclockingLevel()*100, "%"), (int)((j+27)/sc), (int)((k+103)/sc), 0xFA9549);
+			String s = String.format("%.1f", yield);
+			fontRendererObj.drawString(s, (int)((j+27)/sc), (int)((k+114)/sc), 0xFA9549);
+			fontRendererObj.drawString("/min", (int)((j+27+fontRendererObj.getStringWidth(s)*sc)/sc), (int)((k+114)/sc), 0x646464);
+			GL11.glPopMatrix();
 		}
 	}
 

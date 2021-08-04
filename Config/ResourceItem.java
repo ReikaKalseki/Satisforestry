@@ -31,6 +31,7 @@ import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 public class ResourceItem {
 
 	public final String id;
+	public final String displayName;
 	public final int color;
 	public final int spawnWeight;
 
@@ -41,8 +42,9 @@ public class ResourceItem {
 	public int minCount = 1;
 	public int maxCount = 1;
 
-	public ResourceItem(String s, int w, int c, HashMap<String, Object> map) {
+	public ResourceItem(String s, String n, int w, int c, HashMap<String, Object> map) {
 		id = s;
+		displayName = Strings.isNullOrEmpty(n) ? id : n;
 		spawnWeight = w;
 		color = c;
 		for (Entry<String, Object> e : map.entrySet()) {

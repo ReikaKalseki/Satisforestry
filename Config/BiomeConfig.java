@@ -398,7 +398,7 @@ public class BiomeConfig {
 		if (map.isEmpty())
 			throw new IllegalArgumentException("No purity levels specified");
 
-		ResourceItem ore = new ResourceItem(type, b.getInt("spawnWeight"), b.getInt("renderColor"), map);
+		ResourceItem ore = new ResourceItem(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), map);
 		ore.minCount = b.getInt("minCount");
 		ore.maxCount = b.getInt("maxCount");
 

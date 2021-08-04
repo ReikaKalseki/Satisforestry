@@ -10,7 +10,6 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -24,7 +23,6 @@ import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
-import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
@@ -36,7 +34,6 @@ import Reika.Satisforestry.Config.ResourceItem;
 import Reika.Satisforestry.Config.ResourceItem.NodeEffect;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Registry.SFBlocks;
-import Reika.Satisforestry.Registry.SFOptions;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -161,7 +158,7 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 
 		private int manualMiningCycle;
 		private long lastClickTick = -1;
-		private int autoOutputTimer = purity.getCountdown();
+		//private int simpleAutoOutputTimer = purity.getCountdown();
 
 		public TileResourceNode() {
 			this.initSpawner();
@@ -195,20 +192,22 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 				if (resource == null) {
 					this.generate(worldObj.rand);
 					return;
-				}
-				if (autoOutputTimer > 0)
-					autoOutputTimer--;
-				if (autoOutputTimer == 0 && SFOptions.SIMPLEAUTO.getState()) {
-					TileEntity te = worldObj.getTileEntity(xCoord, yCoord+1, zCoord);
-					if (te instanceof IInventory && !(te instanceof TileNodeHarvester)) {
-						ItemStack is = this.getRandomNodeItem();
-						if (is != null) {
-							if (ReikaInventoryHelper.addToIInv(is, (IInventory)te)) {
-								this.resetTimer();
+				}/*
+				if (SFOptions.SIMPLEAUTO.getState()) {
+					if (simpleAutoOutputTimer > 0)
+						simpleAutoOutputTimer--;
+					if (simpleAutoOutputTimer == 0) {
+						TileEntity te = worldObj.getTileEntity(xCoord, yCoord+1, zCoord);
+						if (te instanceof IInventory && !(te instanceof TileNodeHarvester)) {
+							ItemStack is = this.getRandomNodeItem();
+							if (is != null) {
+								if (ReikaInventoryHelper.addToIInv(is, (IInventory)te)) {
+									this.resetTimer();
+								}
 							}
 						}
 					}
-				}
+				}*/
 				Collection<NodeEffect> c = resource.getEffects();
 				if (c.isEmpty())
 					return;
@@ -221,25 +220,10 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 				}
 			}
 		}
-
-		public void resetTimer() {
-			autoOutputTimer = purity.getCountdown();
-		}
-
-		public ItemStack tryHarvest(TileNodeHarvester te) {
-			int tier = te.getTier();
-			for (int i = 0; i < tier; i++) {
-				if (autoOutputTimer > 0)
-					autoOutputTimer--;
-			}
-			if (autoOutputTimer > 0)
-				return null;
-			if (resource == null)
-				return null;
-			ItemStack is = this.getRandomNodeItem(tier);
-			this.resetTimer();
-			return is;
-		}
+		/*
+		private void resetTimer() {
+			simpleAutoOutputTimer = purity.getCountdown();
+		}*/
 
 		public void onManualClick() {
 			long time = worldObj.getTotalWorldTime();
@@ -255,10 +239,10 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 				}
 			}
 		}
-
+		/*
 		public float getAutomationProgress() {
 			return 1F-(autoOutputTimer/(float)purity.getCountdown());
-		}
+		}*/
 
 		public float getManualProgress() {
 			return manualMiningCycle/(float)MINING_TIME;
@@ -269,7 +253,7 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 			super.writeToNBT(NBT);
 
 			NBT.setInteger("cycle", manualMiningCycle);
-			NBT.setInteger("timer", autoOutputTimer);
+			//NBT.setInteger("timer", autoOutputTimer);
 			NBT.setLong("lastClick", lastClickTick);
 
 			NBT.setInteger("purity", purity.ordinal());
@@ -282,7 +266,7 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 			super.readFromNBT(NBT);
 
 			manualMiningCycle = NBT.getInteger("cycle");
-			autoOutputTimer = NBT.getInteger("timer");
+			//autoOutputTimer = NBT.getInteger("timer");
 			lastClickTick = NBT.getLong("lastClick");
 
 			purity = Purity.list[NBT.getInteger("purity")];

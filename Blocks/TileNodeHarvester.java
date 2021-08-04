@@ -42,6 +42,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	private int tier = 0;
 	private int activityTimer = 0;
+	private int operationTimer = 0;
 
 	private int activityRamp;
 	private ForgeDirection structureDir = null;
@@ -64,47 +65,64 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 			}
 		}
 		else {
-			Block b = world.getBlock(x, y-1, z);
-			if (b == SFBlocks.RESOURCENODE.getBlockInstance()) {
-				boolean flag = false;
+			int stepTime = 0;
+			boolean flag = false;
+			TileResourceNode te = this.getResourceNode();
+			if (te != null) {
 				if (this.hasEnergy(false)) {
 					flag = true;
 					this.useEnergy(false);
-					activityRamp = Math.min(activityRamp+1, ACTIVITY_RAMP_TIME);
-					TileResourceNode te = (TileResourceNode)world.getTileEntity(x, y-1, z);
 					if (activityRamp == ACTIVITY_RAMP_TIME) {
+						stepTime = (int)(te.getPurity().getCountdown()/this.getNetSpeedFactor());
 						if (this.hasEnergy(true)) {
-							ItemStack is = te.tryHarvest(this);
-							if (is != null) {
-								activityTimer = 20;
-								if (!this.trySpawnItem(is)) {
-									flag = false;
+							if (operationTimer < stepTime)
+								operationTimer++;
+							activityTimer = 20;
+							if (operationTimer >= stepTime) {
+								ItemStack is = te.getRandomNodeItem();
+								if (is != null) {
+									if (this.trySpawnItem(is)) {
+										operationTimer = 0;
+										this.useEnergy(true);
+									}
+									//ReikaJavaLibrary.pConsole(world.getTotalWorldTime());
 								}
-								//ReikaJavaLibrary.pConsole(world.getTotalWorldTime());
-								this.useEnergy(true);
 							}
 						}
 						else {
-							te.resetTimer();
+							operationTimer = 0;
 						}
-						float f = this.getOperationEnergyFraction();
-						progressFactor = Math.min(f >= 0 ? f : 1, te.getAutomationProgress());
+						//ReikaJavaLibrary.pConsole(operationTimer);
+						//ReikaJavaLibrary.pConsole(powerBar);
 						//ReikaJavaLibrary.pConsole("F="+progressFactor);
 					}
+					else {
+						operationTimer = 0;
+					}
 				}
-				if (!flag) {
-					activityRamp = Math.max(activityRamp-1, 0);
-					progressFactor = 0;
-				}
+			}
+			if (flag) {
+				activityRamp = Math.min(activityRamp+1, ACTIVITY_RAMP_TIME);
 			}
 			else {
-				progressFactor = 0;
+				operationTimer = 0;
+				activityRamp = Math.max(activityRamp-1, 0);
 			}
-			powerBar = this.getOperationEnergyFractionForDisplay();
+			progressFactor = stepTime <= 0 ? 0 : operationTimer/(float)stepTime;
+			powerBar = this.getOperationEnergyFraction();
 			if (activityTimer > 0) {
 				activityTimer--;
 			}
 		}
+	}
+
+	public TileResourceNode getResourceNode() {
+		TileEntity te = this.getAdjacentTileEntity(ForgeDirection.DOWN);
+		return te instanceof TileResourceNode ? (TileResourceNode)te : null;
+	}
+
+	public final float getNetSpeedFactor() {
+		return (1+this.getTier())*this.getOverclockingLevel()*this.getSpeedFactor();
 	}
 
 	private boolean trySpawnItem(ItemStack is) {
@@ -153,10 +171,6 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	protected abstract float getOperationEnergyFraction();
 
-	public float getOperationEnergyFractionForDisplay() {
-		return this.getOperationEnergyFraction();
-	}
-
 	protected abstract boolean hasEnergy(boolean operation);
 
 	protected abstract void useEnergy(boolean operation);
@@ -187,6 +201,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		super.writeSyncTag(NBT);
 
 		NBT.setInteger("activity", activityTimer);
+		NBT.setInteger("operation", operationTimer);
 		NBT.setInteger("structure", structureDir != null ? structureDir.ordinal() : -1);
 		NBT.setInteger("overclock", overclockLevel);
 	}
@@ -196,6 +211,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		super.readSyncTag(NBT);
 
 		activityTimer = NBT.getInteger("activity");
+		operationTimer = NBT.getInteger("operation");
 		int struct = NBT.getInteger("structure");
 		structureDir = struct == -1 ? null : dirs[struct];
 		overclockLevel = NBT.getInteger("overclock");
@@ -306,7 +322,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 		@Override
 		protected final float getOperationEnergyFraction() {
-			return energy/(float)this.getActualOperationCost(true);
+			return Math.min(1, energy/(float)this.getActualOperationCost(true));
 		}
 
 		protected final long getActualOperationCost(boolean operation) {
@@ -433,11 +449,6 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		private int iotick;
 
 		@Override
-		protected final float getOperationEnergyFraction() {
-			return -1;
-		}
-
-		@Override
 		public void updateEntity(World world, int x, int y, int z, int meta) {
 			TileEntity te = this.getShaftPowerConnection();
 			if (!PowerTransferHelper.checkPowerFrom(te, ForgeDirection.DOWN) && !PowerTransferHelper.checkPowerFrom(te, ForgeDirection.UP)) {
@@ -486,7 +497,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		}
 
 		@Override
-		public float getOperationEnergyFractionForDisplay() {
+		public float getOperationEnergyFraction() {
 			return ReikaMathLibrary.multiMin(1F, power/(float)this.getMinPowerCost(), torque/(float)MINTORQUE, omega/(float)this.getMinSpeed());
 		}
 

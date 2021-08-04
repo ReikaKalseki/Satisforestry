@@ -19,7 +19,7 @@ import Reika.Satisforestry.Satisforestry;
 public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
 
 	BIOMEID("Pink Forest Biome ID", 144),
-	SIMPLEAUTO("Enable Simple Automation for Resource Node", false),
+	//SIMPLEAUTO("Enable Simple Automation for Resource Node", false),
 	CAVEMOBS("Cave Mob Spawn Multiplier", 1),
 	GLOBALSHADER("Apply Poison Shader In All Biomes", false),
 	;
