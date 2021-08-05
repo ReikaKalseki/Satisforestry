@@ -208,7 +208,7 @@ public class Satisforestry extends DragonAPIMod {
 		List<ItemStack> bronze = OreDictionary.getOres("ingotBronze");
 		Object orange = getItemWithFallback(bronze.isEmpty() ? null : bronze, ReikaItemHelper.orangeDye);
 		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.ORANGE.ordinal()), "ioi", "ibi", "ioi", 'b', Blocks.iron_bars, 'o', orange, 'i', Items.iron_ingot);
-		addRecipe(dark, "iii", "ibi", "iii", 'b', Blocks.iron_bars, 'i', Items.iron_ingot);
+		addRecipe(dark, "isi", "sbs", "isi", 'b', Blocks.iron_bars, 's', steel, 'i', Items.iron_ingot);
 		addRecipe(silver, "bib", "ibi", "bib", 'b', Blocks.iron_bars, 'i', Items.iron_ingot);
 		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.GRAY.ordinal()), "i i", " s ", "i i", 's', steel, 'i', Items.iron_ingot);
 		addRecipe(drillbit, "aDa", "dBd", "iRi", 'a', alloy, 'R', drill, 'D', dark, 'B', Blocks.obsidian, 'd', Items.diamond, 'i', Items.iron_ingot);

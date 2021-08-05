@@ -60,6 +60,11 @@ public class BlockNodeHarvester extends BlockTEBase {
 		return false;
 	}
 
+	@Override
+	public int getRenderType() {
+		return -1;
+	}
+
 
 
 }

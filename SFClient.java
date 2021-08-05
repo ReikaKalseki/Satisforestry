@@ -10,7 +10,10 @@
 package Reika.Satisforestry;
 
 import net.minecraft.world.World;
+import net.minecraftforge.client.MinecraftForgeClient;
 
+import Reika.Satisforestry.Blocks.TileNodeHarvester;
+import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFShaders;
 import Reika.Satisforestry.Render.DecorationRenderer;
@@ -20,8 +23,11 @@ import Reika.Satisforestry.Render.RenderEliteStinger;
 import Reika.Satisforestry.Render.RenderFlyingManta;
 import Reika.Satisforestry.Render.RenderLizardDoggo;
 import Reika.Satisforestry.Render.ResourceNodeRenderer;
+import Reika.Satisforestry.Render.SFMinerItemRenderer;
+import Reika.Satisforestry.Render.SFMinerRenderer;
 
 import cpw.mods.fml.client.FMLClientHandler;
+import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 
 public class SFClient extends SFCommon {
@@ -57,6 +63,9 @@ public class SFClient extends SFCommon {
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.ELITESTINGER.getObjectClass(), new RenderEliteStinger());
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.MANTA.getObjectClass(), new RenderFlyingManta());
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.DOGGO.getObjectClass(), RenderLizardDoggo.instance);
+
+		ClientRegistry.bindTileEntitySpecialRenderer(TileNodeHarvester.class, new SFMinerRenderer());
+		MinecraftForgeClient.registerItemRenderer(SFBlocks.HARVESTER.getItem(), new SFMinerItemRenderer());
 
 		SFShaders.registerAll();
 	}

@@ -27,6 +27,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.Instantiable.Math.Noise.Simplex3DGenerator;
+import Reika.DragonAPI.Instantiable.Rendering.TessellatorVertexList;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
@@ -223,6 +224,61 @@ public class BlockPinkGrass extends BlockTallGrass {
 				case TREE_VINE:
 					renderNoise.setFrequency(1/2D);
 					ReikaRenderHelper.renderCropTypeTex(world, x, y, z, ico, v5, rb, ReikaMathLibrary.normalizeToBounds(renderNoise.getValue(x, y, z), 0.03125, 0.375), 1);
+					break;
+				case BLUE_MUSHROOM_STALK:
+				case BLUE_MUSHROOM_TOP:
+					this.prepareRandom(world, x, 0, z);
+					TessellatorVertexList tv5 = new TessellatorVertexList();
+					float u = ico.getMinU();
+					float du = ico.getMaxU();
+					float v = ico.getMinV();
+					float dv = ico.getMaxV();
+
+					tv5.addVertexWithUV(x, y+1, 	z, 	u, v);
+					tv5.addVertexWithUV(x+1, y+1, 	z+1, 	du, v);
+					tv5.addVertexWithUV(x+1, y, 	z+1, 	du, dv);
+					tv5.addVertexWithUV(x, y, 	z, 	u, dv);
+
+					tv5.addVertexWithUV(x, y, 	z, 	u, dv);
+					tv5.addVertexWithUV(x+1, y, 	z+1, 	du, dv);
+					tv5.addVertexWithUV(x+1, y+1, 	z+1, 	du, v);
+					tv5.addVertexWithUV(x, y+1, 	z, 	u, v);
+
+					tv5.addVertexWithUV(x, y+1, 	z+1, 	u, v);
+					tv5.addVertexWithUV(x+1, y+1, 	z, 	du, v);
+					tv5.addVertexWithUV(x+1, y, 	z, 	du, dv);
+					tv5.addVertexWithUV(x, y, 	z+1, 	u, dv);
+
+					tv5.addVertexWithUV(x, y, 	z+1, 	u, dv);
+					tv5.addVertexWithUV(x+1, y, 	z, 	du, dv);
+					tv5.addVertexWithUV(x+1, y+1, 	z, 	du, v);
+					tv5.addVertexWithUV(x, y+1, 	z+1, 	u, v);
+
+					double ax = ReikaRandomHelper.getRandomPlusMinus(0, 10, renderRand);
+					double az = ReikaRandomHelper.getRandomPlusMinus(0, 10, renderRand);
+					tv5.rotateNonOrthogonal(ax, 0, az, x+0.5, y, z+0.5);
+					int levels = 0;
+					for (int i = y-1; i >= 0; i--) {
+						Block below = world.getBlock(x, i, z);
+						int mb = world.getBlockMetadata(x, i, z);
+						if (below == SFBlocks.GRASS.getBlockInstance() && (mb == BLUE_MUSHROOM_STALK.ordinal() || mb == BLUE_MUSHROOM_TOP.ordinal())) {
+							levels++;
+						}
+						else {
+							break;
+						}
+					}
+					double sz = Math.sin(Math.toRadians(ax));
+					double sx = Math.sin(Math.toRadians(az));
+					double cx = Math.cos(Math.toRadians(ax));
+					double cz = Math.cos(Math.toRadians(az));
+					double dx = sx*levels;
+					double dy = -levels/16D*Math.sqrt(cx*cx+cz*cz);
+					double dz = -sz*levels;
+					tv5.offset(dx, dy, dz);
+					//ReikaJavaLibrary.pConsole(dz);
+
+					tv5.render();
 					break;
 				default:
 					ReikaRenderHelper.renderCrossTex(world, x, y, z, ico, v5, rb, 1); //not h, since icon is already part of a block
