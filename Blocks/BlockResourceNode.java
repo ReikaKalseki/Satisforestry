@@ -15,6 +15,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
+import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -286,7 +287,13 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 			ItemStack ri = resource.getRandomItem(tier, purity);
 			if (ri == null)
 				return null;
-			return ReikaItemHelper.getSizedItemStack(ri, ReikaRandomHelper.getRandomBetween(resource.minCount, resource.maxCount));
+			boolean peaceful = worldObj.difficultySetting == EnumDifficulty.PEACEFUL;
+			if (peaceful && !resource.worksOnPeaceful())
+				return null;
+			int amt = ReikaRandomHelper.getRandomBetween(resource.minCount, resource.maxCount);
+			if (peaceful)
+				amt = Math.max(1, (int)(amt*resource.peacefulYieldScale));
+			return ReikaItemHelper.getSizedItemStack(ri, amt);
 		}
 
 		public Purity getPurity() {

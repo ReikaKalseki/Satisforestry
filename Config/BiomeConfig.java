@@ -405,6 +405,10 @@ public class BiomeConfig {
 			ore.speedFactor = (float)b.getDouble("speedFactor");
 		if (ore.speedFactor <= 0)
 			throw new IllegalArgumentException("Invalid speed factor");
+		if (b.containsKey("peacefulScale"))
+			ore.peacefulYieldScale = (float)b.getDouble("peacefulScale");
+		if (ore.peacefulYieldScale > 1 || ore.peacefulYieldScale < 0)
+			throw new IllegalArgumentException("Invalid peaceful scale");
 
 		for (LuaBlock s : items) {
 			entryAttemptsCount++;

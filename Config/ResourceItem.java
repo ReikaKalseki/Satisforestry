@@ -42,6 +42,7 @@ public class ResourceItem {
 	public int minCount = 1;
 	public int maxCount = 1;
 	public float speedFactor = 1;
+	public float peacefulYieldScale = 1;
 
 	public ResourceItem(String s, String n, int w, int c, HashMap<String, Object> map) {
 		id = s;
@@ -83,6 +84,10 @@ public class ResourceItem {
 
 	public Collection<NodeEffect> getEffects() {
 		return Collections.unmodifiableCollection(effects);
+	}
+
+	public boolean worksOnPeaceful() {
+		return peacefulYieldScale > 0;
 	}
 
 	public boolean hasNoItems() {
