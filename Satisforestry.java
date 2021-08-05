@@ -15,7 +15,10 @@ import java.net.URL;
 
 import net.minecraft.block.Block;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.ItemFood;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -35,9 +38,11 @@ import Reika.DragonAPI.Instantiable.IO.ControlledConfig;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.ModInteract.DeepInteract.ReikaThaumHelper;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
+import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
@@ -170,11 +175,31 @@ public class Satisforestry extends DragonAPIMod {
 		BiomeManager.removeVillageBiome(pinkforest);
 		BiomeDictionary.registerBiomeType(pinkforest, BiomeDictionary.Type.FOREST, BiomeDictionary.Type.MAGICAL, BiomeDictionary.Type.DENSE, BiomeDictionary.Type.LUSH, BiomeDictionary.Type.MOUNTAIN, BiomeDictionary.Type.WET);
 
+		this.addRecipes();
+
 		//pinkriver = new BiomePinkRiver();
 
 		ReikaRegistryHelper.registerModEntities(instance, SFEntities.entityList);
 
 		this.finishTiming();
+	}
+
+	private void addRecipes() {
+		ItemStack dark = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.DARK.ordinal());
+		ItemStack gear = null;
+		ItemStack shaft = null;
+		ItemStack plate = null;
+		ItemStack rfcoil = null;
+		ItemStack eucoil = null;
+		ItemStack alloy = null;
+		GameRegistry.addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.ORANGE.ordinal()), "ioi", "ibi", "ioi", 'b', Blocks.iron_bars, 'o', ReikaItemHelper.orangeDye, 'i', Items.iron_ingot);
+		GameRegistry.addRecipe(dark, "iii", "ibi", "iii", 'b', Blocks.iron_bars, 'i', Items.iron_ingot);
+		GameRegistry.addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.SILVER.ordinal()), "bib", "ibi", "bib", 'b', Blocks.iron_bars, 'i', Items.iron_ingot);
+		GameRegistry.addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.GRAY.ordinal()), "i i", " i ", "i i", 'i', Items.iron_ingot);
+		GameRegistry.addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.DRILL.ordinal()), "iDi", "dBd", "iii", 'D', dark, 'B', Blocks.obsidian, 'd', Items.diamond, 'i', Items.iron_ingot);
+		GameRegistry.addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.CONVEYOR.ordinal()), "iii", "ici", "iii", 'c', Blocks.chest, 'i', Items.iron_ingot);
+		GameRegistry.addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.HUB.ordinal()), "dhd", "ihi", "dhd", 'h', Items.stick, 'd', dark, 'i', Items.iron_ingot);
+		GameRegistry.addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.POWER.ordinal()), "iri", "iri", "iri", 'r', Items.redstone, 'i', Items.iron_ingot);
 	}
 
 	@Override

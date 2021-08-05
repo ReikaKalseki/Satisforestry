@@ -401,6 +401,10 @@ public class BiomeConfig {
 		ResourceItem ore = new ResourceItem(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), map);
 		ore.minCount = b.getInt("minCount");
 		ore.maxCount = b.getInt("maxCount");
+		if (b.containsKey("speedFactor"))
+			ore.speedFactor = (float)b.getDouble("speedFactor");
+		if (ore.speedFactor <= 0)
+			throw new IllegalArgumentException("Invalid speed factor");
 
 		for (LuaBlock s : items) {
 			entryAttemptsCount++;

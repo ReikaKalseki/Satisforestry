@@ -69,13 +69,18 @@ public class GuiSFMiner extends GuiContainer {
 
 		fontRendererObj.drawString(SFBlocks.HARVESTER.getBasicName(), j+6, k+5, 0xffffff);
 
+		GL11.glPushMatrix();
+		GL11.glScaled(0.5, 0.5, 0.5);
+		ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, tile.getOperationPowerCost(true), (j+90)*2, (k+39)*2, 0xFA9549);
+		GL11.glPopMatrix();
+
 		TileResourceNode te = tile.getResourceNode();
 		if (te != null) {
 			float sc = 1F;
 			GL11.glPushMatrix();
 			GL11.glScaled(sc, sc, sc);
 			ResourceItem ri = te.getResource();
-			int basetime = te.getPurity().getCountdown();
+			int basetime = te.getHarvestInterval();
 			int baseyield = 20*60/basetime;
 			float sp = tile.getNetSpeedFactor();
 			float time = basetime/sp;

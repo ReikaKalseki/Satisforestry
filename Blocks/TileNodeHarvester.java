@@ -75,7 +75,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 					flag = true;
 					this.useEnergy(false);
 					if (activityRamp == ACTIVITY_RAMP_TIME) {
-						stepTime = (int)(te.getPurity().getCountdown()/this.getNetSpeedFactor());
+						stepTime = (int)(te.getHarvestInterval()/this.getNetSpeedFactor());
 						if (this.hasEnergy(true)) {
 							if (operationTimer < stepTime)
 								operationTimer++;
@@ -262,6 +262,8 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	public abstract ItemStack getOverclockingItem();
 
+	public abstract String getOperationPowerCost(boolean withOverclock);
+
 	private static abstract class TileNodeHarvesterBasicEnergy extends TileNodeHarvester {
 
 		private final long energyPerCycle;
@@ -340,6 +342,14 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 		protected final float getOverclockingPowerFactor() {
 			return (float)ReikaMathLibrary.roundToNearestFraction(Math.pow(this.getOverclockingLevel(), 1.82), 0.25); //SF uses 1.6
+		}
+
+		@Override
+		public final String getOperationPowerCost(boolean withOverclock) {
+			double amt = energyPerCycle;
+			if (withOverclock)
+				amt *= this.getOverclockingPowerFactor();
+			return String.format("%.3f k%s", amt/1000D, this.getEnergyUnit());
 		}
 
 	}
@@ -513,6 +523,14 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 		private int getPowerScalar() {
 			return ReikaMathLibrary.intpow2(2, this.getOverclockingStep());
+		}
+
+		@Override
+		public final String getOperationPowerCost(boolean withOverclock) {
+			double amt = withOverclock ? this.getMinPowerCost() : MINPOWER_BASE;
+			String unit = ReikaEngLibrary.getSIPrefix(amt);
+			double base = ReikaMathLibrary.getThousandBase(amt);
+			return String.format("%.3f %sW", base, unit);
 		}
 
 		@Override

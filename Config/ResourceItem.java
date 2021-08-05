@@ -41,6 +41,7 @@ public class ResourceItem {
 
 	public int minCount = 1;
 	public int maxCount = 1;
+	public float speedFactor = 1;
 
 	public ResourceItem(String s, String n, int w, int c, HashMap<String, Object> map) {
 		id = s;

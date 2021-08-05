@@ -1,7 +1,5 @@
 package Reika.Satisforestry;
 
-import java.util.Arrays;
-
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ICrafting;
 import net.minecraft.inventory.Slot;
@@ -9,7 +7,6 @@ import net.minecraft.item.ItemStack;
 
 import Reika.DragonAPI.Base.CoreContainer;
 import Reika.DragonAPI.Instantiable.BasicInventory;
-import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.Blocks.TileNodeHarvester;
@@ -97,11 +94,15 @@ public class ContainerSFMiner extends CoreContainer {
 
 		public OverclockingInvDelegate(TileNodeHarvester te) {
 			super("Overclock", 4, 1);
+			if (!te.worldObj.isRemote) {
+				ItemStack is = te.getOverclockingItem();
+				int step = te.getOverclockingStep(); //cacche since can change due to onSlotChange
+				for (int i = 0; i <= step; i++)
+					if (i != 0) {
+						this.setInventorySlotContents(i, is);
+					}
+			}
 			tile = te;
-			ItemStack is = te.getOverclockingItem();
-			for (int i = 0; i < te.getOverclockingStep(); i++)
-				if (i != 0)
-					this.setInventorySlotContents(i, is);
 		}
 
 		@Override
@@ -117,7 +118,7 @@ public class ContainerSFMiner extends CoreContainer {
 					lvl++;
 			}
 			tile.setOverclock(lvl);
-			ReikaJavaLibrary.pConsole(lvl+" from "+Arrays.toString(this.getItems()));
+			//ReikaJavaLibrary.pConsole(lvl+" from "+Arrays.toString(this.getItems()));
 		}
 
 		@Override

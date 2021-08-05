@@ -336,7 +336,7 @@ public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 
 		@Override
 		public int[] getAccessibleSlotsFromSide(int side) {
-			return new int[0];
+			return new int[] {0};
 		}
 
 		@Override
@@ -413,17 +413,20 @@ public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 
 		@Override
 		public void setOmega(int omega) {
-			((TileNodeHarvesterRC)this.getRoot()).setOmega(omega);
+			if (this.getRoot() instanceof TileNodeHarvesterRC)
+				((TileNodeHarvesterRC)this.getRoot()).setOmega(omega);
 		}
 
 		@Override
 		public void setTorque(int torque) {
-			((TileNodeHarvesterRC)this.getRoot()).setTorque(torque);
+			if (this.getRoot() instanceof TileNodeHarvesterRC)
+				((TileNodeHarvesterRC)this.getRoot()).setTorque(torque);
 		}
 
 		@Override
 		public void setPower(long power) {
-			((TileNodeHarvesterRC)this.getRoot()).setPower(power);
+			if (this.getRoot() instanceof TileNodeHarvesterRC)
+				((TileNodeHarvesterRC)this.getRoot()).setPower(power);
 		}
 
 		@Override

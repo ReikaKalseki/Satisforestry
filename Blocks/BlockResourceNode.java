@@ -293,6 +293,10 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 			return purity;
 		}
 
+		public int getHarvestInterval() {
+			return (int)(purity.getCountdown()/resource.speedFactor);
+		}
+
 	}
 
 	public static enum Purity {
