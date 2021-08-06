@@ -241,7 +241,30 @@ public class EntityEliteStinger extends EntitySpider {
 
 	@Override
 	protected Entity findPlayerToAttack() {
-		return worldObj.getClosestVulnerablePlayerToEntity(this, 24); //no light limit, 24 range instead of 16
+		//return worldObj.getClosestVulnerablePlayerToEntity(this, 24); //no light limit, 24 range instead of 16
+
+		//The above plus bypass usual hooks and modifiers
+		double minDist = 0;
+		EntityPlayer ret = null;
+
+		for (EntityPlayer ep : ((List<EntityPlayer>)worldObj.playerEntities)) {
+			if (ep.capabilities.disableDamage || !ep.isEntityAlive())
+				continue;
+			double dd = ep.getDistanceSqToEntity(this);
+			double max = 24;
+
+			if (ep.isInvisible()) {
+				double f = Math.max(0.1, ep.getArmorVisibility());
+				max *= 0.9*f;
+			}
+
+			if (dd <= max && (ret == null || dd < minDist)) {
+				minDist = dd;
+				ret = ep;
+			}
+		}
+
+		return ret;
 	}
 
 	@Override

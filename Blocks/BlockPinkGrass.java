@@ -227,7 +227,6 @@ public class BlockPinkGrass extends BlockTallGrass {
 					break;
 				case BLUE_MUSHROOM_STALK:
 				case BLUE_MUSHROOM_TOP:
-					this.prepareRandom(world, x, 0, z);
 					TessellatorVertexList tv5 = new TessellatorVertexList();
 					float u = ico.getMinU();
 					float du = ico.getMaxU();
@@ -254,28 +253,33 @@ public class BlockPinkGrass extends BlockTallGrass {
 					tv5.addVertexWithUV(x+1, y+1, 	z, 	du, v);
 					tv5.addVertexWithUV(x, y+1, 	z+1, 	u, v);
 
-					double ax = ReikaRandomHelper.getRandomPlusMinus(0, 10, renderRand);
-					double az = ReikaRandomHelper.getRandomPlusMinus(0, 10, renderRand);
+					double maxWiggle = 15;//10;
+
+					this.prepareRandom(world, x, y, z);
+					double ax = ReikaRandomHelper.getRandomPlusMinus(0D, maxWiggle, renderRand);
+					double az = ReikaRandomHelper.getRandomPlusMinus(0D, maxWiggle, renderRand);
+					//ReikaJavaLibrary.pConsole(x+", "+y+", "+z+" > "+ax+", "+az+" @ "+y+" 0");
 					tv5.rotateNonOrthogonal(ax, 0, az, x+0.5, y, z+0.5);
-					int levels = 0;
+
 					for (int i = y-1; i >= 0; i--) {
 						Block below = world.getBlock(x, i, z);
 						int mb = world.getBlockMetadata(x, i, z);
 						if (below == SFBlocks.GRASS.getBlockInstance() && (mb == BLUE_MUSHROOM_STALK.ordinal() || mb == BLUE_MUSHROOM_TOP.ordinal())) {
-							levels++;
+							this.prepareRandom(world, x, i, z);
+							ax = ReikaRandomHelper.getRandomPlusMinus(0D, maxWiggle, renderRand);
+							az = ReikaRandomHelper.getRandomPlusMinus(0D, maxWiggle, renderRand);
+							//ReikaJavaLibrary.pConsole(x+", "+i+", "+z+" > "+ax+", "+az+" @ "+y+" "+(y-i));
+							double sz = Math.sin(Math.toRadians(ax));
+							double sx = Math.sin(Math.toRadians(az));
+							double cx = Math.cos(Math.toRadians(ax));
+							double cz = Math.cos(Math.toRadians(az));
+
+							tv5.offset(sx, -1/28D*Math.sqrt(cx*cx+cz*cz), -sz);
 						}
 						else {
 							break;
 						}
 					}
-					double sz = Math.sin(Math.toRadians(ax));
-					double sx = Math.sin(Math.toRadians(az));
-					double cx = Math.cos(Math.toRadians(ax));
-					double cz = Math.cos(Math.toRadians(az));
-					double dx = sx*levels;
-					double dy = -levels/16D*Math.sqrt(cx*cx+cz*cz);
-					double dz = -sz*levels;
-					tv5.offset(dx, dy, dz);
 					//ReikaJavaLibrary.pConsole(dz);
 
 					tv5.render();
