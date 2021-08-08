@@ -26,6 +26,7 @@ import net.minecraft.world.gen.feature.WorldGenerator;
 import Reika.ChromatiCraft.API.Interfaces.DyeTreeBlocker;
 import Reika.ChromatiCraft.API.Interfaces.NonconvertibleBiome;
 import Reika.DragonAPI.Instantiable.Math.Noise.NoiseGeneratorBase;
+import Reika.DragonAPI.Instantiable.Math.Noise.Simplex3DGenerator;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Interfaces.CustomMapColorBiome;
 import Reika.DragonAPI.Interfaces.WinterBiomeStrengthControl;
@@ -45,6 +46,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 
 	//private final PinkTreeGenerator treeGen = new PinkTreeGenerator();
 	//private final GiantPinkTreeGenerator giantTreeGen = new GiantPinkTreeGenerator();
+	private static final NoiseGeneratorBase leafColorMix = new Simplex3DGenerator(-System.currentTimeMillis()).setFrequency(1/1.85D);
 	private static final NoiseGeneratorBase waterColorMix = new SimplexNoiseGenerator(~System.currentTimeMillis()).setFrequency(1/3.5D);
 	private static final NoiseGeneratorBase waterBrightnessMix = new SimplexNoiseGenerator(~System.currentTimeMillis()).setFrequency(1.5D);
 
@@ -186,6 +188,8 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 		else if (y > min) {
 			f = (y-min)/(float)(max-min);
 		}
+		f += 0.4*leafColorMix.getValue(x, y, z);
+		f = MathHelper.clamp_float(f, 0, 1);
 		return ReikaColorAPI.getModifiedSat(ReikaColorAPI.mixColors(0xFFB3D1, 0xE95F84, f), 1.125F+f/4F);
 	}
 

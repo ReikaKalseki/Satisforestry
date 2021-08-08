@@ -49,6 +49,7 @@ import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler.IC2Stacks;
 import Reika.DragonAPI.ModRegistry.PowerTypes;
 import Reika.Satisforestry.Biome.BiomePinkForest;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
@@ -193,6 +194,9 @@ public class Satisforestry extends DragonAPIMod {
 	}
 
 	private void addRecipes() {
+		GameRegistry.addShapelessRecipe(new ItemStack(Blocks.planks, 4), SFBlocks.LOG.getStackOfMetadata(PinkTreeTypes.TREE.ordinal()));
+		GameRegistry.addShapelessRecipe(new ItemStack(Blocks.planks, 4), SFBlocks.LOG.getStackOfMetadata(PinkTreeTypes.JUNGLE.ordinal()));
+
 		ItemStack dark = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.DARK.ordinal());
 		ItemStack silver = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.SILVER.ordinal());
 		ItemStack drillbit = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.DRILL.ordinal());

@@ -443,6 +443,14 @@ public class BlockPinkGrass extends BlockTallGrass {
 	}
 
 	@Override
+	protected void checkAndDropBlock(World world, int x, int y, int z) { //identical except it propagates block updates
+		if (!this.canBlockStay(world, x, y, z)) {
+			this.dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0);
+			world.setBlock(x, y, z, getBlockById(0), 0, 3);
+		}
+	}
+
+	@Override
 	public int getLightValue(IBlockAccess world, int x, int y, int z) {
 		return GrassTypes.list[world.getBlockMetadata(x, y, z)].getLight();
 	}
