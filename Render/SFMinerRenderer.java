@@ -14,6 +14,9 @@ import Reika.Satisforestry.Blocks.TileNodeHarvester;
 
 public class SFMinerRenderer extends TileEntityRenderBase {
 
+	//private final WavefrontObject model = new WavefrontObject(DirectResourceManager.getResource("Reika/Satisforestry/Render/miner.obj"));
+	private final ModelSFMiner model = new ModelSFMiner("/Render/miner.obj");
+
 	@Override
 	public void renderTileEntityAt(TileEntity tile, double par2, double par4, double par6, float ptick) {
 		TileNodeHarvester te = (TileNodeHarvester)tile;
@@ -32,7 +35,16 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 	}
 
 	private void renderModel(TileNodeHarvester te) {
-
+		GL11.glPushMatrix();
+		model.drawChassis();
+		GL11.glPushMatrix();
+		double f = te.getActivityRamp();
+		double drillVertical = -Math.min(3*f, 1.5);
+		double drillSpin = 0;
+		GL11.glTranslated(0, drillVertical, 0);
+		GL11.glRotated(drillSpin, 0, 1, 0);
+		GL11.glPopMatrix();
+		GL11.glPopMatrix();
 	}
 
 	private void renderLightbar(TileNodeHarvester te) {

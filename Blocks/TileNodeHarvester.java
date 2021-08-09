@@ -54,6 +54,10 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	private int overclockLevel;
 
+	public static enum SpoolingStates {
+
+	}
+
 	@Override
 	public final Block getTileEntityBlockID() {
 		return SFBlocks.HARVESTER.getBlockInstance();
@@ -116,6 +120,10 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 				activityTimer--;
 			}
 		}
+	}
+
+	public double getActivityRamp() {
+		return activityRamp/(double)ACTIVITY_RAMP_TIME;
 	}
 
 	public TileResourceNode getResourceNode() {
