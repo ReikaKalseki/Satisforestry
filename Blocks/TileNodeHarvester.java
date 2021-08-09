@@ -14,6 +14,7 @@ import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Exception.RegistrationException;
+import Reika.DragonAPI.Exception.UnreachableCodeException;
 import Reika.DragonAPI.Interfaces.TileEntity.BreakAction;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
@@ -33,20 +34,25 @@ import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerShaftConnection;
 import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFSounds;
 
 import cofh.api.energy.IEnergyReceiver;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import ic2.api.energy.tile.IEnergySink;
 
 
 public abstract class TileNodeHarvester extends TileEntityBase implements BreakAction {
 
-	public static final int ACTIVITY_RAMP_TIME = 250; //12.5s
+	private static final double MAX_DRILL_SPEED = 24;
 
 	private int tier = 0;
 	private int activityTimer = 0;
 	private int operationTimer = 0;
 
-	private int activityRamp;
+	private SpoolingStates spoolState;
+	private int spoolTime;
+
 	private ForgeDirection structureDir = null;
 
 	public float progressFactor;
@@ -54,8 +60,46 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	private int overclockLevel;
 
-	public static enum SpoolingStates {
+	private int runSoundTick;
 
+	@SideOnly(Side.CLIENT)
+	public double drillSpinAngle;
+
+	public static enum SpoolingStates {
+		IDLE(2),
+		LOCKING(20),
+		LOWER1(40),
+		SPINUP(80),
+		LOWER2(100),
+		ACTIVE(5);
+
+		public final int duration;
+
+		private static final SpoolingStates[] list = values();
+
+		private SpoolingStates(int d) {
+			duration = d;
+		}
+
+		public void playEntrySound(TileNodeHarvester te, SpoolingStates last) {
+			switch(this) {
+				case LOWER1:
+					if (last == LOCKING) {
+						SFSounds.DRILLLOCK.playSoundAtBlock(te);
+					}
+					break;
+				case SPINUP:
+					if (last == LOWER1) {
+						SFSounds.DRILLSPINUP.playSoundAtBlock(te);
+					}
+					else if (last == LOWER2) {
+						SFSounds.DRILLSPINDOWN.playSoundAtBlock(te);
+					}
+					break;
+				default:
+					break;
+			}
+		}
 	}
 
 	@Override
@@ -63,11 +107,42 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		return SFBlocks.HARVESTER.getBlockInstance();
 	}
 
+	private void rampSpool(boolean up) {
+		SpoolingStates last = spoolState;
+		if (up) {
+			spoolTime++;
+			if (spoolTime > spoolState.duration) {
+				if (spoolState == SpoolingStates.ACTIVE) {
+					spoolTime = spoolState.duration;
+				}
+				else {
+					spoolState = SpoolingStates.list[last.ordinal()+1];
+					spoolTime = 0;
+				}
+			}
+		}
+		else {
+			spoolTime--;
+			if (spoolTime < 0) {
+				if (spoolState == SpoolingStates.IDLE) {
+					spoolTime = 0;
+				}
+				else {
+					spoolState = SpoolingStates.list[last.ordinal()-1];
+					spoolTime = spoolState.duration;
+				}
+			}
+		}
+		if (last != spoolState)
+			spoolState.playEntrySound(this, last);
+	}
+
 	@Override
 	public void updateEntity(World world, int x, int y, int z, int meta) {
 		if (world.isRemote) {
 			if (activityTimer > 0) {
 				this.doActivityFX(world, x, y, z);
+				drillSpinAngle += this.getDrillSpeed(MAX_DRILL_SPEED);
 			}
 		}
 		else {
@@ -78,7 +153,14 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 				if (this.hasEnergy(false)) {
 					flag = true;
 					this.useEnergy(false);
-					if (activityRamp == ACTIVITY_RAMP_TIME) {
+					if (this.isReady()) {
+						if (runSoundTick > 0) {
+							runSoundTick--;
+						}
+						else {
+							SFSounds.DRILLRUN.playSoundAtBlock(this);
+							runSoundTick = 105;
+						}
 						stepTime = (int)(te.getHarvestInterval()/this.getNetSpeedFactor());
 						if (this.hasEnergy(true)) {
 							if (operationTimer < stepTime)
@@ -104,16 +186,13 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 					}
 					else {
 						operationTimer = 0;
+						runSoundTick = 0;
 					}
 				}
 			}
-			if (flag) {
-				activityRamp = Math.min(activityRamp+1, ACTIVITY_RAMP_TIME);
-			}
-			else {
+			this.rampSpool(flag);
+			if (!this.isReady())
 				operationTimer = 0;
-				activityRamp = Math.max(activityRamp-1, 0);
-			}
 			progressFactor = stepTime <= 0 ? 0 : operationTimer/(float)stepTime;
 			powerBar = this.getOperationEnergyFraction();
 			if (activityTimer > 0) {
@@ -122,8 +201,42 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		}
 	}
 
-	public double getActivityRamp() {
-		return activityRamp/(double)ACTIVITY_RAMP_TIME;
+	@SideOnly(Side.CLIENT)
+	public double getDrillVerticalOffsetScale(double phase1L, double phase2L) {
+		switch(spoolState) {
+			case IDLE:
+			case LOCKING:
+				return 0;
+			case LOWER1:
+				return phase1L*spoolTime/spoolState.duration;
+			case SPINUP:
+				return phase1L;
+			case LOWER2:
+				return phase1L+phase2L*spoolTime/spoolState.duration;
+			case ACTIVE:
+				return phase1L+phase2L;
+		}
+		throw new UnreachableCodeException("Spool state was not a defined value");
+	}
+
+	@SideOnly(Side.CLIENT)
+	public double getDrillSpeed(double max) {
+		if (spoolState.ordinal() < SpoolingStates.SPINUP.ordinal()) {
+			return 0;
+		}
+		else if (spoolState.ordinal() == SpoolingStates.SPINUP.ordinal()) {
+			return max*spoolTime/spoolState.duration;
+		}
+		else if (spoolState.ordinal() > SpoolingStates.SPINUP.ordinal()) {
+			return max;
+		}
+		else {
+			throw new IllegalStateException("Spoolstate was neither less, equal, or greater than spinup?!");
+		}
+	}
+
+	private boolean isReady() {
+		return spoolState == SpoolingStates.ACTIVE && spoolTime == spoolState.duration;
 	}
 
 	public TileResourceNode getResourceNode() {
@@ -219,6 +332,9 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		NBT.setInteger("operation", operationTimer);
 		NBT.setInteger("structure", structureDir != null ? structureDir.ordinal() : -1);
 		NBT.setInteger("overclock", overclockLevel);
+
+		NBT.setInteger("spool", spoolTime);
+		NBT.setInteger("state", spoolState.ordinal());
 	}
 
 	@Override
@@ -230,6 +346,9 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		int struct = NBT.getInteger("structure");
 		structureDir = struct == -1 ? null : dirs[struct];
 		overclockLevel = NBT.getInteger("overclock");
+
+		spoolTime = NBT.getInteger("spool");
+		spoolState = SpoolingStates.list[NBT.getInteger("state")];
 	}
 
 	@Override

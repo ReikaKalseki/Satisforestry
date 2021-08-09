@@ -44,6 +44,10 @@ public enum SFSounds implements SoundEnum {
 	DOGGOSING("doggosing3"),
 	DOGGOSNEEZE1("doggosneeze1"),
 	DOGGOSNEEZE2("doggosneeze2"),
+	DRILLLOCK("minerlock2"),
+	DRILLSPINUP("drillspinup"),
+	DRILLRUN("drillrun"),
+	DRILLSPINDOWN("drillspindown"),
 	;
 
 	public static final String PREFIX = "Reika/Satisforestry/";

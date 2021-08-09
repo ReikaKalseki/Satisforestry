@@ -38,11 +38,8 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 		GL11.glPushMatrix();
 		model.drawChassis();
 		GL11.glPushMatrix();
-		double f = te.getActivityRamp();
-		double drillVertical = -Math.min(3*f, 1.5);
-		double drillSpin = 0;
-		GL11.glTranslated(0, drillVertical, 0);
-		GL11.glRotated(drillSpin, 0, 1, 0);
+		GL11.glTranslated(0, -te.getDrillVerticalOffsetScale(0.5, 1.5), 0);
+		GL11.glRotated(te.drillSpinAngle, 0, 1, 0);
 		GL11.glPopMatrix();
 		GL11.glPopMatrix();
 	}
