@@ -154,13 +154,6 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 					flag = true;
 					this.useEnergy(false);
 					if (this.isReady()) {
-						if (runSoundTick > 0) {
-							runSoundTick--;
-						}
-						else {
-							SFSounds.DRILLRUN.playSoundAtBlock(this);
-							runSoundTick = 56;
-						}
 						stepTime = (int)(te.getHarvestInterval()/this.getNetSpeedFactor());
 						if (this.hasEnergy(true)) {
 							if (operationTimer < stepTime)
@@ -186,9 +179,20 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 					}
 					else {
 						operationTimer = 0;
-						runSoundTick = 0;
 					}
 				}
+			}
+			if (spoolState.ordinal() > SpoolingStates.SPINUP.ordinal()) {
+				if (runSoundTick > 0) {
+					runSoundTick--;
+				}
+				else {
+					SFSounds.DRILLRUN.playSoundAtBlock(this);
+					runSoundTick = 56;
+				}
+			}
+			else {
+				runSoundTick = 0;
 			}
 			this.rampSpool(flag);
 			if (!this.isReady())

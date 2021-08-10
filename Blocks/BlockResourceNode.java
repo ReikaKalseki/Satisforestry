@@ -42,9 +42,10 @@ import framesapi.IMoveCheck;
 import mcp.mobius.waila.api.IWailaConfigHandler;
 import mcp.mobius.waila.api.IWailaDataAccessor;
 import mcp.mobius.waila.api.IWailaDataProvider;
+import vazkii.botania.api.mana.ILaputaImmobile;
 
 @Strippable(value = {"mcp.mobius.waila.api.IWailaDataProvider", "framesapi.IMoveCheck", "vazkii.botania.api.mana.ILaputaImmobile"})
-public class BlockResourceNode extends BlockContainer implements IWailaDataProvider, IMoveCheck {
+public class BlockResourceNode extends BlockContainer implements IWailaDataProvider, IMoveCheck, ILaputaImmobile {
 
 	private static IIcon crystalIcon;
 	private static IIcon overlayIcon;
@@ -321,6 +322,8 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 		}
 
 		public String getDisplayName() {
+			if (this == NORMAL)
+				return "Normal Purity";
 			return ReikaStringParser.capFirstChar(this.name());
 		}
 
