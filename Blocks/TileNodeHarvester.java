@@ -68,9 +68,9 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 	public static enum SpoolingStates {
 		IDLE(2),
 		LOCKING(20),
-		LOWER1(40),
-		SPINUP(80),
-		LOWER2(100),
+		LOWER1(30),
+		SPINUP(180),
+		LOWER2(50),
 		ACTIVE(5);
 
 		public final int duration;
@@ -140,9 +140,9 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 	@Override
 	public void updateEntity(World world, int x, int y, int z, int meta) {
 		if (world.isRemote) {
+			drillSpinAngle += this.getDrillSpeed(MAX_DRILL_SPEED);
 			if (activityTimer > 0) {
 				this.doActivityFX(world, x, y, z);
-				drillSpinAngle += this.getDrillSpeed(MAX_DRILL_SPEED);
 			}
 		}
 		else {
@@ -159,7 +159,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 						}
 						else {
 							SFSounds.DRILLRUN.playSoundAtBlock(this);
-							runSoundTick = 105;
+							runSoundTick = 56;
 						}
 						stepTime = (int)(te.getHarvestInterval()/this.getNetSpeedFactor());
 						if (this.hasEnergy(true)) {
