@@ -73,13 +73,15 @@ public class BlockCaveSpawner extends BlockContainer {
 
 		public void setMobType(Class<? extends EntityMob> c) {
 			mobClass = c;
-			mobType = (String)EntityList.classToStringMapping.get(c);
+			mobType = c == null ? null : (String)EntityList.classToStringMapping.get(c);
 			this.markDirty();
 		}
 
 		@Override
 		public void updateEntity() {
 			if (worldObj.difficultySetting == EnumDifficulty.PEACEFUL)
+				return;
+			if (mobType == null)
 				return;
 			activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 1, activeRadius).addCoord(0, 3, 0);
 			checkArea = activeArea.expand(activeRadius*1.5+1, 2, activeRadius*1.5+1);
@@ -159,12 +161,14 @@ public class BlockCaveSpawner extends BlockContainer {
 
 			hasSpawned = NBT.getBoolean("spawned");
 
-			mobType = NBT.getString("mob");
-			try {
-				mobClass = Class.forName(NBT.getString("type"));
-			}
-			catch (ClassNotFoundException e) {
-				e.printStackTrace();
+			mobType = NBT.hasKey("mob") ? NBT.getString("mob") : null;
+			if (mobType != null) {
+				try {
+					mobClass = Class.forName(NBT.getString("type"));
+				}
+				catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 

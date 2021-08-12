@@ -1,5 +1,6 @@
 package Reika.Satisforestry.Render;
 
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraftforge.client.model.ModelFormatException;
 import net.minecraftforge.client.model.obj.GroupObject;
 import net.minecraftforge.client.model.obj.WavefrontObject;
@@ -11,12 +12,14 @@ public class ModelSFMiner extends WavefrontObject {
 
 	private GroupObject chassis;
 	private GroupObject drill;
+	private GroupObject lightbar;
 
 	public ModelSFMiner(String path) throws ModelFormatException {
 		super("SF Miner", Satisforestry.class.getResourceAsStream(path));
 
 		chassis = this.findGroupObject("chassis");
 		drill = this.findGroupObject("drill");
+		lightbar = this.findGroupObject("lightbar");
 	}
 
 	private GroupObject findGroupObject(String s) {
@@ -33,6 +36,15 @@ public class ModelSFMiner extends WavefrontObject {
 
 	public void drawDrill() {
 		drill.render();
+	}
+
+	public void drawLightbar(int c) {
+		Tessellator v5 = Tessellator.instance;
+		v5.startDrawing(lightbar.glDrawingMode);
+		v5.setBrightness(240);
+		v5.setColorOpaque_I(c);
+		lightbar.render(v5);
+		v5.draw();
 	}
 
 }

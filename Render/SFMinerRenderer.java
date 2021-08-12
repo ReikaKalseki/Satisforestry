@@ -8,6 +8,9 @@ import net.minecraftforge.client.MinecraftForgeClient;
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Base.TileEntityRenderBase;
+import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
+import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
+import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.TileNodeHarvester;
 
@@ -25,7 +28,6 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 		GL11.glTranslated(par2, par4, par6);
 		if (this.doRenderModel(te)) {
 			this.renderModel(te);
-			this.renderLightbar(te);
 		}
 		else {
 
@@ -35,18 +37,25 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 	}
 
 	private void renderModel(TileNodeHarvester te) {
+		ReikaTextureHelper.bindTexture(Satisforestry.class, "Textures/miner.png");
 		GL11.glPushMatrix();
 		//model.drawChassis();
 		GL11.glPushMatrix();
 		GL11.glTranslated(0, -te.getDrillVerticalOffsetScale(0.5, 1.5), 0);
 		GL11.glRotated(te.drillSpinAngle, 0, 1, 0);
-		//mode.drawDrill();
+		//model.drawDrill();
 		GL11.glPopMatrix();
+		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+		ReikaRenderHelper.disableLighting();
+		ReikaRenderHelper.disableEntityLighting();
+		int c = te.getState().color;
+		if (te.getOverclockingStep() > 0) {
+			float f = 0.5F+(float)(0.5*Math.sin(te.getTicksExisted()*0.004));
+			c = ReikaColorAPI.mixColors(c, 0xffffff, f);
+		}
+		//model.drawLightbar(c);
+		GL11.glPopAttrib();
 		GL11.glPopMatrix();
-	}
-
-	private void renderLightbar(TileNodeHarvester te) {
-
 	}
 
 	@Override

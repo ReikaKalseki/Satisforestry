@@ -37,6 +37,7 @@ import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
 import Reika.Satisforestry.Blocks.BlockPinkSapling;
+import Reika.Satisforestry.Blocks.BlockPowerSlug;
 import Reika.Satisforestry.Blocks.BlockRedBamboo;
 import Reika.Satisforestry.Blocks.BlockResourceNode;
 import Reika.Satisforestry.Blocks.BlockTerrain;
@@ -58,7 +59,8 @@ public enum SFBlocks implements BlockEnum {
 	DECORATION(BlockDecoration.class, MetadataItemBlock.class),
 	SAPLING(BlockPinkSapling.class, ItemPinkSapling.class),
 	HARVESTER(BlockNodeHarvester.class, ItemBlockNodeHarvester.class),
-	MINERMULTI(BlockMinerMulti.class, ItemBlockMinerMulti.class);
+	MINERMULTI(BlockMinerMulti.class, ItemBlockMinerMulti.class),
+	SLUG(BlockPowerSlug.class, MetadataItemBlock.class),
 	;
 
 	private final Class blockClass;
@@ -180,6 +182,8 @@ public enum SFBlocks implements BlockEnum {
 				return StatCollector.translateToLocal("sfminer.type."+meta)+" "+this.getBasicName();
 			case MINERMULTI:
 				return StatCollector.translateToLocal("multiblock.sfminer."+MinerBlocks.list[meta&7].name().toLowerCase(Locale.ENGLISH));
+			case SLUG:
+				return StatCollector.translateToLocal("powerslug."+meta%3)+" "+this.getBasicName();
 			default:
 				return "";
 		}
@@ -196,6 +200,7 @@ public enum SFBlocks implements BlockEnum {
 			case LOG:
 			case HARVESTER:
 			case MINERMULTI:
+			case SLUG:
 				return true;
 			default:
 				return false;
@@ -215,6 +220,8 @@ public enum SFBlocks implements BlockEnum {
 				return 3;
 			case MINERMULTI:
 				return 8;
+			case SLUG:
+				return 6;
 			default:
 				return 1;
 		}

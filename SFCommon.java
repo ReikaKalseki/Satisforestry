@@ -20,6 +20,7 @@ public class SFCommon {
 	public static int grassRender;
 	public static int decoRender;
 	public static int resourceRender;
+	public static int slugRender;
 
 	protected SoundLoader sounds = new SoundLoader(SFSounds.class);
 

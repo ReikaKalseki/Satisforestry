@@ -50,8 +50,9 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 	private int activityTimer = 0;
 	private int operationTimer = 0;
 
-	private SpoolingStates spoolState;
+	private SpoolingStates spoolState = SpoolingStates.IDLE;
 	private int spoolTime;
+	private MachineState state = MachineState.ERRORED;
 
 	private ForgeDirection structureDir = null;
 
@@ -102,6 +103,25 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		}
 	}
 
+	public static enum MachineState {
+		INACTIVE(0xFF6060),
+		OPERATING(0x99FF32),
+		WAITING(0xFFFF40),
+		ERRORED(0x8370FF);
+
+		public final int color;
+
+		private static final MachineState[] list = values();
+
+		private MachineState(int c) {
+			color = c;
+		}
+	}
+
+	public MachineState getState() {
+		return state;
+	}
+
 	@Override
 	public final Block getTileEntityBlockID() {
 		return SFBlocks.HARVESTER.getBlockInstance();
@@ -150,12 +170,14 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 			boolean flag = false;
 			TileResourceNode te = this.getResourceNode();
 			if (te != null) {
+				state = MachineState.INACTIVE;
 				if (this.hasEnergy(false)) {
 					flag = true;
 					this.useEnergy(false);
 					if (this.isReady()) {
 						stepTime = (int)(te.getHarvestInterval()/this.getNetSpeedFactor());
 						if (this.hasEnergy(true)) {
+							state = MachineState.OPERATING;
 							if (operationTimer < stepTime)
 								operationTimer++;
 							activityTimer = 20;
@@ -166,12 +188,16 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 										operationTimer = 0;
 										this.useEnergy(true);
 									}
+									else {
+										state = MachineState.WAITING;
+									}
 									//ReikaJavaLibrary.pConsole(world.getTotalWorldTime());
 								}
 							}
 						}
 						else {
 							operationTimer = 0;
+							state = MachineState.WAITING;
 						}
 						//ReikaJavaLibrary.pConsole(operationTimer);
 						//ReikaJavaLibrary.pConsole(powerBar);
@@ -338,7 +364,8 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		NBT.setInteger("overclock", overclockLevel);
 
 		NBT.setInteger("spool", spoolTime);
-		NBT.setInteger("state", spoolState.ordinal());
+		NBT.setInteger("spoolState", spoolState.ordinal());
+		NBT.setInteger("state", state.ordinal());
 	}
 
 	@Override
@@ -352,7 +379,8 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		overclockLevel = NBT.getInteger("overclock");
 
 		spoolTime = NBT.getInteger("spool");
-		spoolState = SpoolingStates.list[NBT.getInteger("state")];
+		spoolState = SpoolingStates.list[NBT.getInteger("spoolState")];
+		state = MachineState.list[NBT.getInteger("state")];
 	}
 
 	@Override
