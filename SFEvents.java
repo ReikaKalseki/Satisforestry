@@ -24,6 +24,7 @@ import net.minecraftforge.event.terraingen.DecorateBiomeEvent.Decorate;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fluids.FluidRegistry;
 
+import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ClassDependent;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
@@ -271,7 +272,8 @@ public class SFEvents {
 	@SubscribeEvent
 	public void spidersAtAllBrightness(LightLevelForSpawnEvent evt) {
 		if (evt.mob instanceof EntitySpider && Satisforestry.isPinkForest(evt.entity.worldObj, evt.entityX, evt.entityZ)) {
-			evt.setResult(Result.ALLOW);
+			if (DragonAPICore.rand.nextInt(3) > 0)
+				evt.setResult(Result.ALLOW);
 		}
 	}
 

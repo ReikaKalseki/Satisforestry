@@ -25,6 +25,7 @@ import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Interfaces.Block.Submergeable;
+import Reika.DragonAPI.Libraries.ReikaEntityHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.ThaumItemHelper;
 import Reika.Satisforestry.Satisforestry;
@@ -32,6 +33,9 @@ import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.EntitySlugStreak;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class BlockPowerSlug extends BlockContainer implements Submergeable {
 
@@ -139,6 +143,22 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 
 	@Override
 	public boolean isSubmergeable(IBlockAccess iba, int x, int y, int z) {
+		return true;
+	}
+
+	@Override
+	public boolean renderLiquid(int meta) {
+		return true;
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public int getRenderBlockPass() {
+		return 1;
+	}
+
+	@Override
+	public boolean canRenderInPass(int pass) {
 		return true;
 	}
 
@@ -283,7 +303,7 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 				AttributeModifier m = new AttributeModifier(healthBonus, "slugHealth", healthBuff-1, 2);
 				e.getEntityAttribute(SharedMonsterAttributes.maxHealth).applyModifier(m);
 			}
-			//ReikaEntityHelper.setAlwaysHostile(e);
+			ReikaEntityHelper.setAlwaysHostile(e);
 		}
 
 		public int getTier() {

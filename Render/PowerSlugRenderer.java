@@ -5,15 +5,10 @@ import java.util.HashMap;
 import org.lwjgl.opengl.GL11;
 import org.lwjgl.opengl.GL12;
 
-import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.RenderBlocks;
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IIcon;
 import net.minecraftforge.client.MinecraftForgeClient;
 
 import Reika.DragonAPI.Instantiable.RayTracer;
@@ -22,7 +17,6 @@ import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaGLHelper.BlendMode;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
-import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockPowerSlug;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
@@ -47,7 +41,7 @@ public class PowerSlugRenderer extends TileEntitySpecialRenderer {
 		GL11.glScalef(1.0F, -1.0F, -1.0F);
 		GL11.glDepthMask(false);
 		GL11.glTranslatef(0.5F, -1.5F, -0.5F);
-		if (te.hasWorldObj()) {
+		if (te.hasWorldObj()) {/*
 			if (ReikaWorldHelper.checkForAdjBlock(te.worldObj, te.xCoord, te.yCoord, te.zCoord, Blocks.water) != null) {
 				int l = Blocks.water.colorMultiplier(te.worldObj, te.xCoord, te.yCoord, te.zCoord);
 				float f = (l >> 16 & 255) / 255.0F;
@@ -71,7 +65,7 @@ public class PowerSlugRenderer extends TileEntitySpecialRenderer {
 				v5.addVertexWithUV(1-0.5, d2, 0-0.5, u, dv);
 				v5.addVertexWithUV(1-0.5, d3, 1-0.5, u, v);
 				v5.draw();
-			}
+			}*/
 		}
 		else {
 			float s = 1.5F;

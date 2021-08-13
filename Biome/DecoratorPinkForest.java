@@ -147,11 +147,16 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		int d1 = randomGenerator.nextInt(3);
 		if (chunk_X%(4+d1) == chunk_Z%(3-d1)) {
 			if (rockGenerator.generate(currentWorld, randomGenerator, x, top, z)) {
-				if (randomGenerator.nextInt(3) == 0) {
-					int tier = randomGenerator.nextInt(5) == 0 ? 1 : 0;
+				if (randomGenerator.nextInt(9) <= 1) {
+					int tier = 0;
+					if (randomGenerator.nextInt(2) == 0) {
+						tier = 1;
+						if (randomGenerator.nextInt(3) == 0)
+							tier = 2;
+					}
 					TilePowerSlug te = null;
 					int n = 0;
-					while (te == null && n <= 4) {
+					while (te == null && n <= 8) {
 						int dx = ReikaRandomHelper.getRandomPlusMinus(x, 2);
 						int dz = ReikaRandomHelper.getRandomPlusMinus(z, 2);
 						int dy = getTrueTopAt(currentWorld, dx, dz)+1;
