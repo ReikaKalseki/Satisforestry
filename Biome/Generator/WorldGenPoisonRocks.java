@@ -28,15 +28,7 @@ public class WorldGenPoisonRocks extends WorldGenerator {
 	}
 
 	@Override
-	public boolean generate(World world, Random rand, int x, int y, int z) {
-		do {
-			Block at = world.getBlock(x, y, z);
-			if (!(at.isLeaves(world, x, y, z) || at.isAir(world, x, y, z))) {
-				break;
-			}
-			y--;
-		} while (y > 0);
-
+	public boolean generate(World world, Random rand, int x, int yUnused, int z) {
 		boolean flag = false;
 
 		for (int i = 0; i < generationRate; i++) {

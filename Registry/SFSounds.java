@@ -48,6 +48,7 @@ public enum SFSounds implements SoundEnum {
 	DRILLSPINUP("drillspinup"),
 	DRILLRUN("drillrun"),
 	DRILLSPINDOWN("drillspindown"),
+	SLUG("slugring"),
 	;
 
 	public static final String PREFIX = "Reika/Satisforestry/";
@@ -92,6 +93,10 @@ public enum SFSounds implements SoundEnum {
 
 	public void playSoundAtBlock(TileEntity te) {
 		this.playSoundAtBlock(te.worldObj, te.xCoord, te.yCoord, te.zCoord);
+	}
+
+	public void playSoundAtBlock(TileEntity te, float vol, float pitch) {
+		this.playSoundAtBlock(te.worldObj, te.xCoord, te.yCoord, te.zCoord, vol, pitch);
 	}
 
 	public void playSoundAtBlock(WorldLocation loc) {

@@ -16,6 +16,8 @@ import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.monster.EntityCaveSpider;
+import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -27,6 +29,7 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Instantiable.Worldgen.StackableBiomeDecorator;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
@@ -35,7 +38,10 @@ import Reika.Satisforestry.Biome.Generator.WorldGenOreCluster;
 import Reika.Satisforestry.Biome.Generator.WorldGenPoisonRocks;
 import Reika.Satisforestry.Biome.Generator.WorldGenPonds;
 import Reika.Satisforestry.Biome.Generator.WorldGenRedBamboo;
+import Reika.Satisforestry.Blocks.BlockPowerSlug;
+import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
 import Reika.Satisforestry.Config.BiomeConfig;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
 
 public class DecoratorPinkForest extends StackableBiomeDecorator {
 
@@ -136,15 +142,57 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 		rockGenerator.setFrequency(Satisforestry.pinkforest.getSubBiome(currentWorld, x, z));
 
-		top = currentWorld.getTopSolidOrLiquidBlock(x, z);
+		top = getTrueTopAt(currentWorld, x, z);
 
 		int d1 = randomGenerator.nextInt(3);
-		if (chunk_X%(4+d1) == chunk_Z%(3-d1))
-			rockGenerator.generate(currentWorld, randomGenerator, x, top, z);
+		if (chunk_X%(4+d1) == chunk_Z%(3-d1)) {
+			if (rockGenerator.generate(currentWorld, randomGenerator, x, top, z)) {
+				if (randomGenerator.nextInt(6) == 0) {
+					int tier = randomGenerator.nextInt(5) == 0 ? 1 : 0;
+					int dx = ReikaRandomHelper.getRandomPlusMinus(x, 2);
+					int dz = ReikaRandomHelper.getRandomPlusMinus(z, 2);
+					int dy = getTrueTopAt(currentWorld, dx, dz);
+					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(currentWorld, dx, dy, dz, tier);
+					if (te != null) {
+						te.setMobType(EntityCaveSpider.class);
+						if (tier == 0 || (tier == 1 && randomGenerator.nextBoolean()))
+							te.setNoSpawns();
+					}
+				}
+			}
+		}
 
 		redBambooGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
+
+		if (randomGenerator.nextInt(16) == 0) { //G/Y/P = 75%/20%/5%
+			int tier = 0;
+			if (randomGenerator.nextInt(4) == 0) {
+				tier = 1;
+				if (randomGenerator.nextInt(5) == 0)
+					tier = 2;
+			}
+			int dx = chunk_X + randomGenerator.nextInt(16) + 8;
+			int dz = chunk_Z + randomGenerator.nextInt(16) + 8;
+			int dy = getTrueTopAt(currentWorld, dx, dz);
+			TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(currentWorld, dx, dy, dz, tier);
+			if (te != null) {
+				switch(tier) {
+					case 0:
+						te.setMobType(randomGenerator.nextInt(4) == 0 ? EntityCaveSpider.class : EntitySpider.class);
+						break;
+					case 1:
+						te.setSingleStrongEnemy(randomGenerator.nextInt(3) == 0 ? EntityEliteStinger.class : EntitySpider.class, 3);
+						break;
+					case 2:
+						te.setEnemyBoost(3);
+						te.setMobType(EntityEliteStinger.class);
+						break;
+				}
+			}
+		}
 	}
 
+	/** Returns the lowest empty coord, not the coord of the ground */
 	public static int getTrueTopAt(World currentWorld, int dx, int dz) {
 		int top = currentWorld.getTopSolidOrLiquidBlock(dx, dz);
 		Block at = currentWorld.getBlock(dx, top, dz);

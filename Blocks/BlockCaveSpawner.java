@@ -118,6 +118,7 @@ public class BlockCaveSpawner extends BlockContainer {
 						if (e.getCanSpawnHere()) {
 							e.rotationYaw = worldObj.rand.nextFloat()*360;
 							//e.onSpawnWithEgg((IEntityLivingData)null); no jockeys or potions
+							this.onSpawnEntity(e);
 							worldObj.spawnEntityInWorld(e);
 
 							//this.worldObj.playAuxSFX(2004, xCoord, yCoord, zCoord, 0);
@@ -131,6 +132,10 @@ public class BlockCaveSpawner extends BlockContainer {
 				}
 			}
 			return ret;
+		}
+
+		protected void onSpawnEntity(EntityMob e) {
+
 		}
 
 		@Override

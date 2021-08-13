@@ -12,12 +12,14 @@ package Reika.Satisforestry;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 
+import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
 import Reika.Satisforestry.Blocks.TileNodeHarvester;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFShaders;
 import Reika.Satisforestry.Render.DecorationRenderer;
 import Reika.Satisforestry.Render.PinkGrassRenderer;
+import Reika.Satisforestry.Render.PowerSlugItemRenderer;
 import Reika.Satisforestry.Render.PowerSlugRenderer;
 import Reika.Satisforestry.Render.RedBambooRenderer;
 import Reika.Satisforestry.Render.RenderEliteStinger;
@@ -37,7 +39,7 @@ public class SFClient extends SFCommon {
 	private static PinkGrassRenderer grass;
 	private static DecorationRenderer deco;
 	public static ResourceNodeRenderer resource;
-	public static PowerSlugRenderer slug;
+	//public static PowerSlugRenderer slug;
 
 	@Override
 	public void registerSounds() {
@@ -61,17 +63,19 @@ public class SFClient extends SFCommon {
 		resourceRender = RenderingRegistry.getNextAvailableRenderId();
 		resource = new ResourceNodeRenderer(resourceRender);
 		RenderingRegistry.registerBlockHandler(resourceRender, resource);
-
+		/*
 		slugRender = RenderingRegistry.getNextAvailableRenderId();
 		slug = new PowerSlugRenderer(slugRender);
-		RenderingRegistry.registerBlockHandler(slugRender, slug);
+		RenderingRegistry.registerBlockHandler(slugRender, slug);*/
 
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.ELITESTINGER.getObjectClass(), new RenderEliteStinger());
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.MANTA.getObjectClass(), new RenderFlyingManta());
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.DOGGO.getObjectClass(), RenderLizardDoggo.instance);
 
 		ClientRegistry.bindTileEntitySpecialRenderer(TileNodeHarvester.class, new SFMinerRenderer());
+		ClientRegistry.bindTileEntitySpecialRenderer(TilePowerSlug.class, new PowerSlugRenderer());
 		MinecraftForgeClient.registerItemRenderer(SFBlocks.HARVESTER.getItem(), new SFMinerItemRenderer());
+		MinecraftForgeClient.registerItemRenderer(SFBlocks.SLUG.getItem(), new PowerSlugItemRenderer());
 
 		SFShaders.registerAll();
 	}

@@ -44,6 +44,7 @@ import Reika.Satisforestry.Blocks.BlockTerrain;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Blocks.ItemBlockMinerMulti;
 import Reika.Satisforestry.Blocks.ItemBlockNodeHarvester;
+import Reika.Satisforestry.Blocks.ItemBlockPowerSlug;
 
 public enum SFBlocks implements BlockEnum {
 
@@ -60,7 +61,7 @@ public enum SFBlocks implements BlockEnum {
 	SAPLING(BlockPinkSapling.class, ItemPinkSapling.class),
 	HARVESTER(BlockNodeHarvester.class, ItemBlockNodeHarvester.class),
 	MINERMULTI(BlockMinerMulti.class, ItemBlockMinerMulti.class),
-	SLUG(BlockPowerSlug.class, MetadataItemBlock.class),
+	SLUG(BlockPowerSlug.class, ItemBlockPowerSlug.class),
 	;
 
 	private final Class blockClass;

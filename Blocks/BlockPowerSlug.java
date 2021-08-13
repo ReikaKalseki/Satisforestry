@@ -2,15 +2,20 @@ package Reika.Satisforestry.Blocks;
 
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.entity.monster.EntitySpider;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -21,30 +26,32 @@ import Reika.DragonAPI.Interfaces.Block.Submergeable;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
-import Reika.Satisforestry.Entity.EntityEliteStinger;
+import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.EntitySlugStreak;
 
-public class BlockPowerSlug extends Block implements Submergeable {
+public class BlockPowerSlug extends BlockContainer implements Submergeable {
+
+	private static final float width = 6/16F;
+	private static final float length = 14/16F;
+	private static final float height = 5/16F;
 
 	public BlockPowerSlug(Material mat) {
 		super(mat);
 		this.setResistance(6000);
 		this.setCreativeTab(Satisforestry.tabCreative);
+		float max = Math.max(length, width);
+		this.setBlockBounds(0.5F-max/2F, 0, 0.5F-max/2F, 0.5F+max/2F, height, 0.5F+max/2F);
 	}
 
 	@Override
-	public boolean hasTileEntity(int meta) {
-		return meta <= 2;
-	}
-
-	@Override
-	public TileEntity createTileEntity(World world, int meta) {
-		return meta <= 2 ? new TilePowerSlug(meta) : null;
+	public TileEntity createNewTileEntity(World world, int meta) {
+		return meta <= 2 ? new TilePowerSlug(meta) : new TilePowerSlugInert();
 	}
 
 	@Override
 	public final void getSubBlocks(Item it, CreativeTabs tab, List li) {
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 6; i++) {
 			li.add(new ItemStack(it, 1, i));
 		}
 	}
@@ -59,9 +66,8 @@ public class BlockPowerSlug extends Block implements Submergeable {
 		return false;
 	}
 
-	@Override
-	public int colorMultiplier(IBlockAccess iba, int x, int y, int z) {
-		switch(iba.getBlockMetadata(x, y, z)) {
+	public static int getColor(int tier) {
+		switch(tier) {
 			case 0:
 				return 0x94FF7F;
 			case 1:
@@ -71,6 +77,11 @@ public class BlockPowerSlug extends Block implements Submergeable {
 			default:
 				return 0xF26030;
 		}
+	}
+
+	@Override
+	public int colorMultiplier(IBlockAccess iba, int x, int y, int z) {
+		return getColor(iba.getBlockMetadata(x, y, z));
 	}
 
 	@Override
@@ -84,6 +95,19 @@ public class BlockPowerSlug extends Block implements Submergeable {
 				return 20F; //0.4x obsidian
 			default:
 				return 0;
+		}
+	}
+
+	@Override
+	public void setBlockBoundsBasedOnState(IBlockAccess iba, int x, int y, int z) {
+		TileEntity te = iba.getTileEntity(x, y, z);
+		if (te instanceof TilePowerSlug) {
+			TilePowerSlug ts = (TilePowerSlug)te;
+			float ra = (float)Math.sin(Math.toRadians(ts.angle%180));
+			float rb = (float)Math.sin(Math.abs(Math.toRadians(90-ts.angle%180)));
+			float l2 = length*rb+width*ra;
+			float l1 = width*rb+length*ra;
+			this.setBlockBounds(0.5F-l1/2F, 0, 0.5F-l2/2F, 0.5F+l1/2F, height, 0.5F+l2/2F);
 		}
 	}
 
@@ -116,7 +140,7 @@ public class BlockPowerSlug extends Block implements Submergeable {
 
 	@Override
 	public int getRenderType() {
-		return Satisforestry.proxy.slugRender;
+		return -1;//Satisforestry.proxy.slugRender;
 	}
 
 	@Override
@@ -132,28 +156,135 @@ public class BlockPowerSlug extends Block implements Submergeable {
 		return true;
 	}
 
+	public static TilePowerSlug generatePowerSlugAt(World world, int x, int y, int z, int tier) {
+		Block b = world.getBlock(x, y-1, z);
+		if (world.getBlock(x, y, z).isAir(world, x, y, z) && (b == Blocks.grass || b == Blocks.dirt || b == Blocks.sand || b == SFBlocks.TERRAIN.getBlockInstance())) {
+			world.setBlock(x, y, z, SFBlocks.SLUG.getBlockInstance(), tier, 3);
+			TilePowerSlug te = (TilePowerSlug)world.getTileEntity(x, y, z);
+			te.angle = world.rand.nextFloat()*360;
+			//te.setMobType(getMobTypeForTier(tier));
+			te.mobLimit = 3;
+			return te;
+		}
+		return null;
+	}
+	/*
+	private static Class<? extends EntityMob> getMobTypeForTier(int tier) {
+		switch(tier) {
+			case 0:
+				return null;
+			case 1:
+				return EntitySpider.class;
+			case 2:
+				return EntityEliteStinger.class;
+			default:
+				throw new IllegalStateException("Invalid slug meta: "+tier);
+		}
+	}
+	 */
+	public static class TilePowerSlugInert extends TilePowerSlug {
+
+		public TilePowerSlugInert() {
+			super(0);
+			this.setMobType(null);
+			mobLimit = 0;
+			activeRadius = 0;
+		}
+
+		@Override
+		public boolean canUpdate() {
+			return false;
+		}
+
+	}
+
 	public static class TilePowerSlug extends TileCaveSpawner {
 
-		public TilePowerSlug(int meta) {
-			this.setMobType(this.getMobTypeForTier(meta));
+		private static final UUID healthBonus = UUID.fromString("cea3577b-784d-46e2-ae4c-3de297a10b66");
 
-			mobLimit = 3;
+		public float angle;
+
+		private int tier;
+
+		private float healthBuff = 0;
+
+		private int soundtick;
+
+		public TilePowerSlug() {
+			this(0);
+		}
+
+		public TilePowerSlug(int meta) {
+			tier = meta;
 			respawnTime = 2400; //2 min
-			activeRadius = 12;
+			mobLimit = 3;
+			activeRadius = 8;
 			spawnRadius = 6;
 		}
 
-		private Class<? extends EntityMob> getMobTypeForTier(int meta) {
-			switch(meta) {
-				case 0:
-					return null;
-				case 1:
-					return EntitySpider.class;
-				case 2:
-					return EntityEliteStinger.class;
-				default:
-					throw new IllegalStateException("Invalid slug meta: "+meta);
+		@Override
+		public void updateEntity() {
+			super.updateEntity();
+			if (!worldObj.isRemote) {
+				if (soundtick > 0) {
+					soundtick--;
+				}
+				else {
+					float f = 1-0.1F*tier;
+					SFSounds.SLUG.playSoundAtBlock(this, 0.7F, f);
+					soundtick = (int)(59/f);
+				}
 			}
+		}
+
+		public final void setSingleStrongEnemy(Class<? extends EntityMob> c, float boost) {
+			mobLimit = 1;
+			activeRadius = 12;
+			spawnRadius = 2;
+			this.setMobType(c);
+			healthBuff = boost;
+		}
+
+		public final void setEnemyBoost(float boost) {
+			healthBuff = boost;
+		}
+
+		public final void setNoSpawns() {
+			mobLimit = 0;
+			activeRadius = 0;
+			this.setMobType(null);
+		}
+
+		@Override
+		protected void onSpawnEntity(EntityMob e) {
+			super.onSpawnEntity(e);
+			if (healthBuff > 0) {
+				AttributeModifier m = new AttributeModifier(healthBonus, "slugHealth", healthBuff-1, 2);
+				e.getEntityAttribute(SharedMonsterAttributes.maxHealth).applyModifier(m);
+			}
+			//ReikaEntityHelper.setAlwaysHostile(e);
+		}
+
+		public int getTier() {
+			return tier;
+		}
+
+		@Override
+		public void writeToNBT(NBTTagCompound NBT) {
+			super.writeToNBT(NBT);
+
+			NBT.setFloat("angle", angle);
+
+			NBT.setInteger("tier", tier);
+		}
+
+		@Override
+		public void readFromNBT(NBTTagCompound NBT) {
+			super.readFromNBT(NBT);
+
+			angle = NBT.getFloat("angle");
+
+			tier = NBT.getInteger("tier");
 		}
 
 	}
