@@ -15,6 +15,7 @@ public enum SFShaders implements ShaderHook {
 	POISONGAS(),
 	CAVEGAS(),
 	STINGERBITE(),
+	SLUG(),
 	;
 
 	private final ShaderDomain domain;

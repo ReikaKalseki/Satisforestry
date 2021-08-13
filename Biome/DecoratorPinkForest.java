@@ -147,12 +147,17 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		int d1 = randomGenerator.nextInt(3);
 		if (chunk_X%(4+d1) == chunk_Z%(3-d1)) {
 			if (rockGenerator.generate(currentWorld, randomGenerator, x, top, z)) {
-				if (randomGenerator.nextInt(6) == 0) {
+				if (randomGenerator.nextInt(3) == 0) {
 					int tier = randomGenerator.nextInt(5) == 0 ? 1 : 0;
-					int dx = ReikaRandomHelper.getRandomPlusMinus(x, 2);
-					int dz = ReikaRandomHelper.getRandomPlusMinus(z, 2);
-					int dy = getTrueTopAt(currentWorld, dx, dz);
-					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(currentWorld, dx, dy, dz, tier);
+					TilePowerSlug te = null;
+					int n = 0;
+					while (te == null && n <= 4) {
+						int dx = ReikaRandomHelper.getRandomPlusMinus(x, 2);
+						int dz = ReikaRandomHelper.getRandomPlusMinus(z, 2);
+						int dy = getTrueTopAt(currentWorld, dx, dz)+1;
+						te = BlockPowerSlug.generatePowerSlugAt(currentWorld, dx, dy, dz, tier);
+						n++;
+					}
 					if (te != null) {
 						te.setMobType(EntityCaveSpider.class);
 						if (tier == 0 || (tier == 1 && randomGenerator.nextBoolean()))
@@ -164,7 +169,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 		redBambooGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
 
-		if (randomGenerator.nextInt(16) == 0) { //G/Y/P = 75%/20%/5%
+		if (randomGenerator.nextInt(12) == 0) { //G/Y/P = 75%/20%/5%
 			int tier = 0;
 			if (randomGenerator.nextInt(4) == 0) {
 				tier = 1;
@@ -173,7 +178,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 			}
 			int dx = chunk_X + randomGenerator.nextInt(16) + 8;
 			int dz = chunk_Z + randomGenerator.nextInt(16) + 8;
-			int dy = getTrueTopAt(currentWorld, dx, dz);
+			int dy = getTrueTopAt(currentWorld, dx, dz)+1;
 			TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(currentWorld, dx, dy, dz, tier);
 			if (te != null) {
 				switch(tier) {
@@ -192,7 +197,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		}
 	}
 
-	/** Returns the lowest empty coord, not the coord of the ground */
+	/** Returns the coord of the ground */
 	public static int getTrueTopAt(World currentWorld, int dx, int dz) {
 		int top = currentWorld.getTopSolidOrLiquidBlock(dx, dz);
 		Block at = currentWorld.getBlock(dx, top, dz);
