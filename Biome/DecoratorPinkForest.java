@@ -17,7 +17,6 @@ import java.util.Set;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.monster.EntityCaveSpider;
-import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -37,11 +36,11 @@ import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Generator.WorldGenOreCluster;
 import Reika.Satisforestry.Biome.Generator.WorldGenPoisonRocks;
 import Reika.Satisforestry.Biome.Generator.WorldGenPonds;
+import Reika.Satisforestry.Biome.Generator.WorldGenPowerSlugs;
 import Reika.Satisforestry.Biome.Generator.WorldGenRedBamboo;
 import Reika.Satisforestry.Blocks.BlockPowerSlug;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
 import Reika.Satisforestry.Config.BiomeConfig;
-import Reika.Satisforestry.Entity.EntityEliteStinger;
 
 public class DecoratorPinkForest extends StackableBiomeDecorator {
 
@@ -50,6 +49,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 	private final WorldGenPoisonRocks rockGenerator = new WorldGenPoisonRocks(false);
 	private final WorldGenPonds pondGenerator = new WorldGenPonds(false);
 	private final WorldGenOreCluster oreGenerator = new WorldGenOreCluster();
+	private final WorldGenPowerSlugs slugGenerator = new WorldGenPowerSlugs();
 
 	//private int riverHeight;
 	//private int glassHeight;
@@ -147,7 +147,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		int d1 = randomGenerator.nextInt(3);
 		if (chunk_X%(4+d1) == chunk_Z%(3-d1)) {
 			if (rockGenerator.generate(currentWorld, randomGenerator, x, top, z)) {
-				if (randomGenerator.nextInt(9) <= 1) {
+				if (randomGenerator.nextInt(9*99999) <= 1) {
 					int tier = 0;
 					if (randomGenerator.nextInt(2) == 0) {
 						tier = 1;
@@ -173,7 +173,8 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		}
 
 		redBambooGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
-
+		slugGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
+		/*
 		if (randomGenerator.nextInt(12) == 0) { //G/Y/P = 75%/20%/5%
 			int tier = 0;
 			if (randomGenerator.nextInt(4) == 0) {
@@ -199,7 +200,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 						break;
 				}
 			}
-		}
+		}*/
 	}
 
 	/** Returns the coord of the ground */

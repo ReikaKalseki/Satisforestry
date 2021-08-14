@@ -135,7 +135,7 @@ public class BlockCaveSpawner extends BlockContainer {
 		}
 
 		protected void onSpawnEntity(EntityMob e) {
-
+			e.getEntityData().setBoolean("pinkforestspawn", true);
 		}
 
 		@Override

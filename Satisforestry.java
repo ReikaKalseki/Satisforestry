@@ -15,6 +15,8 @@ import java.net.URL;
 import java.util.List;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.MapColor;
+import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -92,6 +94,35 @@ public class Satisforestry extends DragonAPIMod {
 
 	public static BlockPinkLog log;
 	public static BlockPinkLeaves leaves;
+
+	public static Material slugMaterial = new Material(MapColor.foliageColor) {
+
+		@Override
+		public boolean blocksMovement() {
+			return true;
+		}
+
+		@Override
+		public boolean isOpaque() {
+			return false;
+		}
+
+		@Override
+		public boolean isReplaceable() {
+			return false;
+		}
+
+		@Override
+		public boolean getCanBlockGrass() {
+			return false;
+		}
+
+		@Override
+		public boolean isToolNotRequired() {
+			return true;
+		}
+
+	};
 
 	public static BiomePinkForest pinkforest;
 	//public static BiomePinkRiver pinkriver;
@@ -227,6 +258,23 @@ public class Satisforestry extends DragonAPIMod {
 			addRecipe(SFBlocks.HARVESTER.getStackOfMetadata(1), "iei", "aca", "idi", 'a', alloy, 'e', eucoil, 'c', IC2Stacks.LAPOTRON.getItem(), 'i', Items.iron_ingot, 'd', drillbit);
 		if (PowerTypes.ROTARYCRAFT.isLoaded())
 			addRecipe(SFBlocks.HARVESTER.getStackOfMetadata(2), "bgb", "bGb", "sds", 's', steel, 'b', plate, 'g', gear, 'G', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit4"), 'd', drillbit);
+
+		if (ModList.THERMALEXPANSION.isLoaded()) {
+			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(0));
+			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(1));
+			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(2));
+		}
+		if (ModList.IC2.isLoaded()) {
+			ItemStack is = IC2Handler.IC2Stacks.OVERCLOCK.getItem();
+			GameRegistry.addShapelessRecipe(is.copy(), SFBlocks.SLUG.getStackOfMetadata(0));
+			GameRegistry.addShapelessRecipe(ReikaItemHelper.getSizedItemStack(is, 2), SFBlocks.SLUG.getStackOfMetadata(1));
+			GameRegistry.addShapelessRecipe(ReikaItemHelper.getSizedItemStack(is, 5), SFBlocks.SLUG.getStackOfMetadata(2));
+		}
+		if (ModList.ENDERIO.isLoaded()) {
+			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(0));
+			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(1));
+			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(2));
+		}
 	}
 
 	private static void addRecipe(ItemStack out, Object... in) {
@@ -251,6 +299,8 @@ public class Satisforestry extends DragonAPIMod {
 		this.startTiming(LoadPhase.POSTLOAD);
 
 		BiomeConfig.instance.loadConfigs();
+
+		//((BlockPowerSlug)SFBlocks.SLUG.getBlockInstance()).updateStepSounds();
 
 		if (ModList.THAUMCRAFT.isLoaded()) {
 			ReikaThaumHelper.addAspectsToItem(paleberry, Aspect.HEAL, 4, Aspect.HUNGER, 1, Aspect.EXCHANGE, 1);

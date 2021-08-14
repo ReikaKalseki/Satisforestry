@@ -39,7 +39,7 @@ public class PowerSlugRenderer extends TileEntitySpecialRenderer {
 		BlendMode.DEFAULT.apply();
 		GL11.glTranslated(par2, par4, par6);
 		GL11.glScalef(1.0F, -1.0F, -1.0F);
-		GL11.glDepthMask(false);
+		//GL11.glDepthMask(false);
 		GL11.glTranslatef(0.5F, -1.5F, -0.5F);
 		if (te.hasWorldObj()) {/*
 			if (ReikaWorldHelper.checkForAdjBlock(te.worldObj, te.xCoord, te.yCoord, te.zCoord, Blocks.water) != null) {

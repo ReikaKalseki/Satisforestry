@@ -37,6 +37,7 @@ import Reika.DragonAPI.Instantiable.Event.GetYToSpawnMobEvent;
 import Reika.DragonAPI.Instantiable.Event.IceFreezeEvent;
 import Reika.DragonAPI.Instantiable.Event.LightLevelForSpawnEvent;
 import Reika.DragonAPI.Instantiable.Event.SnowOrIceOnGenEvent;
+import Reika.DragonAPI.Instantiable.Event.SpiderLightPassivationEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.GrassIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.LiquidBlockIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.NightVisionBrightnessEvent;
@@ -77,6 +78,13 @@ public class SFEvents {
 
 	private SFEvents() {
 
+	}
+
+	@SubscribeEvent
+	public void fallproofSpiders(SpiderLightPassivationEvent evt) {
+		if (evt.spider.getEntityData().getBoolean("slugspawn")) {
+			evt.threshold = Float.POSITIVE_INFINITY;
+		}
 	}
 
 	@SideOnly(Side.CLIENT)

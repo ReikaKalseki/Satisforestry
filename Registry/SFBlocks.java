@@ -114,6 +114,8 @@ public enum SFBlocks implements BlockEnum {
 			case HARVESTER:
 			case MINERMULTI:
 				return Material.iron;
+			case SLUG:
+				return Satisforestry.slugMaterial;
 			default:
 				return Material.rock;
 		}

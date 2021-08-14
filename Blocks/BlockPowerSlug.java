@@ -21,13 +21,10 @@ import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.DragonAPICore;
-import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Interfaces.Block.Submergeable;
-import Reika.DragonAPI.Libraries.ReikaEntityHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
-import Reika.DragonAPI.ModInteract.ItemHandlers.ThaumItemHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Registry.SFBlocks;
@@ -49,12 +46,36 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 		this.setCreativeTab(Satisforestry.tabCreative);
 		float max = Math.max(length, width);
 		this.setBlockBounds(0.5F-max/2F, 0, 0.5F-max/2F, 0.5F+max/2F, height, 0.5F+max/2F);
-		this.setStepSound(soundTypeSnow);
-		if (ModList.THAUMCRAFT.isLoaded()) {
+		this.setStepSound(new SoundType("", 0.25F, 0.6F) {
+			@Override
+			public String getBreakSound() {
+				return "mob.slime.big";
+			}
+
+			@Override
+			public String getStepResourcePath() {
+				return "mob.slime.big";
+			}
+
+			@Override
+			public String func_150496_b() { //place sound
+				return "mob.slime.big";
+			}
+		});
+	}
+	/*
+	public void updateStepSounds() {
+		if (ModList.TWILIGHT.isLoaded()) {
+			this.setStepSound(TwilightForestHandler.BlockEntry.FIREFLY.getBlock().stepSound);
+		}
+		else if (ModList.TINKERER.isLoaded()) {
+			this.setStepSound(TinkerBlockHandler.getInstance().congealedSlime.stepSound);
+		}
+		else if (ModList.THAUMCRAFT.isLoaded()) {
 			this.setStepSound(ThaumItemHelper.BlockEntry.TAINT.getBlock().stepSound);
 		}
 	}
-
+	 */
 	@Override
 	public TileEntity createNewTileEntity(World world, int meta) {
 		return meta <= 2 ? new TilePowerSlug(meta) : new TilePowerSlugInert();
@@ -99,11 +120,11 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 	public float getBlockHardness(World world, int x, int y, int z) {
 		switch(world.getBlockMetadata(x, y, z)) {
 			case 0:
-				return 2F; //1.33x stone
+				return 1.875F; //1.25x stone
 			case 1:
-				return 5F; //1.6x of ores, 3.33x stone
+				return 4F; //1.28x of ores, 2.66x stone
 			case 2:
-				return 20F; //0.4x obsidian
+				return 10F; //0.2x obsidian
 			default:
 				return 0;
 		}
@@ -303,7 +324,7 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 				AttributeModifier m = new AttributeModifier(healthBonus, "slugHealth", healthBuff-1, 2);
 				e.getEntityAttribute(SharedMonsterAttributes.maxHealth).applyModifier(m);
 			}
-			ReikaEntityHelper.setAlwaysHostile(e);
+			e.getEntityData().setBoolean("slugspawn", true);
 		}
 
 		public int getTier() {
