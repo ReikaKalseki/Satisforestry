@@ -7,8 +7,8 @@ import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Instantiable.Data.ShuffledGrid;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
-import Reika.DragonAPI.Instantiable.Math.Noise.VoronoiNoiseGenerator;
 import Reika.DragonAPI.Libraries.World.ReikaChunkHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
@@ -20,17 +20,20 @@ import Reika.Satisforestry.Registry.SFBlocks;
 
 public class WorldGenPowerSlugs {
 
-	private final VoronoiNoiseGenerator[] noise = new VoronoiNoiseGenerator[3];
+	private final ShuffledGrid[] noise = new ShuffledGrid[3];
+	private long seed;
 
 	public WorldGenPowerSlugs() {
-
+		noise[0] = new ShuffledGrid(40, 2, 3, true);
+		noise[1] = new ShuffledGrid(40, 2, 4, true);
+		noise[2] = new ShuffledGrid(40, 3, 6, true);
 	}
 
 	public int generate(World world, Random rand, int chunkX, int chunkZ) {
 		this.initNoise(world);
 		int flags = 0;
 		for (int i = 0; i < 3; i++) {
-			if (!noise[i].chunkContainsCenter(chunkX, chunkZ))
+			if (!noise[i].isValid(chunkX >> 4, chunkZ >> 4))
 				continue;
 			ArrayList<Coordinate> li = ReikaChunkHelper.getChunkCoords(chunkX, chunkZ);
 			while (!li.isEmpty()) {
@@ -61,12 +64,22 @@ public class WorldGenPowerSlugs {
 					}
 				}
 			}
+			if (li.isEmpty()) {
+
+			}
 		}
 
 		return flags;
 	}
 
 	private void initNoise(World world) {
+		if (noise[0] == null || seed != world.getSeed()) {
+			seed = world.getSeed();
+			noise[0].calculate(seed);
+			noise[1].calculate(seed);
+			noise[2].calculate(seed);
+		}
+		/*
 		if (noise[0] == null || noise[0].seed != world.getSeed()) {
 			noise[0] = new VoronoiNoiseGenerator(world.getSeed());
 			noise[1] = new VoronoiNoiseGenerator(-2*world.getSeed()/3);
@@ -77,7 +90,8 @@ public class WorldGenPowerSlugs {
 			noise[0].randomFactor = 0.35;
 			noise[1].randomFactor = 0.55;
 			noise[2].randomFactor = 0.75;
-		}
+		}*/
+
 	}
 
 	private boolean isReplaceable(World world, int x, int y, int z) {

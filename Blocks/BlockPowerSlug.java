@@ -12,6 +12,7 @@ import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -250,6 +251,12 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 		}
 
 		@Override
+		@SideOnly(Side.CLIENT)
+		public double getMaxRenderDistanceSquared() {
+			return 65536;
+		}
+
+		@Override
 		public boolean shouldRenderInPass(int pass) {
 			return pass <= 1;
 		}
@@ -268,7 +275,9 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 				}
 			}
 			else {
-				if (DragonAPICore.rand.nextInt(4) == 0) {
+				EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
+				double dist = ep.getDistance(xCoord+0.5, yCoord+0.5, zCoord+0.5);
+				if (dist <= 128 && DragonAPICore.rand.nextInt(4+(int)(dist/32)) == 0) {
 					int x = xCoord;
 					int y = yCoord;
 					int z = zCoord;
@@ -285,16 +294,18 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 						Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 					}
 
-					double px = ReikaRandomHelper.getRandomPlusMinus(x+0.5, 1.5);
-					double pz = ReikaRandomHelper.getRandomPlusMinus(z+0.5, 1.5);
-					double py = ReikaRandomHelper.getRandomBetween(y+0.5, y+2);
-					double v = -0.04;
-					double vx = (px-(x+0.5))*v;
-					double vy = (py-(y+0.25))*v;
-					double vz = (pz-(z+0.5))*v;
-					EntitySlugStreak fx = new EntitySlugStreak(worldObj, px, py, pz, vx, vy, vz, IconPrefabs.FADE.getIcon());
-					fx.setColor(c).setScale(0.7F).setLife(20);
-					Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+					if (dist <= 64) {
+						double px = ReikaRandomHelper.getRandomPlusMinus(x+0.5, 1.5);
+						double pz = ReikaRandomHelper.getRandomPlusMinus(z+0.5, 1.5);
+						double py = ReikaRandomHelper.getRandomBetween(y+0.5, y+2);
+						double v = -0.04;
+						double vx = (px-(x+0.5))*v;
+						double vy = (py-(y+0.25))*v;
+						double vz = (pz-(z+0.5))*v;
+						EntitySlugStreak fx = new EntitySlugStreak(worldObj, px, py, pz, vx, vy, vz, IconPrefabs.FADE.getIcon());
+						fx.setColor(c).setScale(0.7F).setLife(20);
+						Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+					}
 				}
 			}
 		}

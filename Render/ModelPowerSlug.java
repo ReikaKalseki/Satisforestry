@@ -262,6 +262,11 @@ public class ModelPowerSlug extends ModelBase
 		bodyFront.setTextureSize(64, 32);
 		bodyFront.mirror = true;
 		this.setRotation(bodyFront, 0F, 0F, 0F);
+
+		mainBody.setRenderDistanceScalar(100);
+		bodyFront.setRenderDistanceScalar(100);
+		tailCtr.setRenderDistanceScalar(100);
+		skirtMain.setRenderDistanceScalar(100);
 	}
 
 	private void setRotation(LODModelPart model, float x, float y, float z)  {
