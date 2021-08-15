@@ -9,7 +9,6 @@ import org.lwjgl.input.Keyboard;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
-import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.DragonAPICore;
@@ -36,15 +35,22 @@ public class SFMusic {
 		File folder = new File(path);
 		if (folder.exists() && folder.isDirectory()) {
 			Satisforestry.logger.log("Loading SF OST from "+path);
+			int amt = 0;
 			for (DayQuadrant d : DayQuadrant.list) {
 				File f = new File(folder, d.name().toLowerCase(Locale.ENGLISH));
 				if (f.exists() && f.isDirectory()) {
-					this.loadTracks(f, d);
+					amt += this.loadTracks(f, d);
 				}
 			}
 			File f = new File(folder, "all");
 			if (f.exists() && f.isDirectory()) {
-				this.loadTracks(f, DayQuadrant.list);
+				amt += this.loadTracks(f, DayQuadrant.list);
+			}
+			if (amt == 0) {
+				Satisforestry.logger.logError("Failed to find any tracks!");
+			}
+			else {
+				Satisforestry.logger.log("Finished loading "+amt+" tracks.");
 			}
 		}
 		else {
@@ -52,12 +58,14 @@ public class SFMusic {
 		}
 	}
 
-	private void loadTracks(File f0, DayQuadrant... set) {
+	private int loadTracks(File f0, DayQuadrant... set) {
+		int ret = 0;
 		for (File f : f0.listFiles()) {
 			if (f.isDirectory()) {
-				this.loadTracks(f, set);
+				ret += this.loadTracks(f, set);
 			}
 			else if (this.isMusicFile(f)) {
+				ret++;
 				for (DayQuadrant d : set) {
 					try {
 						d.addTrack(f);
@@ -66,6 +74,7 @@ public class SFMusic {
 					catch (IOException e) {
 						Satisforestry.logger.logError("Failed to load track "+f+": ");
 						e.printStackTrace();
+						ret--;
 					}
 				}
 			}
@@ -73,12 +82,13 @@ public class SFMusic {
 				Satisforestry.logger.logError("Track "+f+" is not a MC audio file!");
 			}
 		}
+		return ret;
 	}
 
 	private boolean isMusicFile(File f) {
 		String n = f.getName();
-		String ext = n.substring(n.lastIndexOf('.'));
-		return ext.equals("ogg");// || ext.equals("mp3") || ext.equals("wav");
+		String ext = n.substring(n.lastIndexOf('.')+1);
+		return ext.equals("ogg")?;// || ext.equals("mp3") || ext.equals("wav");
 	}
 
 	public void tickMusicEngine(World world) {
@@ -91,18 +101,20 @@ public class SFMusic {
 		//ReikaJavaLibrary.pConsole(s.path+":"+sh.isSoundPlaying(s));
 		if (currentMusic != null && ReikaObfuscationHelper.isDeObfEnvironment() && Keyboard.isKeyDown(Keyboard.KEY_END)) {
 			sh.stopSound(currentMusic);
+			return;
 		}
 		if (currentMusic != null && sh.isSoundPlaying(currentMusic)) {
 			return;
 		}
-		SFMusicEntry s = this.selectTrack(world);
-		if (s != null)
-			s.play(sh);
+		currentMusic = this.selectTrack(world);
+		//ReikaJavaLibrary.pConsole("Selected at time "+world.getWorldTime()%24000+" = "+DayQuadrant.getByTime(world.getWorldTime())+" : "+currentMusic);
+		if (currentMusic != null)
+			currentMusic.play(sh);
 	}
 
 	private SFMusicEntry selectTrack(World world) {
 		DayQuadrant dq = DayQuadrant.getByTime(world.getWorldTime());
-		return ReikaJavaLibrary.getRandomListEntry(DragonAPICore.rand, dq.tracks);
+		return dq != null ? ReikaJavaLibrary.getRandomListEntry(DragonAPICore.rand, dq.tracks) : null;
 	}
 
 	public static enum DayQuadrant {
@@ -113,24 +125,25 @@ public class SFMusic {
 
 		private static final DayQuadrant[] list = values();
 
-		private static final int DEFAULT_WINDOW = 1000;
+		private static final long DEFAULT_WINDOW = 1500;
 
-		private final int baseTime;
-		private final int timeWindow;
+		private final long baseTime;
+		private final long timeWindow;
 
 		private final ArrayList<SFMusicEntry> tracks = new ArrayList();
 
-		private DayQuadrant(int time) {
+		private DayQuadrant(long time) {
 			this(time, DayQuadrant.DEFAULT_WINDOW);
 		}
 
-		private DayQuadrant(int time, int window) {
+		private DayQuadrant(long time, long window) {
 			baseTime = time;
 			timeWindow = window;
 		}
 
 		public static DayQuadrant getByTime(long time) {
 			time = time%24000;
+			/*
 			if (time < 3000 || time >= 21000) {
 				return MORNING;
 			}
@@ -142,12 +155,25 @@ public class SFMusic {
 			}
 			else {
 				return NIGHT;
+			}*/
+			for (DayQuadrant dq : list) {
+				long difference = time%24000-dq.baseTime;
+				while (difference < -12000)
+					difference += 24000;
+				while (difference > 12000)
+					difference -= 24000;
+				difference = Math.abs(difference);
+				//ReikaJavaLibrary.pConsole(time%24000+", "+dq.baseTime+", "+difference);
+				if (difference <= dq.timeWindow)
+					return dq;
 			}
+			return null;
 		}
 
 		public void addTrack(File f) throws IOException {
-			ResourceLocation loc = DirectResourceManager.getResource(f.getCanonicalPath());
-
+			SFMusicEntry mus = new SFMusicEntry(f.getCanonicalPath());
+			DirectResourceManager.getInstance().registerCustomPath(mus.path, SFClient.sfCategory, true);
+			tracks.add(mus);
 		}
 	}
 

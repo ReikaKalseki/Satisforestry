@@ -265,10 +265,10 @@ public class Satisforestry extends DragonAPIMod {
 		if (PowerTypes.ROTARYCRAFT.isLoaded())
 			addRecipe(SFBlocks.HARVESTER.getStackOfMetadata(2), "bgb", "bGb", "sds", 's', steel, 'b', plate, 'g', gear, 'G', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit4"), 'd', drillbit);
 
-		if (ModList.THERMALEXPANSION.isLoaded()) {
-			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(0));
-			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(1));
-			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(2));
+		if (ModList.THERMALEXPANSION.isLoaded()) {?
+				GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(0));
+		GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(1));
+		GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem(""), SFBlocks.SLUG.getStackOfMetadata(2));
 		}
 		if (ModList.IC2.isLoaded()) {
 			ItemStack is = IC2Handler.IC2Stacks.OVERCLOCK.getItem();

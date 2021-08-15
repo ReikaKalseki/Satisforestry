@@ -9,9 +9,11 @@
  ******************************************************************************/
 package Reika.Satisforestry;
 
+import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 
+import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
 import Reika.Satisforestry.Blocks.TileNodeHarvester;
 import Reika.Satisforestry.Registry.SFBlocks;
@@ -41,9 +43,12 @@ public class SFClient extends SFCommon {
 	public static ResourceNodeRenderer resource;
 	//public static PowerSlugRenderer slug;
 
+	public static SoundCategory sfCategory;
+
 	@Override
 	public void registerSounds() {
 		sounds.register();
+		sfCategory = ReikaRegistryHelper.addSoundCategory("SF_MUSIC");
 	}
 
 	@Override
