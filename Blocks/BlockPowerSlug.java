@@ -275,37 +275,39 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 				}
 			}
 			else {
-				EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
-				double dist = ep.getDistance(xCoord+0.5, yCoord+0.5, zCoord+0.5);
-				if (dist <= 128 && DragonAPICore.rand.nextInt(4+(int)(dist/32)) == 0) {
-					int x = xCoord;
-					int y = yCoord;
-					int z = zCoord;
-					int c = this.getBlockType().colorMultiplier(worldObj, x, y, z);
-					if (c == 0xF26030)
-						return;
-					if (DragonAPICore.rand.nextInt(2) == 0) {
-						double px = ReikaRandomHelper.getRandomPlusMinus(x+0.5, 0.5);
-						double pz = ReikaRandomHelper.getRandomPlusMinus(z+0.5, 0.5);
-						double py = ReikaRandomHelper.getRandomBetween(y, y+0.5);
-						float s = (float)ReikaRandomHelper.getRandomBetween(3.5, 7.5);
-						int l = ReikaRandomHelper.getRandomBetween(30, 80);
-						EntityBlurFX fx = new EntityBlurFX(worldObj, px, py, pz, IconPrefabs.FADE_GENTLE.getIcon()).setColor(c).setScale(s).setLife(l).setAlphaFading();
-						Minecraft.getMinecraft().effectRenderer.addEffect(fx);
-					}
+				this.doFX(worldObj, xCoord, yCoord, zCoord);
+			}
+		}
 
-					if (dist <= 64) {
-						double px = ReikaRandomHelper.getRandomPlusMinus(x+0.5, 1.5);
-						double pz = ReikaRandomHelper.getRandomPlusMinus(z+0.5, 1.5);
-						double py = ReikaRandomHelper.getRandomBetween(y+0.5, y+2);
-						double v = -0.04;
-						double vx = (px-(x+0.5))*v;
-						double vy = (py-(y+0.25))*v;
-						double vz = (pz-(z+0.5))*v;
-						EntitySlugStreak fx = new EntitySlugStreak(worldObj, px, py, pz, vx, vy, vz, IconPrefabs.FADE.getIcon());
-						fx.setColor(c).setScale(0.7F).setLife(20);
-						Minecraft.getMinecraft().effectRenderer.addEffect(fx);
-					}
+		@SideOnly(Side.CLIENT)
+		private void doFX(World world, int x, int y, int z) {
+			EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
+			double dist = ep.getDistance(xCoord+0.5, yCoord+0.5, zCoord+0.5);
+			if (dist <= 128 && DragonAPICore.rand.nextInt(4+(int)(dist/32)) == 0) {
+				int c = this.getBlockType().colorMultiplier(world, x, y, z);
+				if (c == 0xF26030)
+					return;
+				if (DragonAPICore.rand.nextInt(2) == 0) {
+					double px = ReikaRandomHelper.getRandomPlusMinus(x+0.5, 0.5);
+					double pz = ReikaRandomHelper.getRandomPlusMinus(z+0.5, 0.5);
+					double py = ReikaRandomHelper.getRandomBetween(y, y+0.5);
+					float s = (float)ReikaRandomHelper.getRandomBetween(3.5, 7.5);
+					int l = ReikaRandomHelper.getRandomBetween(30, 80);
+					EntityBlurFX fx = new EntityBlurFX(world, px, py, pz, IconPrefabs.FADE_GENTLE.getIcon()).setColor(c).setScale(s).setLife(l).setAlphaFading();
+					Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+				}
+
+				if (dist <= 64) {
+					double px = ReikaRandomHelper.getRandomPlusMinus(x+0.5, 1.5);
+					double pz = ReikaRandomHelper.getRandomPlusMinus(z+0.5, 1.5);
+					double py = ReikaRandomHelper.getRandomBetween(y+0.5, y+2);
+					double v = -0.04;
+					double vx = (px-(x+0.5))*v;
+					double vy = (py-(y+0.25))*v;
+					double vz = (pz-(z+0.5))*v;
+					EntitySlugStreak fx = new EntitySlugStreak(world, px, py, pz, vx, vy, vz, IconPrefabs.FADE.getIcon());
+					fx.setColor(c).setScale(0.7F).setLife(20);
+					Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 				}
 			}
 		}

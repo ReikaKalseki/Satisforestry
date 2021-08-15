@@ -92,26 +92,28 @@ public class PowerSlugRenderer extends TileEntitySpecialRenderer {
 			GL11.glDisable(GL12.GL_RESCALE_NORMAL);
 		GL11.glPopAttrib();
 		if (te.hasWorldObj()) {
-			EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
-			LOS.setOrigins(te.xCoord+0.5, te.yCoord+0.25, te.zCoord+0.5, ep.posX, ep.posY, ep.posZ);
-			if (LOS.isClearLineOfSight(te)) {
-				double dist = ep.getDistance(te.xCoord+0.5, te.yCoord+0.25, te.zCoord+0.5);
-				float f = 0;
-				if (dist <= 4) {
-					f = 1;
+			if (!(te instanceof TilePowerSlugInert)) {
+				EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
+				LOS.setOrigins(te.xCoord+0.5, te.yCoord+0.25, te.zCoord+0.5, ep.posX, ep.posY, ep.posZ);
+				if (LOS.isClearLineOfSight(te)) {
+					double dist = ep.getDistance(te.xCoord+0.5, te.yCoord+0.25, te.zCoord+0.5);
+					float f = 0;
+					if (dist <= 4) {
+						f = 1;
+					}
+					else if (dist <= 8) {
+						f = 1-(float)((dist-4D)/4D);
+					}
+					HashMap<String, Object> map = new HashMap();
+					map.put("distance", dist*dist);
+					map.put("scale", 1.5F);
+					map.put("factor", 0.1F);
+					map.put("speed", 1.5F);
+					SFShaders.SLUG.getShader().addFocus(te.xCoord, te.yCoord, te.zCoord);
+					SFShaders.SLUG.getShader().modifyLastCompoundFocus(f, map);
+					SFShaders.SLUG.getShader().setEnabled(true);
+					SFShaders.SLUG.setIntensity(Math.max(SFShaders.SLUG.getIntensity(), f));
 				}
-				else if (dist <= 8) {
-					f = 1-(float)((dist-4D)/4D);
-				}
-				HashMap<String, Object> map = new HashMap();
-				map.put("distance", dist*dist);
-				map.put("scale", 1.5F);
-				map.put("factor", 0.1F);
-				map.put("speed", 1.5F);
-				SFShaders.SLUG.getShader().addFocus(te.xCoord, te.yCoord, te.zCoord);
-				SFShaders.SLUG.getShader().modifyLastCompoundFocus(f, map);
-				SFShaders.SLUG.getShader().setEnabled(true);
-				SFShaders.SLUG.setIntensity(Math.max(SFShaders.SLUG.getIntensity(), f));
 			}
 		}
 		else {

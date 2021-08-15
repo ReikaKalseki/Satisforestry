@@ -12,6 +12,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
+import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
 import net.minecraftforge.client.event.TextureStitchEvent;
@@ -41,6 +42,7 @@ import Reika.DragonAPI.Instantiable.Event.SpiderLightPassivationEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.GrassIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.LiquidBlockIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.NightVisionBrightnessEvent;
+import Reika.DragonAPI.Instantiable.Event.Client.PlayMusicEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
@@ -78,6 +80,24 @@ public class SFEvents {
 
 	private SFEvents() {
 
+	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void overrideMusic(ClientTickEvent evt) {
+		World world = Minecraft.getMinecraft().theWorld;
+		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
+		if (world != null && ep != null && Satisforestry.isPinkForest(world, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
+			SFMusic.instance.tickMusicEngine(world);
+	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void overrideMusic(PlayMusicEvent evt) {
+		World world = Minecraft.getMinecraft().theWorld;
+		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
+		if (world != null && ep != null && Satisforestry.isPinkForest(world, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
+			evt.setCanceled(true);
 	}
 
 	@SubscribeEvent

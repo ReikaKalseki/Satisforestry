@@ -14,19 +14,23 @@ import net.minecraftforge.common.config.Property;
 import Reika.DragonAPI.Interfaces.Configuration.BooleanConfig;
 import Reika.DragonAPI.Interfaces.Configuration.BoundedConfig;
 import Reika.DragonAPI.Interfaces.Configuration.IntegerConfig;
+import Reika.DragonAPI.Interfaces.Configuration.StringConfig;
+import Reika.DragonAPI.Interfaces.Configuration.UserSpecificConfig;
 import Reika.Satisforestry.Satisforestry;
 
-public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
+public enum SFOptions implements BooleanConfig, IntegerConfig, StringConfig, UserSpecificConfig, BoundedConfig {
 
 	BIOMEID("Pink Forest Biome ID", 144),
 	//SIMPLEAUTO("Enable Simple Automation for Resource Node", false),
 	CAVEMOBS("Cave Mob Spawn Multiplier", 1),
 	GLOBALSHADER("Apply Poison Shader In All Biomes", false),
+	MUSIC("Satisfactory OST Folder", ""),
 	;
 
 	private String label;
 	private boolean defaultState;
 	private int defaultValue;
+	private String defaultString;
 	private Class type;
 
 	public static final SFOptions[] optionList = SFOptions.values();
@@ -43,12 +47,23 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
 		type = int.class;
 	}
 
+	private SFOptions(String l, String s) {
+		label = l;
+		defaultString = s;
+		type = String.class;
+	}
+
 	public boolean isBoolean() {
 		return type == boolean.class;
 	}
 
 	public boolean isNumeric() {
 		return type == int.class;
+	}
+
+	@Override
+	public boolean isString() {
+		return type == String.class;
 	}
 
 	public Class getPropertyType() {
@@ -67,6 +82,11 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
 		return (Integer)Satisforestry.config.getControl(this.ordinal());
 	}
 
+	@Override
+	public String getString() {
+		return (String)Satisforestry.config.getControl(this.ordinal());
+	}
+
 	public boolean isDummiedOut() {
 		return type == null;
 	}
@@ -79,6 +99,11 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
 	@Override
 	public int getDefaultValue() {
 		return defaultValue;
+	}
+
+	@Override
+	public String getDefaultString() {
+		return defaultString;
 	}
 
 	@Override
@@ -112,6 +137,17 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, BoundedConfig {
 				return "(0.25-5)";
 			default:
 				return "";
+		}
+	}
+
+	@Override
+	public boolean isUserSpecific() {
+		switch(this) {
+			case GLOBALSHADER:
+			case MUSIC:
+				return true;
+			default:
+				return false;
 		}
 	}
 }

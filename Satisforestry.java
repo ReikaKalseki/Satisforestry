@@ -14,6 +14,8 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.List;
 
+import com.google.common.base.Strings;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
@@ -216,6 +218,10 @@ public class Satisforestry extends DragonAPIMod {
 		BiomeDictionary.registerBiomeType(pinkforest, BiomeDictionary.Type.FOREST, BiomeDictionary.Type.MAGICAL, BiomeDictionary.Type.DENSE, BiomeDictionary.Type.LUSH, BiomeDictionary.Type.MOUNTAIN, BiomeDictionary.Type.WET);
 
 		this.addRecipes();
+
+		String music = SFOptions.MUSIC.getString();
+		if (!Strings.isNullOrEmpty(music))
+			SFMusic.instance.loadMusic(music);
 
 		//pinkriver = new BiomePinkRiver();
 

@@ -17,7 +17,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
-import Reika.DragonAPI.Interfaces.Registry.SoundEnum;
+import Reika.DragonAPI.Interfaces.Registry.CustomDistanceSound;
+import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.Satisforestry.Satisforestry;
 
@@ -25,7 +26,7 @@ import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public enum SFSounds implements SoundEnum {
+public enum SFSounds implements CustomDistanceSound {
 
 	MANTA1("manta1"),
 	MANTA2("manta2"),
@@ -104,7 +105,7 @@ public enum SFSounds implements SoundEnum {
 	}
 
 	public void playSoundNoAttenuation(World world, double x, double y, double z, float vol, float pitch, int broadcast) {
-		//no packet handler to do this
+		ReikaPacketHelper.sendSoundPacket(this, world, x, y, z, vol, pitch, false, broadcast);
 	}
 
 	public String getName() {
@@ -151,5 +152,15 @@ public enum SFSounds implements SoundEnum {
 	@Override
 	public boolean preload() {
 		return false;
+	}
+
+	@Override
+	public float getAudibleDistance() {
+		switch(this) {
+			case SLUG:
+				return 6;
+			default:
+				return -1;
+		}
 	}
 }
