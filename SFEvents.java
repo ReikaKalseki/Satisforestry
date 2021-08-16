@@ -9,6 +9,7 @@ import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
@@ -37,12 +38,15 @@ import Reika.DragonAPI.Instantiable.Event.GenLayerRiverEvent;
 import Reika.DragonAPI.Instantiable.Event.GetYToSpawnMobEvent;
 import Reika.DragonAPI.Instantiable.Event.IceFreezeEvent;
 import Reika.DragonAPI.Instantiable.Event.LightLevelForSpawnEvent;
+import Reika.DragonAPI.Instantiable.Event.SlotEvent.AddToSlotEvent;
+import Reika.DragonAPI.Instantiable.Event.SlotEvent.RemoveFromSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.SnowOrIceOnGenEvent;
 import Reika.DragonAPI.Instantiable.Event.SpiderLightPassivationEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.GrassIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.LiquidBlockIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.NightVisionBrightnessEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.PlayMusicEvent;
+import Reika.DragonAPI.Instantiable.Event.Client.RenderItemInSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
@@ -80,6 +84,25 @@ public class SFEvents {
 
 	private SFEvents() {
 
+	}
+
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void renderSlugs(RemoveFromSlotEvent evt) {
+		UpgradeHandler.instance.takeFromSlot(evt.inventory, evt.slotID, evt.getItem(), evt.player);
+	}
+
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void renderSlugs(AddToSlotEvent evt) {
+		UpgradeHandler.instance.addToSlot(evt.inventory, evt.slotID, evt.getItem());
+	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void renderSlugs(RenderItemInSlotEvent.Mid evt) {
+		ItemStack is = UpgradeHandler.instance.overrideSlotRender(evt.slot, evt.getItem());
+		if (is != null) {
+			evt.itemToRender = is;
+		}
 	}
 
 	@SideOnly(Side.CLIENT)

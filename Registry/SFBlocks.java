@@ -21,6 +21,7 @@ import net.minecraft.util.StatCollector;
 
 import Reika.DragonAPI.Instantiable.MetadataItemBlock;
 import Reika.DragonAPI.Interfaces.Registry.BlockEnum;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.ItemPinkSapling;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
@@ -251,5 +252,9 @@ public enum SFBlocks implements BlockEnum {
 	@Override
 	public ItemStack getStackOfMetadata(int meta) {
 		return new ItemStack(this.getBlockInstance(), 1, meta);
+	}
+
+	public boolean matchWith(ItemStack is) {
+		return is != null && ReikaItemHelper.matchStackWithBlock(is, this.getBlockInstance());
 	}
 }

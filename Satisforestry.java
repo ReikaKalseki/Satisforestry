@@ -264,7 +264,7 @@ public class Satisforestry extends DragonAPIMod {
 			addRecipe(SFBlocks.HARVESTER.getStackOfMetadata(1), "iei", "aca", "idi", 'a', alloy, 'e', eucoil, 'c', IC2Stacks.LAPOTRON.getItem(), 'i', Items.iron_ingot, 'd', drillbit);
 		if (PowerTypes.ROTARYCRAFT.isLoaded())
 			addRecipe(SFBlocks.HARVESTER.getStackOfMetadata(2), "bgb", "bGb", "sds", 's', steel, 'b', plate, 'g', gear, 'G', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit4"), 'd', drillbit);
-
+		/*
 		if (ModList.THERMALEXPANSION.isLoaded()) {
 			ItemStack silverCoil = GameRegistry.findItemStack(ModList.THERMALEXPANSION.modLabel, "powerCoilSilver", 1);
 			GameRegistry.addRecipe(ReikaItemHelper.lookupItem("ThermalExpansion:augment:128"), "rcr", "rsr", 'r', Items.redstone, 'c', silverCoil, 's', SFBlocks.SLUG.getStackOfMetadata(0));
@@ -286,6 +286,7 @@ public class Satisforestry extends DragonAPIMod {
 			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem("EnderIO:itemBasicCapacitor:1"), SFBlocks.SLUG.getStackOfMetadata(1));
 			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem("EnderIO:itemBasicCapacitor:2"), SFBlocks.SLUG.getStackOfMetadata(2));
 		}
+		 */
 	}
 
 	private static void addRecipe(ItemStack out, Object... in) {

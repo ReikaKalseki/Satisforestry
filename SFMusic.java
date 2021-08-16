@@ -88,7 +88,7 @@ public class SFMusic {
 	private boolean isMusicFile(File f) {
 		String n = f.getName();
 		String ext = n.substring(n.lastIndexOf('.')+1);
-		return ext.equals("ogg")?;// || ext.equals("mp3") || ext.equals("wav");
+		return ext.equals("ogg");// || ext.equals("mp3") || ext.equals("wav");
 	}
 
 	public void tickMusicEngine(World world) {
