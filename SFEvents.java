@@ -38,7 +38,7 @@ import Reika.DragonAPI.Instantiable.Event.GenLayerRiverEvent;
 import Reika.DragonAPI.Instantiable.Event.GetYToSpawnMobEvent;
 import Reika.DragonAPI.Instantiable.Event.IceFreezeEvent;
 import Reika.DragonAPI.Instantiable.Event.LightLevelForSpawnEvent;
-import Reika.DragonAPI.Instantiable.Event.SlotEvent.AddToSlotEvent;
+import Reika.DragonAPI.Instantiable.Event.SlotEvent.InitialClickEvent;
 import Reika.DragonAPI.Instantiable.Event.SlotEvent.RemoveFromSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.SnowOrIceOnGenEvent;
 import Reika.DragonAPI.Instantiable.Event.SpiderLightPassivationEvent;
@@ -87,13 +87,18 @@ public class SFEvents {
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void renderSlugs(RemoveFromSlotEvent evt) {
+	public void removeSlugs(ItemNameDisplay evt) {
 		UpgradeHandler.instance.takeFromSlot(evt.inventory, evt.slotID, evt.getItem(), evt.player);
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void renderSlugs(AddToSlotEvent evt) {
-		UpgradeHandler.instance.addToSlot(evt.inventory, evt.slotID, evt.getItem());
+	public void removeSlugs(RemoveFromSlotEvent evt) {
+		UpgradeHandler.instance.takeFromSlot(evt.inventory, evt.slotID, evt.getItem(), evt.player);
+	}
+
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void addSlugs(InitialClickEvent evt) {
+		UpgradeHandler.instance.addToSlot(evt.inventory, evt.slotID, evt.container, evt.player);
 	}
 
 	@SideOnly(Side.CLIENT)

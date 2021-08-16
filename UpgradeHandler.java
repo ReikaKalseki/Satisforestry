@@ -1,6 +1,7 @@
 package Reika.Satisforestry;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -63,19 +64,26 @@ public class UpgradeHandler {
 		return null;
 	}
 
-	public void addToSlot(IInventory ii, int slot, ItemStack is) {
+	public void addToSlot(IInventory ii, int slot, Container c, EntityPlayer ep) {
+		if (ii == null)
+			return;
+		ItemStack is = ep.inventory.getItemStack();
 		if (SFBlocks.SLUG.matchWith(is) && is.stackSize == 1) {
 			int tier = is.getItemDamage()%3;
-			ItemStack convert = this.getSlugUpgrade(ii, slot, tier);
+			ItemStack convert = this.getSlugUpgrade(ii, slot, c, tier);
 			if (convert != null) {
-				ii.setInventorySlotContents(slot, this.makeSlugUpgrade(convert, is));
+				ItemStack get = this.makeSlugUpgrade(convert, is);
+				//ii.setInventorySlotContents(slot, get);
+				ep.inventory.setItemStack(get);
 			}
 		}
 	}
 
-	private ItemStack getSlugUpgrade(IInventory ii, int slot, int tier) {
+	private ItemStack getSlugUpgrade(IInventory ii, int slot, Container c, int tier) {
 		if (ic2Upgradeable != null && ic2Upgradeable.isAssignableFrom(ii.getClass())) {
-			if (ii.isItemValidForSlot(slot, IC2Handler.IC2Stacks.OVERCLOCK.getItem()) ) {
+			if (slot >= 36) //ic2 containers put player inv first
+				slot -= 36;
+			if (this.containerAccepts(c, slot, IC2Handler.IC2Stacks.OVERCLOCK.getItem())) {
 				return ReikaItemHelper.getSizedItemStack(IC2Handler.IC2Stacks.OVERCLOCK.getItem(), UPGRADE_COUNTS[tier]);
 			}
 		}
@@ -83,17 +91,21 @@ public class UpgradeHandler {
 			int base = ii instanceof IEnergyProvider ? 80 : 128;
 			base += tier;
 			ItemStack item = ReikaItemHelper.lookupItem("ThermalExpansion:augment:"+base);
-			if (ii.isItemValidForSlot(slot, item)) {
+			if (this.containerAccepts(c, slot, item)) {
 				return item;
 			}
 		}
 		if (eioUpgradeable != null && eioUpgradeable.isAssignableFrom(ii.getClass())) {
 			ItemStack item = ReikaItemHelper.lookupItem("EnderIO:itemBasicCapacitor:"+tier);
-			if (ii.isItemValidForSlot(slot, item) ) {
+			if (this.containerAccepts(c, slot, item) ) {
 				return item;
 			}
 		}
 		return null;
+	}
+
+	private boolean containerAccepts(Container c, int slot, ItemStack item) {
+		return slot >= 0 && slot < c.inventorySlots.size() && c.getSlot(slot).isItemValid(item);
 	}
 
 	private ItemStack makeSlugUpgrade(ItemStack convert, ItemStack is) {
