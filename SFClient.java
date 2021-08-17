@@ -15,7 +15,7 @@ import net.minecraftforge.client.MinecraftForgeClient;
 
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
-import Reika.Satisforestry.Blocks.TileNodeHarvester;
+import Reika.Satisforestry.Miner.TileNodeHarvester;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFShaders;

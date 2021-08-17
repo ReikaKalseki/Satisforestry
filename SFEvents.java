@@ -18,7 +18,6 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
 import net.minecraftforge.client.event.TextureStitchEvent;
-import net.minecraftforge.client.event.sound.SoundSetupEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -66,6 +65,7 @@ import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkRiver;
 import Reika.Satisforestry.Biome.Generator.WorldGenUraniumCave;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
+import Reika.Satisforestry.Miner.GuiSFMiner;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
@@ -89,13 +89,13 @@ public class SFEvents {
 	private SFEvents() {
 
 	}
-
+	/*
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
 	public void addMusicCodecs(SoundSetupEvent evt) {
 		SFMusic.instance.loadCodecs();
 	}
-
+	 */
 	@SubscribeEvent(priority=EventPriority.LOWEST)
 	public void slugTooltips(EntityJoinWorldEvent event) {
 		if (event.entity instanceof EntityItem)
@@ -156,7 +156,7 @@ public class SFEvents {
 	}
 
 	@SubscribeEvent
-	public void fallproofSpiders(SpiderLightPassivationEvent evt) {
+	public void spidersAlwaysHostile(SpiderLightPassivationEvent evt) {
 		if (evt.spider.getEntityData().getBoolean("slugspawn")) {
 			evt.threshold = Float.POSITIVE_INFINITY;
 		}
@@ -277,8 +277,8 @@ public class SFEvents {
 				//ReikaJavaLibrary.pConsole(evt.list.get(0).entityClass+" @ "+evt.world.getTotalWorldTime());
 			}
 			else {
-				int wt = 10+evt.world.skylightSubtracted*2; //gives range of 10 in day to 32 in night //evt.world.isDaytime() ? 10 : 25;
-				evt.list.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, wt, 1, 2));
+				int wt = 5+evt.world.skylightSubtracted*15/11; //gives range of 5 in day to 20 in night
+				evt.list.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, wt, 1, 1));
 			}
 		}
 	}

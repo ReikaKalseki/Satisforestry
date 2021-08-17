@@ -24,9 +24,10 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
-import Reika.Satisforestry.MinerStructure;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Blocks.TileNodeHarvester.TileNodeHarvesterRC;
+import Reika.Satisforestry.Miner.MinerStructure;
+import Reika.Satisforestry.Miner.TileNodeHarvester;
+import Reika.Satisforestry.Miner.TileNodeHarvester.TileNodeHarvesterRC;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 import cofh.api.energy.IEnergyReceiver;

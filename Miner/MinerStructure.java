@@ -1,4 +1,4 @@
-package Reika.Satisforestry;
+package Reika.Satisforestry.Miner;
 
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;

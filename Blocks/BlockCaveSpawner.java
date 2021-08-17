@@ -147,7 +147,8 @@ public class BlockCaveSpawner extends BlockContainer {
 			NBT.setInteger("activeRadius", activeRadius);
 			NBT.setInteger("spawnRadius", spawnRadius);
 
-			NBT.setBoolean("spawned", hasSpawned);
+			if (this.preserveSpawnedFlag())
+				NBT.setBoolean("spawned", hasSpawned);
 
 			if (mobType != null) {
 				NBT.setString("mob", mobType);
@@ -164,7 +165,8 @@ public class BlockCaveSpawner extends BlockContainer {
 			activeRadius = NBT.getInteger("activeRadius");
 			spawnRadius = NBT.getInteger("spawnRadius");
 
-			hasSpawned = NBT.getBoolean("spawned");
+			if (this.preserveSpawnedFlag())
+				hasSpawned = NBT.getBoolean("spawned");
 
 			mobType = NBT.hasKey("mob") ? NBT.getString("mob") : null;
 			if (mobType != null) {
@@ -175,6 +177,10 @@ public class BlockCaveSpawner extends BlockContainer {
 					e.printStackTrace();
 				}
 			}
+		}
+
+		protected boolean preserveSpawnedFlag() {
+			return true;
 		}
 
 		@Override

@@ -1,4 +1,4 @@
-package Reika.Satisforestry;
+package Reika.Satisforestry.Miner;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ICrafting;
@@ -6,28 +6,23 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 
 import Reika.DragonAPI.Base.CoreContainer;
-import Reika.DragonAPI.Instantiable.BasicInventory;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
-import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
-import Reika.Satisforestry.Blocks.TileNodeHarvester;
 
 
 public class ContainerSFMiner extends CoreContainer {
 
 	private final TileNodeHarvester tile;
 
-	private final OverclockingInvDelegate clock;
-
 	public ContainerSFMiner(EntityPlayer player, TileNodeHarvester te) {
 		super(player, te, te.getOutput());
 		tile = te;
-		clock = new OverclockingInvDelegate(te);
 
 		this.addSlotNoClick(0, 80, 55);
 
-		this.addSlotToContainer(new OverclockSlot(clock, 1, 80, 104));
-		this.addSlotToContainer(new OverclockSlot(clock, 2, 105, 104));
-		this.addSlotToContainer(new OverclockSlot(clock, 3, 130, 104));
+		OverclockingInv clock = te.getOverClockingHandler();
+		this.addSlotToContainer(new OverclockSlot(clock, 0, 80, 104));
+		this.addSlotToContainer(new OverclockSlot(clock, 1, 105, 104));
+		this.addSlotToContainer(new OverclockSlot(clock, 2, 130, 104));
 
 		this.addPlayerInventoryWithOffset(player, 0, 53);
 	}
@@ -69,9 +64,9 @@ public class ContainerSFMiner extends CoreContainer {
 
 	private static class OverclockSlot extends Slot {
 
-		private final OverclockingInvDelegate reference;
+		private final OverclockingInv reference;
 
-		public OverclockSlot(OverclockingInvDelegate ii, int idx, int x, int y) {
+		public OverclockSlot(OverclockingInv ii, int idx, int x, int y) {
 			super(ii, idx, x, y);
 			reference = ii;
 		}
@@ -83,49 +78,11 @@ public class ContainerSFMiner extends CoreContainer {
 
 		@Override
 		public boolean canTakeStack(EntityPlayer ep) {
-			return slotNumber == 3 || reference.getItems()[slotNumber+1] == null;
+			return slotNumber == 2 || reference.getItems()[slotNumber+1] == null;
 		}
 
 	}
 
-	private static class OverclockingInvDelegate extends BasicInventory {
 
-		private final TileNodeHarvester tile;
-
-		public OverclockingInvDelegate(TileNodeHarvester te) {
-			super("Overclock", 4, 1);
-			if (!te.worldObj.isRemote) {
-				ItemStack is = te.getOverclockingItem();
-				int step = te.getOverclockingStep(); //cacche since can change due to onSlotChange
-				for (int i = 0; i <= step; i++)
-					if (i != 0) {
-						this.setInventorySlotContents(i, is);
-					}
-			}
-			tile = te;
-		}
-
-		@Override
-		protected void onSlotChange(int slot) {
-			if (tile != null && tile.worldObj != null && !tile.worldObj.isRemote)
-				this.setOverclockLevels();
-		}
-
-		private void setOverclockLevels() {
-			int lvl = 0;
-			for (int i = 1; i <= 3; i++) {
-				if (this.getItems()[i] != null)
-					lvl++;
-			}
-			tile.setOverclock(lvl);
-			//ReikaJavaLibrary.pConsole(lvl+" from "+Arrays.toString(this.getItems()));
-		}
-
-		@Override
-		public boolean isItemValidForSlot(int slot, ItemStack is) {
-			return (slot == 1 || this.getItems()[slot-1] != null) && ReikaItemHelper.matchStacks(is, tile.getOverclockingItem());
-		}
-
-	}
 
 }

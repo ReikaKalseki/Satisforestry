@@ -1,4 +1,4 @@
-package Reika.Satisforestry;
+package Reika.Satisforestry.Miner;
 
 import org.lwjgl.opengl.GL11;
 
@@ -7,8 +7,8 @@ import net.minecraft.entity.player.EntityPlayer;
 
 import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
+import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
-import Reika.Satisforestry.Blocks.TileNodeHarvester;
 import Reika.Satisforestry.Config.ResourceItem;
 import Reika.Satisforestry.Registry.SFBlocks;
 
@@ -63,6 +63,9 @@ public class GuiSFMiner extends GuiContainer {
 			int w = i == 0 ? 43 : 21;
 			this.drawTexturedModalRect(j+28+dx, k+122, dx, 243, w, 2);
 			dx += w+4;
+			if (i > 0 && tile.getUpgradeSlot(i) == null) {
+				this.drawTexturedModalRect(j+80+25*(i-1), k+104, 79, 220, 16, 16);
+			}
 		}
 
 		ReikaTextureHelper.bindFontTexture();

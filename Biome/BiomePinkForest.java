@@ -77,17 +77,17 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 		spawnableMonsterList.clear();
 
 		//base vanilla mobs, most with 1/4th spawn rates (or 1/3 for creepers and halved for endermen)
-		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityZombie.class, 25, 4, 4));
-		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntitySkeleton.class, 25, 4, 4));
-		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityCreeper.class, 33, 4, 4));
+		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityZombie.class, 25, 2, 3));
+		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntitySkeleton.class, 25, 2, 3));
+		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityCreeper.class, 33, 1, 3));
 		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityEnderman.class, 5, 1, 2));
 		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntitySlime.class, 100, 4, 4));
 
-		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntitySpider.class, 100, 4, 4)); //large stinger stand-in
-		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityCaveSpider.class, 40, 6, 6)); //basic (small) stinger stand-in
+		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntitySpider.class, 60, 1, 3)); //large stinger stand-in
+		spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityCaveSpider.class, 33, 2, 4)); //basic (small) stinger stand-in
 		//removed to add dynamically spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, 15, 1, 2)); //was 50 then 25
 
-		spawnableCreatureList.add(new BiomeGenBase.SpawnListEntry(EntityOcelot.class, 5, 2, 2)); //arachnophobia mode
+		spawnableCreatureList.add(new BiomeGenBase.SpawnListEntry(EntityOcelot.class, 10, 2, 2)); //arachnophobia mode
 	}
 
 	@Override

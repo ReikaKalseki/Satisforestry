@@ -20,7 +20,6 @@ import Reika.DragonAPI.Instantiable.IO.CustomMusic;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaObfuscationHelper;
-import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -32,7 +31,11 @@ public class SFMusic {
 
 	public static final SFMusic instance = new SFMusic();
 
-	private boolean foundPotentiallySupportedFiles = false;
+	private static final String potentialSupportMsg = "This file type can be supported with the use of the NotEnoughCodecs Mod. ";
+	private static final String officialSiteMsg = "The mod can be downloaded from its official CurseForge page: https://www.curseforge.com/minecraft/mc-mods/notenoughcodecs/files";
+	private static final String backportMsg = "To support this file type, you will need a backported version of a modern version for new filetype support: ???";
+
+	private int potentiallySupportedFiles = 0;
 	private boolean requiresBackportedNEC = false;
 
 	private SFMusicEntry currentMusic;
@@ -40,15 +43,15 @@ public class SFMusic {
 	private SFMusic() {
 
 	}
-
-	public void loadCodecs() {/*
+	/*
+	public void loadCodecs() {
 		try {
 			SoundSystemConfig.setCodec("mp3", CodecJLayerMP3.class);
 		}
 		catch (SoundSystemException e) {
 			throw new RegistrationException(Satisforestry.instance, "Could not register music codecs!", e);
-		}*/
-	}
+		}
+	}*/
 
 	public void loadMusic(String path) {
 		File folder = new File(path);
@@ -70,6 +73,15 @@ public class SFMusic {
 			}
 			else {
 				Satisforestry.logger.log("Finished loading "+amt+" tracks.");
+			}
+
+			if (potentiallySupportedFiles > 0) {
+				String msg = potentiallySupportedFiles+" SF OST files were not a supported type, but can be loaded with the NotEnoughCodecs Mod.";
+				if (requiresBackportedNEC) {
+					msg = msg+" To support their file type, you will need a backported copy of a modern version.";
+				}
+				msg = msg+" See the log file for more information.";
+				PopupWriter.instance.addMessage(msg);
 			}
 		}
 		else {
@@ -102,19 +114,18 @@ public class SFMusic {
 			else {
 				Satisforestry.logger.logError("Track "+f+" is not a recognized audio file!");
 				if (type == MusicSupport.MP3 || type == MusicSupport.FLAC) {
+					potentiallySupportedFiles++;
 					boolean official = type == MusicSupport.MP3 || !MinecraftForge.MC_VERSION.startsWith("1.7");
-					String msg = "this file type can be supported with the use of the NotEnoughCodecs Mod. ";
+					if (!official)
+						requiresBackportedNEC = true;
+					String msg = potentialSupportMsg;
 					if (official) {
-						msg = msg+" The mod can be downloaded from its official CurseForge page: https://www.curseforge.com/minecraft/mc-mods/notenoughcodecs/files";
+						msg = msg+" "+officialSiteMsg;
 					}
 					else {
-						msg = msg+" To support this file, you will need a backported version of a modern version for new filetype support: ???";
+						msg = msg+" "+backportMsg;
 					}
-					Satisforestry.logger.log(ReikaStringParser.capFirstChar(msg));
-					PopupWriter.instance.addMessage("SF OST file "+f.getName()+" was not a supported type, but "+msg);
-				}
-				else {
-					//PopupWriter.instance.addMessage("SF OST file "+f.getName()+" was not a supported type.");
+					Satisforestry.logger.log(msg);
 				}
 			}
 		}

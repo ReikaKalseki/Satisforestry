@@ -12,7 +12,7 @@ import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Blocks.TileNodeHarvester;
+import Reika.Satisforestry.Miner.TileNodeHarvester;
 
 
 public class SFMinerRenderer extends TileEntityRenderBase {

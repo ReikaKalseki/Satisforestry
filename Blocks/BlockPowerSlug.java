@@ -340,6 +340,11 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 			e.getEntityData().setBoolean("slugspawn", true);
 		}
 
+		@Override
+		protected boolean preserveSpawnedFlag() {
+			return false;
+		}
+
 		public int getTier() {
 			return tier;
 		}

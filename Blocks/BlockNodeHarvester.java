@@ -11,9 +11,9 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Base.BlockTEBase;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Blocks.TileNodeHarvester.TileNodeHarvesterEU;
-import Reika.Satisforestry.Blocks.TileNodeHarvester.TileNodeHarvesterRC;
-import Reika.Satisforestry.Blocks.TileNodeHarvester.TileNodeHarvesterRF;
+import Reika.Satisforestry.Miner.TileNodeHarvester.TileNodeHarvesterEU;
+import Reika.Satisforestry.Miner.TileNodeHarvester.TileNodeHarvesterRC;
+import Reika.Satisforestry.Miner.TileNodeHarvester.TileNodeHarvesterRF;
 
 public class BlockNodeHarvester extends BlockTEBase {
 

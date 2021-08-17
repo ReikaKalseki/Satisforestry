@@ -13,7 +13,9 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
-import Reika.Satisforestry.Blocks.TileNodeHarvester;
+import Reika.Satisforestry.Miner.ContainerSFMiner;
+import Reika.Satisforestry.Miner.GuiSFMiner;
+import Reika.Satisforestry.Miner.TileNodeHarvester;
 
 import cpw.mods.fml.common.network.IGuiHandler;
 

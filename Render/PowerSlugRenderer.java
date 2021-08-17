@@ -113,6 +113,7 @@ public class PowerSlugRenderer extends TileEntitySpecialRenderer {
 					SFShaders.SLUG.getShader().modifyLastCompoundFocus(f, map);
 					SFShaders.SLUG.getShader().setEnabled(true);
 					SFShaders.SLUG.setIntensity(Math.max(SFShaders.SLUG.getIntensity(), f));
+					SFShaders.SLUG.clearOnRender = true;
 				}
 			}
 		}

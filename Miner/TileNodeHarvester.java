@@ -1,4 +1,4 @@
-package Reika.Satisforestry.Blocks;
+package Reika.Satisforestry.Miner;
 
 import java.util.ArrayList;
 
@@ -59,7 +59,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 	public float progressFactor;
 	public float powerBar;
 
-	private int overclockLevel;
+	private OverclockingInv overclock;
 
 	private int runSoundTick;
 
@@ -116,6 +116,10 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		private MachineState(int c) {
 			color = c;
 		}
+	}
+
+	public TileNodeHarvester() {
+		overclock = new OverclockingInv(this);
 	}
 
 	public MachineState getState() {
@@ -313,12 +317,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 	}
 
 	public final int getOverclockingStep() {
-		return overclockLevel;
-	}
-
-	public final void setOverclock(int level) {
-		overclockLevel = level;
-		this.syncAllData(false);
+		return overclock.getOverclockingLevel();
 	}
 
 	public final float getOverclockingLevel() {
@@ -354,6 +353,14 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		this.updateInputs(false);
 	}
 
+	public final ItemStack getUpgradeSlot(int slot) {
+		return overclock.getStackInSlot(slot-1);
+	}
+
+	public final OverclockingInv getOverClockingHandler() {
+		return overclock;
+	}
+
 	@Override
 	protected void writeSyncTag(NBTTagCompound NBT) {
 		super.writeSyncTag(NBT);
@@ -361,11 +368,12 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		NBT.setInteger("activity", activityTimer);
 		NBT.setInteger("operation", operationTimer);
 		NBT.setInteger("structure", structureDir != null ? structureDir.ordinal() : -1);
-		NBT.setInteger("overclock", overclockLevel);
 
 		NBT.setInteger("spool", spoolTime);
 		NBT.setInteger("spoolState", spoolState.ordinal());
 		NBT.setInteger("state", state.ordinal());
+
+		overclock.writeToNBT(NBT, "overclock");
 	}
 
 	@Override
@@ -376,7 +384,8 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		operationTimer = NBT.getInteger("operation");
 		int struct = NBT.getInteger("structure");
 		structureDir = struct == -1 ? null : dirs[struct];
-		overclockLevel = NBT.getInteger("overclock");
+
+		overclock.readFromNBT(NBT, "overclock");
 
 		spoolTime = NBT.getInteger("spool");
 		spoolState = SpoolingStates.list[NBT.getInteger("spoolState")];
@@ -433,6 +442,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		private long energy;
 
 		protected TileNodeHarvesterBasicEnergy(long c, long m, long f, long s) {
+			super();
 			energyPerCycle = c;
 			maxEnergy = m;
 			maxFlowRate = f;
