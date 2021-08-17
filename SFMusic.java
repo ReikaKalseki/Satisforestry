@@ -10,14 +10,17 @@ import org.lwjgl.input.Keyboard;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.world.World;
+import net.minecraftforge.common.MinecraftForge;
 
 import Reika.DragonAPI.DragonAPICore;
+import Reika.DragonAPI.Auxiliary.PopupWriter;
 import Reika.DragonAPI.Exception.InstallationException;
 import Reika.DragonAPI.IO.DirectResourceManager;
 import Reika.DragonAPI.Instantiable.IO.CustomMusic;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaObfuscationHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -29,10 +32,22 @@ public class SFMusic {
 
 	public static final SFMusic instance = new SFMusic();
 
+	private boolean foundPotentiallySupportedFiles = false;
+	private boolean requiresBackportedNEC = false;
+
 	private SFMusicEntry currentMusic;
 
 	private SFMusic() {
 
+	}
+
+	public void loadCodecs() {/*
+		try {
+			SoundSystemConfig.setCodec("mp3", CodecJLayerMP3.class);
+		}
+		catch (SoundSystemException e) {
+			throw new RegistrationException(Satisforestry.instance, "Could not register music codecs!", e);
+		}*/
 	}
 
 	public void loadMusic(String path) {
@@ -67,32 +82,56 @@ public class SFMusic {
 		for (File f : f0.listFiles()) {
 			if (f.isDirectory()) {
 				ret += this.loadTracks(f, set);
+				continue;
 			}
-			else if (this.isMusicFile(f)) {
-				ret++;
-				for (DayQuadrant d : set) {
-					try {
-						d.addTrack(f);
+			MusicSupport type = this.isMusicFile(f);
+			if (type == MusicSupport.SUPPORTED) {
+				try {
+					String path = f.getCanonicalPath();
+					ret++;
+					for (DayQuadrant d : set) {
+						d.addTrack(path);
 						Satisforestry.logger.log("Loaded track "+f+" to time "+d);
 					}
-					catch (IOException e) {
-						Satisforestry.logger.logError("Failed to load track "+f+": ");
-						e.printStackTrace();
-						ret--;
-					}
+				}
+				catch (IOException e) {
+					Satisforestry.logger.logError("Failed to load track "+f+": ");
+					e.printStackTrace();
 				}
 			}
 			else {
-				Satisforestry.logger.logError("Track "+f+" is not a MC audio file!");
+				Satisforestry.logger.logError("Track "+f+" is not a recognized audio file!");
+				if (type == MusicSupport.MP3 || type == MusicSupport.FLAC) {
+					boolean official = type == MusicSupport.MP3 || !MinecraftForge.MC_VERSION.startsWith("1.7");
+					String msg = "this file type can be supported with the use of the NotEnoughCodecs Mod. ";
+					if (official) {
+						msg = msg+" The mod can be downloaded from its official CurseForge page: https://www.curseforge.com/minecraft/mc-mods/notenoughcodecs/files";
+					}
+					else {
+						msg = msg+" To support this file, you will need a backported version of a modern version for new filetype support: ???";
+					}
+					Satisforestry.logger.log(ReikaStringParser.capFirstChar(msg));
+					PopupWriter.instance.addMessage("SF OST file "+f.getName()+" was not a supported type, but "+msg);
+				}
+				else {
+					//PopupWriter.instance.addMessage("SF OST file "+f.getName()+" was not a supported type.");
+				}
 			}
 		}
 		return ret;
 	}
 
-	private boolean isMusicFile(File f) {
+	private MusicSupport isMusicFile(File f) {
 		String n = f.getName();
-		String ext = n.substring(n.lastIndexOf('.')+1);
-		return SoundSystemConfig.getCodec(f.getName()) != null;//ext.equals("ogg")?;// || ext.equals("mp3") || ext.equals("wav");
+		String ext = n.substring(n.lastIndexOf('.')+1).toLowerCase(Locale.ENGLISH);
+		if (SoundSystemConfig.getCodec(f.getName()) != null)
+			return MusicSupport.SUPPORTED;
+		else if (ext.equals("flac"))
+			return MusicSupport.FLAC;
+		else if (ext.equals("mp3"))
+			return MusicSupport.MP3;
+		else
+			return MusicSupport.UNSUPPORTED;
 	}
 
 	public void tickMusicEngine(World world) {
@@ -119,6 +158,13 @@ public class SFMusic {
 	private SFMusicEntry selectTrack(World world) {
 		DayQuadrant dq = DayQuadrant.getByTime(world.getWorldTime());
 		return dq != null ? ReikaJavaLibrary.getRandomListEntry(DragonAPICore.rand, dq.tracks) : null;
+	}
+
+	private static enum MusicSupport {
+		SUPPORTED,
+		MP3,
+		FLAC,
+		UNSUPPORTED;
 	}
 
 	public static enum DayQuadrant {
@@ -174,8 +220,8 @@ public class SFMusic {
 			return null;
 		}
 
-		public void addTrack(File f) throws IOException {
-			SFMusicEntry mus = new SFMusicEntry(f.getCanonicalPath());
+		public void addTrack(String path) throws IOException {
+			SFMusicEntry mus = new SFMusicEntry(path);
 			DirectResourceManager.getInstance().registerCustomPath(mus.path, SFClient.sfCategory, true);
 			tracks.add(mus);
 		}

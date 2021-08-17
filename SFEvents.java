@@ -18,6 +18,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
 import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.client.event.sound.SoundSetupEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
@@ -87,6 +88,12 @@ public class SFEvents {
 
 	private SFEvents() {
 
+	}
+
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void addMusicCodecs(SoundSetupEvent evt) {
+		SFMusic.instance.loadCodecs();
 	}
 
 	@SubscribeEvent(priority=EventPriority.LOWEST)
