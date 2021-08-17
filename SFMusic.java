@@ -19,8 +19,12 @@ import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaObfuscationHelper;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+import paulscode.sound.SoundSystemConfig;
 import paulscode.sound.StreamThread;
 
+@SideOnly(Side.CLIENT)
 public class SFMusic {
 
 	public static final SFMusic instance = new SFMusic();
@@ -88,7 +92,7 @@ public class SFMusic {
 	private boolean isMusicFile(File f) {
 		String n = f.getName();
 		String ext = n.substring(n.lastIndexOf('.')+1);
-		return ext.equals("ogg");// || ext.equals("mp3") || ext.equals("wav");
+		return SoundSystemConfig.getCodec(f.getName()) != null;//ext.equals("ogg")?;// || ext.equals("mp3") || ext.equals("wav");
 	}
 
 	public void tickMusicEngine(World world) {

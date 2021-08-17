@@ -81,6 +81,7 @@ import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import thaumcraft.api.aspects.Aspect;
 
 @Mod( modid = "Satisforestry", name="Satisforestry", version = "v@MAJOR_VERSION@@MINOR_VERSION@", certificateFingerprint = "@GET_FINGERPRINT@", dependencies="required-after:DragonAPI;after:CritterPet;after:RotaryCraft;after:IC2;after:ThermalExpansion")
@@ -206,7 +207,7 @@ public class Satisforestry extends DragonAPIMod {
 		APIObjects.load();
 
 		if (FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT) {
-			MinecraftForge.EVENT_BUS.register(ShaderActivation.instance);
+			this.clientInit();
 		}
 
 		pinkforest = new BiomePinkForest(SFOptions.BIOMEID.getValue());
@@ -219,15 +220,20 @@ public class Satisforestry extends DragonAPIMod {
 
 		this.addRecipes();
 
-		String music = SFOptions.MUSIC.getString();
-		if (!Strings.isNullOrEmpty(music))
-			SFMusic.instance.loadMusic(music);
 
 		//pinkriver = new BiomePinkRiver();
 
 		ReikaRegistryHelper.registerModEntities(instance, SFEntities.entityList);
 
 		this.finishTiming();
+	}
+
+	@SideOnly(Side.CLIENT)
+	private void clientInit() {
+		MinecraftForge.EVENT_BUS.register(ShaderActivation.instance);
+		String music = SFOptions.MUSIC.getString();
+		if (!Strings.isNullOrEmpty(music))
+			SFMusic.instance.loadMusic(music);
 	}
 
 	private void addRecipes() {

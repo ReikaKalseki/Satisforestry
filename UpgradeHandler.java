@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
@@ -189,6 +190,13 @@ public class UpgradeHandler {
 		ItemStack slug = this.getSlugNBT(is);
 		if (slug != null) {
 
+		}
+	}
+
+	public void handleSpawnedItem(EntityItem e) {
+		ItemStack slug = this.getSlugNBT(e.getEntityItem());
+		if (slug != null) {
+			e.setEntityItemStack(slug);
 		}
 	}
 

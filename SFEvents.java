@@ -6,6 +6,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EnumCreatureType;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -17,6 +18,7 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
 import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
@@ -85,6 +87,12 @@ public class SFEvents {
 
 	private SFEvents() {
 
+	}
+
+	@SubscribeEvent(priority=EventPriority.LOWEST)
+	public void slugTooltips(EntityJoinWorldEvent event) {
+		if (event.entity instanceof EntityItem)
+			UpgradeHandler.instance.handleSpawnedItem((EntityItem)event.entity);
 	}
 
 	@SubscribeEvent(priority=EventPriority.LOWEST)

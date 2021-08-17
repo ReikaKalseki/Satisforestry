@@ -21,8 +21,10 @@ import Reika.Satisforestry.Registry.SFShaders;
 
 import cpw.mods.fml.common.eventhandler.EventPriority;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
-
+@SideOnly(Side.CLIENT)
 public class ShaderActivation {
 
 	public static final ShaderActivation instance = new ShaderActivation();
