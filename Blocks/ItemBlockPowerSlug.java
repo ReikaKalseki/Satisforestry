@@ -1,12 +1,20 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.MetadataItemBlock;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.Satisforestry.UpgradeHandler;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 
 public class ItemBlockPowerSlug extends MetadataItemBlock {
@@ -29,6 +37,18 @@ public class ItemBlockPowerSlug extends MetadataItemBlock {
 			te.angle = world.rand.nextFloat()*360;
 		}
 		return flag;
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void addInformation(ItemStack is, EntityPlayer ep, List li, boolean vb) {
+		ArrayList<ItemStack> li2 = UpgradeHandler.instance.getSlugEquivalents(is.getItemDamage()%3);
+		if (!li2.isEmpty()) {
+			li.add("Usable as upgrades:");
+			for (ItemStack is2 : li2) {
+				li.add("  "+is2.getDisplayName()+" ("+ReikaItemHelper.getRegistrantMod(is2)+")");
+			}
+		}
 	}
 
 }

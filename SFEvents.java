@@ -46,6 +46,7 @@ import Reika.DragonAPI.Instantiable.Event.Client.GrassIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.LiquidBlockIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.NightVisionBrightnessEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.PlayMusicEvent;
+import Reika.DragonAPI.Instantiable.Event.Client.RenderCursorStackEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.RenderItemInSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
@@ -86,9 +87,9 @@ public class SFEvents {
 
 	}
 
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void removeSlugs(ItemNameDisplay evt) {
-		UpgradeHandler.instance.takeFromSlot(evt.inventory, evt.slotID, evt.getItem(), evt.player);
+	@SubscribeEvent(priority=EventPriority.LOWEST)
+	public void slugTooltips(ItemTooltipEvent event) {
+		UpgradeHandler.instance.handleTooltips(event.itemStack, event.toolTip);
 	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
@@ -98,13 +99,24 @@ public class SFEvents {
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void addSlugs(InitialClickEvent evt) {
-		UpgradeHandler.instance.addToSlot(evt.inventory, evt.slotID, evt.container, evt.player);
+		if (UpgradeHandler.instance.addToSlot(evt.inventory, evt.slotID, evt.container, evt.player)) {
+			evt.setCanceled(true);
+		}
+	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void renderSlugs(RenderCursorStackEvent evt) {
+		ItemStack is = UpgradeHandler.instance.overrideSlotRender(evt.getItem());
+		if (is != null) {
+			evt.itemToRender = is;
+		}
 	}
 
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void renderSlugs(RenderItemInSlotEvent.Mid evt) {
-		ItemStack is = UpgradeHandler.instance.overrideSlotRender(evt.slot, evt.getItem());
+		ItemStack is = UpgradeHandler.instance.overrideSlotRender(evt.getItem());
 		if (is != null) {
 			evt.itemToRender = is;
 		}

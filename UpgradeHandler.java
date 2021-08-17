@@ -1,9 +1,11 @@
 package Reika.Satisforestry;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 
@@ -49,7 +51,7 @@ public class UpgradeHandler {
 		}
 	}
 
-	public ItemStack overrideSlotRender(Slot s, ItemStack is) {
+	public ItemStack overrideSlotRender(ItemStack is) {
 		ItemStack slug = this.getSlugNBT(is);
 		if (slug != null) {
 			return slug;
@@ -64,11 +66,12 @@ public class UpgradeHandler {
 		return null;
 	}
 
-	public void addToSlot(IInventory ii, int slot, Container c, EntityPlayer ep) {
+	public boolean addToSlot(IInventory ii, int slot, Container c, EntityPlayer ep) {
 		if (ii == null)
-			return;
+			return false;
 		ItemStack is = ep.inventory.getItemStack();
-		if (SFBlocks.SLUG.matchWith(is) && is.stackSize == 1) {
+		ItemStack cache = this.getSlugNBT(is);
+		if (SFBlocks.SLUG.matchWith(is) && is.stackSize == 1 && slot >= 0 && slot < c.inventorySlots.size() && !c.getSlot(slot).getHasStack()) {
 			int tier = is.getItemDamage()%3;
 			ItemStack convert = this.getSlugUpgrade(ii, slot, c, tier);
 			if (convert != null) {
@@ -77,6 +80,13 @@ public class UpgradeHandler {
 				ep.inventory.setItemStack(get);
 			}
 		}
+		else if (is != null && slot >= 0 && slot < c.inventorySlots.size() && SFBlocks.SLUG.matchWith(c.getSlot(slot).getStack())) {
+			return true;
+		}
+		else if (cache != null) {
+			ep.inventory.setItemStack(cache);
+		}
+		return false;
 	}
 
 	private ItemStack getSlugUpgrade(IInventory ii, int slot, Container c, int tier) {
@@ -91,17 +101,30 @@ public class UpgradeHandler {
 			int base = ii instanceof IEnergyProvider ? 80 : 128;
 			base += tier;
 			ItemStack item = ReikaItemHelper.lookupItem("ThermalExpansion:augment:"+base);
-			if (this.containerAccepts(c, slot, item)) {
+			if (item != null && this.containerAccepts(c, slot, item)) {
 				return item;
 			}
 		}
 		if (eioUpgradeable != null && eioUpgradeable.isAssignableFrom(ii.getClass())) {
 			ItemStack item = ReikaItemHelper.lookupItem("EnderIO:itemBasicCapacitor:"+tier);
-			if (this.containerAccepts(c, slot, item) ) {
+			if (item != null && this.containerAccepts(c, slot, item) ) {
 				return item;
 			}
 		}
 		return null;
+	}
+
+	public ArrayList<ItemStack> getSlugEquivalents(int tier) {
+		ArrayList<ItemStack> li = new ArrayList();
+		if (ModList.IC2.isLoaded())
+			li.add(ReikaItemHelper.getSizedItemStack(IC2Handler.IC2Stacks.OVERCLOCK.getItem(), UPGRADE_COUNTS[tier]));
+		if (ModList.THERMALEXPANSION.isLoaded()) {
+			li.add(ReikaItemHelper.lookupItem("ThermalExpansion:augment:"+(80+tier)));
+			li.add(ReikaItemHelper.lookupItem("ThermalExpansion:augment:"+(128+tier)));
+		}
+		if (ModList.ENDERIO.isLoaded())
+			li.add(ReikaItemHelper.lookupItem("EnderIO:itemBasicCapacitor:"+tier));
+		return li;
 	}
 
 	private boolean containerAccepts(Container c, int slot, ItemStack item) {
@@ -115,6 +138,12 @@ public class UpgradeHandler {
 		NBTTagCompound tag = new NBTTagCompound();
 		is.writeToNBT(tag);
 		ret.stackTagCompound.setTag(NBT_KEY, tag);
+		NBTTagCompound tag2 = ret.stackTagCompound.getCompoundTag("display");
+		if (tag2 == null) {
+			tag2 = new NBTTagCompound();
+		}
+		ret.stackTagCompound.setTag("display", tag2);
+		tag2.setString("Name", is.getDisplayName());
 		return ret;
 	}
 
@@ -122,6 +151,13 @@ public class UpgradeHandler {
 		ItemStack slug = this.getSlugNBT(is);
 		if (slug != null) {
 			ep.inventory.setItemStack(slug);
+		}
+	}
+
+	public void handleTooltips(ItemStack is, List<String> li) {
+		ItemStack slug = this.getSlugNBT(is);
+		if (slug != null) {
+
 		}
 	}
 
