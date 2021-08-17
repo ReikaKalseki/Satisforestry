@@ -1,5 +1,6 @@
 package Reika.Satisforestry;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,8 +9,10 @@ import net.minecraft.inventory.Container;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 
 import Reika.DragonAPI.ModList;
+import Reika.DragonAPI.Auxiliary.Trackers.ReflectiveFailureTracker;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.Satisforestry.Registry.SFBlocks;
@@ -26,27 +29,43 @@ public class UpgradeHandler {
 	private static final int[] UPGRADE_COUNTS = {1, 2, 5};
 
 	private Class ic2Upgradeable;
-	//private Class teUpgradeable;
+	private Class teUpgradeable;
+	private Field teContainerTile;
 	private Class eioUpgradeable;
 
 	private UpgradeHandler() {
 		if (ModList.IC2.isLoaded()) {
-			ic2Upgradeable = this.loadClass("ic2.core.upgrade.IUpgradableBlock");
+			ic2Upgradeable = this.loadClass(ModList.IC2, "ic2.core.upgrade.IUpgradableBlock");
 		}
 		if (ModList.ENDERIO.isLoaded()) {
-			eioUpgradeable = this.loadClass("crazypants.enderio.machine.AbstractPoweredMachineEntity");
+			eioUpgradeable = this.loadClass(ModList.ENDERIO, "crazypants.enderio.machine.AbstractPoweredMachineEntity");
 		}
 		if (ModList.THERMALEXPANSION.isLoaded()) {
-			//this.teUpgradeable = this.loadClass("cofh.thermalexpansion.block.TileAugmentable")
+			teUpgradeable = this.loadClass(ModList.THERMALEXPANSION, "cofh.lib.gui.container.IAugmentableContainer");
+			Class c2 = this.loadClass(ModList.THERMALEXPANSION, "cofh.thermalexpansion.gui.container.ContainerTEBase");
+			if (c2 == null) //older version
+				c2 = this.loadClass(ModList.THERMALEXPANSION, "thermalexpansion.gui.container.ContainerTEBase");
+			if (c2 != null) {
+				try {
+					teContainerTile = c2.getDeclaredField("baseTile");
+					teContainerTile.setAccessible(true);
+				}
+				catch (Exception e) {
+					Satisforestry.logger.logError("Could not find TE container tile reference!");
+					ReflectiveFailureTracker.instance.logModReflectiveFailure(ModList.THERMALEXPANSION, e);
+					e.printStackTrace();
+				}
+			}
 		}
 	}
 
-	private Class loadClass(String s) {
+	private Class loadClass(ModList mod, String s) {
 		try {
 			return Class.forName(s);
 		}
 		catch (ClassNotFoundException e) {
 			Satisforestry.logger.logError("Could not find class for upgrade handler: "+s);
+			ReflectiveFailureTracker.instance.logModReflectiveFailure(mod, e);
 			return null;
 		}
 	}
@@ -67,8 +86,6 @@ public class UpgradeHandler {
 	}
 
 	public boolean addToSlot(IInventory ii, int slot, Container c, EntityPlayer ep) {
-		if (ii == null)
-			return false;
 		ItemStack is = ep.inventory.getItemStack();
 		ItemStack cache = this.getSlugNBT(is);
 		if (SFBlocks.SLUG.matchWith(is) && is.stackSize == 1 && slot >= 0 && slot < c.inventorySlots.size() && !c.getSlot(slot).getHasStack()) {
@@ -80,7 +97,7 @@ public class UpgradeHandler {
 				ep.inventory.setItemStack(get);
 			}
 		}
-		else if (is != null && slot >= 0 && slot < c.inventorySlots.size() && SFBlocks.SLUG.matchWith(c.getSlot(slot).getStack())) {
+		else if (is != null && slot >= 0 && slot < c.inventorySlots.size() && this.getSlugNBT(c.getSlot(slot).getStack()) != null) {
 			return true;
 		}
 		else if (cache != null) {
@@ -89,15 +106,17 @@ public class UpgradeHandler {
 		return false;
 	}
 
-	private ItemStack getSlugUpgrade(IInventory ii, int slot, Container c, int tier) {
-		if (ic2Upgradeable != null && ic2Upgradeable.isAssignableFrom(ii.getClass())) {
+	private ItemStack getSlugUpgrade(Object ii, int slot, Container c, int tier) {
+		if (ii != null && ic2Upgradeable != null && ic2Upgradeable.isAssignableFrom(ii.getClass())) {
 			if (slot >= 36) //ic2 containers put player inv first
 				slot -= 36;
 			if (this.containerAccepts(c, slot, IC2Handler.IC2Stacks.OVERCLOCK.getItem())) {
 				return ReikaItemHelper.getSizedItemStack(IC2Handler.IC2Stacks.OVERCLOCK.getItem(), UPGRADE_COUNTS[tier]);
 			}
 		}
-		if (ii instanceof IAugmentable) {
+		if (ii instanceof IAugmentable || (teUpgradeable != null && teUpgradeable.isAssignableFrom(c.getClass()))) {
+			if (ii == null)
+				ii = this.getTileForTEContainer(c);
 			int base = ii instanceof IEnergyProvider ? 80 : 128;
 			base += tier;
 			ItemStack item = ReikaItemHelper.lookupItem("ThermalExpansion:augment:"+base);
@@ -105,13 +124,25 @@ public class UpgradeHandler {
 				return item;
 			}
 		}
-		if (eioUpgradeable != null && eioUpgradeable.isAssignableFrom(ii.getClass())) {
+		if (ii != null && eioUpgradeable != null && eioUpgradeable.isAssignableFrom(ii.getClass())) {
 			ItemStack item = ReikaItemHelper.lookupItem("EnderIO:itemBasicCapacitor:"+tier);
 			if (item != null && this.containerAccepts(c, slot, item) ) {
 				return item;
 			}
 		}
 		return null;
+	}
+
+	private TileEntity getTileForTEContainer(Container c) {
+		if (teContainerTile == null)
+			return null;
+		try {
+			return (TileEntity)teContainerTile.get(c);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	public ArrayList<ItemStack> getSlugEquivalents(int tier) {
