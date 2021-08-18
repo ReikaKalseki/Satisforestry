@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
+import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -35,7 +36,7 @@ import Reika.Satisforestry.Render.EntitySlugStreak;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BlockPowerSlug extends BlockContainer implements Submergeable {
+public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, Submergeable {
 
 	private static final float width = 6/16F;
 	private static final float length = 14/16F;
@@ -191,7 +192,6 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 			TilePowerSlug te = (TilePowerSlug)world.getTileEntity(x, y, z);
 			te.angle = world.rand.nextFloat()*360;
 			//te.setMobType(getMobTypeForTier(tier));
-			te.mobLimit = 3;
 			return te;
 		}
 		return null;
@@ -214,9 +214,7 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 
 		public TilePowerSlugInert() {
 			super(0);
-			this.setMobType(null);
-			mobLimit = 0;
-			activeRadius = 0;
+			this.setNoSpawns();
 		}
 
 		@Override
@@ -244,10 +242,7 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 
 		public TilePowerSlug(int meta) {
 			tier = meta;
-			respawnTime = 2400; //2 min
-			mobLimit = 3;
-			activeRadius = 8;
-			spawnRadius = 6;
+			this.setSpawnParameters(EntityCaveSpider.class, 3, 8, 6);
 		}
 
 		@Override
@@ -312,11 +307,13 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 			}
 		}
 
+		@Override
+		protected boolean isEmptyTimeoutActive(World world) {
+			return false;
+		}
+
 		public final void setSingleStrongEnemy(Class<? extends EntityMob> c, float boost) {
-			mobLimit = 1;
-			activeRadius = 12;
-			spawnRadius = 2;
-			this.setMobType(c);
+			this.setSpawnParameters(c, 1, 12, 2);
 			healthBuff = boost;
 		}
 
@@ -325,9 +322,7 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 		}
 
 		public final void setNoSpawns() {
-			mobLimit = 0;
-			activeRadius = 0;
-			this.setMobType(null);
+			this.setSpawnParameters(null, 0, 0, 0);
 		}
 
 		@Override
@@ -338,11 +333,6 @@ public class BlockPowerSlug extends BlockContainer implements Submergeable {
 				e.getEntityAttribute(SharedMonsterAttributes.maxHealth).applyModifier(m);
 			}
 			e.getEntityData().setBoolean("slugspawn", true);
-		}
-
-		@Override
-		protected boolean preserveSpawnedFlag() {
-			return false;
 		}
 
 		public int getTier() {

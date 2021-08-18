@@ -20,6 +20,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Extras.IconPrefabs;
+import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.ReikaEntityHelper.ClassEntitySelector;
@@ -31,17 +32,20 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaVectorHelper;
 import Reika.ReactorCraft.API.RadiationHandler;
 import Reika.Satisforestry.SFPacketHandler.PacketInfo;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFShaders;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class EntityEliteStinger extends EntitySpider {
+public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity {
 
 	private static final int POISON_DURATION = 150;
 	private static final int POISON_MAX_RATE = 500;
 	private static final int JUMP_MAX_RATE = 60;//100;
+
+	private WorldLocation spawnPoint;
 
 	private int poisonGasTick;
 	private int poisonGasCooldown;
@@ -59,6 +63,20 @@ public class EntityEliteStinger extends EntitySpider {
 		dataWatcher.addObject(18, 0F);
 		dataWatcher.addObject(19, 0F);
 		dataWatcher.addObject(20, 0);
+	}
+
+	public void setSpawn(WorldLocation loc) {
+		spawnPoint = loc;
+	}
+
+	public WorldLocation getSpawn() {
+		return spawnPoint;
+	}
+
+	@Override
+	public void setDead() {
+		super.setDead();
+		PointSpawnSystem.instance.onEntityRemoved(this);
 	}
 
 	@Override
@@ -307,6 +325,8 @@ public class EntityEliteStinger extends EntitySpider {
 	public void readEntityFromNBT(NBTTagCompound NBT) {
 		super.readEntityFromNBT(NBT);
 
+		spawnPoint = WorldLocation.readFromNBT("spawnLocation", NBT);
+
 		poisonGasTick = NBT.getInteger("gastime");
 		poisonGasCooldown = NBT.getInteger("gascool");
 		jumpCooldown = NBT.getInteger("jumpcool");
@@ -315,6 +335,9 @@ public class EntityEliteStinger extends EntitySpider {
 	@Override
 	public void writeEntityToNBT(NBTTagCompound NBT) {
 		super.writeEntityToNBT(NBT);
+
+		if (spawnPoint != null)
+			spawnPoint.writeToNBT("spawnLocation", NBT);
 
 		NBT.setInteger("gastime", poisonGasTick);
 		NBT.setInteger("gascool", poisonGasCooldown);

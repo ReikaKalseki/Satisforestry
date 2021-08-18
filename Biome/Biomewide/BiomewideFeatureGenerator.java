@@ -1,7 +1,6 @@
 package Reika.Satisforestry.Biome.Biomewide;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -14,12 +13,10 @@ import net.minecraft.world.World;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
-import Reika.DragonAPI.Instantiable.Data.Maps.MultiMap;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Biome.PinkForestPersistentData;
-import Reika.Satisforestry.Biome.Biomewide.LizardDoggoSpawner.LizardDoggoSpawnPoint;
 import Reika.Satisforestry.Biome.Biomewide.MantaGenerator.MantaPath;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CachedCave;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CachedTunnel;
@@ -31,7 +28,6 @@ public class BiomewideFeatureGenerator {
 	public static final BiomewideFeatureGenerator instance = new BiomewideFeatureGenerator();
 
 	private final HashMap<WorldLocation, CachedCave> caveNetworks = new HashMap();
-	private final MultiMap<Integer, LizardDoggoSpawnPoint> doggoSpawns = new MultiMap();
 	private final HashMap<WorldLocation, MantaPath> mantaPaths = new HashMap();
 	private final HashSet<Integer> initialized = new HashSet();
 
@@ -41,7 +37,7 @@ public class BiomewideFeatureGenerator {
 
 	public void clearOnUnload() {
 		caveNetworks.clear();
-		doggoSpawns.clear();
+		PointSpawnSystem.instance.clear();
 		mantaPaths.clear();
 		initialized.clear();
 	}
@@ -50,11 +46,7 @@ public class BiomewideFeatureGenerator {
 		initialized.add(world.provider.dimensionId);
 		PinkForestPersistentData.initNetworkData(world);
 		//bf.exportToImage(new File(world.getSaveHandler().getWorldDirectory(), "pinkforest_footprint"));
-		Collection<LizardDoggoSpawnPoint> spawns = LizardDoggoSpawner.instance.createDoggoSpawnPoints(world, bf, rand);
-		for (LizardDoggoSpawnPoint loc : spawns) {
-			doggoSpawns.addValue(loc.location.dimensionID, loc);
-			Satisforestry.logger.log("Doggo spawn locations around "+x+", "+z+": "+spawns);
-		}
+		PointSpawnSystem.instance.createSpawnPoints(world, x, z, bf, rand);
 		MantaPath path = mantaPaths.get(new WorldLocation(world, x, 0, z));
 		if (path == null)
 			path = MantaGenerator.instance.generatePathAroundBiome(world, bf, rand);
@@ -113,19 +105,6 @@ public class BiomewideFeatureGenerator {
 		return mantaPaths.get(loc);
 	}
 
-	public Collection<LizardDoggoSpawnPoint> getDoggoSpawns(World world) {
-		return Collections.unmodifiableCollection(doggoSpawns.get(world.provider.dimensionId));
-	}
-
-	public LizardDoggoSpawnPoint getDoggoSpawnAt(WorldLocation loc) {
-		for (LizardDoggoSpawnPoint spawn : doggoSpawns.get(loc.dimensionID)) {
-			if (spawn.location.equals(loc)) {
-				return spawn;
-			}
-		}
-		return null;
-	}
-
 	public void readFromNBT(NBTTagCompound NBT) {
 		NBTTagList li = NBT.getTagList("caves", NBTTypes.COMPOUND.ID);
 		for (Object o : li.tagList) {
@@ -155,12 +134,12 @@ public class BiomewideFeatureGenerator {
 				mantaPaths.put(path.biomeCenter, path);
 		}
 
-		doggoSpawns.clear();
+		PointSpawnSystem.instance.clear();
+		li = NBT.getTagList("spawnPoints", NBTTypes.COMPOUND.ID);
+		PointSpawnSystem.instance.loadSpawnPoints(li);
 		li = NBT.getTagList("doggoSpawns", NBTTypes.COMPOUND.ID);
-		for (Object o : li.tagList) {
-			NBTTagCompound tag = (NBTTagCompound)o;
-			LizardDoggoSpawnPoint c = LizardDoggoSpawnPoint.readTag(tag);
-			doggoSpawns.addValue(c.location.dimensionID, c);
+		if (li.tagCount() > 0) {
+			PointSpawnSystem.instance.loadLegacyDoggoSpawns(li);
 		}
 	}
 
@@ -192,9 +171,7 @@ public class BiomewideFeatureGenerator {
 		NBT.setTag("mantas", li);
 
 		li = new NBTTagList();
-		for (LizardDoggoSpawnPoint loc : doggoSpawns.allValues(false)) {
-			li.appendTag(loc.writeToTag());
-		}
-		NBT.setTag("doggoSpawns", li);
+		PointSpawnSystem.instance.saveSpawnPoints(li);
+		NBT.setTag("spawnPoints", li);
 	}
 }

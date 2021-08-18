@@ -231,12 +231,9 @@ public class UraniumCave {
 				gen++;
 				//ReikaJavaLibrary.pConsole("Generating ore clump "+ore.id+" @ "+c+" over "+prev);
 
-				TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord-1, c.zCoord, rand);
-				lgc.activeRadius = 10;//8;
-				lgc.spawnRadius = 8;
-				lgc.respawnTime = 20;//12;
-				lgc.mobLimit = 6;
-				lgc.markDirty();
+				TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord-1, c.zCoord);
+				this.setSpawnParameters(lgc, rand, 6, 10, 8); //ar was 8
+				lgc.setInertTimeout(300); //was 12 then 20
 			}
 		}
 
@@ -256,12 +253,9 @@ public class UraniumCave {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, rm.adjacentFloor);
 			while (c.offset(0, -1, 0).softBlock(world) || c.offset(0, -1, 0).getBlock(world) == SFBlocks.CAVESHIELD.getBlockInstance())
 				c = c.offset(0, -1, 0);
-			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord, c.zCoord, rand);
-			lgc.activeRadius = 6;
-			lgc.spawnRadius = 5;
-			lgc.respawnTime = 12;//4;
-			lgc.mobLimit = 4;
-			lgc.markDirty();
+			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord, c.zCoord);
+			this.setSpawnParameters(lgc, rand, 4, 6, 5);
+			lgc.setInertTimeout(300); //was 5 then 12
 
 			/*
 			for (Coordinate c2 : c.getAdjacentCoordinates()) {
@@ -597,24 +591,27 @@ public class UraniumCave {
 		return b == SFBlocks.CAVESHIELD.getBlockInstance() || b == SFBlocks.RESOURCENODE.getBlockInstance() || b == SFBlocks.SPAWNER.getBlockInstance() || b == SFBlocks.GASEMITTER.getBlockInstance();
 	}
 
-	private TileCaveSpawner generateSpawnerAt(World world, int x, int y, int z, Random rand) {
-		return this.generateSpawnerAt(world, x, y, z, rand, null);
-	}
-
-	private TileCaveSpawner generateSpawnerAt(World world, int x, int y, int z, Random rand, Class<? extends EntityMob> mob) {
-		if (mob == null) {
-			caveSpawns.setRNG(rand);
-			SpawnListEntry e = caveSpawns.getRandomEntry();
-			mob = e.entityClass;
-		}
+	private TileCaveSpawner generateSpawnerAt(World world, int x, int y, int z) {
 		world.setBlock(x, y, z, SFBlocks.SPAWNER.getBlockInstance());
 		TileCaveSpawner te = (TileCaveSpawner)world.getTileEntity(x, y, z);
 		if (te == null) {
 			te = new TileCaveSpawner();
 			world.setTileEntity(x, y, z, te);
 		}
-		te.setMobType(mob);
 		return te;
+	}
+
+	private void setSpawnParameters(TileCaveSpawner te, Random rand, int n, int ar, int sr) {
+		this.setSpawnParameters(te, null, n, ar, sr);
+	}
+
+	private void setSpawnParameters(TileCaveSpawner te, Random rand, Class<? extends EntityMob> mob, int n, int ar, int sr) {
+		if (mob == null) {
+			caveSpawns.setRNG(rand);
+			SpawnListEntry e = caveSpawns.getRandomEntry();
+			mob = e.entityClass;
+		}
+		te.setSpawnParameters(mob, n, ar, sr);
 	}
 
 	public SpawnListEntry getRandomSpawn(Random rand) {
@@ -622,7 +619,7 @@ public class UraniumCave {
 		return caveSpawns.getRandomEntry();
 	}
 
-	private static class Tunnel extends UraniumCavePiece {
+	private class Tunnel extends UraniumCavePiece {
 
 		private final Coordinate endpoint;
 		private final CentralCave cave;
@@ -770,12 +767,9 @@ public class UraniumCave {
 					c = below;
 					below = c.offset(0, -1, 0);
 				}
-				TileCaveSpawner lgc = instance.generateSpawnerAt(world, below.xCoord, below.yCoord, below.zCoord, rand, EntityCaveSpider.class);
-				lgc.activeRadius = isToBiomeEdge ? 12 : 8;
-				lgc.spawnRadius = 3;
-				lgc.respawnTime = isToBiomeEdge ? 15 : 9;
-				lgc.mobLimit = isToBiomeEdge ? 3 : 5;
-				lgc.markDirty();
+				TileCaveSpawner lgc = instance.generateSpawnerAt(world, below.xCoord, below.yCoord, below.zCoord);
+				UraniumCave.this.setSpawnParameters(lgc, rand, EntityCaveSpider.class, isToBiomeEdge ? 3 : 5, isToBiomeEdge ? 12 : 8, 3);
+				lgc.setInertTimeout(isToBiomeEdge ? 150 : 600);//was isToBiomeEdge ? 15 : 9;
 
 				OreClusterType ore = (isToBiomeEdge ? OreSpawnLocation.CAVE_ENTRY_TUNNEL : OreSpawnLocation.CAVE_NODE_TUNNEL).getRandomOreSpawn();
 

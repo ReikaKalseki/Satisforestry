@@ -5,6 +5,7 @@ import java.util.Iterator;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntitySpider;
@@ -19,6 +20,7 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
@@ -60,7 +62,8 @@ import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.CaveNightvisionHandler;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
-import Reika.Satisforestry.Biome.Biomewide.LizardDoggoSpawner.LizardDoggoSpawnPoint;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkRiver;
 import Reika.Satisforestry.Biome.Generator.WorldGenUraniumCave;
@@ -88,6 +91,16 @@ public class SFEvents {
 
 	private SFEvents() {
 
+	}
+
+	@SubscribeEvent
+	public void deactivateSpawner(LivingDeathEvent evt) {
+		if (evt.source.getEntity() instanceof EntityPlayer && evt.entityLiving instanceof EntityLiving) {
+			SpawnPoint p = PointSpawnSystem.instance.getSpawn((EntityLiving)evt.entityLiving);
+			if (p != null) {
+				PointSpawnSystem.instance.tagEntityAsKilled((EntityLiving)evt.entityLiving);
+			}
+		}
 	}
 	/*
 	@SubscribeEvent
@@ -294,13 +307,7 @@ public class SFEvents {
 	@SubscribeEvent
 	public void spawnLizardDoggos(LivingUpdateEvent evt) {
 		if (evt.entityLiving instanceof EntityPlayer && !evt.entityLiving.worldObj.isRemote) {
-			EntityPlayer ep = (EntityPlayer)evt.entityLiving;
-			long time = evt.entityLiving.worldObj.getTotalWorldTime();
-			if (time%10 == 0 && Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ))) {
-				for (LizardDoggoSpawnPoint loc : BiomewideFeatureGenerator.instance.getDoggoSpawns(ep.worldObj)) {
-					loc.tick(ep.worldObj, ep);
-				}
-			}
+			PointSpawnSystem.instance.tick((EntityPlayer)evt.entityLiving);
 		}
 	}
 

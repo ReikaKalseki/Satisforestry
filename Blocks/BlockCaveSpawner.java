@@ -1,34 +1,28 @@
 package Reika.Satisforestry.Blocks;
 
-import java.util.List;
-
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
-import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySpider;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
-import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
-import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
 import Reika.Satisforestry.Registry.SFBlocks;
-import Reika.Satisforestry.Registry.SFOptions;
 
-public class BlockCaveSpawner extends BlockContainer {
+public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock {
 
 	public BlockCaveSpawner(Material mat) {
 		super(mat);
@@ -52,135 +46,141 @@ public class BlockCaveSpawner extends BlockContainer {
 		blockIcon = ico.registerIcon("satisforestry:cavespawner");
 	}
 
-	public static class TileCaveSpawner extends TileEntity {
+	private static class TileSpawnPoint extends SpawnPoint {
 
-		public int activeRadius = 6;
-		public int spawnRadius = 6;
-		public int mobLimit = 6;
-		public int respawnTime = 0;
+		private TileCaveSpawner tile;
 
-		private boolean hasSpawned;
-
-		private String mobType;
-		private Class mobClass;
-
-		private AxisAlignedBB activeArea;
-		private AxisAlignedBB checkArea;
-
-		public TileCaveSpawner() {
-			this.setMobType(EntitySpider.class);
+		protected TileSpawnPoint(TileCaveSpawner t) {
+			super(null);
+			tile = t;
 		}
 
-		public void setMobType(Class<? extends EntityMob> c) {
-			mobClass = c;
-			mobType = c == null ? null : (String)EntityList.classToStringMapping.get(c);
+		@Override
+		protected WorldLocation getLocation() {
+			return new WorldLocation(tile);
+		}
+
+		@Override
+		protected int getDimension() {
+			return tile.worldObj.provider.dimensionId;
+		}
+
+		private void tick(World world) {
+			this.tick(world, null);
+		}
+
+		@Override
+		protected EntityLiving getSpawn(World world, int cx, int cy, int cz) {
+			double x = ReikaRandomHelper.getRandomBetween(cx+0.5-tile.spawnRadius, cx+0.5+tile.spawnRadius);
+			double z = ReikaRandomHelper.getRandomBetween(cz+0.5-tile.spawnRadius, cz+0.5+tile.spawnRadius);
+			EntityMob e = (EntityMob)this.constructEntity(world);
+			e.setLocationAndAngles(x, cy, z, 0, 0);
+			return e;
+		}
+
+		@Override
+		protected void onEntitySpawned(EntityLiving e) {
+			tile.onSpawnEntity((EntityMob)e);
+		}
+
+		@Override
+		protected void delete() {
+
+		}
+
+		@Override
+		protected boolean isEmptyTimeoutActive(World world) {
+			return tile.isEmptyTimeoutActive(world);
+		}
+
+	}
+
+	public static class TileCaveSpawner extends TileEntity implements PointSpawnTile {
+
+		private TileSpawnPoint spawner;
+
+		private double spawnRadius = 6;
+
+		public TileCaveSpawner() {
+			this.setSpawnParameters(EntitySpider.class, 6, 6, 6);
+		}
+
+		public final SpawnPoint getSpawner() {
+			return spawner;
+		}
+
+		public final void setSpawnParameters(int n, double ar, double sr) {
+			this.setSpawnParameters(this.getSpawnType(), n, ar, sr);
+		}
+
+		public final void setSpawnParameters(Class<? extends EntityMob> c, int n, double ar, double sr) {
+			if (spawner == null && c != null && n > 0) {
+				this.createSpawner();
+			}
+			spawnRadius = sr;
+			if (c == null || n <= 0)
+				spawner = null;
+			else
+				spawner.setSpawnParameters(c, n, ar);
 			this.markDirty();
+		}
+
+		public final void setInertTimeout(int ticks) {
+			if (spawner != null) {
+				spawner.setEmptyTimeout(ticks);
+				this.markDirty();
+			}
+		}
+
+		protected boolean isEmptyTimeoutActive(World world) {
+			return true;
+		}
+
+		private void createSpawner() {
+			spawner = new TileSpawnPoint(this);
+		}
+
+		private final Class<? extends EntityMob> getSpawnType() {
+			return spawner != null ? (Class<? extends EntityMob>)spawner.getSpawnType() : null;
 		}
 
 		@Override
 		public void updateEntity() {
 			if (worldObj.difficultySetting == EnumDifficulty.PEACEFUL)
 				return;
-			if (mobType == null)
+			if (spawner == null)
 				return;
-			activeArea = ReikaAABBHelper.getBlockAABB(this).expand(activeRadius, 1, activeRadius).addCoord(0, 3, 0);
-			checkArea = activeArea.expand(activeRadius*1.5+1, 2, activeRadius*1.5+1);
-			boolean player = false;
-			for (EntityPlayer ep : (List<EntityPlayer>)worldObj.playerEntities) {
-				if (ep.boundingBox.intersectsWith(activeArea)) {
-					player = true;
-					break;
-				}
-			}
-			if (!worldObj.isRemote && player && (!hasSpawned || worldObj.rand.nextInt(5+2*respawnTime*respawnTime/SFOptions.CAVEMOBS.getValue()) == 0)) {
-				List<EntityMob> li = worldObj.getEntitiesWithinAABB(mobClass, checkArea);
-				//ReikaJavaLibrary.pConsole(li);
-				int lim = MathHelper.ceiling_double_int(mobLimit*SFOptions.CAVEMOBS.getValue());
-				if (li.size() < lim) {
-					int add = hasSpawned ? lim-li.size() : 1;
-					hasSpawned = this.trySpawnMobs(add) >= Math.max(1, add/2);
-					//ReikaJavaLibrary.pConsole("Spawn @ "+xCoord+", "+yCoord+", "+zCoord);
-				}
-			}
-		}
-
-		private int trySpawnMobs(int n) {
-			int ret = 0;
-			int i = 0;
-			while (ret < n && i < n*3) {
-				i++;
-				double x = ReikaRandomHelper.getRandomBetween(activeArea.minX, activeArea.maxX);
-				double z = ReikaRandomHelper.getRandomBetween(activeArea.minZ, activeArea.maxZ);
-				EntityMob e = (EntityMob)EntityList.createEntityByName(mobType, worldObj);
-				for (double y = yCoord; y <= activeArea.maxY; y += 0.5) {
-					if (new Coordinate(x, y, z).isEmpty(worldObj)) {
-						e.setLocationAndAngles(x, y, z, 0, 0);
-						if (e.getCanSpawnHere()) {
-							e.rotationYaw = worldObj.rand.nextFloat()*360;
-							//e.onSpawnWithEgg((IEntityLivingData)null); no jockeys or potions
-							this.onSpawnEntity(e);
-							worldObj.spawnEntityInWorld(e);
-
-							//this.worldObj.playAuxSFX(2004, xCoord, yCoord, zCoord, 0);
-
-							e.spawnExplosionParticle();
-
-							ret++;
-							break;
-						}
-					}
-				}
-			}
-			return ret;
+			spawner.tick(worldObj);
 		}
 
 		protected void onSpawnEntity(EntityMob e) {
-			e.getEntityData().setBoolean("pinkforestspawn", true);
+			e.getEntityData().setBoolean("pinkforestspawned", true);
 		}
 
 		@Override
 		public void writeToNBT(NBTTagCompound NBT) {
 			super.writeToNBT(NBT);
 
-			NBT.setInteger("limit", mobLimit);
-			NBT.setInteger("delay", respawnTime);
-			NBT.setInteger("activeRadius", activeRadius);
-			NBT.setInteger("spawnRadius", spawnRadius);
-
-			if (this.preserveSpawnedFlag())
-				NBT.setBoolean("spawned", hasSpawned);
-
-			if (mobType != null) {
-				NBT.setString("mob", mobType);
-				NBT.setString("type", mobClass.getName());
+			if (spawner != null) {
+				NBTTagCompound tag = new NBTTagCompound();
+				spawner.writeToTag(tag);
+				NBT.setTag("spawner", tag);
 			}
+
+			NBT.setDouble("spawnRadius", spawnRadius);
 		}
 
 		@Override
 		public void readFromNBT(NBTTagCompound NBT) {
 			super.readFromNBT(NBT);
 
-			mobLimit = NBT.getInteger("limit");
-			respawnTime = NBT.getInteger("delay");
-			activeRadius = NBT.getInteger("activeRadius");
-			spawnRadius = NBT.getInteger("spawnRadius");
-
-			if (this.preserveSpawnedFlag())
-				hasSpawned = NBT.getBoolean("spawned");
-
-			mobType = NBT.hasKey("mob") ? NBT.getString("mob") : null;
-			if (mobType != null) {
-				try {
-					mobClass = Class.forName(NBT.getString("type"));
-				}
-				catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
+			if (NBT.hasKey("spawner")) {
+				NBTTagCompound tag = NBT.getCompoundTag("spawner");
+				TileSpawnPoint pt = new TileSpawnPoint(this);
+				pt.readFromTag(tag);
 			}
-		}
 
-		protected boolean preserveSpawnedFlag() {
-			return true;
+			spawnRadius = NBT.getDouble("spawnRadius");
 		}
 
 		@Override

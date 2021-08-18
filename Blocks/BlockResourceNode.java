@@ -45,7 +45,7 @@ import mcp.mobius.waila.api.IWailaDataProvider;
 import vazkii.botania.api.mana.ILaputaImmobile;
 
 @Strippable(value = {"mcp.mobius.waila.api.IWailaDataProvider", "framesapi.IMoveCheck", "vazkii.botania.api.mana.ILaputaImmobile"})
-public class BlockResourceNode extends BlockContainer implements IWailaDataProvider, IMoveCheck, ILaputaImmobile {
+public class BlockResourceNode extends BlockContainer implements PointSpawnBlock, IWailaDataProvider, IMoveCheck, ILaputaImmobile {
 
 	private static IIcon crystalIcon;
 	private static IIcon overlayIcon;
@@ -163,16 +163,11 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 		//private int simpleAutoOutputTimer = purity.getCountdown();
 
 		public TileResourceNode() {
-			this.initSpawner();
+			this.initSpawner(1);
 		}
 
-		private void initSpawner() {
-			activeRadius = 5;
-			spawnRadius = 3;
-			mobLimit = 2;
-			respawnTime = 50;
-
-			this.setMobType(EntityEliteStinger.class);
+		private void initSpawner(int n) {
+			this.setSpawnParameters(EntityEliteStinger.class, n, 5, 3);
 		}
 
 		public void generate(Random rand) {
@@ -184,7 +179,7 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 			resourceSet.setRNG(rand);
 			resource = resourceSet.getRandomEntry();
 			purity = resource.getRandomPurity(rand);
-			this.initSpawner();
+			this.initSpawner(purity == Purity.PURE ? 2 : 1);
 		}
 
 		@Override
@@ -303,6 +298,11 @@ public class BlockResourceNode extends BlockContainer implements IWailaDataProvi
 
 		public int getHarvestInterval() {
 			return (int)(purity.getCountdown()/resource.speedFactor);
+		}
+
+		@Override
+		protected boolean isEmptyTimeoutActive(World world) {
+			return false;
 		}
 
 	}

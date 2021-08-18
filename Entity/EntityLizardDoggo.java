@@ -41,8 +41,7 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMusicHelper.MusicKey;
 import Reika.DragonAPI.Libraries.Registry.ReikaParticleHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
-import Reika.Satisforestry.Biome.Biomewide.LizardDoggoSpawner.LizardDoggoSpawnPoint;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.DoggoDrop;
 import Reika.Satisforestry.Entity.AI.EntityAIComeGetPaleberry;
@@ -55,7 +54,7 @@ import Reika.Satisforestry.Registry.SFSounds;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class EntityLizardDoggo extends EntityTameable {
+public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntity {
 
 	private static final int SNEEZE_LENGTH_1 = 8;
 	private static final int SNEEZE_LENGTH_2 = 40;
@@ -169,15 +168,14 @@ public class EntityLizardDoggo extends EntityTameable {
 		spawnPoint = loc;
 	}
 
+	public WorldLocation getSpawn() {
+		return spawnPoint;
+	}
+
 	@Override
 	public void setDead() {
 		super.setDead();
-		if (!worldObj.isRemote && spawnPoint != null) {
-			LizardDoggoSpawnPoint spawn = BiomewideFeatureGenerator.instance.getDoggoSpawnAt(spawnPoint);
-			if (spawn != null) {
-				spawn.removeDoggo(this);
-			}
-		}
+		PointSpawnSystem.instance.onEntityRemoved(this);
 	}
 
 	public void setLured(boolean lure) {
