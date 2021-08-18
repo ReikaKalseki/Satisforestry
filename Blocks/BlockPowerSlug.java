@@ -242,7 +242,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 
 		public TilePowerSlug(int meta) {
 			tier = meta;
-			this.setSpawnParameters(EntityCaveSpider.class, 3, 8, 6);
+			this.setDefaultSpawn(EntityCaveSpider.class);
 		}
 
 		@Override
@@ -312,6 +312,10 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			return false;
 		}
 
+		public final void setDefaultSpawn(Class<? extends EntityMob> e) {
+			this.setSpawnParameters(e, 3, 8, 6);
+		}
+
 		public final void setSingleStrongEnemy(Class<? extends EntityMob> c, float boost) {
 			this.setSpawnParameters(c, 1, 12, 2);
 			healthBuff = boost;
@@ -332,7 +336,11 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 				AttributeModifier m = new AttributeModifier(healthBonus, "slugHealth", healthBuff-1, 2);
 				e.getEntityAttribute(SharedMonsterAttributes.maxHealth).applyModifier(m);
 			}
-			e.getEntityData().setBoolean("slugspawn", true);
+		}
+
+		@Override
+		protected boolean denyPassivation() {
+			return true;
 		}
 
 		public int getTier() {

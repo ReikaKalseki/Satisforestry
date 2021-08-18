@@ -164,9 +164,10 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 						n++;
 					}
 					if (te != null) {
-						te.setMobType(EntityCaveSpider.class);
 						if (tier == 0 || (tier == 1 && randomGenerator.nextBoolean()))
 							te.setNoSpawns();
+						else
+							te.setDefaultSpawn(EntityCaveSpider.class);
 					}
 				}
 			}

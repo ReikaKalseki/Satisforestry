@@ -6,46 +6,38 @@ import java.util.HashSet;
 import java.util.Random;
 
 import net.minecraft.entity.EntityLiving;
-import net.minecraft.util.MathHelper;
+import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
-import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
-public class LizardDoggoSpawner {
+public class RoadGuardSpawner {
 
-	LizardDoggoSpawner() {
-		PointSpawnSystem.instance.registerSpawnerType("doggo", LizardDoggoSpawnPoint.class);
+	RoadGuardSpawner() {
+		PointSpawnSystem.instance.registerSpawnerType("roadGuard", RoadGuardSpawnPoint.class);
 	}
 
-	public Collection<SpawnPoint> createDoggoSpawnPoints(World world, BiomeFootprint bf, Random rand) {
+	public Collection<SpawnPoint> createSpawnPoints(World world, BiomeFootprint bf, Random rand) {
 		HashSet<SpawnPoint> ret = new HashSet();
 		ArrayList<Coordinate> blocks = new ArrayList(bf.getCoords());
-		int n = MathHelper.clamp_int(Math.round(bf.getArea()/24000F), 1, 6);
-		for (int i = 0; i < n && !blocks.isEmpty(); i++) {
+		int n = Math.round(bf.getArea()/9000F);
+		while (ret.size() < n && !blocks.isEmpty()) {
 			int idx = rand.nextInt(blocks.size());
 			Coordinate c = blocks.remove(idx);
 			c = c.setY(DecoratorPinkForest.getTrueTopAt(world, c.xCoord, c.zCoord)+1);
-			if (this.isValidDoggoSpawnArea(world, c)) {
-				boolean flag = true;
-				for (SpawnPoint has : ret) {
-					if (has.getLocation().getTaxicabDistanceTo(c.xCoord, c.yCoord, c.zCoord) <= 64) {
-						flag = false;
-						break;
-					}
-				}
-				if (flag)
-					ret.add(new LizardDoggoSpawnPoint(world, c));
+			if (this.isValidSpawnArea(world, c)) {
+				ret.add(new RoadGuardSpawnPoint(world, c));
 			}
 		}
 		return ret;
 	}
 
-	private boolean isValidDoggoSpawnArea(World world, Coordinate c) {
-		if (!c.isEmpty(world))
+	private boolean isValidSpawnArea(World world, Coordinate c) {
+		if (!Satisforestry.pinkforest.isRoad(world, c.xCoord, c.zCoord))
 			return false;
 		for (int i = -1; i <= 1; i++) {
 			for (int k = -1; k <= 1; k++) {
@@ -61,23 +53,18 @@ public class LizardDoggoSpawner {
 		return true;
 	}
 
-	public static class LizardDoggoSpawnPoint extends SpawnPoint {
+	public static class RoadGuardSpawnPoint extends SpawnPoint {
 
-		private LizardDoggoSpawnPoint(World world, Coordinate c) {
+		private RoadGuardSpawnPoint(World world, Coordinate c) {
 			super(world, c);
-			this.setSpawnParameters(EntityLizardDoggo.class, 1, 18.5);
+			this.setSpawnParameters(EntitySpider.class, 2, 8);
 		}
 
 		@Override
 		protected EntityLiving getSpawn(World world, int cx, int cy, int cz) {
-			EntityLiving e = this.getRandomPlacedEntity(7.5, world, cx, cy, cz);
+			EntityLiving e = this.getRandomPlacedEntity(5, world, cx, cy, cz);
 			e.setLocationAndAngles(e.posX, cy+1, e.posZ, 0, 0);
 			return e;
-		}
-
-		@Override
-		protected boolean canBeCleared() {
-			return false;
 		}
 
 	}

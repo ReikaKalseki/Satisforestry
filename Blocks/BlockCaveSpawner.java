@@ -19,6 +19,7 @@ import net.minecraft.world.World;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
 import Reika.Satisforestry.Registry.SFBlocks;
 
@@ -29,6 +30,8 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		this.setCreativeTab(Satisforestry.tabCreative);
 		this.setResistance(60000);
 		this.setBlockUnbreakable();
+
+		PointSpawnSystem.instance.registerSpawnerType("tile", TileSpawnPoint.class);
 	}
 
 	@Override
@@ -93,6 +96,11 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 			return tile.isEmptyTimeoutActive(world);
 		}
 
+		@Override
+		protected boolean denyPassivation() {
+			return tile.denyPassivation();
+		}
+
 	}
 
 	public static class TileCaveSpawner extends TileEntity implements PointSpawnTile {
@@ -142,6 +150,10 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 
 		private final Class<? extends EntityMob> getSpawnType() {
 			return spawner != null ? (Class<? extends EntityMob>)spawner.getSpawnType() : null;
+		}
+
+		protected boolean denyPassivation() {
+			return false;
 		}
 
 		@Override

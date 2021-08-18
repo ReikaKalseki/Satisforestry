@@ -48,14 +48,14 @@ public class WorldGenPowerSlugs {
 					if (te != null) {
 						switch(i) {
 							case 0:
-								te.setMobType(rand.nextInt(4) == 0 ? EntityCaveSpider.class : EntitySpider.class);
+								te.setDefaultSpawn(rand.nextInt(4) == 0 ? EntityCaveSpider.class : EntitySpider.class);
 								break;
 							case 1:
 								te.setSingleStrongEnemy(rand.nextInt(3) == 0 ? EntityEliteStinger.class : EntitySpider.class, 3);
 								break;
 							case 2:
 								te.setEnemyBoost(3);
-								te.setMobType(EntityEliteStinger.class);
+								te.setDefaultSpawn(EntityEliteStinger.class);
 								break;
 						}
 

@@ -170,7 +170,7 @@ public class SFEvents {
 
 	@SubscribeEvent
 	public void spidersAlwaysHostile(SpiderLightPassivationEvent evt) {
-		if (evt.spider.getEntityData().getBoolean("slugspawn")) {
+		if (PointSpawnSystem.instance.isAlwaysHostile(evt.spider)) {
 			evt.threshold = Float.POSITIVE_INFINITY;
 		}
 	}

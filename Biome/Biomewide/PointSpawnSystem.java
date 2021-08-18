@@ -36,16 +36,20 @@ public final class PointSpawnSystem {
 	public static final PointSpawnSystem instance = new PointSpawnSystem();
 
 	private static final String SPAWN_NBT_TAG = "PinkForestPointSpawn";
+	private static final String KILLED_NBT_TAG = "playerKilled";
+	private static final String HOSTILE_NBT_TAG = "alwaysHostile";
 
 	private final HashBiMap<String, Class<? extends SpawnPoint>> spawnerTypes = HashBiMap.create();
 
 	private final LizardDoggoSpawner doggos;
+	private final RoadGuardSpawner guards;
 
 	private final HashSet<WorldLocation> locationsUsed = new HashSet();
 	private final HashMap<Integer, MultiMap<Class<? extends EntityLiving>, SpawnPoint>> spawns = new HashMap();
 
 	private PointSpawnSystem() {
 		doggos = new LizardDoggoSpawner();
+		guards = new RoadGuardSpawner();
 	}
 
 	public void registerSpawnerType(String id, Class<? extends SpawnPoint> c) {
@@ -55,6 +59,10 @@ public final class PointSpawnSystem {
 	public void createSpawnPoints(World world, int x, int z, BiomeFootprint bf, Random rand) {
 		Collection<SpawnPoint> spawns = doggos.createDoggoSpawnPoints(world, bf, rand);
 		Satisforestry.logger.log("Doggo spawn locations around "+x+", "+z+": "+spawns);
+		this.addSpawnPoints(spawns);
+
+		spawns = guards.createSpawnPoints(world, bf, rand);
+		Satisforestry.logger.log("Road Guard spawn locations around "+x+", "+z+": "+spawns);
 		this.addSpawnPoints(spawns);
 	}
 
@@ -197,10 +205,32 @@ public final class PointSpawnSystem {
 		}
 	}
 
-	public void tagEntityAsKilled(EntityLiving e) {
+	public static void tagEntityAsKilled(EntityLiving e) {
+		setTag(e, KILLED_NBT_TAG, true);
+	}
+
+	private static void setTag(EntityLiving e, String key, int value) {
 		NBTTagCompound tag = e.getEntityData().getCompoundTag(SPAWN_NBT_TAG);
-		tag.setBoolean("playerKilled", true);
+		tag.setInteger(key, value);
 		e.getEntityData().setTag(SPAWN_NBT_TAG, tag);
+	}
+
+	private static void setTag(EntityLiving e, String key, boolean flag) {
+		NBTTagCompound tag = e.getEntityData().getCompoundTag(SPAWN_NBT_TAG);
+		tag.setBoolean(key, flag);
+		e.getEntityData().setTag(SPAWN_NBT_TAG, tag);
+	}
+
+	private static boolean hasTag(EntityLiving e, String key) {
+		return e.getEntityData().getCompoundTag(SPAWN_NBT_TAG).getBoolean(key);
+	}
+
+	private static int getTag(EntityLiving e, String key) {
+		return e.getEntityData().getCompoundTag(SPAWN_NBT_TAG).getInteger(key);
+	}
+
+	public boolean isAlwaysHostile(EntityLiving e) {
+		return this.hasTag(e, HOSTILE_NBT_TAG);
 	}
 
 	public void tick(EntityPlayer ep) {
@@ -364,7 +394,7 @@ public final class PointSpawnSystem {
 		private final void removeEntity(EntityLiving e) {
 			existingCount--;
 			if (this.canBeCleared()) {
-				if (e.getEntityData().getCompoundTag(SPAWN_NBT_TAG).getBoolean("playerKilled"))
+				if (hasTag(e, KILLED_NBT_TAG))
 					playerKilled++;
 				if (playerKilled >= numberToSpawn)
 					this.delete();
@@ -419,10 +449,17 @@ public final class PointSpawnSystem {
 					world.spawnEntityInWorld(e);
 					e.spawnExplosionParticle();
 					//this.worldObj.playAuxSFX(2004, xCoord, yCoord, zCoord, 0);
+					if (this.denyPassivation()) {
+						setTag(e, HOSTILE_NBT_TAG, true);
+					}
 					this.onEntitySpawned(e);
 					return true;
 				}
 			}
+			return false;
+		}
+
+		protected boolean denyPassivation() {
 			return false;
 		}
 
