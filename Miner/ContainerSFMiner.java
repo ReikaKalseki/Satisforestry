@@ -65,20 +65,22 @@ public class ContainerSFMiner extends CoreContainer {
 	private static class OverclockSlot extends Slot {
 
 		private final OverclockingInv reference;
+		private final int slotIndex;
 
 		public OverclockSlot(OverclockingInv ii, int idx, int x, int y) {
 			super(ii, idx, x, y);
 			reference = ii;
+			slotIndex = idx;
 		}
 
 		@Override
 		public boolean isItemValid(ItemStack is) {
-			return reference.isItemValidForSlot(slotNumber, is);
+			return reference.isItemValidForSlot(slotIndex, is);
 		}
 
 		@Override
 		public boolean canTakeStack(EntityPlayer ep) {
-			return slotNumber == 2 || reference.getItems()[slotNumber+1] == null;
+			return slotIndex == reference.getLastOccupiedSlot();//slotNumber == 2 || reference.getItems()[slotNumber+1] == null;
 		}
 
 	}

@@ -42,10 +42,28 @@ public class OverclockingInv extends BasicInventory {
 
 	@Override
 	public boolean isItemValidForSlot(int slot, ItemStack is) {
-		if (slot > 0 && this.getItems()[slot-1] == null)
+		if (slot < 0 || slot != this.getSlotForInsertion())
 			return false;
 		int value = this.getOverclockValue(is);
 		return value > 0 && currentOverclock+value <= 3;
+	}
+
+	private int getSlotForInsertion() {
+		ItemStack[] items = this.getItems();
+		int i = 0;
+		while (i < items.length && items[i] != null) {
+			i += this.getOverclockValue(items[i]);
+		}
+		return i < items.length ? i : -1;
+	}
+
+	public int getLastOccupiedSlot() {
+		ItemStack[] items = this.getItems();
+		for (int i = 2; i >= 0; i--) {
+			if (items[i] != null)
+				return i;
+		}
+		return -1;
 	}
 
 	private int getOverclockValue(ItemStack is) {
