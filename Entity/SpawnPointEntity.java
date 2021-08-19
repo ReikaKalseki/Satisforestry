@@ -8,6 +8,4 @@ public interface SpawnPointEntity {
 
 	public WorldLocation getSpawn();
 
-	public void setDead();
-
 }

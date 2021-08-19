@@ -32,7 +32,6 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaVectorHelper;
 import Reika.ReactorCraft.API.RadiationHandler;
 import Reika.Satisforestry.SFPacketHandler.PacketInfo;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFShaders;
 
@@ -71,12 +70,6 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 
 	public WorldLocation getSpawn() {
 		return spawnPoint;
-	}
-
-	@Override
-	public void setDead() {
-		super.setDead();
-		PointSpawnSystem.instance.onEntityRemoved(this);
 	}
 
 	@Override

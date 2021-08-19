@@ -131,10 +131,10 @@ public final class PointSpawnSystem {
 		}
 		Constructor<SpawnPoint> ctr = (Constructor<SpawnPoint>)ReikaReflectionHelper.getProtectedInheritedMethod(c, "<init>", WorldLocation.class);
 		try {
-			return ctr.newInstance();
+			return ctr.newInstance(loc);
 		}
 		catch (Exception e) {
-			Satisforestry.logger.logError(e);
+			Satisforestry.logger.logError("Failed to construct spawnpoint: ");
 			e.printStackTrace();
 			return null;
 		}
@@ -253,6 +253,7 @@ public final class PointSpawnSystem {
 				return;
 			for (Collection<SpawnPoint> c : map.values()) {
 				for (SpawnPoint loc : c) {
+					ReikaJavaLibrary.pConsole(loc);
 					loc.tick(ep.worldObj, ep);
 				}
 			}
@@ -275,7 +276,7 @@ public final class PointSpawnSystem {
 		private double activationRadius;
 		private Class<? extends EntityLiving> mobClass;
 		private String mobType;
-		private int emptyTimeout;
+		private int emptyTimeout = -1;
 
 		private int existingCount = 0;
 		private int playerKilled = 0;
@@ -309,7 +310,7 @@ public final class PointSpawnSystem {
 
 		@Override
 		public final String toString() {
-			return this.getClass()+" @ "+this.getLocation().toString()+this.getInfoString()+" ["+mobType+"]";
+			return this.getClass()+" @ "+this.getLocation().toString()+this.getInfoString()+" ["+mobType+" x"+numberToSpawn+"]";
 		}
 
 		protected String getInfoString() {
@@ -374,7 +375,7 @@ public final class PointSpawnSystem {
 			WorldLocation loc = this.getLocation();
 			if (loc == null)
 				return;
-			if (playerKilled >= numberToSpawn && this.isEmptyTimeoutActive(world)) {
+			if (playerKilled >= numberToSpawn && !this.isClearingPermanent() && this.isEmptyTimeoutActive(world)) {
 				emptyTicks++;
 				if (emptyTicks >= emptyTimeout) {
 					playerKilled = 0;
@@ -416,7 +417,7 @@ public final class PointSpawnSystem {
 			if (this.canBeCleared()) {
 				if (hasTag(e, KILLED_NBT_TAG))
 					playerKilled++;
-				if (playerKilled >= numberToSpawn)
+				if (playerKilled >= numberToSpawn && this.isClearingPermanent())
 					this.delete();
 			}
 			if (location != null)
@@ -425,6 +426,10 @@ public final class PointSpawnSystem {
 
 		protected boolean canBeCleared() {
 			return true;
+		}
+
+		protected boolean isClearingPermanent() {
+			return emptyTimeout < 0;
 		}
 
 		protected void delete() {
@@ -473,7 +478,7 @@ public final class PointSpawnSystem {
 					if (this.denyPassivation()) {
 						setTag(e, HOSTILE_NBT_TAG, true);
 					}
-					ReikaJavaLibrary.pConsole("Spawned "+e+" @ "+this);
+					ReikaJavaLibrary.pConsole("Spawned "+e+" @ "+this+", has "+existingCount+"/"+numberToSpawn);
 					this.onEntitySpawned(e);
 					return true;
 				}

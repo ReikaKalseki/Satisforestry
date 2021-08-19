@@ -41,7 +41,6 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMusicHelper.MusicKey;
 import Reika.DragonAPI.Libraries.Registry.ReikaParticleHelper;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.DoggoDrop;
 import Reika.Satisforestry.Entity.AI.EntityAIComeGetPaleberry;
@@ -170,12 +169,6 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 
 	public WorldLocation getSpawn() {
 		return spawnPoint;
-	}
-
-	@Override
-	public void setDead() {
-		super.setDead();
-		PointSpawnSystem.instance.onEntityRemoved(this);
 	}
 
 	public void setLured(boolean lure) {
