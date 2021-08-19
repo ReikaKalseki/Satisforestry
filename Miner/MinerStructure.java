@@ -6,6 +6,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
+import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Registry.SFBlocks;
 
@@ -48,6 +49,14 @@ public class MinerStructure {
 		array.setBlock(dx, dy, dz, b, meta);
 	}
 
+	public static void toggleRSLamps(TileNodeHarvester te, ForgeDirection dir, boolean set) {
+		ForgeDirection left = ReikaDirectionHelper.getLeftBy90(dir);
+		Block b = set ? Blocks.redstone_lamp : Blocks.air;
+		te.worldObj.setBlock(te.xCoord+3*dir.offsetX+2*left.offsetX, te.yCoord+8, te.zCoord+2*left.offsetZ+3*dir.offsetZ, b);
+		te.worldObj.setBlock(te.xCoord+3*dir.offsetX+2*left.offsetX, te.yCoord+9, te.zCoord+2*left.offsetZ+3*dir.offsetZ, b);
+		te.worldObj.setBlock(te.xCoord+3*dir.offsetX+2*left.offsetX, te.yCoord+10, te.zCoord+2*left.offsetZ+3*dir.offsetZ, b);
+	}
+
 	//default dir is EAST
 	private static FilledBlockArray getMinerStructure(World world, int x, int y, int z, ForgeDirection dir) {
 		FilledBlockArray array = new FilledBlockArray(world);
@@ -57,6 +66,10 @@ public class MinerStructure {
 		int k = z-2;
 
 		//world.setBlock(i + 3, j + 0, k + 2, SFBlocks.RESOURCENODE.getBlockInstance());
+
+		setBlock(array, dir, i + 6, j + 8, k + 0, Blocks.redstone_lamp);
+		setBlock(array, dir, i + 6, j + 9, k + 0, Blocks.redstone_lamp);
+		setBlock(array, dir, i + 6, j + 10, k + 0, Blocks.redstone_lamp);
 
 		setBlock(array, dir, i + 0, j + 0, k + 0, Blocks.air);
 		setBlock(array, dir, i + 0, j + 0, k + 1, b, MinerBlocks.DARK.ordinal());
@@ -517,17 +530,14 @@ public class MinerStructure {
 		setBlock(array, dir, i + 6, j + 7, k + 2, Blocks.air);
 		setBlock(array, dir, i + 6, j + 7, k + 3, Blocks.air);
 		setBlock(array, dir, i + 6, j + 7, k + 4, Blocks.air);
-		setBlock(array, dir, i + 6, j + 8, k + 0, Blocks.redstone_lamp);
 		setBlock(array, dir, i + 6, j + 8, k + 1, Blocks.air);
 		setBlock(array, dir, i + 6, j + 8, k + 2, Blocks.air);
 		setBlock(array, dir, i + 6, j + 8, k + 3, Blocks.air);
 		setBlock(array, dir, i + 6, j + 8, k + 4, Blocks.air);
-		setBlock(array, dir, i + 6, j + 9, k + 0, Blocks.redstone_lamp);
 		setBlock(array, dir, i + 6, j + 9, k + 1, Blocks.air);
 		setBlock(array, dir, i + 6, j + 9, k + 2, Blocks.air);
 		setBlock(array, dir, i + 6, j + 9, k + 3, Blocks.air);
 		setBlock(array, dir, i + 6, j + 9, k + 4, Blocks.air);
-		setBlock(array, dir, i + 6, j + 10, k + 0, Blocks.redstone_lamp);
 		setBlock(array, dir, i + 6, j + 10, k + 1, Blocks.air);
 		setBlock(array, dir, i + 6, j + 10, k + 2, Blocks.air);
 		setBlock(array, dir, i + 6, j + 10, k + 3, Blocks.air);

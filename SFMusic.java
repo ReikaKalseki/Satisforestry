@@ -7,6 +7,8 @@ import java.util.Locale;
 
 import org.lwjgl.input.Keyboard;
 
+import com.google.common.collect.HashBiMap;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
 import net.minecraft.world.World;
@@ -37,6 +39,8 @@ public class SFMusic {
 
 	private int potentiallySupportedFiles = 0;
 	private boolean requiresBackportedNEC = false;
+
+	private final HashBiMap<String, SFMusicEntry> musicCache = HashBiMap.create();
 
 	private SFMusicEntry currentMusic;
 
@@ -146,6 +150,8 @@ public class SFMusic {
 	}
 
 	public void tickMusicEngine(World world) {
+		if (Minecraft.getMinecraft().gameSettings.getSoundLevel(SFClient.sfCategory) <= 0)
+			return;
 		SoundHandler sh = Minecraft.getMinecraft().getSoundHandler();
 		StreamThread th = ReikaSoundHelper.getStreamingThread(sh);
 		if (th == null || !th.isAlive()) {
@@ -169,6 +175,15 @@ public class SFMusic {
 	private SFMusicEntry selectTrack(World world) {
 		DayQuadrant dq = DayQuadrant.getByTime(world.getWorldTime());
 		return dq != null ? ReikaJavaLibrary.getRandomListEntry(DragonAPICore.rand, dq.tracks) : null;
+	}
+
+	private SFMusicEntry getOrCreateMusic(String path) {
+		SFMusicEntry ret = musicCache.get(path);
+		if (ret == null) {
+			ret = new SFMusicEntry(path);
+			musicCache.put(path, ret);
+		}
+		return ret;
 	}
 
 	private static enum MusicSupport {
@@ -232,7 +247,7 @@ public class SFMusic {
 		}
 
 		public void addTrack(String path) throws IOException {
-			SFMusicEntry mus = new SFMusicEntry(path);
+			SFMusicEntry mus = instance.getOrCreateMusic(path);
 			DirectResourceManager.getInstance().registerCustomPath(mus.path, SFClient.sfCategory, true);
 			tracks.add(mus);
 		}

@@ -37,6 +37,7 @@ import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Auxiliary.Trackers.SpecialDayTracker;
 import Reika.DragonAPI.Instantiable.Event.BlockStopsPrecipitationEvent;
 import Reika.DragonAPI.Instantiable.Event.BlockTickEvent;
+import Reika.DragonAPI.Instantiable.Event.EntityRemovedEvent;
 import Reika.DragonAPI.Instantiable.Event.GenLayerBeachEvent;
 import Reika.DragonAPI.Instantiable.Event.GenLayerRiverEvent;
 import Reika.DragonAPI.Instantiable.Event.GetYToSpawnMobEvent;
@@ -152,7 +153,7 @@ public class SFEvents {
 
 	@SideOnly(Side.CLIENT)
 	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void overrideMusic(ClientTickEvent evt) {
+	public void playCustomMusic(ClientTickEvent evt) {
 		World world = Minecraft.getMinecraft().theWorld;
 		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
 		if (world != null && ep != null && Satisforestry.isPinkForest(world, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
@@ -293,6 +294,15 @@ public class SFEvents {
 				int wt = 5+evt.world.skylightSubtracted*15/11; //gives range of 5 in day to 20 in night
 				evt.list.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, wt, 1, 1));
 			}
+		}
+		if (true || false)
+			evt.setCanceled(true);
+	}
+
+	@SubscribeEvent
+	public void handleEntityDespawn(EntityRemovedEvent evt) {
+		if (evt.entity instanceof EntityLiving) {
+			PointSpawnSystem.instance.onEntityRemoved((EntityLiving)evt.entity);
 		}
 	}
 

@@ -62,7 +62,7 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 
 	@Override
 	protected boolean doRenderModel(TileEntityBase te) {
-		return MinecraftForgeClient.getRenderPass() == 0 && true;//!(te.isInWorld() && !((TileNodeHarvester)te).hasStructure());
+		return MinecraftForgeClient.getRenderPass() == 0 && !(te.isInWorld() && !((TileNodeHarvester)te).hasStructure());
 	}
 
 	@Override

@@ -164,7 +164,8 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 				return;
 			if (spawner == null)
 				return;
-			spawner.tick(worldObj);
+			if (!worldObj.isRemote)
+				spawner.tick(worldObj);
 		}
 
 		protected void onSpawnEntity(EntityMob e) {
@@ -192,6 +193,7 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 				NBTTagCompound tag = NBT.getCompoundTag("spawner");
 				TileSpawnPoint pt = new TileSpawnPoint(this);
 				pt.readFromTag(tag);
+				spawner = pt;
 			}
 
 			spawnRadius = NBT.getDouble("spawnRadius");

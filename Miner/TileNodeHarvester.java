@@ -6,6 +6,7 @@ import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -409,6 +410,9 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	public final void setHasStructure(ForgeDirection flag) {
 		//ReikaJavaLibrary.pConsole(flag);
+		boolean change = (structureDir == null && flag != null) || (structureDir != null && flag == null);
+		if (change)
+			MinerStructure.toggleRSLamps(this, flag != null ? flag : structureDir, flag == null);
 		structureDir = flag;
 		this.syncAllData(false);
 		this.updateInputs(flag != null);
@@ -431,6 +435,16 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 	public abstract ItemStack getOverclockingItem();
 
 	public abstract String getOperationPowerCost(boolean withOverclock);
+
+	@Override
+	public final AxisAlignedBB getRenderBoundingBox() {
+		if (structureDir == null)
+			return super.getRenderBoundingBox();
+		boolean x = structureDir.offsetX != 0;
+		double wx = x ? 8 : 2;
+		double wz = x ? 2 : 8;
+		return AxisAlignedBB.getBoundingBox(xCoord-wx, yCoord, zCoord-wz, xCoord+1+wx, yCoord+14, zCoord+1+wz);
+	}
 
 	private static abstract class TileNodeHarvesterBasicEnergy extends TileNodeHarvester {
 

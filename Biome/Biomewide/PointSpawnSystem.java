@@ -13,16 +13,19 @@ import com.google.common.collect.HashBiMap;
 
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
+import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Data.Maps.MultiMap;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaReflectionHelper;
 import Reika.Satisforestry.Satisforestry;
@@ -200,6 +203,7 @@ public final class PointSpawnSystem {
 		if (e.worldObj == null || e.worldObj.isRemote)
 			return;
 		SpawnPoint spawn = this.getSpawn(e);
+		ReikaJavaLibrary.pConsole("Removed "+e+" from "+spawn);
 		if (spawn != null) {
 			spawn.removeEntity(e);
 		}
@@ -235,6 +239,8 @@ public final class PointSpawnSystem {
 
 	public void tick(EntityPlayer ep) {
 		World world = ep.worldObj;
+		if (world == null || world.isRemote)
+			return;
 		long time = world.getTotalWorldTime();
 		if (time%10 == 0 && Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ))) {
 			MultiMap<Class<? extends EntityLiving>, SpawnPoint> map = spawns.get(world.provider.dimensionId);
@@ -366,6 +372,10 @@ public final class PointSpawnSystem {
 					emptyTicks = 0;
 				}
 			}
+			if (mobClass == null)
+				return;
+			if (EntityMob.class.isAssignableFrom(mobClass) && world.difficultySetting == EnumDifficulty.PEACEFUL)
+				return;
 			if (ep == null)
 				ep = world.getClosestPlayer(loc.xCoord+0.5, loc.yCoord+0.5, loc.zCoord+0.5, activationRadius);
 			if (ep == null)
@@ -452,6 +462,7 @@ public final class PointSpawnSystem {
 					if (this.denyPassivation()) {
 						setTag(e, HOSTILE_NBT_TAG, true);
 					}
+					ReikaJavaLibrary.pConsole("Spawned "+e);
 					this.onEntitySpawned(e);
 					return true;
 				}
