@@ -18,7 +18,7 @@ import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
 public class RoadGuardSpawner {
 
 	RoadGuardSpawner() {
-		PointSpawnSystem.instance.registerSpawnerType("roadGuard", RoadGuardSpawnPoint.class);
+		PointSpawnSystem.registerSpawnerType("roadGuard", RoadGuardSpawnPoint.class);
 	}
 
 	public Collection<SpawnPoint> createSpawnPoints(World world, BiomeFootprint bf, Random rand) {

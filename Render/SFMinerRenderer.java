@@ -18,7 +18,7 @@ import Reika.Satisforestry.Miner.TileNodeHarvester;
 public class SFMinerRenderer extends TileEntityRenderBase {
 
 	//private final WavefrontObject model = new WavefrontObject(DirectResourceManager.getResource("Reika/Satisforestry/Render/miner.obj"));
-	//private final ModelSFMiner model = new ModelSFMiner("/Render/miner.obj");
+	private final ModelSFMiner model = new ModelSFMiner("Render/ModelMiner.obj");
 
 	@Override
 	public void renderTileEntityAt(TileEntity tile, double par2, double par4, double par6, float ptick) {
@@ -26,6 +26,8 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
 		GL11.glPushMatrix();
 		GL11.glTranslated(par2, par4, par6);
+		GL11.glTranslated(4, 0, 0);
+		GL11.glRotated(180, 0, 1, 0);
 		if (this.doRenderModel(te)) {
 			this.renderModel(te);
 		}
@@ -39,11 +41,11 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 	private void renderModel(TileNodeHarvester te) {
 		ReikaTextureHelper.bindTexture(Satisforestry.class, "Textures/miner.png");
 		GL11.glPushMatrix();
-		//model.drawChassis();
+		model.drawChassis();
 		GL11.glPushMatrix();
 		GL11.glTranslated(0, -te.getDrillVerticalOffsetScale(0.5, 1.5), 0);
 		GL11.glRotated(te.drillSpinAngle, 0, 1, 0);
-		//model.drawDrill();
+		model.drawDrill();
 		GL11.glPopMatrix();
 		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
 		ReikaRenderHelper.disableLighting();
@@ -53,14 +55,14 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 			float f = 0.5F+(float)(0.5*Math.sin(te.getTicksExisted()*0.004));
 			c = ReikaColorAPI.mixColors(c, 0xffffff, f);
 		}
-		//model.drawLightbar(c);
+		model.drawLightbar(c);
 		GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
 
 	@Override
 	protected boolean doRenderModel(TileEntityBase te) {
-		return MinecraftForgeClient.getRenderPass() == 0 && !(te.isInWorld() && !((TileNodeHarvester)te).hasStructure());
+		return MinecraftForgeClient.getRenderPass() == 0 && true;//!(te.isInWorld() && !((TileNodeHarvester)te).hasStructure());
 	}
 
 	@Override

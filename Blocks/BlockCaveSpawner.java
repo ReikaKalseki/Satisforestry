@@ -30,8 +30,6 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		this.setCreativeTab(Satisforestry.tabCreative);
 		this.setResistance(60000);
 		this.setBlockUnbreakable();
-
-		PointSpawnSystem.instance.registerSpawnerType("tile", TileSpawnPoint.class);
 	}
 
 	@Override
@@ -99,6 +97,10 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		@Override
 		protected boolean denyPassivation() {
 			return tile.denyPassivation();
+		}
+
+		static {
+			PointSpawnSystem.registerSpawnerType("tile", TileSpawnPoint.class);
 		}
 
 	}

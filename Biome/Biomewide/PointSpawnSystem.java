@@ -33,13 +33,13 @@ import Reika.Satisforestry.Entity.SpawnPointEntity;
 
 public final class PointSpawnSystem {
 
+	private static final HashBiMap<String, Class<? extends SpawnPoint>> spawnerTypes = HashBiMap.create();
+
 	public static final PointSpawnSystem instance = new PointSpawnSystem();
 
 	private static final String SPAWN_NBT_TAG = "PinkForestPointSpawn";
 	private static final String KILLED_NBT_TAG = "playerKilled";
 	private static final String HOSTILE_NBT_TAG = "alwaysHostile";
-
-	private final HashBiMap<String, Class<? extends SpawnPoint>> spawnerTypes = HashBiMap.create();
 
 	private final LizardDoggoSpawner doggos;
 	private final RoadGuardSpawner guards;
@@ -52,7 +52,7 @@ public final class PointSpawnSystem {
 		guards = new RoadGuardSpawner();
 	}
 
-	public void registerSpawnerType(String id, Class<? extends SpawnPoint> c) {
+	public static void registerSpawnerType(String id, Class<? extends SpawnPoint> c) {
 		spawnerTypes.put(id, c);
 	}
 

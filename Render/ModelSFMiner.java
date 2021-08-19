@@ -20,6 +20,10 @@ public class ModelSFMiner extends WavefrontObject {
 		chassis = this.findGroupObject("chassis");
 		drill = this.findGroupObject("drill");
 		lightbar = this.findGroupObject("lightbar");
+
+		assert chassis != null;
+		//assert drill != null;
+		assert lightbar != null;
 	}
 
 	private GroupObject findGroupObject(String s) {
@@ -35,7 +39,8 @@ public class ModelSFMiner extends WavefrontObject {
 	}
 
 	public void drawDrill() {
-		drill.render();
+		if (drill != null)
+			drill.render();
 	}
 
 	public void drawLightbar(int c) {
