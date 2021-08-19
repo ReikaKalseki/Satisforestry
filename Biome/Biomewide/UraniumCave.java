@@ -602,7 +602,7 @@ public class UraniumCave {
 	}
 
 	private void setSpawnParameters(TileCaveSpawner te, Random rand, int n, int ar, int sr) {
-		this.setSpawnParameters(te, null, n, ar, sr);
+		this.setSpawnParameters(te, rand, null, n, ar, sr);
 	}
 
 	private void setSpawnParameters(TileCaveSpawner te, Random rand, Class<? extends EntityMob> mob, int n, int ar, int sr) {

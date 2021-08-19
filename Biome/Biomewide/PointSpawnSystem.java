@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
@@ -148,7 +149,12 @@ public final class PointSpawnSystem {
 						continue;
 					NBTTagCompound tag = new NBTTagCompound();
 					loc.writeToTag(tag);
-					tag.setString("spawnerType", inv.get(c.getClass()));
+					String id = inv.get(loc.getClass());
+					if (Strings.isNullOrEmpty(id)) {
+						Satisforestry.logger.logError("Could not save spawnpoint of unrecognized/null-mapped type '"+id+"': "+loc);
+						continue;
+					}
+					tag.setString("spawnerType", id);
 					li.appendTag(tag);
 				}
 			}
@@ -203,7 +209,6 @@ public final class PointSpawnSystem {
 		if (e.worldObj == null || e.worldObj.isRemote)
 			return;
 		SpawnPoint spawn = this.getSpawn(e);
-		ReikaJavaLibrary.pConsole("Removed "+e+" from "+spawn);
 		if (spawn != null) {
 			spawn.removeEntity(e);
 		}
@@ -304,7 +309,11 @@ public final class PointSpawnSystem {
 
 		@Override
 		public final String toString() {
-			return this.getClass()+" @ "+this.getLocation().toString();
+			return this.getClass()+" @ "+this.getLocation().toString()+this.getInfoString()+" ["+mobType+"]";
+		}
+
+		protected String getInfoString() {
+			return "";
 		}
 
 		@Override
@@ -388,7 +397,7 @@ public final class PointSpawnSystem {
 						existingCount++;
 					}
 				}
-				if (existingCount != last)
+				if (existingCount != last && location != null)
 					BiomewideFeatureGenerator.instance.save(world);
 			}
 		}
@@ -402,6 +411,7 @@ public final class PointSpawnSystem {
 		}
 
 		private final void removeEntity(EntityLiving e) {
+			ReikaJavaLibrary.pConsole("Removed "+e+" from "+this);
 			existingCount--;
 			if (this.canBeCleared()) {
 				if (hasTag(e, KILLED_NBT_TAG))
@@ -409,7 +419,8 @@ public final class PointSpawnSystem {
 				if (playerKilled >= numberToSpawn)
 					this.delete();
 			}
-			BiomewideFeatureGenerator.instance.save(e.worldObj);
+			if (location != null)
+				BiomewideFeatureGenerator.instance.save(e.worldObj);
 		}
 
 		protected boolean canBeCleared() {
@@ -462,7 +473,7 @@ public final class PointSpawnSystem {
 					if (this.denyPassivation()) {
 						setTag(e, HOSTILE_NBT_TAG, true);
 					}
-					ReikaJavaLibrary.pConsole("Spawned "+e);
+					ReikaJavaLibrary.pConsole("Spawned "+e+" @ "+this);
 					this.onEntitySpawned(e);
 					return true;
 				}

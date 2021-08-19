@@ -47,7 +47,7 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		blockIcon = ico.registerIcon("satisforestry:cavespawner");
 	}
 
-	private static class TileSpawnPoint extends SpawnPoint {
+	private static final class TileSpawnPoint extends SpawnPoint {
 
 		private TileCaveSpawner tile;
 
@@ -97,6 +97,11 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		@Override
 		protected boolean denyPassivation() {
 			return tile.denyPassivation();
+		}
+
+		@Override
+		protected String getInfoString() {
+			return " "+tile.getClass().getName();
 		}
 
 		static {

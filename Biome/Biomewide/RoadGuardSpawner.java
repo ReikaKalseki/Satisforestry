@@ -7,6 +7,7 @@ import java.util.Random;
 
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.EntitySpider;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
@@ -14,6 +15,7 @@ import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
 
 public class RoadGuardSpawner {
 
@@ -24,7 +26,7 @@ public class RoadGuardSpawner {
 	public Collection<SpawnPoint> createSpawnPoints(World world, BiomeFootprint bf, Random rand) {
 		HashSet<SpawnPoint> ret = new HashSet();
 		ArrayList<Coordinate> blocks = new ArrayList(bf.getCoords());
-		int n = Math.round(bf.getArea()/9000F);
+		int n = Math.round(bf.getArea()/3000F);
 		while (ret.size() < n && !blocks.isEmpty()) {
 			int idx = rand.nextInt(blocks.size());
 			Coordinate c = blocks.remove(idx);
@@ -55,16 +57,35 @@ public class RoadGuardSpawner {
 
 	public static class RoadGuardSpawnPoint extends SpawnPoint {
 
+		public final float roadValue;
+
 		private RoadGuardSpawnPoint(World world, Coordinate c) {
 			super(world, c);
-			this.setSpawnParameters(EntitySpider.class, 2, 8);
+			roadValue = (float)Satisforestry.pinkforest.getRoadFactor(world, c.xCoord, c.zCoord);
+			this.initializeBasedOnRoadValue();
 		}
 
 		@Override
 		protected EntityLiving getSpawn(World world, int cx, int cy, int cz) {
-			EntityLiving e = this.getRandomPlacedEntity(5, world, cx, cy, cz);
+			EntityLiving e = this.getRandomPlacedEntity(4, world, cx, cy, cz);
 			e.setLocationAndAngles(e.posX, cy+1, e.posZ, 0, 0);
 			return e;
+		}
+
+		@Override
+		public void readFromTag(NBTTagCompound NBT) {
+			super.readFromTag(NBT);
+
+			this.initializeBasedOnRoadValue();
+		}
+
+		private void initializeBasedOnRoadValue() {
+			if (roadValue >= 0.9)
+				this.setSpawnParameters(EntityEliteStinger.class, 1, 8);
+			else if (roadValue >= 0.5)
+				this.setSpawnParameters(EntitySpider.class, 4, 8);
+			else
+				this.setSpawnParameters(EntitySpider.class, 2, 8);
 		}
 
 	}
