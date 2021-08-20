@@ -44,21 +44,8 @@ public class WorldGenPowerSlugs {
 				if (dy < 80)
 					continue;
 				if (this.isReplaceable(world, c.xCoord, dy, c.zCoord) && SFBlocks.SLUG.getBlockInstance().canBlockStay(world, c.zCoord, dy, c.zCoord)) {
-					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, i);
+					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, i, false, ?, true);
 					if (te != null) {
-						switch(i) {
-							case 0:
-								te.setDefaultSpawn(rand.nextInt(4) == 0 ? EntityCaveSpider.class : EntitySpider.class);
-								break;
-							case 1:
-								te.setSingleStrongEnemy(rand.nextInt(3) == 0 ? EntityEliteStinger.class : EntitySpider.class, 3);
-								break;
-							case 2:
-								te.setEnemyBoost(3);
-								te.setDefaultSpawn(EntityEliteStinger.class);
-								break;
-						}
-
 						flags |= (1 << i);
 						break;
 					}

@@ -160,14 +160,8 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 						int dx = ReikaRandomHelper.getRandomPlusMinus(x, 2);
 						int dz = ReikaRandomHelper.getRandomPlusMinus(z, 2);
 						int dy = getTrueTopAt(currentWorld, dx, dz)+1;
-						te = BlockPowerSlug.generatePowerSlugAt(currentWorld, dx, dy, dz, tier);
+						te = BlockPowerSlug.generatePowerSlugAt(currentWorld, dx, dy, dz, tier, true, ?, true);
 						n++;
-					}
-					if (te != null) {
-						if (tier == 0 || (tier == 1 && randomGenerator.nextBoolean()))
-							te.setNoSpawns();
-						else
-							te.setDefaultSpawn(EntityCaveSpider.class);
 					}
 				}
 			}
@@ -331,31 +325,13 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 				int top = getTrueTopAt(world, dx, dz);
 				if (func != null && !func.apply(world, dx, top, dz))
 					continue;
-				/*
-				if (world.getBlock(dx, top, dz) == Blocks.clay) {
-					riverHeight = Math.max(riverHeight, top+1);
-
-					int glassHeight = -1;
-					for (int h = top+1; h < 12; h++) {
-						if (world.getBlock(dx, h, dz) == Blocks.glass) {
-							glassHeight = h;
-							break;
-						}
-					}
-					if (glassHeight >= 0) {
-						avg += glassHeight;
-						n++;
-					}
-				}
-				else {*/
 				avg += top;
 				n++;
-				//}
 			}
 		}
 		if (n > 0)
 			avg /= n;
-		return avg;//n == 0 ? riverHeight : avg;
+		return avg;
 	}
 
 	@Override

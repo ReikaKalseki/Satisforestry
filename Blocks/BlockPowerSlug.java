@@ -13,6 +13,7 @@ import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
@@ -27,8 +28,11 @@ import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Interfaces.Block.Submergeable;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
+import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.EntitySlugStreak;
@@ -185,11 +189,94 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		return true;
 	}
 
-	public static TilePowerSlug generatePowerSlugAt(World world, int x, int y, int z, int tier) {
+	public static TilePowerSlug generatePowerSlugAt(World world, int x, int y, int z, Random rand, int tier, boolean gas, int reachDifficulty, boolean allowSpawns) {
+		while (y > 0 && ReikaWorldHelper.softBlocks(world, x, y-1, z))
+			y--;
 		Block b = world.getBlock(x, y-1, z);
-		if (world.getBlock(x, y, z).isAir(world, x, y, z) && (b == Blocks.grass || b == Blocks.dirt || b == Blocks.sand || b == SFBlocks.TERRAIN.getBlockInstance())) {
+		Block b1 = world.getBlock(x, y, z);
+		if ((b1.isAir(world, x, y, z) || ReikaBlockHelper.isLiquid(b1)) && (b == Blocks.grass || b == Blocks.dirt || b == Blocks.sand || b == Blocks.gravel || b == Blocks.stone || b == SFBlocks.TERRAIN.getBlockInstance())) {
 			world.setBlock(x, y, z, SFBlocks.SLUG.getBlockInstance(), tier, 3);
 			TilePowerSlug te = (TilePowerSlug)world.getTileEntity(x, y, z);
+			if (allowSpawns) {
+				switch(tier) {
+					case 0:
+						if (gas || reachDifficulty > 0 || rand.nextBoolean())
+							te.setNoSpawns();
+						else
+							te.setDefaultSpawn(rand.nextInt(4) == 0 ? EntityCaveSpider.class : EntitySpider.class);
+						break;
+					case 1:
+						if (gas) {
+							if (rand.nextInt(3+reachDifficulty) > 0) {
+								te.setNoSpawns();
+							}
+							else {
+								te.setDefaultSpawn(EntityCaveSpider.class);
+							}
+						}
+						else if (reachDifficulty > 0) {
+							if (reachDifficulty >= 2) {
+								if (rand.nextBoolean())
+									te.setNoSpawns();
+								else
+									te.setSingleStrongEnemy(EntitySpider.class, 2);
+							}
+							else {
+								te.setDefaultSpawn(rand.nextBoolean() ? EntityCaveSpider.class : EntitySpider.class);
+								te.setEnemyBoost(1.5F);
+							}
+						}
+						else {
+							if (rand.nextBoolean()) {
+								te.setSingleStrongEnemy(rand.nextInt(4) == 0 ? EntityEliteStinger.class : EntitySpider.class, 3);
+							}
+							else {
+								te.setDefaultSpawn(EntitySpider.class);
+								te.setEnemyBoost(2);
+							}
+						}
+						break;
+					case 2:
+						int power = 4;
+						if (gas)
+							power--;
+						power -= reachDifficulty;
+						if (power < 0)
+							power = 0;
+						switch(power) {
+							case 4:
+								te.setDefaultSpawn(EntityEliteStinger.class);
+								te.setEnemyBoost(2);
+								break;
+							case 3:
+							case 2:
+								if (rand.nextBoolean()) {
+									te.setDefaultSpawn(EntityEliteStinger.class);
+								}
+								else {
+									te.setDefaultSpawn(EntitySpider.class);
+									te.setEnemyBoost(power);
+								}
+								break;
+							case 1:
+								te.setSingleStrongEnemy(rand.nextInt(3) == 0 ? EntityEliteStinger.class : EntitySpider.class, 4);
+								break;
+							case 0:
+								if (rand.nextBoolean()) {
+									te.setSingleStrongEnemy(rand.nextInt(4) == 0 ? EntityEliteStinger.class : EntitySpider.class, 3);
+								}
+								else {
+									te.setDefaultSpawn(EntitySpider.class);
+									te.setEnemyBoost(2.5F);
+								}
+								break;
+						}
+						break;
+				}
+			}
+			else {
+				te.setNoSpawns();
+			}
 			te.angle = world.rand.nextFloat()*360;
 			//te.setMobType(getMobTypeForTier(tier));
 			return te;
@@ -314,20 +401,20 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			return false;
 		}
 
-		public final void setDefaultSpawn(Class<? extends EntityMob> e) {
+		protected final void setDefaultSpawn(Class<? extends EntityMob> e) {
 			this.setSpawnParameters(e, 3, 8, 6, FOLLOW_RANGE);
 		}
 
-		public final void setSingleStrongEnemy(Class<? extends EntityMob> c, float boost) {
+		protected final void setSingleStrongEnemy(Class<? extends EntityMob> c, float boost) {
 			this.setSpawnParameters(c, 1, 12, 2, FOLLOW_RANGE);
 			healthBuff = boost;
 		}
 
-		public final void setEnemyBoost(float boost) {
+		protected final void setEnemyBoost(float boost) {
 			healthBuff = boost;
 		}
 
-		public final void setNoSpawns() {
+		protected final void setNoSpawns() {
 			this.setSpawnParameters(null, 0, 0, 0, FOLLOW_RANGE);
 		}
 
