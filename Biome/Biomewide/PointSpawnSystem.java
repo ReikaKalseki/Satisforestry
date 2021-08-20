@@ -22,7 +22,6 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Data.Maps.MultiMap;
-import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
@@ -51,8 +50,8 @@ public final class PointSpawnSystem {
 		guards = new RoadGuardSpawner();
 	}
 
-	public static void registerSpawnerType(String id, SpawnPointDefinition c) {
-		spawnerTypes.put(id, c);
+	public static void registerSpawnerType(SpawnPointDefinition c) {
+		spawnerTypes.put(c.getID(), c);
 	}
 
 	public void createSpawnPoints(World world, int x, int z, BiomeFootprint bf, Random rand) {
@@ -93,23 +92,23 @@ public final class PointSpawnSystem {
 	}
 
 	public void loadSpawnPoints(NBTTagList li) {
-		this.loadSpawnPoints(li, false);
+		this.loadSpawnPoints(li, null);
 	}
 
 	public void loadLegacyDoggoSpawns(NBTTagList li) {
-		this.loadSpawnPoints(li, true);
+		this.loadSpawnPoints(li, "doggo");
 	}
 
-	private void loadSpawnPoints(NBTTagList li, boolean skipPresent) {
+	private void loadSpawnPoints(NBTTagList li, String typeOverride) {
 		for (Object o : li.tagList) {
 			NBTTagCompound tag = (NBTTagCompound)o;
+			if (!Strings.isNullOrEmpty(typeOverride))
+				tag.setString("spawnerType", typeOverride);
 			SpawnPoint c = this.constructSpawn(tag);
 			if (c == null)
 				continue;
 			c.readFromTag(tag);
 			if (c.isDead())
-				continue;
-			if (skipPresent && locationsUsed.contains(c.location))
 				continue;
 			this.addSpawnPoint(c);
 		}
@@ -242,7 +241,7 @@ public final class PointSpawnSystem {
 				return;
 			for (Collection<SpawnPoint> c : map.values()) {
 				for (SpawnPoint loc : c) {
-					ReikaJavaLibrary.pConsole(loc);
+					//ReikaJavaLibrary.pConsole(loc);
 					loc.tick(ep.worldObj, ep);
 				}
 			}
@@ -403,7 +402,7 @@ public final class PointSpawnSystem {
 		}
 
 		private final void removeEntity(EntityLiving e) {
-			ReikaJavaLibrary.pConsole("Removed "+e+" from "+this);
+			//ReikaJavaLibrary.pConsole("Removed "+e+" from "+this);
 			existingCount--;
 			if (this.canBeCleared()) {
 				if (hasTag(e, KILLED_NBT_TAG))
@@ -469,7 +468,7 @@ public final class PointSpawnSystem {
 					if (this.denyPassivation()) {
 						setTag(e, HOSTILE_NBT_TAG, true);
 					}
-					ReikaJavaLibrary.pConsole("Spawned "+e+" @ "+this+", has "+existingCount+"/"+numberToSpawn);
+					//ReikaJavaLibrary.pConsole("Spawned "+e+" @ "+this+", has "+existingCount+"/"+numberToSpawn);
 					this.onEntitySpawned(e);
 					return true;
 				}

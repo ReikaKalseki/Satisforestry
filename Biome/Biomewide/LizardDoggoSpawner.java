@@ -20,7 +20,7 @@ import Reika.Satisforestry.Entity.EntityLizardDoggo;
 public class LizardDoggoSpawner implements SpawnPointDefinition {
 
 	LizardDoggoSpawner() {
-		PointSpawnSystem.registerSpawnerType("doggo", this);
+		PointSpawnSystem.registerSpawnerType(this);
 	}
 
 	public Collection<SpawnPoint> createDoggoSpawnPoints(World world, BiomeFootprint bf, Random rand) {

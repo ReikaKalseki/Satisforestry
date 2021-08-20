@@ -106,7 +106,7 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		}
 
 		static {
-			PointSpawnSystem.registerSpawnerType("tile", new TileSpawnType());
+			PointSpawnSystem.registerSpawnerType(new TileSpawnType());
 		}
 
 	}

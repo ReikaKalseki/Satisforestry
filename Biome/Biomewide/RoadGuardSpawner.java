@@ -22,7 +22,7 @@ import Reika.Satisforestry.Entity.EntityEliteStinger;
 public class RoadGuardSpawner implements SpawnPointDefinition {
 
 	RoadGuardSpawner() {
-		PointSpawnSystem.registerSpawnerType("roadGuard", this);
+		PointSpawnSystem.registerSpawnerType(this);
 	}
 
 	public Collection<SpawnPoint> createSpawnPoints(World world, BiomeFootprint bf, Random rand) {

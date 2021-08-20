@@ -232,8 +232,8 @@ public class UraniumCave {
 				//ReikaJavaLibrary.pConsole("Generating ore clump "+ore.id+" @ "+c+" over "+prev);
 
 				TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord-1, c.zCoord);
-				this.setSpawnParameters(lgc, rand, 6, 10, 8); //ar was 8
-				lgc.setInertTimeout(300); //was 12 then 20
+				this.setSpawnParameters(lgc, rand, 2, 10, 8); //ar was 8
+				lgc.setInertTimeout(6000); //was 12 then 20, then 300
 			}
 		}
 
@@ -254,8 +254,8 @@ public class UraniumCave {
 			while (c.offset(0, -1, 0).softBlock(world) || c.offset(0, -1, 0).getBlock(world) == SFBlocks.CAVESHIELD.getBlockInstance())
 				c = c.offset(0, -1, 0);
 			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord, c.zCoord);
-			this.setSpawnParameters(lgc, rand, 4, 6, 5);
-			lgc.setInertTimeout(300); //was 5 then 12
+			this.setSpawnParameters(lgc, rand, 1, 6, 5);
+			lgc.setInertTimeout(6000); //was 5 then 12, then 300
 
 			/*
 			for (Coordinate c2 : c.getAdjacentCoordinates()) {
@@ -602,15 +602,11 @@ public class UraniumCave {
 	}
 
 	private void setSpawnParameters(TileCaveSpawner te, Random rand, int n, int ar, int sr) {
-		this.setSpawnParameters(te, rand, null, n, ar, sr);
+		caveSpawns.setRNG(rand);
+		this.setSpawnParameters(te, caveSpawns.getRandomEntry().entityClass, n, ar, sr);
 	}
 
-	private void setSpawnParameters(TileCaveSpawner te, Random rand, Class<? extends EntityMob> mob, int n, int ar, int sr) {
-		if (mob == null) {
-			caveSpawns.setRNG(rand);
-			SpawnListEntry e = caveSpawns.getRandomEntry();
-			mob = e.entityClass;
-		}
+	private void setSpawnParameters(TileCaveSpawner te, Class<? extends EntityMob> mob, int n, int ar, int sr) {
 		te.setSpawnParameters(mob, n, ar, sr);
 	}
 
@@ -768,8 +764,8 @@ public class UraniumCave {
 					below = c.offset(0, -1, 0);
 				}
 				TileCaveSpawner lgc = instance.generateSpawnerAt(world, below.xCoord, below.yCoord, below.zCoord);
-				UraniumCave.this.setSpawnParameters(lgc, rand, EntityCaveSpider.class, isToBiomeEdge ? 3 : 5, isToBiomeEdge ? 12 : 8, 3);
-				lgc.setInertTimeout(isToBiomeEdge ? 150 : 600);//was isToBiomeEdge ? 15 : 9;
+				UraniumCave.this.setSpawnParameters(lgc, EntityCaveSpider.class, isToBiomeEdge ? 3 : 5, isToBiomeEdge ? 12 : 8, 3);
+				lgc.setInertTimeout(isToBiomeEdge ? 1200 : 3600);//was isToBiomeEdge ? 15 : 9;
 
 				OreClusterType ore = (isToBiomeEdge ? OreSpawnLocation.CAVE_ENTRY_TUNNEL : OreSpawnLocation.CAVE_NODE_TUNNEL).getRandomOreSpawn();
 
