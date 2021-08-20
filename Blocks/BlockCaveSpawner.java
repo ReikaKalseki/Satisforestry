@@ -21,6 +21,7 @@ import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPointDefinition;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock {
@@ -105,7 +106,21 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		}
 
 		static {
-			PointSpawnSystem.registerSpawnerType("tile", TileSpawnPoint.class);
+			PointSpawnSystem.registerSpawnerType("tile", new TileSpawnType());
+		}
+
+	}
+
+	private static class TileSpawnType implements SpawnPointDefinition {
+
+		@Override
+		public SpawnPoint construct(WorldLocation loc) {
+			return null;
+		}
+
+		@Override
+		public String getID() {
+			return "tile";
 		}
 
 	}

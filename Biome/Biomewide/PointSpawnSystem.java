@@ -1,6 +1,5 @@
 package Reika.Satisforestry.Biome.Biomewide;
 
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -9,8 +8,6 @@ import java.util.HashSet;
 import java.util.Random;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
@@ -23,12 +20,10 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
 
-import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Data.Maps.MultiMap;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
-import Reika.DragonAPI.Libraries.Java.ReikaReflectionHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Blocks.PointSpawnBlock;
@@ -37,7 +32,7 @@ import Reika.Satisforestry.Entity.SpawnPointEntity;
 
 public final class PointSpawnSystem {
 
-	private static final HashBiMap<String, Class<? extends SpawnPoint>> spawnerTypes = HashBiMap.create();
+	private static final HashMap<String, SpawnPointDefinition> spawnerTypes = new HashMap();
 
 	public static final PointSpawnSystem instance = new PointSpawnSystem();
 
@@ -56,7 +51,7 @@ public final class PointSpawnSystem {
 		guards = new RoadGuardSpawner();
 	}
 
-	public static void registerSpawnerType(String id, Class<? extends SpawnPoint> c) {
+	public static void registerSpawnerType(String id, SpawnPointDefinition c) {
 		spawnerTypes.put(id, c);
 	}
 
@@ -77,8 +72,9 @@ public final class PointSpawnSystem {
 	}
 
 	public void addSpawnPoint(SpawnPoint s) {
-		String id = spawnerTypes.inverse().get(s.getClass());
-		if (id == null)
+		if (Strings.isNullOrEmpty(s.id))
+			throw new IllegalArgumentException("Untyped spawner "+s+"!");
+		if (spawnerTypes.get(s.id) == null)
 			throw new IllegalArgumentException("Unregistered spawner type "+s.getClass()+"!");
 		if (s.location == null)
 			throw new IllegalArgumentException("Spawnpoint "+s+" has a null location!");
@@ -124,24 +120,18 @@ public final class PointSpawnSystem {
 		if (loc == null)
 			return null;
 		String type = tag.getString("spawnerType");
-		Class<? extends SpawnPoint> c = spawnerTypes.get(type);
+		SpawnPointDefinition c = spawnerTypes.get(type);
 		if (c == null) {
 			Satisforestry.logger.logError("Could not construct spawnpoint of unrecognized/null-mapped type '"+type+"': "+tag);
 			return null;
 		}
-		Constructor<SpawnPoint> ctr = (Constructor<SpawnPoint>)ReikaReflectionHelper.getProtectedInheritedMethod(c, "<init>", WorldLocation.class);
-		try {
-			return ctr.newInstance(loc);
-		}
-		catch (Exception e) {
-			Satisforestry.logger.logError("Failed to construct spawnpoint: ");
-			e.printStackTrace();
-			return null;
-		}
+		SpawnPoint s = c.construct(loc);
+		if (s != null)
+			s.id = type;
+		return s;
 	}
 
 	public void saveSpawnPoints(NBTTagList li) {
-		BiMap<Class<? extends SpawnPoint>, String> inv = spawnerTypes.inverse();
 		for (MultiMap<Class<? extends EntityLiving>, SpawnPoint> map : spawns.values()) {
 			for (Collection<SpawnPoint> c : map.values()) {
 				for (SpawnPoint loc : c) {
@@ -149,12 +139,11 @@ public final class PointSpawnSystem {
 						continue;
 					NBTTagCompound tag = new NBTTagCompound();
 					loc.writeToTag(tag);
-					String id = inv.get(loc.getClass());
-					if (Strings.isNullOrEmpty(id)) {
-						Satisforestry.logger.logError("Could not save spawnpoint of unrecognized/null-mapped type '"+id+"': "+loc);
+					if (Strings.isNullOrEmpty(loc.id)) {
+						Satisforestry.logger.logError("Could not save spawnpoint of unrecognized/null-mapped type '"+loc.id+"': "+loc);
 						continue;
 					}
-					tag.setString("spawnerType", id);
+					tag.setString("spawnerType", loc.id);
 					li.appendTag(tag);
 				}
 			}
@@ -285,10 +274,12 @@ public final class PointSpawnSystem {
 		private long emptyTicks;
 		private boolean isDead;
 
+		private String id;
+		/*
 		protected SpawnPoint(World world, Coordinate c) {
 			this(new WorldLocation(world, c));
 		}
-
+		 */
 		protected SpawnPoint(WorldLocation loc) {
 			location = loc;
 		}
@@ -504,6 +495,13 @@ public final class PointSpawnSystem {
 				e.getEntityData().setTag(SPAWN_NBT_TAG, tag);
 			}
 		}
+
+	}
+
+	public static interface SpawnPointDefinition {
+
+		public SpawnPoint construct(WorldLocation loc);
+		public String getID();
 
 	}
 

@@ -11,16 +11,18 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPointDefinition;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 
-public class RoadGuardSpawner {
+public class RoadGuardSpawner implements SpawnPointDefinition {
 
 	RoadGuardSpawner() {
-		PointSpawnSystem.registerSpawnerType("roadGuard", RoadGuardSpawnPoint.class);
+		PointSpawnSystem.registerSpawnerType("roadGuard", this);
 	}
 
 	public Collection<SpawnPoint> createSpawnPoints(World world, BiomeFootprint bf, Random rand) {
@@ -32,7 +34,7 @@ public class RoadGuardSpawner {
 			Coordinate c = blocks.remove(idx);
 			c = c.setY(DecoratorPinkForest.getTrueTopAt(world, c.xCoord, c.zCoord)+1);
 			if (this.isValidSpawnArea(world, c)) {
-				ret.add(new RoadGuardSpawnPoint(world, c));
+				ret.add(new RoadGuardSpawnPoint(new WorldLocation(world, c)));
 			}
 		}
 		return ret;
@@ -59,9 +61,9 @@ public class RoadGuardSpawner {
 
 		public final float roadValue;
 
-		private RoadGuardSpawnPoint(World world, Coordinate c) {
-			super(world, c);
-			roadValue = (float)Satisforestry.pinkforest.getRoadFactor(world, c.xCoord, c.zCoord);
+		private RoadGuardSpawnPoint(WorldLocation loc) {
+			super(loc);
+			roadValue = (float)Satisforestry.pinkforest.getRoadFactor(loc.getWorld(), loc.xCoord, loc.zCoord);
 			this.initializeBasedOnRoadValue();
 		}
 
@@ -88,6 +90,16 @@ public class RoadGuardSpawner {
 				this.setSpawnParameters(EntitySpider.class, 2, 8);
 		}
 
+	}
+
+	@Override
+	public SpawnPoint construct(WorldLocation loc) {
+		return new RoadGuardSpawnPoint(loc);
+	}
+
+	@Override
+	public String getID() {
+		return "roadGuard";
 	}
 
 }

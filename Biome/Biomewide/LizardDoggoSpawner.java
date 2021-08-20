@@ -10,15 +10,17 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPointDefinition;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
-public class LizardDoggoSpawner {
+public class LizardDoggoSpawner implements SpawnPointDefinition {
 
 	LizardDoggoSpawner() {
-		PointSpawnSystem.registerSpawnerType("doggo", LizardDoggoSpawnPoint.class);
+		PointSpawnSystem.registerSpawnerType("doggo", this);
 	}
 
 	public Collection<SpawnPoint> createDoggoSpawnPoints(World world, BiomeFootprint bf, Random rand) {
@@ -38,7 +40,7 @@ public class LizardDoggoSpawner {
 					}
 				}
 				if (flag)
-					ret.add(new LizardDoggoSpawnPoint(world, c));
+					ret.add(new LizardDoggoSpawnPoint(new WorldLocation(world, c)));
 			}
 		}
 		return ret;
@@ -63,8 +65,8 @@ public class LizardDoggoSpawner {
 
 	public static class LizardDoggoSpawnPoint extends SpawnPoint {
 
-		private LizardDoggoSpawnPoint(World world, Coordinate c) {
-			super(world, c);
+		private LizardDoggoSpawnPoint(WorldLocation loc) {
+			super(loc);
 			this.setSpawnParameters(EntityLizardDoggo.class, 1, 18.5);
 		}
 
@@ -80,6 +82,16 @@ public class LizardDoggoSpawner {
 			return false;
 		}
 
+	}
+
+	@Override
+	public SpawnPoint construct(WorldLocation loc) {
+		return new LizardDoggoSpawnPoint(loc);
+	}
+
+	@Override
+	public String getID() {
+		return "doggo";
 	}
 
 }

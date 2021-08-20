@@ -1,10 +1,13 @@
 package Reika.Satisforestry;
 
 import java.util.Iterator;
+import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
+import net.minecraft.command.IEntitySelector;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.item.EntityItem;
@@ -12,6 +15,7 @@ import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
@@ -55,6 +59,7 @@ import Reika.DragonAPI.Instantiable.Event.Client.RenderCursorStackEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.RenderItemInSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
+import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
@@ -283,6 +288,25 @@ public class SFEvents {
 	}
 
 	@SubscribeEvent
+	public void keepSurfaceMobsSparse(LivingSpawnEvent.CheckSpawn evt) {
+		int x = MathHelper.floor_double(evt.x);
+		int z = MathHelper.floor_double(evt.z);
+		if (Satisforestry.isPinkForest(evt.world, x, z)) {
+			if (evt.entityLiving instanceof EntitySpider && evt.y >= 90) {
+				AxisAlignedBB box = ReikaAABBHelper.getPointAABB(evt.x, evt.y, evt.z, 18, 8);
+				List<Entity> li = evt.world.getEntitiesWithinAABBExcludingEntity(evt.entityLiving, box, new IEntitySelector() {
+					@Override
+					public boolean isEntityApplicable(Entity e) {
+						return e instanceof EntitySpider;
+					}
+				});
+				if (li.size() > 1+(evt.world.skylightSubtracted+1)/3)
+					evt.setResult(Result.DENY);
+			}
+		}
+	}
+
+	@SubscribeEvent
 	public void dynamicSpawns(WorldEvent.PotentialSpawns evt) {
 		if (evt.type == EnumCreatureType.monster && Satisforestry.isPinkForest(evt.world, evt.x, evt.z)) {
 			if (BiomewideFeatureGenerator.instance.isInCave(evt.world, evt.x, evt.y, evt.z)) {
@@ -291,12 +315,10 @@ public class SFEvents {
 				//ReikaJavaLibrary.pConsole(evt.list.get(0).entityClass+" @ "+evt.world.getTotalWorldTime());
 			}
 			else {
-				int wt = 5+evt.world.skylightSubtracted*15/11; //gives range of 5 in day to 20 in night
+				int wt = evt.world.skylightSubtracted*10/11; //gives range of 0 in day to 10 (compared to spider 30) in night
 				evt.list.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, wt, 1, 1));
 			}
 		}
-		if (true || false)
-			evt.setCanceled(true);
 	}
 
 	@SubscribeEvent
