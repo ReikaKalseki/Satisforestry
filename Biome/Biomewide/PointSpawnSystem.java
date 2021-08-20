@@ -6,15 +6,18 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
+import java.util.UUID;
 
 import com.google.common.base.Strings;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.nbt.NBTTagString;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumDifficulty;
@@ -22,6 +25,8 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Data.Maps.MultiMap;
+import Reika.DragonAPI.Libraries.ReikaEntityHelper;
+import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
@@ -32,6 +37,7 @@ import Reika.Satisforestry.Entity.SpawnPointEntity;
 public final class PointSpawnSystem {
 
 	private static final HashMap<String, SpawnPointDefinition> spawnerTypes = new HashMap();
+	private static final HashMap<Class<? extends SpawnPoint>, String> spawnerTypeClasses = new HashMap();
 
 	public static final PointSpawnSystem instance = new PointSpawnSystem();
 
@@ -52,15 +58,16 @@ public final class PointSpawnSystem {
 
 	public static void registerSpawnerType(SpawnPointDefinition c) {
 		spawnerTypes.put(c.getID(), c);
+		spawnerTypeClasses.put(c.getSpawnerClass(), c.getID());
 	}
 
 	public void createSpawnPoints(World world, int x, int z, BiomeFootprint bf, Random rand) {
 		Collection<SpawnPoint> spawns = doggos.createDoggoSpawnPoints(world, bf, rand);
-		Satisforestry.logger.log("Doggo spawn locations around "+x+", "+z+": "+spawns);
+		Satisforestry.logger.log("Doggo spawn locations around "+x+", "+z+": "+spawns.size()+"="+spawns);
 		this.addSpawnPoints(spawns);
 
 		spawns = guards.createSpawnPoints(world, bf, rand);
-		Satisforestry.logger.log("Road Guard spawn locations around "+x+", "+z+": "+spawns);
+		Satisforestry.logger.log("Road Guard spawn locations around "+x+", "+z+": "+spawns.size()+"="+spawns);
 		this.addSpawnPoints(spawns);
 	}
 
@@ -72,9 +79,11 @@ public final class PointSpawnSystem {
 
 	public void addSpawnPoint(SpawnPoint s) {
 		if (Strings.isNullOrEmpty(s.id))
+			s.id = spawnerTypeClasses.get(s.getClass());
+		if (Strings.isNullOrEmpty(s.id))
 			throw new IllegalArgumentException("Untyped spawner "+s+"!");
 		if (spawnerTypes.get(s.id) == null)
-			throw new IllegalArgumentException("Unregistered spawner type "+s.getClass()+"!");
+			throw new IllegalArgumentException("Unregistered spawner type "+s.id+"!");
 		if (s.location == null)
 			throw new IllegalArgumentException("Spawnpoint "+s+" has a null location!");
 		MultiMap<Class<? extends EntityLiving>, SpawnPoint> map = spawns.get(s.location.dimensionID);
@@ -181,7 +190,7 @@ public final class PointSpawnSystem {
 		return this.getSpawnAt(this.getSpawnLocation(e), e.getClass());
 	}
 
-	private WorldLocation getSpawnLocation(EntityLiving e) {
+	public WorldLocation getSpawnLocation(EntityLiving e) {
 		if (e instanceof SpawnPointEntity) {
 			return ((SpawnPointEntity)e).getSpawn();
 		}
@@ -206,23 +215,23 @@ public final class PointSpawnSystem {
 		setTag(e, KILLED_NBT_TAG, true);
 	}
 
-	private static void setTag(EntityLiving e, String key, int value) {
+	public static void setTag(EntityLiving e, String key, int value) {
 		NBTTagCompound tag = e.getEntityData().getCompoundTag(SPAWN_NBT_TAG);
 		tag.setInteger(key, value);
 		e.getEntityData().setTag(SPAWN_NBT_TAG, tag);
 	}
 
-	private static void setTag(EntityLiving e, String key, boolean flag) {
+	public static void setTag(EntityLiving e, String key, boolean flag) {
 		NBTTagCompound tag = e.getEntityData().getCompoundTag(SPAWN_NBT_TAG);
 		tag.setBoolean(key, flag);
 		e.getEntityData().setTag(SPAWN_NBT_TAG, tag);
 	}
 
-	private static boolean hasTag(EntityLiving e, String key) {
+	public static boolean hasTag(EntityLiving e, String key) {
 		return e.getEntityData().getCompoundTag(SPAWN_NBT_TAG).getBoolean(key);
 	}
 
-	private static int getTag(EntityLiving e, String key) {
+	public static int getTag(EntityLiving e, String key) {
 		return e.getEntityData().getCompoundTag(SPAWN_NBT_TAG).getInteger(key);
 	}
 
@@ -274,6 +283,8 @@ public final class PointSpawnSystem {
 		private boolean isDead;
 
 		private String id;
+
+		private final ArrayList<UUID> spawnedMobs = new ArrayList();
 		/*
 		protected SpawnPoint(World world, Coordinate c) {
 			this(new WorldLocation(world, c));
@@ -300,7 +311,7 @@ public final class PointSpawnSystem {
 
 		@Override
 		public final String toString() {
-			return this.getClass()+" @ "+this.getLocation().toString()+this.getInfoString()+" ["+mobType+" x"+numberToSpawn+"]";
+			return this.getClass().getName()+" @ "+this.getLocation().toString()+this.getInfoString()+" ["+mobType+" x"+numberToSpawn+"]";
 		}
 
 		protected String getInfoString() {
@@ -334,6 +345,12 @@ public final class PointSpawnSystem {
 			ret.setBoolean("dead", isDead);
 			ret.setString("mob", mobType);
 			ret.setString("type", mobClass.getName());
+
+			NBTTagList li = new NBTTagList();
+			for (UUID uid : spawnedMobs) {
+				li.appendTag(new NBTTagString(uid.toString()));
+			}
+			ret.setTag("spawned", li);
 		}
 
 		public void readFromTag(NBTTagCompound NBT) {
@@ -352,6 +369,12 @@ public final class PointSpawnSystem {
 			catch (ClassNotFoundException e) {
 				e.printStackTrace();
 				mobClass = (Class<? extends EntityLiving>)EntityList.stringToClassMapping.get(mobType);
+			}
+
+			spawnedMobs.clear();
+			NBTTagList li = NBT.getTagList("spawned", NBTTypes.STRING.ID);
+			for (Object o : li.tagList) {
+				spawnedMobs.add(UUID.fromString(((NBTTagString)o).func_150285_a_()));
 			}
 		}
 
@@ -377,20 +400,54 @@ public final class PointSpawnSystem {
 			if (EntityMob.class.isAssignableFrom(mobClass) && world.difficultySetting == EnumDifficulty.PEACEFUL)
 				return;
 			if (ep == null)
-				ep = world.getClosestPlayer(loc.xCoord+0.5, loc.yCoord+0.5, loc.zCoord+0.5, activationRadius);
+				ep = world.getClosestPlayer(loc.xCoord+0.5, loc.yCoord+0.5, loc.zCoord+0.5, -1);
 			if (ep == null)
 				return;
 			int amt = numberToSpawn-existingCount-playerKilled;
-			if (amt > 0 && ep.getDistanceSq(loc.xCoord+0.5, loc.yCoord+0.5, loc.zCoord+0.5) <= activationRadius*activationRadius) {
-				int last = existingCount;
-				for (int i = 0; i < amt; i++) {
-					if (this.attemptSpawn(world, loc)) {
-						existingCount++;
+			int last = existingCount;
+			double dist = ep.getDistanceSq(loc.xCoord+0.5, loc.yCoord+0.5, loc.zCoord+0.5);
+			if (amt > 0) {
+				if (dist <= activationRadius*activationRadius) {
+					for (int i = 0; i < amt; i++) {
+						if (this.attemptSpawn(world, loc)) {
+							existingCount++;
+						}
 					}
 				}
-				if (existingCount != last && location != null)
-					BiomewideFeatureGenerator.instance.save(world);
 			}
+			double reset = this.getResetRadius();
+			//ReikaJavaLibrary.pConsole(this+" ["+numberToSpawn+"/"+existingCount+"/"+playerKilled+"] = "+Math.sqrt(dist)+"/"+reset, playerKilled > 0);
+			if (reset >= 0 && dist >= reset*reset) {
+				double reset2 = this.getAutoClearRadius();
+				this.resetMobs(world, dist >= reset2*reset2);
+			}
+			if (existingCount != last && location != null)
+				BiomewideFeatureGenerator.instance.save(world);
+		}
+
+		public final double getActivationRadius() {
+			return activationRadius;
+		}
+
+		protected double getResetRadius() {
+			return activationRadius*4;
+		}
+
+		protected double getAutoClearRadius() {
+			return this.getResetRadius()*1.5;
+		}
+
+		protected final void resetMobs(World world, boolean deleteSpawned) {
+			if (deleteSpawned) {
+				for (UUID uid : spawnedMobs) {
+					Entity e = ReikaEntityHelper.getEntityByUID(world, uid);
+					if (e instanceof EntityLiving) {
+						e.setDead();
+					}
+				}
+				existingCount = 0;
+			}
+			playerKilled = 0;
 		}
 
 		protected boolean isEmptyTimeoutActive(World world) {
@@ -403,7 +460,10 @@ public final class PointSpawnSystem {
 
 		private final void removeEntity(EntityLiving e) {
 			//ReikaJavaLibrary.pConsole("Removed "+e+" from "+this);
+			spawnedMobs.remove(e.getUniqueID());
 			existingCount--;
+			if (existingCount < 0)
+				existingCount = 0;
 			if (this.canBeCleared()) {
 				if (hasTag(e, KILLED_NBT_TAG))
 					playerKilled++;
@@ -461,6 +521,7 @@ public final class PointSpawnSystem {
 				if (e.getCanSpawnHere()) {
 					e.rotationYaw = world.rand.nextFloat()*360;
 					this.setSpawnCallback(e, loc);
+					spawnedMobs.add(e.getUniqueID());
 					//e.onSpawnWithEgg((IEntityLivingData)null); no jockeys or potions
 					world.spawnEntityInWorld(e);
 					e.spawnExplosionParticle();
@@ -501,6 +562,7 @@ public final class PointSpawnSystem {
 
 		public SpawnPoint construct(WorldLocation loc);
 		public String getID();
+		public Class<? extends SpawnPoint> getSpawnerClass();
 
 	}
 

@@ -101,6 +101,16 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		}
 
 		@Override
+		protected double getResetRadius() {
+			return tile.getResetRadius(super.getResetRadius());
+		}
+
+		@Override
+		protected double getAutoClearRadius() {
+			return tile.getAutoClearRadius(super.getAutoClearRadius());
+		}
+
+		@Override
 		protected String getInfoString() {
 			return " "+tile.getClass().getName();
 		}
@@ -123,13 +133,21 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 			return "tile";
 		}
 
+		@Override
+		public Class<? extends SpawnPoint> getSpawnerClass() {
+			return TileSpawnPoint.class;
+		}
+
 	}
 
 	public static class TileCaveSpawner extends TileEntity implements PointSpawnTile {
 
+		public static final String FOLLOW_TAG = "followRange";
+
 		private TileSpawnPoint spawner;
 
 		private double spawnRadius = 6;
+		private int followRange = -1;
 
 		public TileCaveSpawner() {
 			this.setSpawnParameters(EntitySpider.class, 6, 6, 6);
@@ -144,10 +162,15 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		}
 
 		public final void setSpawnParameters(Class<? extends EntityMob> c, int n, double ar, double sr) {
+			this.setSpawnParameters(c, n, ar, sr, -1);
+		}
+
+		public final void setSpawnParameters(Class<? extends EntityMob> c, int n, double ar, double sr, int fl) {
 			if (spawner == null && c != null && n > 0) {
 				this.createSpawner();
 			}
 			spawnRadius = sr;
+			followRange = fl;
 			if (c == null || n <= 0)
 				spawner = null;
 			else
@@ -162,8 +185,20 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 			}
 		}
 
+		public final double getActivationRadius() {
+			return spawner.getActivationRadius();
+		}
+
 		protected boolean isEmptyTimeoutActive(World world) {
 			return true;
+		}
+
+		protected double getResetRadius(double base) {
+			return base;
+		}
+
+		protected double getAutoClearRadius(double base) {
+			return base;
 		}
 
 		private void createSpawner() {
@@ -184,12 +219,16 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 				return;
 			if (spawner == null)
 				return;
-			if (!worldObj.isRemote)
+			if (!worldObj.isRemote) {
 				spawner.tick(worldObj);
+			}
 		}
 
 		protected void onSpawnEntity(EntityMob e) {
-			e.getEntityData().setBoolean("pinkforestspawned", true);
+			PointSpawnSystem.setTag(e, "tileSpawned", true);
+			if (followRange > 0) {
+				PointSpawnSystem.setTag(e, FOLLOW_TAG, followRange);
+			}
 		}
 
 		@Override
@@ -203,6 +242,7 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 			}
 
 			NBT.setDouble("spawnRadius", spawnRadius);
+			NBT.setInteger("follow", followRange);
 		}
 
 		@Override
@@ -217,6 +257,7 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 			}
 
 			spawnRadius = NBT.getDouble("spawnRadius");
+			followRange = NBT.getInteger("follow");
 		}
 
 		@Override

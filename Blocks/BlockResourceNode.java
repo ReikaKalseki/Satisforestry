@@ -167,7 +167,7 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 		}
 
 		private void initSpawner(int n) {
-			this.setSpawnParameters(EntityEliteStinger.class, n, 5, 3);
+			this.setSpawnParameters(EntityEliteStinger.class, n, 5, 3, 16);
 		}
 
 		public void generate(Random rand) {

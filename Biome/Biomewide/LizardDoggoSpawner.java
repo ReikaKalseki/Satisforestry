@@ -82,6 +82,11 @@ public class LizardDoggoSpawner implements SpawnPointDefinition {
 			return false;
 		}
 
+		@Override
+		protected double getResetRadius() {
+			return -1;
+		}
+
 	}
 
 	@Override
@@ -92,6 +97,11 @@ public class LizardDoggoSpawner implements SpawnPointDefinition {
 	@Override
 	public String getID() {
 		return "doggo";
+	}
+
+	@Override
+	public Class<? extends SpawnPoint> getSpawnerClass() {
+		return LizardDoggoSpawnPoint.class;
 	}
 
 }

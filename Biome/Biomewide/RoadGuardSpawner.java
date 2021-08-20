@@ -102,4 +102,9 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 		return "roadGuard";
 	}
 
+	@Override
+	public Class<? extends SpawnPoint> getSpawnerClass() {
+		return RoadGuardSpawnPoint.class;
+	}
+
 }

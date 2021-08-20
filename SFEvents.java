@@ -39,6 +39,7 @@ import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ClassDependent;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Auxiliary.Trackers.SpecialDayTracker;
+import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Event.BlockStopsPrecipitationEvent;
 import Reika.DragonAPI.Instantiable.Event.BlockTickEvent;
 import Reika.DragonAPI.Instantiable.Event.EntityRemovedEvent;
@@ -60,6 +61,7 @@ import Reika.DragonAPI.Instantiable.Event.Client.RenderItemInSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.ReikaPlayerAPI;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
@@ -73,6 +75,7 @@ import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkRiver;
 import Reika.Satisforestry.Biome.Generator.WorldGenUraniumCave;
+import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Miner.GuiSFMiner;
 import Reika.Satisforestry.Registry.SFBlocks;
@@ -101,7 +104,7 @@ public class SFEvents {
 
 	@SubscribeEvent
 	public void deactivateSpawner(LivingDeathEvent evt) {
-		if (evt.source.getEntity() instanceof EntityPlayer && evt.entityLiving instanceof EntityLiving) {
+		if (evt.source.getEntity() instanceof EntityPlayer && !ReikaPlayerAPI.isFake((EntityPlayer)evt.source.getEntity()) && evt.entityLiving instanceof EntityLiving) {
 			SpawnPoint p = PointSpawnSystem.instance.getSpawn((EntityLiving)evt.entityLiving);
 			if (p != null) {
 				PointSpawnSystem.instance.tagEntityAsKilled((EntityLiving)evt.entityLiving);
@@ -319,6 +322,7 @@ public class SFEvents {
 				evt.list.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, wt, 1, 1));
 			}
 		}
+		evt.setCanceled(true);
 	}
 
 	@SubscribeEvent
@@ -337,9 +341,22 @@ public class SFEvents {
 	}
 
 	@SubscribeEvent
-	public void spawnLizardDoggos(LivingUpdateEvent evt) {
-		if (evt.entityLiving instanceof EntityPlayer && !evt.entityLiving.worldObj.isRemote) {
-			PointSpawnSystem.instance.tick((EntityPlayer)evt.entityLiving);
+	public void runPointSpawners(LivingUpdateEvent evt) {
+		if (!evt.entityLiving.worldObj.isRemote) {
+			if (evt.entityLiving instanceof EntityPlayer) {
+				PointSpawnSystem.instance.tick((EntityPlayer)evt.entityLiving);
+			}
+			else if (evt.entityLiving instanceof EntityLiving) {
+				int follow = PointSpawnSystem.instance.getTag((EntityLiving)evt.entityLiving, TileCaveSpawner.FOLLOW_TAG);
+				if (follow > 0) {
+					WorldLocation s = PointSpawnSystem.instance.getSpawnLocation((EntityLiving)evt.entityLiving);
+					if (s != null) {
+						double dist = evt.entityLiving.getDistanceSq(s.xCoord+0.5, s.yCoord+0.5, s.zCoord+0.5);
+						if (dist >= follow*follow)
+							evt.entityLiving.setDead();
+					}
+				}
+			}
 		}
 	}
 

@@ -226,6 +226,8 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 
 	public static class TilePowerSlug extends TileCaveSpawner {
 
+		private static final int FOLLOW_RANGE = 32;
+
 		private static final UUID healthBonus = UUID.fromString("cea3577b-784d-46e2-ae4c-3de297a10b66");
 
 		public float angle;
@@ -313,11 +315,11 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		}
 
 		public final void setDefaultSpawn(Class<? extends EntityMob> e) {
-			this.setSpawnParameters(e, 3, 8, 6);
+			this.setSpawnParameters(e, 3, 8, 6, FOLLOW_RANGE);
 		}
 
 		public final void setSingleStrongEnemy(Class<? extends EntityMob> c, float boost) {
-			this.setSpawnParameters(c, 1, 12, 2);
+			this.setSpawnParameters(c, 1, 12, 2, FOLLOW_RANGE);
 			healthBuff = boost;
 		}
 
@@ -326,7 +328,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		}
 
 		public final void setNoSpawns() {
-			this.setSpawnParameters(null, 0, 0, 0);
+			this.setSpawnParameters(null, 0, 0, 0, FOLLOW_RANGE);
 		}
 
 		@Override
@@ -341,6 +343,16 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		@Override
 		protected boolean denyPassivation() {
 			return true;
+		}
+
+		@Override
+		protected double getResetRadius(double base) {
+			return FOLLOW_RANGE*0.75;
+		}
+
+		@Override
+		protected double getAutoClearRadius(double base) {
+			return Math.max(this.getActivationRadius()*4, FOLLOW_RANGE*1.5);
 		}
 
 		public int getTier() {
