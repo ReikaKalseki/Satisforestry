@@ -405,6 +405,7 @@ public final class PointSpawnSystem {
 				return;
 			int amt = numberToSpawn-existingCount-playerKilled;
 			int last = existingCount;
+			int last2 = playerKilled;
 			double dist = ep.getDistanceSq(loc.xCoord+0.5, loc.yCoord+0.5, loc.zCoord+0.5);
 			if (amt > 0) {
 				if (dist <= activationRadius*activationRadius) {
@@ -415,13 +416,15 @@ public final class PointSpawnSystem {
 					}
 				}
 			}
-			double reset = this.getResetRadius();
-			//ReikaJavaLibrary.pConsole(this+" ["+numberToSpawn+"/"+existingCount+"/"+playerKilled+"] = "+Math.sqrt(dist)+"/"+reset, playerKilled > 0);
-			if (reset >= 0 && dist >= reset*reset) {
-				double reset2 = this.getAutoClearRadius();
-				this.resetMobs(world, dist >= reset2*reset2);
+			if (playerKilled < numberToSpawn) {
+				double reset = this.getResetRadius();
+				//ReikaJavaLibrary.pConsole(this+" ["+numberToSpawn+"/"+existingCount+"/"+playerKilled+"] = "+Math.sqrt(dist)+"/"+reset, playerKilled > 0);
+				if (reset >= 0 && dist >= reset*reset) {
+					double reset2 = this.getAutoClearRadius();
+					this.resetMobs(world, dist >= reset2*reset2);
+				}
 			}
-			if (existingCount != last && location != null)
+			if ((existingCount != last || playerKilled != last2) && location != null)
 				BiomewideFeatureGenerator.instance.save(world);
 		}
 
