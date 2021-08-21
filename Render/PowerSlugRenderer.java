@@ -79,6 +79,7 @@ public class PowerSlugRenderer extends TileEntitySpecialRenderer {
 		//GL11.glShadeModel(GL11.GL_SMOOTH);
 		//if (te.hasWorldObj())
 		ReikaRenderHelper.disableLighting();
+		//GL11.glDisable(GL11.GL_CULL_FACE);
 		int tier = te.getTier();
 		if (te instanceof TilePowerSlugInert)
 			tier += 3;

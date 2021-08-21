@@ -195,4 +195,39 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 		return tag;
 	}
 
+	@Override
+	protected int getDifficultyByHeight(int y, int dy, Random rand) {
+		return MathHelper.clamp_int(dy/27, 0, 3);
+	}
+
+	@Override
+	protected int getSlugByHeight(int y, int dy, Random rand) {
+		int reach = dy/32;
+		int tier = 0;
+		if (reach >= 64) {
+			float f = (reach-64)/64F;
+			tier = rand.nextFloat() < f ? 3 : 2;
+		}
+		else if (reach >= 24) {
+			float f = (reach-24)/40F;
+			tier = rand.nextFloat() < f*0.9 ? 2 : 1;
+		}
+		return tier;
+	}
+
+	@Override
+	protected float getTrunkSlugChancePerBlock() {
+		return 0.001F;
+	}
+
+	@Override
+	protected float getTreeTopSlugChance() {
+		return 0.3F;
+	}
+
+	@Override
+	protected boolean canSpawnLeaftopMobs() {
+		return true;
+	}
+
 }

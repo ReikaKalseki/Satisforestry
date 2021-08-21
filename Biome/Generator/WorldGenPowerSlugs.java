@@ -41,7 +41,7 @@ public class WorldGenPowerSlugs {
 				if (dy < 80)
 					continue;
 				if (this.isReplaceable(world, c.xCoord, dy, c.zCoord) && SFBlocks.SLUG.getBlockInstance().canBlockStay(world, c.zCoord, dy, c.zCoord)) {
-					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, i, false, dy > F ? 1 : 0, true);
+					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, i, false, dy > 130 ? 1 : 0, true);
 					if (te != null) {
 						flags |= (1 << i);
 						break;

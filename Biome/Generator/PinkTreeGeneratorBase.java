@@ -7,7 +7,6 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -33,9 +32,6 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	private int generationOriginX;
 	private int generationOriginY;
 	private int generationOriginZ;
-
-	private int topLeaf = -1;
-	private int bottomLeaf = 256;
 
 	private final HashMap<Coordinate, Integer> logs = new HashMap();
 	private final HashMap<Coordinate, Integer> leavesTop = new HashMap();
@@ -77,23 +73,15 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	protected void postGenerate(World world, Random rand, int x, int y, int z) {
 		if (rand.nextFloat() < this.getTreeTopSlugChance()) {
 			TilePowerSlug te = null;
-			ArrayList<Entry<Coordinate, Integer>> set = new ArrayList(leavesTop.keySet());
+			ArrayList<Entry<Coordinate, Integer>> set = new ArrayList(leavesTop.entrySet());
 			while (te == null && !set.isEmpty()) {
 				int i = rand.nextInt(set.size());
 				Entry<Coordinate, Integer> e = set.remove(i);
 				Coordinate c = e.getKey();
 				int dy = e.getValue();
-				int reach = (dy-generationOriginY)/32;
-				int tier = 0;
-				if (reach >= 64) {
-					float f = (reach-64)/64F;
-					tier = rand.nextFloat() < f ? 3 : 2;
-				}
-				else if (reach >= 24) {
-					float f = (reach-24)/40F;
-					tier = rand.nextFloat() < f*0.9 ? 2 : 1;
-				}
-				te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, tier, false, MathHelper.clamp_int(reach, 0, 3), true);
+				int ddy = dy-generationOriginY;
+				int tier = this.getSlugByHeight(dy, ddy, rand);
+				te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, tier, false, this.getDifficultyByHeight(dy, ddy, rand), this.canSpawnLeaftopMobs(), 3);
 			}
 		}
 		for (Entry<Coordinate, Integer> e : logs.entrySet()) {
@@ -102,7 +90,14 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 				int[] trunk = this.getTrunkRange();
 				if (c.yCoord >= trunk[0] && c.yCoord <= trunk[1]) {
 					if (rand.nextFloat() < this.getTrunkSlugChancePerBlock()) {
-
+						for (Coordinate c2 : c.getAdjacentCoordinates()) {
+							if (c2.yCoord != c.yCoord)
+								continue;
+							int dy = c2.yCoord-generationOriginY;
+							int tier = this.getSlugByHeight(c2.yCoord, dy, rand);
+							if (BlockPowerSlug.generatePowerSlugAt(world, c2.xCoord, c2.yCoord, c2.zCoord, rand, tier, false, this.getDifficultyByHeight(c2.yCoord-generationOriginY, dy, rand), false) != null)
+								break;
+						}
 					}
 				}
 			}
@@ -111,6 +106,10 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 			}
 		}
 	}
+
+	protected abstract boolean canSpawnLeaftopMobs();
+	protected abstract int getDifficultyByHeight(int y, int dy, Random rand);
+	protected abstract int getSlugByHeight(int y, int dy, Random rand);
 
 	@Override
 	protected void setBlockAndNotifyAdequately(World world, int x, int y, int z, Block b, int meta) {
@@ -123,8 +122,6 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 			Integer get = leavesTop.get(c);
 			if (get == null || get.intValue() < y)
 				leavesTop.put(c, y);
-			topLeaf = Math.max(y, topLeaf);
-			bottomLeaf = Math.min(y, bottomLeaf);
 		}
 	}
 

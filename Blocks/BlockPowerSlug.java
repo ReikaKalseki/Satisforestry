@@ -22,6 +22,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.Extras.IconPrefabs;
@@ -190,6 +191,10 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 	}
 
 	public static TilePowerSlug generatePowerSlugAt(World world, int x, int y, int z, Random rand, int tier, boolean gas, int reachDifficulty, boolean allowSpawns) {
+		return generatePowerSlugAt(world, x, y, z, rand, tier, gas, reachDifficulty, allowSpawns, Integer.MAX_VALUE);
+	}
+
+	public static TilePowerSlug generatePowerSlugAt(World world, int x, int y, int z, Random rand, int tier, boolean gas, int reachDifficulty, boolean allowSpawns, int maxSpawnRadius) {
 		while (y > 0 && ReikaWorldHelper.softBlocks(world, x, y-1, z))
 			y--;
 		Block b = world.getBlock(x, y-1, z);
@@ -273,6 +278,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 						}
 						break;
 				}
+				te.clampSpawnRadius(maxSpawnRadius);
 			}
 			else {
 				te.setNoSpawns();
@@ -326,6 +332,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		private static final UUID healthBonus = UUID.fromString("cea3577b-784d-46e2-ae4c-3de297a10b66");
 
 		public float angle;
+		private ForgeDirection mounting = ForgeDirection.DOWN;
 
 		private int tier;
 
@@ -351,6 +358,11 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		@Override
 		public boolean shouldRenderInPass(int pass) {
 			return pass <= 1;
+		}
+
+		public void setDirection(ForgeDirection dir) {
+			mounting = dir;
+			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 		}
 
 		@Override
@@ -461,6 +473,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			NBT.setFloat("angle", angle);
 
 			NBT.setInteger("tier", tier);
+			NBT.setInteger("side", mounting.ordinal());
 		}
 
 		@Override
@@ -470,6 +483,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			angle = NBT.getFloat("angle");
 
 			tier = NBT.getInteger("tier");
+			mounting = ForgeDirection.VALID_DIRECTIONS[NBT.getInteger("side")];
 		}
 
 	}

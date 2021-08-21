@@ -16,7 +16,6 @@ import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
@@ -160,7 +159,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 						int dx = ReikaRandomHelper.getRandomPlusMinus(x, 2);
 						int dz = ReikaRandomHelper.getRandomPlusMinus(z, 2);
 						int dy = getTrueTopAt(currentWorld, dx, dz)+1;
-						te = BlockPowerSlug.generatePowerSlugAt(currentWorld, dx, dy, dz, tier, true, ?, true);
+						te = BlockPowerSlug.generatePowerSlugAt(currentWorld, dx, dy, dz, randomGenerator, tier, true, 0, true);
 						n++;
 					}
 				}

@@ -187,4 +187,29 @@ public class PinkTreeGenerator extends PinkTreeGeneratorBase {
 		return super.leafSize(r);
 	}
 
+	@Override
+	protected int getDifficultyByHeight(int y, int dy, Random rand) {
+		return this.getHeightFraction(y) >= (0.8+rand.nextDouble()*0.3) || dy >= ReikaRandomHelper.getRandomBetween(12, 20, rand) ? 1 : 0;
+	}
+
+	@Override
+	protected int getSlugByHeight(int y, int dy, Random rand) {
+		return rand.nextInt(3) == 0 && (this.getHeightFraction(y) >= 0.95+rand.nextDouble()*0.1 || dy >= ReikaRandomHelper.getRandomBetween(16, 24, rand)) ? 2 : 1;
+	}
+
+	@Override
+	protected float getTrunkSlugChancePerBlock() {
+		return 0.002F;
+	}
+
+	@Override
+	protected float getTreeTopSlugChance() {
+		return 0.05F;
+	}
+
+	@Override
+	protected boolean canSpawnLeaftopMobs() {
+		return false;
+	}
+
 }

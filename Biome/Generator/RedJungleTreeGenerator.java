@@ -117,4 +117,29 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 			world.setBlock(x, y, z, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(sides), 2);
 	}
 
+	@Override
+	protected int getDifficultyByHeight(int y, int dy, Random rand) {
+		return 0;
+	}
+
+	@Override
+	protected int getSlugByHeight(int y, int dy, Random rand) {
+		return rand.nextInt(4) == 0 && this.getHeightFraction(y) >= 0.8+rand.nextDouble()*0.2 ? 2 : 1;
+	}
+
+	@Override
+	protected float getTrunkSlugChancePerBlock() {
+		return 0.005F;
+	}
+
+	@Override
+	protected float getTreeTopSlugChance() {
+		return 0.4F;
+	}
+
+	@Override
+	protected boolean canSpawnLeaftopMobs() {
+		return true;
+	}
+
 }
