@@ -3,8 +3,6 @@ package Reika.Satisforestry.Biome.Generator;
 import java.util.ArrayList;
 import java.util.Random;
 
-import net.minecraft.entity.monster.EntityCaveSpider;
-import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.ShuffledGrid;
@@ -15,7 +13,6 @@ import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Blocks.BlockPowerSlug;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
-import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 public class WorldGenPowerSlugs {
@@ -44,7 +41,7 @@ public class WorldGenPowerSlugs {
 				if (dy < 80)
 					continue;
 				if (this.isReplaceable(world, c.xCoord, dy, c.zCoord) && SFBlocks.SLUG.getBlockInstance().canBlockStay(world, c.zCoord, dy, c.zCoord)) {
-					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, i, false, ?, true);
+					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, i, false, dy > F ? 1 : 0, true);
 					if (te != null) {
 						flags |= (1 << i);
 						break;

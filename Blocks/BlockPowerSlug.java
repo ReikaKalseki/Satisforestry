@@ -194,7 +194,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			y--;
 		Block b = world.getBlock(x, y-1, z);
 		Block b1 = world.getBlock(x, y, z);
-		if ((b1.isAir(world, x, y, z) || ReikaBlockHelper.isLiquid(b1)) && (b == Blocks.grass || b == Blocks.dirt || b == Blocks.sand || b == Blocks.gravel || b == Blocks.stone || b == SFBlocks.TERRAIN.getBlockInstance())) {
+		if ((b1.isAir(world, x, y, z) || ReikaBlockHelper.isLiquid(b1)) && canExistOn(b)) {
 			world.setBlock(x, y, z, SFBlocks.SLUG.getBlockInstance(), tier, 3);
 			TilePowerSlug te = (TilePowerSlug)world.getTileEntity(x, y, z);
 			if (allowSpawns) {
@@ -282,6 +282,14 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			return te;
 		}
 		return null;
+	}
+
+	private static boolean canExistOn(Block b) {
+		if (b == Blocks.grass || b == Blocks.dirt || b == Blocks.sand || b == Blocks.gravel || b == Blocks.stone)
+			return true;
+		if (b == SFBlocks.LOG.getBlockInstance() || b == SFBlocks.LEAVES.getBlockInstance() || b == SFBlocks.TERRAIN.getBlockInstance())
+			return true;
+		return false;
 	}
 	/*
 	private static Class<? extends EntityMob> getMobTypeForTier(int tier) {
