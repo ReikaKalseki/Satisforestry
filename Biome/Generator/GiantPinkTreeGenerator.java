@@ -6,11 +6,13 @@ import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockPowerSlug;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
@@ -20,6 +22,8 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 
 	private boolean readyToGenerate = false;
 	private long randomSeed = 0;
+
+	private int groundGap;
 
 	public GiantPinkTreeGenerator(boolean force, boolean genImmediate) {
 		super(force, PinkTreeTypes.GIANTTREE);
@@ -47,9 +51,9 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 		}
 		int h1 = ReikaRandomHelper.getRandomBetween(10, 18, treeRand); //was 20-30, then 18-25, then 12-24
 		int h2 = ReikaRandomHelper.getRandomBetween(64, 80, treeRand); //was 15-30, then 40-72, then 36-64, then 48-72, then 55-80
-		int h0 = ReikaRandomHelper.getRandomBetween(3, 6, treeRand); //was 2-5, then 3-6
+		groundGap = ReikaRandomHelper.getRandomBetween(3, 6, treeRand); //was 2-5, then 3-6
 		/*
-		int y1 = h0+h1;
+		int y1 = groundGap+h1;
 		int y2 = y1+h2;
 		for (int i = 0; i <= y2; i++) {
 			if (!world.getBlock(x-1, y+i, z-1).isAir(world, x-1, y+i, z-1))
@@ -62,14 +66,14 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 				return false;
 		}
 		/*
-		for (int i = 0; i < h0; i++) {
+		for (int i = 0; i < groundGap; i++) {
 			world.setBlock(x+2, y+i, z-1, Satisforestry.log);
 			world.setBlock(x-1, y+i, z-1, Satisforestry.log);
 			world.setBlock(x+2, y+i, z+2, Satisforestry.log);
 			world.setBlock(x-1, y+i, z+2, Satisforestry.log);
 		}
 		 *//*
-		for (int i = h0; i < y1; i++) {
+		for (int i = groundGap; i < y1; i++) {
 			world.setBlock(x, y+i, z, Satisforestry.log);
 			world.setBlock(x+1, y+i, z, Satisforestry.log);
 			world.setBlock(x, y+i, z+1, Satisforestry.log);
@@ -93,11 +97,11 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 		heightAttenuation = BASE_ATTENUATION*1.1;
 		//minBranchHeight = hl*0+12;
 		minHeight = h1+h2;
-		globalOffset[1] = Math.max(h1+h0-4, 0);
+		globalOffset[1] = Math.max(h1+groundGap-4, 0);
 		leafDensity = 0.625F; //was 0.75
 		branchDensity = 0.4F; //was 0.67
 		if (super.generate(world, treeRand, x, y, z)) {
-			for (int dy = h0; dy < globalOffset[1]; dy++) {
+			for (int dy = groundGap; dy < globalOffset[1]; dy++) {
 				for (int i = -1; i <= 1; i++) {
 					for (int k = -1; k <= 1; k++) {
 						if (i == 0 || k == 0)
@@ -111,7 +115,7 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 			for (int i = 0; i < n; i++) {
 				double dx = x+0.5;
 				double dz = z+0.5;
-				double dy = y+h0+0.5;
+				double dy = y+groundGap+0.5;
 				double phi = ReikaRandomHelper.getRandomPlusMinus(angsplit*i, 15, treeRand);//rand.nextDouble()*360;
 				double theta = ReikaRandomHelper.getRandomBetween(-15, 5, treeRand);
 				double[] xyz = ReikaPhysicsHelper.polarToCartesian(1.5, theta, phi);
@@ -196,6 +200,18 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 	}
 
 	@Override
+	protected void postGenerate(World world, Random rand, int x, int y, int z) {
+		super.postGenerate(world, rand, x, y, z);
+		if (rand.nextInt(25*0+1) == 0) {
+			int tier = rand.nextInt(5) == 0 ? 1 : 0;
+			int dy = y+groundGap-1;
+			int dx = ReikaRandomHelper.getRandomPlusMinus(x, 1, rand);
+			int dz = ReikaRandomHelper.getRandomPlusMinus(z, 1, rand);
+			BlockPowerSlug.generatePowerSlugAt(world, dx, dy, dx, rand, tier, false, 0, true, 8, ForgeDirection.UP);
+		}
+	}
+
+	@Override
 	protected int getDifficultyByHeight(int y, int dy, Random rand) {
 		return MathHelper.clamp_int(dy/27, 0, 3);
 	}
@@ -206,28 +222,33 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 		int tier = 0;
 		if (reach >= 64) {
 			float f = (reach-64)/64F;
-			tier = rand.nextFloat() < f ? 3 : 2;
+			tier = rand.nextFloat() < f ? 2 : 1;
 		}
 		else if (reach >= 24) {
 			float f = (reach-24)/40F;
-			tier = rand.nextFloat() < f*0.9 ? 2 : 1;
+			tier = rand.nextFloat() < f*0.9 ? 1 : 0;
 		}
 		return tier;
 	}
 
 	@Override
 	protected float getTrunkSlugChancePerBlock() {
-		return 0.001F;
+		return 0.0016F;
 	}
 
 	@Override
 	protected float getTreeTopSlugChance() {
-		return 0.3F;
+		return 0.3F/this.getTreeTopSlugAttemptCount();
 	}
 
 	@Override
 	protected boolean canSpawnLeaftopMobs() {
 		return true;
+	}
+
+	@Override
+	protected int getTreeTopSlugAttemptCount() {
+		return 4;
 	}
 
 }

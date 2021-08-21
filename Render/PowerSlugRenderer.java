@@ -86,6 +86,35 @@ public class PowerSlugRenderer extends TileEntitySpecialRenderer {
 		int c = BlockPowerSlug.getColor(tier);
 		GL11.glColor4f(ReikaColorAPI.getRed(c)/255F, ReikaColorAPI.getGreen(c)/255F, ReikaColorAPI.getBlue(c)/255F, 1F);
 		GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+		if (te.hasWorldObj()) {
+			switch(te.getDirection()) {
+				case SOUTH:
+					GL11.glRotatef(-90, 1, 0, 0);
+					GL11.glTranslatef(0, -1, 1);
+					break;
+				case NORTH:
+					GL11.glRotatef(90, 1, 0, 0);
+					GL11.glRotatef(180, 0, 1, 0);
+					GL11.glTranslatef(0, -1, 1);
+					break;
+				case EAST:
+					GL11.glRotatef(-90, 0, 0, 1);
+					GL11.glTranslatef(-1, -1, 0);
+					break;
+				case WEST:
+					GL11.glRotatef(90, 0, 0, 1);
+					GL11.glRotatef(180, 0, 1, 0);
+					GL11.glTranslatef(-1, -1, 0);
+					break;
+				case UP:
+					GL11.glRotatef(180, 1, 0, 0);
+					GL11.glTranslatef(0, -2, 0);
+					break;
+				case DOWN:
+				default:
+					break;
+			}
+		}
 		GL11.glRotatef(te.angle, 0, 1, 0);
 		ReikaTextureHelper.bindTexture(Satisforestry.class, "Textures/powerslug.png");
 		model.renderAll(te);

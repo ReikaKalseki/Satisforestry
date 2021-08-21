@@ -9,10 +9,12 @@ import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Worldgen.ModifiableBigTree;
+import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.API.PinkTreeType;
@@ -71,31 +73,32 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	}
 
 	protected void postGenerate(World world, Random rand, int x, int y, int z) {
-		if (rand.nextFloat() < this.getTreeTopSlugChance()) {
-			TilePowerSlug te = null;
-			ArrayList<Entry<Coordinate, Integer>> set = new ArrayList(leavesTop.entrySet());
-			while (te == null && !set.isEmpty()) {
-				int i = rand.nextInt(set.size());
-				Entry<Coordinate, Integer> e = set.remove(i);
-				Coordinate c = e.getKey();
-				int dy = e.getValue();
-				int ddy = dy-generationOriginY;
-				int tier = this.getSlugByHeight(dy, ddy, rand);
-				te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, tier, false, this.getDifficultyByHeight(dy, ddy, rand), this.canSpawnLeaftopMobs(), 3);
+		for (int n = 0; n < this.getTreeTopSlugAttemptCount(); n++) {
+			if (rand.nextFloat() < this.getTreeTopSlugChance()) {
+				TilePowerSlug te = null;
+				ArrayList<Entry<Coordinate, Integer>> set = new ArrayList(leavesTop.entrySet());
+				while (te == null && !set.isEmpty()) {
+					int i = rand.nextInt(set.size());
+					Entry<Coordinate, Integer> e = set.remove(i);
+					Coordinate c = e.getKey();
+					int dy = e.getValue()+1;
+					int ddy = dy-generationOriginY;
+					int tier = this.getSlugByHeight(dy, ddy, rand);
+					te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, tier, false, this.getDifficultyByHeight(dy, ddy, rand), this.canSpawnLeaftopMobs(), 3, ForgeDirection.DOWN);
+				}
 			}
 		}
 		for (Entry<Coordinate, Integer> e : logs.entrySet()) {
 			if (e.getValue() < 4) {
 				Coordinate c = e.getKey();
-				int[] trunk = this.getTrunkRange();
-				if (c.yCoord >= trunk[0] && c.yCoord <= trunk[1]) {
+				if (c.yCoord >= trunkBottom && c.yCoord <= Math.min(trunkTop, bottomLeaf-1)) {
 					if (rand.nextFloat() < this.getTrunkSlugChancePerBlock()) {
-						for (Coordinate c2 : c.getAdjacentCoordinates()) {
-							if (c2.yCoord != c.yCoord)
-								continue;
+						ArrayList<ForgeDirection> li = ReikaDirectionHelper.getRandomOrderedDirections(false);
+						for (ForgeDirection dir : li) {
+							Coordinate c2 = c.offset(dir, -1);
 							int dy = c2.yCoord-generationOriginY;
 							int tier = this.getSlugByHeight(c2.yCoord, dy, rand);
-							if (BlockPowerSlug.generatePowerSlugAt(world, c2.xCoord, c2.yCoord, c2.zCoord, rand, tier, false, this.getDifficultyByHeight(c2.yCoord-generationOriginY, dy, rand), false) != null)
+							if (BlockPowerSlug.generatePowerSlugAt(world, c2.xCoord, c2.yCoord, c2.zCoord, rand, tier, false, this.getDifficultyByHeight(c2.yCoord-generationOriginY, dy, rand), false, 1, dir) != null)
 								break;
 						}
 					}
@@ -105,6 +108,10 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 
 			}
 		}
+	}
+
+	protected int getTreeTopSlugAttemptCount() {
+		return 1;
 	}
 
 	protected abstract boolean canSpawnLeaftopMobs();

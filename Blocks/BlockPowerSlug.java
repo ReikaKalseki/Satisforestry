@@ -144,9 +144,31 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			TilePowerSlug ts = (TilePowerSlug)te;
 			float ra = (float)Math.sin(Math.toRadians(ts.angle%180));
 			float rb = (float)Math.sin(Math.abs(Math.toRadians(90-ts.angle%180)));
-			float l2 = length*rb+width*ra;
-			float l1 = width*rb+length*ra;
-			this.setBlockBounds(0.5F-l1/2F, 0, 0.5F-l2/2F, 0.5F+l1/2F, height, 0.5F+l2/2F);
+			float lz = length*rb+width*ra;
+			float lx = width*rb+length*ra;
+			if (ts.mounting.offsetY == 0) {
+				switch(ts.mounting) {
+					case EAST:
+						this.setBlockBounds(1-height, 0.5F-lx/2, 0.5F-lz/2, 1, 0.5F+lx/2, 0.5F+lz/2);
+						break;
+					case WEST:
+						this.setBlockBounds(0, 0.5F-lx/2, 0.5F-lz/2, height, 0.5F+lx/2, 0.5F+lz/2);
+						break;
+					case SOUTH:
+						this.setBlockBounds(0.5F-lx/2, 0.5F-lz/2, 1-height, 0.5F+lz/2, 0.5F+lz/2, 1);
+						break;
+					case NORTH:
+						this.setBlockBounds(0.5F-lx/2, 0.5F-lz/2, 0, 0.5F+lx/2, 0.5F+lz/2, height);
+						break;
+					default:
+						break;
+				}
+			}
+			else {
+				float bottom = ts.mounting == ForgeDirection.DOWN ? 0 : 1-height;
+				float top = ts.mounting == ForgeDirection.DOWN ? height : 1;
+				this.setBlockBounds(0.5F-lx/2F, bottom, 0.5F-lz/2F, 0.5F+lx/2F, top, 0.5F+lz/2F);
+			}
 		}
 	}
 
@@ -191,17 +213,18 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 	}
 
 	public static TilePowerSlug generatePowerSlugAt(World world, int x, int y, int z, Random rand, int tier, boolean gas, int reachDifficulty, boolean allowSpawns) {
-		return generatePowerSlugAt(world, x, y, z, rand, tier, gas, reachDifficulty, allowSpawns, Integer.MAX_VALUE);
+		return generatePowerSlugAt(world, x, y, z, rand, tier, gas, reachDifficulty, allowSpawns, Integer.MAX_VALUE, ForgeDirection.DOWN);
 	}
 
-	public static TilePowerSlug generatePowerSlugAt(World world, int x, int y, int z, Random rand, int tier, boolean gas, int reachDifficulty, boolean allowSpawns, int maxSpawnRadius) {
-		while (y > 0 && ReikaWorldHelper.softBlocks(world, x, y-1, z))
+	public static TilePowerSlug generatePowerSlugAt(World world, int x, int y, int z, Random rand, int tier, boolean gas, int reachDifficulty, boolean allowSpawns, int maxSpawnRadius, ForgeDirection dir) {
+		while (y > 0 && ReikaWorldHelper.softBlocks(world, x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ))
 			y--;
-		Block b = world.getBlock(x, y-1, z);
+		Block b = world.getBlock(x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ);
 		Block b1 = world.getBlock(x, y, z);
-		if ((b1.isAir(world, x, y, z) || ReikaBlockHelper.isLiquid(b1)) && canExistOn(b)) {
+		if ((b1.isAir(world, x, y, z) || ReikaBlockHelper.isLiquid(b1) || b1 == Blocks.vine) && canExistOn(b)) {
 			world.setBlock(x, y, z, SFBlocks.SLUG.getBlockInstance(), tier, 3);
 			TilePowerSlug te = (TilePowerSlug)world.getTileEntity(x, y, z);
+			te.setDirection(dir);
 			if (allowSpawns) {
 				switch(tier) {
 					case 0:
@@ -434,6 +457,10 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			healthBuff = boost;
 		}
 
+		protected final void clampSpawnRadius(int r) {
+			this.setSpawnRadius(Math.min(r, this.getSpawnRadius()));
+		}
+
 		protected final void setNoSpawns() {
 			this.setSpawnParameters(null, 0, 0, 0, FOLLOW_RANGE);
 		}
@@ -464,6 +491,10 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 
 		public int getTier() {
 			return tier;
+		}
+
+		public ForgeDirection getDirection() {
+			return mounting != null ? mounting : ForgeDirection.DOWN;
 		}
 
 		@Override

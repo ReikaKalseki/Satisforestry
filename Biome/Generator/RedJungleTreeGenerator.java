@@ -34,14 +34,14 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 			int i = 1;
 			while (ReikaWorldHelper.softBlocks(world, x+dir.offsetX, y+i, z+dir.offsetZ)) {
 				if (i >= -3)
-					world.setBlock(x+dir.offsetX, y+i, z+dir.offsetZ, SFBlocks.LOG.getBlockInstance(), 2, 2);
+					this.setBlockAndNotifyAdequately(world, x+dir.offsetX, y+i, z+dir.offsetZ, SFBlocks.LOG.getBlockInstance(), 2);
 				else
-					world.setBlock(x+dir.offsetX, y+i, z+dir.offsetZ, Blocks.dirt);
+					this.setBlockAndNotifyAdequately(world, x+dir.offsetX, y+i, z+dir.offsetZ, Blocks.dirt, 0);
 				i--;
 			}
 		}
 		for (int i = 0; i < h0; i++) {
-			world.setBlock(x, y+i, z, SFBlocks.LOG.getBlockInstance(), 2, 2);
+			this.setBlockAndNotifyAdequately(world, x, y+i, z, SFBlocks.LOG.getBlockInstance(), 2);
 		}
 		int dy = y+h0;
 		double[][] factors = {{1.125, 1.25}, {1, 1}, {0.8, 1}, {0.25, 0.5}};
@@ -67,7 +67,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 							continue;
 						if (i != 0 || k != 0 || h >= 0) {
 							Coordinate c = new Coordinate(x+i, dy+h, z+k);
-							c.setBlock(world, SFBlocks.LEAVES.getBlockInstance(), PinkTreeTypes.JUNGLE.ordinal(), 2);
+							this.setBlockAndNotifyAdequately(world, c.xCoord, c.yCoord, c.zCoord, SFBlocks.LEAVES.getBlockInstance(), PinkTreeTypes.JUNGLE.ordinal());
 							if (i != 0 || k != 0) {
 								leaves.put(c, dd);
 							}
@@ -77,6 +77,8 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 			}
 		}
 		this.generateVines(world, x, y, z, rand, h0, leaves);
+		trunkBottom = y+2;
+		trunkTop = y+h0;
 		return true;
 	}
 
@@ -106,7 +108,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 			while (c.getBlock(world) == SFBlocks.LEAVES.getBlockInstance())
 				c = c.offset(0, -1, 0);
 			while (c.isEmpty(world)) {
-				c.setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.TREE_VINE.ordinal(), 2);
+				this.setBlockAndNotifyAdequately(world, c.xCoord, c.yCoord, c.zCoord, SFBlocks.GRASS.getBlockInstance(), GrassTypes.TREE_VINE.ordinal());
 				c = c.offset(0, -1, 0);
 			}
 		}
@@ -114,7 +116,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 
 	private void tryPlaceVine(World world, Random rand, int x, int y, int z, ForgeDirection... sides) {
 		if (rand.nextDouble() <= 0.9 && world.getBlock(x, y, z).isAir(world, x, y, z))
-			world.setBlock(x, y, z, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(sides), 2);
+			this.setBlockAndNotifyAdequately(world, x, y, z, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(sides));
 	}
 
 	@Override
@@ -124,7 +126,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 
 	@Override
 	protected int getSlugByHeight(int y, int dy, Random rand) {
-		return rand.nextInt(4) == 0 && this.getHeightFraction(y) >= 0.8+rand.nextDouble()*0.2 ? 2 : 1;
+		return rand.nextInt(4) == 0 && this.getHeightFraction(y) >= 0.8+rand.nextDouble()*0.2 ? 1 : 0;
 	}
 
 	@Override

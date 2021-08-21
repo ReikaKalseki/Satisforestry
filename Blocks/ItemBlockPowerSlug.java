@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.MetadataItemBlock;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
@@ -34,6 +35,7 @@ public class ItemBlockPowerSlug extends MetadataItemBlock {
 		if (flag) {
 			TilePowerSlug te = (TilePowerSlug)world.getTileEntity(x, y, z);
 			te.setNoSpawns();
+			te.setDirection(ForgeDirection.VALID_DIRECTIONS[side].getOpposite());
 			te.angle = world.rand.nextFloat()*360;
 		}
 		return flag;

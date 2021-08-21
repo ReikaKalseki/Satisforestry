@@ -189,6 +189,15 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 			return spawner.getActivationRadius();
 		}
 
+		public final double getSpawnRadius() {
+			return spawnRadius;
+		}
+
+		protected final void setSpawnRadius(double sr) {
+			spawnRadius = sr;
+			this.markDirty();
+		}
+
 		protected boolean isEmptyTimeoutActive(World world) {
 			return true;
 		}
