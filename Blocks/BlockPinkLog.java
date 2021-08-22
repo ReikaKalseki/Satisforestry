@@ -10,9 +10,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
+import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -27,6 +29,11 @@ public class BlockPinkLog extends BlockOldLog {
 		this.setResistance(120);
 		this.setCreativeTab(Satisforestry.tabCreative);
 		this.setStepSound(soundTypeWood);
+	}
+
+	@Override
+	public float getBlockHardness(World world, int x, int y, int z) {
+		return super.getBlockHardness(world, x, y, z)*PinkTreeTypes.getLogType(world, x, y, z).getHardnessMultiplier();
 	}
 
 	@Override

@@ -15,7 +15,6 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Worldgen.ModifiableBigTree;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
-import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.API.PinkTreeType;
@@ -88,9 +87,6 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 					int ddy = dy-generationOriginY;
 					int tier = this.getSlugByHeight(dy, ddy, rand);
 					te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, tier, false, this.getDifficultyByHeight(dy, ddy, rand), this.canSpawnLeaftopMobs(), 3, ForgeDirection.DOWN);
-					if (te != null) {
-						ReikaJavaLibrary.pConsole("Attempted slug gen at "+c.xCoord+", "+dy+", "+c.zCoord+", got "+te.xCoord+", "+te.yCoord+", "+te.zCoord+"; tier is "+tier+" from "+dy+" & "+ddy, type == PinkTreeTypes.GIANTTREE);
-					}
 				}
 			}
 		}
@@ -110,8 +106,16 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 					}
 				}
 			}
-			else {
-
+			else if (rand.nextFloat() < this.getBranchSlugChancePerBlock()) {
+				Coordinate c = e.getKey().offset(0, 1, 0);
+				if (c.isEmpty(world)) {
+					int dy = c.yCoord-generationOriginY;
+					int tier = this.getSlugByHeight(c.yCoord, dy, rand);
+					if (rand.nextFloat() <= 0.4)
+						tier = Math.min(2, tier+1); //+1 since hard to find
+					int diff = this.getDifficultyByHeight(c.yCoord-generationOriginY, dy, rand)+1; //+1 since hard to find
+					BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, c.yCoord, c.zCoord, rand, tier, false, diff, false);
+				}
 			}
 		}
 	}
@@ -120,6 +124,7 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 		return 1;
 	}
 
+	protected abstract float getBranchSlugChancePerBlock();
 	protected abstract boolean canSpawnLeaftopMobs();
 	protected abstract int getDifficultyByHeight(int y, int dy, Random rand);
 	protected abstract int getSlugByHeight(int y, int dy, Random rand);
@@ -128,13 +133,14 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	protected void setBlockAndNotifyAdequately(World world, int x, int y, int z, Block b, int meta) {
 		super.setBlockAndNotifyAdequately(world, x, y, z, b, meta);
 		if (b == SFBlocks.LOG.getBlockInstance()) {
-			logs.put(new Coordinate(x, y, z), meta);
+			logs.put(new Coordinate(x+globalOffset[0], y+globalOffset[1], z+globalOffset[2]), meta);
 		}
 		else if (b == SFBlocks.LEAVES.getBlockInstance()) {
-			Coordinate c = new Coordinate(x, 0, z);
+			Coordinate c = new Coordinate(x+globalOffset[0], 0, z+globalOffset[2]);
 			Integer get = leavesTop.get(c);
-			if (get == null || get.intValue() < y)
-				leavesTop.put(c, y);
+			int dy = y+globalOffset[1];
+			if (get == null || get.intValue() < dy)
+				leavesTop.put(c, dy);
 		}
 	}
 
@@ -184,6 +190,17 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 					return 4;
 			}
 			return 0;
+		}
+
+		public float getHardnessMultiplier() {
+			switch(this) {
+				case GIANTTREE:
+					return 2F;
+				case JUNGLE:
+					return 1.2F;
+				default:
+					return 1;
+			}
 		}
 
 		public PinkTreeTypes getTypeDropped() {

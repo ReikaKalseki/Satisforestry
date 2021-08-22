@@ -199,17 +199,22 @@ public class PinkTreeGenerator extends PinkTreeGeneratorBase {
 
 	@Override
 	protected float getTrunkSlugChancePerBlock() {
-		return 0.002F;
+		return 0.003F;
 	}
 
 	@Override
 	protected float getTreeTopSlugChance() {
-		return 0.05F;
+		return 0.01F;
 	}
 
 	@Override
 	protected boolean canSpawnLeaftopMobs() {
 		return false;
+	}
+
+	@Override
+	protected float getBranchSlugChancePerBlock() {
+		return 0;
 	}
 
 }

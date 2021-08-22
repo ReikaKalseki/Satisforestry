@@ -218,14 +218,14 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 
 	@Override
 	protected int getSlugByHeight(int y, int dy, Random rand) {
-		int reach = dy/32;
+		//int reach = dy/32;
 		int tier = 0;
-		if (reach >= 64) {
-			float f = (reach-64)/64F;
+		if (dy >= 64) {
+			float f = (dy-64)/64F;
 			tier = rand.nextFloat() < f ? 2 : 1;
 		}
-		else if (reach >= 24) {
-			float f = (reach-24)/40F;
+		else if (dy >= 24) {
+			float f = (dy-24)/40F;
 			tier = rand.nextFloat() < f*0.9 ? 1 : 0;
 		}
 		return tier;
@@ -233,12 +233,12 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 
 	@Override
 	protected float getTrunkSlugChancePerBlock() {
-		return 0.0016F;
+		return 0.0008F;
 	}
 
 	@Override
 	protected float getTreeTopSlugChance() {
-		return 0.3F/this.getTreeTopSlugAttemptCount();
+		return 0.35F/this.getTreeTopSlugAttemptCount();
 	}
 
 	@Override
@@ -249,6 +249,11 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 	@Override
 	protected int getTreeTopSlugAttemptCount() {
 		return 4;
+	}
+
+	@Override
+	protected float getBranchSlugChancePerBlock() {
+		return 0.00004F;
 	}
 
 }

@@ -21,9 +21,9 @@ public class WorldGenPowerSlugs {
 	private long seed;
 
 	public WorldGenPowerSlugs() {
-		noise[0] = new ShuffledGrid(40, 2, 3, true);
-		noise[1] = new ShuffledGrid(40, 2, 4, true);
-		noise[2] = new ShuffledGrid(40, 3, 6, true);
+		noise[0] = new ShuffledGrid(40, 4, 6, true);
+		noise[1] = new ShuffledGrid(40, 6, 9, true);
+		noise[2] = new ShuffledGrid(40, 8, 12, true);
 	}
 
 	public int generate(World world, Random rand, int chunkX, int chunkZ) {

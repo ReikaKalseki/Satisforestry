@@ -131,7 +131,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 
 	@Override
 	protected float getTrunkSlugChancePerBlock() {
-		return 0.005F;
+		return 0.01F;
 	}
 
 	@Override
@@ -142,6 +142,11 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 	@Override
 	protected boolean canSpawnLeaftopMobs() {
 		return true;
+	}
+
+	@Override
+	protected float getBranchSlugChancePerBlock() {
+		return 0;
 	}
 
 }
