@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
@@ -51,6 +52,11 @@ public class ItemBlockPowerSlug extends MetadataItemBlock {
 				li.add("  "+is2.getDisplayName()+" ("+ReikaItemHelper.getRegistrantMod(is2)+")");
 			}
 		}
+	}
+
+	@Override
+	public boolean isValidArmor(ItemStack stack, int type, Entity e) {
+		return type == 0 && e instanceof EntityPlayer;
 	}
 
 }
