@@ -7,10 +7,13 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.MetadataItemBlock;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.UpgradeHandler;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
@@ -57,6 +60,22 @@ public class ItemBlockPowerSlug extends MetadataItemBlock {
 	@Override
 	public boolean isValidArmor(ItemStack stack, int type, Entity e) {
 		return type == 0 && e instanceof EntityPlayer;
+	}
+
+	@Override
+	public void onArmorTick(World world, EntityPlayer ep, ItemStack is) {
+		int boost = is.getItemDamage()%3;
+		int dur = 20*ReikaMathLibrary.intpow2(10, boost)*(1+boost); //1s, 20s, 2.5min
+		this.addPotion(ep, Potion.moveSpeed, boost, dur);
+		this.addPotion(ep, Potion.damageBoost, boost, dur);
+		this.addPotion(ep, Potion.digSpeed, boost, dur);
+	}
+
+	private void addPotion(EntityPlayer ep, Potion p, int boost, int dur) {
+		PotionEffect pot = ep.getActivePotionEffect(p);
+		if (pot == null || pot.getDuration() < dur || pot.getAmplifier() < boost) {
+			ep.addPotionEffect(new PotionEffect(p.id, dur, boost, true));
+		}
 	}
 
 }
