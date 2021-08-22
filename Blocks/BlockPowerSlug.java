@@ -217,7 +217,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 	}
 
 	public static TilePowerSlug generatePowerSlugAt(World world, int x, int y, int z, Random rand, int tier, boolean gas, int reachDifficulty, boolean allowSpawns, int maxSpawnRadius, ForgeDirection dir) {
-		while (y > 0 && ReikaWorldHelper.softBlocks(world, x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ))
+		while (dir.offsetY != 0 && y > 0 && y < 256 && ReikaWorldHelper.softBlocks(world, x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ))
 			y--;
 		Block b = world.getBlock(x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ);
 		Block b1 = world.getBlock(x, y, z);

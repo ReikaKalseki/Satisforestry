@@ -15,6 +15,7 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Worldgen.ModifiableBigTree;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.API.PinkTreeType;
@@ -73,10 +74,12 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	}
 
 	protected void postGenerate(World world, Random rand, int x, int y, int z) {
+		ArrayList<Entry<Coordinate, Integer>> set = null;
 		for (int n = 0; n < this.getTreeTopSlugAttemptCount(); n++) {
 			if (rand.nextFloat() < this.getTreeTopSlugChance()) {
 				TilePowerSlug te = null;
-				ArrayList<Entry<Coordinate, Integer>> set = new ArrayList(leavesTop.entrySet());
+				if (set == null)
+					set = new ArrayList(leavesTop.entrySet());
 				while (te == null && !set.isEmpty()) {
 					int i = rand.nextInt(set.size());
 					Entry<Coordinate, Integer> e = set.remove(i);
@@ -85,6 +88,9 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 					int ddy = dy-generationOriginY;
 					int tier = this.getSlugByHeight(dy, ddy, rand);
 					te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, tier, false, this.getDifficultyByHeight(dy, ddy, rand), this.canSpawnLeaftopMobs(), 3, ForgeDirection.DOWN);
+					if (te != null) {
+						ReikaJavaLibrary.pConsole("Attempted slug gen at "+c.xCoord+", "+dy+", "+c.zCoord+", got "+te.xCoord+", "+te.yCoord+", "+te.zCoord+"; tier is "+tier+" from "+dy+" & "+ddy, type == PinkTreeTypes.GIANTTREE);
+					}
 				}
 			}
 		}
