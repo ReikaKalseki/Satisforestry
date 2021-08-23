@@ -206,7 +206,8 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 		long tick = worldObj.getTotalWorldTime();
 		if (!worldObj.isRemote && this.isTamed()) {
 			if (foundItem == null && ticksExisted >= 900) {
-				if (rand.nextInt(10000) == 0 || this.ticksSinceLastItem() >= 20*60*15) {
+				long last = this.ticksSinceLastItem();
+				if (last > 20*15 && (rand.nextInt(10000) == 0 || last >= 20*60*15)) {
 					this.generateItem();
 				}
 			}

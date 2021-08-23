@@ -13,6 +13,7 @@ import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
@@ -48,6 +49,7 @@ import Reika.DragonAPI.Instantiable.Event.GenLayerRiverEvent;
 import Reika.DragonAPI.Instantiable.Event.GetYToSpawnMobEvent;
 import Reika.DragonAPI.Instantiable.Event.IceFreezeEvent;
 import Reika.DragonAPI.Instantiable.Event.LightLevelForSpawnEvent;
+import Reika.DragonAPI.Instantiable.Event.SlotEvent.AddToSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.SlotEvent.InitialClickEvent;
 import Reika.DragonAPI.Instantiable.Event.SlotEvent.RemoveFromSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.SnowOrIceOnGenEvent;
@@ -76,6 +78,7 @@ import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkRiver;
 import Reika.Satisforestry.Biome.Generator.WorldGenUraniumCave;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
+import Reika.Satisforestry.Blocks.ItemBlockPowerSlug;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Miner.GuiSFMiner;
 import Reika.Satisforestry.Registry.SFBlocks;
@@ -100,6 +103,36 @@ public class SFEvents {
 
 	private SFEvents() {
 
+	}
+
+	@SubscribeEvent
+	public void boostSlugMining(net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed evt) {
+		ItemStack is = evt.entityPlayer.getCurrentArmor(3); //helmet
+		if (is != null && SFBlocks.SLUG.matchWith(is)) {
+			evt.newSpeed *= 1+0.1667*(1+is.getItemDamage()%3);
+		}
+	}
+
+	@SubscribeEvent
+	public void onAddArmor(AddToSlotEvent evt) {
+		int id = evt.slotID;
+		if (evt.inventory instanceof InventoryPlayer && evt.slotID == 36) { //foot armor
+			ItemStack is = evt.getItem();
+			if (is == null || SFBlocks.SLUG.matchWith(is)) {
+				ItemBlockPowerSlug.removeBonuses(((InventoryPlayer)evt.inventory).player);
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public void onRemoveArmor(RemoveFromSlotEvent evt) {
+		int id = evt.slotID;
+		if (evt.slotID == 36) { //foot armor
+			ItemStack is = evt.getItem();
+			if (is != null && SFBlocks.SLUG.matchWith(is)) {
+				ItemBlockPowerSlug.removeBonuses(((InventoryPlayer)evt.inventory).player);
+			}
+		}
 	}
 
 	@SubscribeEvent

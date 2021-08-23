@@ -32,12 +32,14 @@ import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
 import Reika.DragonAPI.Libraries.ReikaEnchantmentHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
 import Reika.Satisforestry.Config.DoggoDrop.Checks;
 import Reika.Satisforestry.Config.ResourceItem.EffectTypes;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 
 public class BiomeConfig {
@@ -320,6 +322,15 @@ public class BiomeConfig {
 			}
 		}
 		Satisforestry.logger.log("All doggo-item config entries parsed; files contained "+definitionCount+" definitions, for a total of "+entryAttemptsCount+" entries, of which "+entryCount+" loaded.");
+		this.addHardcodedEntries();
+	}
+
+	private void addHardcodedEntries() {
+		for (int i = 0; i < 3; i++)
+			doggoEntries.add(new DoggoDrop(SFBlocks.SLUG.getStackOfMetadata(i), 1, 1, 12/ReikaMathLibrary.intpow2(3, i)));
+		doggoEntries.add(new DoggoDrop(Satisforestry.paleberry, 1, 6, 25));
+		doggoEntries.add(new DoggoDrop(Items.stick, 1, 2, 20));
+		doggoEntries.add(new DoggoDrop(Items.rotten_flesh, 1, 4, 15));
 	}
 
 	private void parseOreEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
