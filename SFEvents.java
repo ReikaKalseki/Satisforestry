@@ -8,11 +8,8 @@ import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EnumCreatureType;
-import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntitySpider;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -20,13 +17,9 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.IIcon;
 import net.minecraft.util.MathHelper;
-import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
 import net.minecraftforge.client.event.TextureStitchEvent;
-import net.minecraftforge.event.entity.EntityJoinWorldEvent;
-import net.minecraftforge.event.entity.living.LivingDeathEvent;
-import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -40,44 +33,31 @@ import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ClassDependent;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Auxiliary.Trackers.SpecialDayTracker;
-import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Event.BlockStopsPrecipitationEvent;
 import Reika.DragonAPI.Instantiable.Event.BlockTickEvent;
-import Reika.DragonAPI.Instantiable.Event.EntityRemovedEvent;
 import Reika.DragonAPI.Instantiable.Event.GenLayerBeachEvent;
 import Reika.DragonAPI.Instantiable.Event.GenLayerRiverEvent;
 import Reika.DragonAPI.Instantiable.Event.GetYToSpawnMobEvent;
 import Reika.DragonAPI.Instantiable.Event.IceFreezeEvent;
 import Reika.DragonAPI.Instantiable.Event.LightLevelForSpawnEvent;
 import Reika.DragonAPI.Instantiable.Event.SlotEvent.AddToSlotEvent;
-import Reika.DragonAPI.Instantiable.Event.SlotEvent.InitialClickEvent;
 import Reika.DragonAPI.Instantiable.Event.SlotEvent.RemoveFromSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.SnowOrIceOnGenEvent;
-import Reika.DragonAPI.Instantiable.Event.SpiderLightPassivationEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.GrassIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.LiquidBlockIconEvent;
-import Reika.DragonAPI.Instantiable.Event.Client.NightVisionBrightnessEvent;
-import Reika.DragonAPI.Instantiable.Event.Client.PlayMusicEvent;
-import Reika.DragonAPI.Instantiable.Event.Client.RenderCursorStackEvent;
-import Reika.DragonAPI.Instantiable.Event.Client.RenderItemInSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
-import Reika.DragonAPI.Libraries.ReikaPlayerAPI;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.Satisforestry.Biome.BiomePinkForest;
-import Reika.Satisforestry.Biome.CaveNightvisionHandler;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
-import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
-import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkRiver;
 import Reika.Satisforestry.Biome.Generator.WorldGenUraniumCave;
-import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Blocks.ItemBlockPowerSlug;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Miner.GuiSFMiner;
@@ -132,88 +112,6 @@ public class SFEvents {
 			if (is != null && SFBlocks.SLUG.matchWith(is)) {
 				ItemBlockPowerSlug.removeBonuses(((InventoryPlayer)evt.inventory).player);
 			}
-		}
-	}
-
-	@SubscribeEvent
-	public void deactivateSpawner(LivingDeathEvent evt) {
-		if (evt.source.getEntity() instanceof EntityPlayer && !ReikaPlayerAPI.isFake((EntityPlayer)evt.source.getEntity()) && evt.entityLiving instanceof EntityLiving) {
-			SpawnPoint p = PointSpawnSystem.instance.getSpawn((EntityLiving)evt.entityLiving);
-			if (p != null) {
-				PointSpawnSystem.instance.tagEntityAsKilled((EntityLiving)evt.entityLiving);
-			}
-		}
-	}
-	/*
-	@SubscribeEvent
-	@SideOnly(Side.CLIENT)
-	public void addMusicCodecs(SoundSetupEvent evt) {
-		SFMusic.instance.loadCodecs();
-	}
-	 */
-	@SubscribeEvent(priority=EventPriority.LOWEST)
-	public void slugTooltips(EntityJoinWorldEvent event) {
-		if (event.entity instanceof EntityItem)
-			UpgradeHandler.instance.handleSpawnedItem((EntityItem)event.entity);
-	}
-
-	@SubscribeEvent(priority=EventPriority.LOWEST)
-	public void slugTooltips(ItemTooltipEvent event) {
-		UpgradeHandler.instance.handleTooltips(event.itemStack, event.toolTip);
-	}
-
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void removeSlugs(RemoveFromSlotEvent evt) {
-		UpgradeHandler.instance.takeFromSlot(evt.inventory, evt.slotID, evt.getItem(), evt.player);
-	}
-
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void addSlugs(InitialClickEvent evt) {
-		if (UpgradeHandler.instance.addToSlot(evt.inventory, evt.slotID, evt.container, evt.player)) {
-			evt.setCanceled(true);
-		}
-	}
-
-	@SideOnly(Side.CLIENT)
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void renderSlugs(RenderCursorStackEvent evt) {
-		ItemStack is = UpgradeHandler.instance.overrideSlotRender(evt.getItem());
-		if (is != null) {
-			evt.itemToRender = is;
-		}
-	}
-
-	@SideOnly(Side.CLIENT)
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void renderSlugs(RenderItemInSlotEvent.Mid evt) {
-		ItemStack is = UpgradeHandler.instance.overrideSlotRender(evt.getItem());
-		if (is != null) {
-			evt.itemToRender = is;
-		}
-	}
-
-	@SideOnly(Side.CLIENT)
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void playCustomMusic(ClientTickEvent evt) {
-		World world = Minecraft.getMinecraft().theWorld;
-		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
-		if (world != null && ep != null && Satisforestry.isPinkForest(world, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
-			SFMusic.instance.tickMusicEngine(world);
-	}
-
-	@SideOnly(Side.CLIENT)
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void overrideMusic(PlayMusicEvent evt) {
-		World world = Minecraft.getMinecraft().theWorld;
-		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
-		if (world != null && ep != null && Satisforestry.isPinkForest(world, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
-			evt.setCanceled(true);
-	}
-
-	@SubscribeEvent
-	public void spidersAlwaysHostile(SpiderLightPassivationEvent evt) {
-		if (PointSpawnSystem.instance.isAlwaysHostile(evt.spider)) {
-			evt.threshold = Float.POSITIVE_INFINITY;
 		}
 	}
 
@@ -355,14 +253,6 @@ public class SFEvents {
 				evt.list.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, wt, 1, 1));
 			}
 		}
-		evt.setCanceled(true);
-	}
-
-	@SubscribeEvent
-	public void handleEntityDespawn(EntityRemovedEvent evt) {
-		if (evt.entity instanceof EntityLiving) {
-			PointSpawnSystem.instance.onEntityRemoved((EntityLiving)evt.entity);
-		}
 	}
 
 	@SubscribeEvent
@@ -370,26 +260,6 @@ public class SFEvents {
 	public void cleanSpiders(LivingSpawnEvent.SpecialSpawn evt) {
 		if (evt.entityLiving instanceof EntitySpider && Satisforestry.isPinkForest(evt.world, MathHelper.floor_double(evt.x), MathHelper.floor_double(evt.z))) {
 			evt.setCanceled(true);
-		}
-	}
-
-	@SubscribeEvent
-	public void runPointSpawners(LivingUpdateEvent evt) {
-		if (!evt.entityLiving.worldObj.isRemote) {
-			if (evt.entityLiving instanceof EntityPlayer) {
-				PointSpawnSystem.instance.tick((EntityPlayer)evt.entityLiving);
-			}
-			else if (evt.entityLiving instanceof EntityLiving) {
-				int follow = PointSpawnSystem.instance.getTag((EntityLiving)evt.entityLiving, TileCaveSpawner.FOLLOW_TAG);
-				if (follow > 0) {
-					WorldLocation s = PointSpawnSystem.instance.getSpawnLocation((EntityLiving)evt.entityLiving);
-					if (s != null) {
-						double dist = evt.entityLiving.getDistanceSq(s.xCoord+0.5, s.yCoord+0.5, s.zCoord+0.5);
-						if (dist >= follow*follow)
-							evt.entityLiving.setDead();
-					}
-				}
-			}
 		}
 	}
 
@@ -404,11 +274,6 @@ public class SFEvents {
 		}
 	}
 	 */
-	@SubscribeEvent
-	@SideOnly(Side.CLIENT)
-	public void weakenCaveNightVision(NightVisionBrightnessEvent evt) {
-		CaveNightvisionHandler.instance.setBrightness(evt);
-	}
 	/*
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)

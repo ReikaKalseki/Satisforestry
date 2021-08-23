@@ -53,6 +53,8 @@ import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler.IC2Stacks;
 import Reika.DragonAPI.ModRegistry.PowerTypes;
 import Reika.Satisforestry.Biome.BiomePinkForest;
+import Reika.Satisforestry.Biome.CaveNightvisionHandler;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
@@ -153,8 +155,8 @@ public class Satisforestry extends DragonAPIMod {
 			logger.setOutput("**_Loading_Log.log");
 
 		MinecraftForge.TERRAIN_GEN_BUS.register(SFEvents.instance);
-		MinecraftForge.EVENT_BUS.register(SFEvents.instance);
-		FMLCommonHandler.instance().bus().register(SFEvents.instance);
+		this.registerEventHandler(SFEvents.instance);
+		this.registerEventHandler(SFMusic.instance);
 
 		ReikaPacketHelper.registerPacketHandler(instance, packetChannel, new SFPacketHandler());
 
@@ -195,6 +197,11 @@ public class Satisforestry extends DragonAPIMod {
 		this.finishTiming();
 	}
 
+	private void registerEventHandler(Object o) {
+		MinecraftForge.EVENT_BUS.register(o);
+		FMLCommonHandler.instance().bus().register(o);
+	}
+
 	@Override
 	@EventHandler
 	public void load(FMLInitializationEvent event) {
@@ -203,6 +210,10 @@ public class Satisforestry extends DragonAPIMod {
 		proxy.registerSounds();
 
 		NetworkRegistry.INSTANCE.registerGuiHandler(this, new SFGuiHandler());
+
+		this.registerEventHandler(PointSpawnSystem.instance);
+		this.registerEventHandler(UpgradeHandler.instance);
+		this.registerEventHandler(CaveNightvisionHandler.instance);
 
 		APIObjects.load();
 

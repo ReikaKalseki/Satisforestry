@@ -9,6 +9,10 @@ import Reika.DragonAPI.Instantiable.Event.Client.NightVisionBrightnessEvent;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Satisforestry;
 
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 public class CaveNightvisionHandler {
 
 	public static final CaveNightvisionHandler instance = new CaveNightvisionHandler();
@@ -20,7 +24,9 @@ public class CaveNightvisionHandler {
 
 	}
 
-	public void setBrightness(NightVisionBrightnessEvent evt) {
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void weakenCaveNightVision(NightVisionBrightnessEvent evt) {
 		Minecraft mc = Minecraft.getMinecraft();
 		long tick = mc.theWorld.getTotalWorldTime();
 		if (tick == lastTick) {

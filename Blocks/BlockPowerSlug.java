@@ -471,6 +471,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			if (healthBuff > 0) {
 				AttributeModifier m = new AttributeModifier(healthBonus, "slugHealth", healthBuff-1, 2);
 				e.getEntityAttribute(SharedMonsterAttributes.maxHealth).applyModifier(m);
+				e.setHealth(e.getMaxHealth());
 			}
 		}
 
@@ -503,6 +504,8 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 
 			NBT.setFloat("angle", angle);
 
+			NBT.setFloat("buff", healthBuff);
+
 			NBT.setInteger("tier", tier);
 			NBT.setInteger("side", mounting.ordinal());
 		}
@@ -512,6 +515,8 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			super.readFromNBT(NBT);
 
 			angle = NBT.getFloat("angle");
+
+			healthBuff = NBT.getFloat("buff");
 
 			tier = NBT.getInteger("tier");
 			mounting = ForgeDirection.VALID_DIRECTIONS[NBT.getInteger("side")];

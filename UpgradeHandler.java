@@ -2,7 +2,6 @@ package Reika.Satisforestry;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.List;
 
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -11,15 +10,25 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.Auxiliary.Trackers.ReflectiveFailureTracker;
+import Reika.DragonAPI.Instantiable.Event.SlotEvent.InitialClickEvent;
+import Reika.DragonAPI.Instantiable.Event.SlotEvent.RemoveFromSlotEvent;
+import Reika.DragonAPI.Instantiable.Event.Client.RenderCursorStackEvent;
+import Reika.DragonAPI.Instantiable.Event.Client.RenderItemInSlotEvent;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 import cofh.api.energy.IEnergyProvider;
 import cofh.api.tileentity.IAugmentable;
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class UpgradeHandler {
 
@@ -71,7 +80,51 @@ public class UpgradeHandler {
 		}
 	}
 
-	public ItemStack overrideSlotRender(ItemStack is) {
+	@SubscribeEvent(priority=EventPriority.LOWEST)
+	public void slugTooltips(EntityJoinWorldEvent event) {
+		if (event.entity instanceof EntityItem)
+			this.handleSpawnedItem((EntityItem)event.entity);
+	}
+
+	@SubscribeEvent(priority=EventPriority.LOWEST)
+	public void slugTooltips(ItemTooltipEvent event) {
+		ItemStack slug = this.getSlugNBT(event.itemStack);
+		if (slug != null) {
+
+		}
+	}
+
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void removeSlugs(RemoveFromSlotEvent evt) {
+		this.takeFromSlot(evt.inventory, evt.slotID, evt.getItem(), evt.player);
+	}
+
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void addSlugs(InitialClickEvent evt) {
+		if (this.addToSlot(evt.inventory, evt.slotID, evt.container, evt.player)) {
+			evt.setCanceled(true);
+		}
+	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void renderSlugs(RenderCursorStackEvent evt) {
+		ItemStack is = this.overrideSlotRender(evt.getItem());
+		if (is != null) {
+			evt.itemToRender = is;
+		}
+	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void renderSlugs(RenderItemInSlotEvent.Mid evt) {
+		ItemStack is = this.overrideSlotRender(evt.getItem());
+		if (is != null) {
+			evt.itemToRender = is;
+		}
+	}
+
+	private ItemStack overrideSlotRender(ItemStack is) {
 		ItemStack slug = this.getSlugNBT(is);
 		if (slug != null) {
 			return slug;
@@ -86,7 +139,7 @@ public class UpgradeHandler {
 		return null;
 	}
 
-	public boolean addToSlot(IInventory ii, int slot, Container c, EntityPlayer ep) {
+	private boolean addToSlot(IInventory ii, int slot, Container c, EntityPlayer ep) {
 		ItemStack is = ep.inventory.getItemStack();
 		ItemStack cache = this.getSlugNBT(is);
 		if (SFBlocks.SLUG.matchWith(is) && is.stackSize == 1 && slot >= 0 && slot < c.inventorySlots.size() && !c.getSlot(slot).getHasStack()) {
@@ -179,21 +232,11 @@ public class UpgradeHandler {
 		return ret;
 	}
 
-	public void takeFromSlot(IInventory ii, int slot, ItemStack is, EntityPlayer ep) {
-		ItemStack slug = this.getSlugNBT(is);
-		if (slug != null) {
-			ep.inventory.setItemStack(slug);
-		}
+	private void takeFromSlot(IInventory ii, int slot, ItemStack is, EntityPlayer ep) {
+
 	}
 
-	public void handleTooltips(ItemStack is, List<String> li) {
-		ItemStack slug = this.getSlugNBT(is);
-		if (slug != null) {
-
-		}
-	}
-
-	public void handleSpawnedItem(EntityItem e) {
+	private void handleSpawnedItem(EntityItem e) {
 		ItemStack slug = this.getSlugNBT(e.getEntityItem());
 		if (slug != null) {
 			e.setEntityItemStack(slug);

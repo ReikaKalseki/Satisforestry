@@ -116,7 +116,8 @@ public class ItemBlockPowerSlug extends MetadataItemBlock implements CrystalEffe
 	private static void removeModifier(EntityPlayer ep, IAttribute attr, UUID id) {
 		IAttributeInstance ia = ep.getEntityAttribute(attr);
 		AttributeModifier am = ia.getModifier(id);
-		ia.removeModifier(am);
+		if (am != null)
+			ia.removeModifier(am);
 	}
 
 }

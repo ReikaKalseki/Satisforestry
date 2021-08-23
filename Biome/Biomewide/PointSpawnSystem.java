@@ -22,17 +22,25 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
+import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Data.Maps.MultiMap;
+import Reika.DragonAPI.Instantiable.Event.EntityRemovedEvent;
+import Reika.DragonAPI.Instantiable.Event.SpiderLightPassivationEvent;
 import Reika.DragonAPI.Libraries.ReikaEntityHelper;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
+import Reika.DragonAPI.Libraries.ReikaPlayerAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomeFootprint;
+import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Blocks.PointSpawnBlock;
 import Reika.Satisforestry.Blocks.PointSpawnBlock.PointSpawnTile;
 import Reika.Satisforestry.Entity.SpawnPointEntity;
+
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
 public final class PointSpawnSystem {
 
@@ -54,6 +62,50 @@ public final class PointSpawnSystem {
 	private PointSpawnSystem() {
 		doggos = new LizardDoggoSpawner();
 		guards = new RoadGuardSpawner();
+	}
+
+	@SubscribeEvent
+	public void deactivateSpawner(LivingDeathEvent evt) {
+		if (evt.source.getEntity() instanceof EntityPlayer && !ReikaPlayerAPI.isFake((EntityPlayer)evt.source.getEntity()) && evt.entityLiving instanceof EntityLiving) {
+			SpawnPoint p = this.getSpawn((EntityLiving)evt.entityLiving);
+			if (p != null) {
+				this.tagEntityAsKilled((EntityLiving)evt.entityLiving);
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public void spidersAlwaysHostile(SpiderLightPassivationEvent evt) {
+		if (this.isAlwaysHostile(evt.spider)) {
+			evt.threshold = Float.POSITIVE_INFINITY;
+		}
+	}
+
+	@SubscribeEvent
+	public void handleEntityDespawn(EntityRemovedEvent evt) {
+		if (evt.entity instanceof EntityLiving) {
+			this.onEntityRemoved((EntityLiving)evt.entity);
+		}
+	}
+
+	@SubscribeEvent
+	public void runPointSpawners(LivingUpdateEvent evt) {
+		if (!evt.entityLiving.worldObj.isRemote) {
+			if (evt.entityLiving instanceof EntityPlayer) {
+				this.tick((EntityPlayer)evt.entityLiving);
+			}
+			else if (evt.entityLiving instanceof EntityLiving) {
+				int follow = getTag((EntityLiving)evt.entityLiving, TileCaveSpawner.FOLLOW_TAG);
+				if (follow > 0) {
+					WorldLocation s = this.getSpawnLocation((EntityLiving)evt.entityLiving);
+					if (s != null) {
+						double dist = evt.entityLiving.getDistanceSq(s.xCoord+0.5, s.yCoord+0.5, s.zCoord+0.5);
+						if (dist >= follow*follow)
+							evt.entityLiving.setDead();
+					}
+				}
+			}
+		}
 	}
 
 	public static void registerSpawnerType(SpawnPointDefinition c) {
@@ -190,7 +242,7 @@ public final class PointSpawnSystem {
 		return this.getSpawnAt(this.getSpawnLocation(e), e.getClass());
 	}
 
-	public WorldLocation getSpawnLocation(EntityLiving e) {
+	private WorldLocation getSpawnLocation(EntityLiving e) {
 		if (e instanceof SpawnPointEntity) {
 			return ((SpawnPointEntity)e).getSpawn();
 		}
@@ -202,7 +254,7 @@ public final class PointSpawnSystem {
 		}
 	}
 
-	public void onEntityRemoved(EntityLiving e) {
+	private void onEntityRemoved(EntityLiving e) {
 		if (e.worldObj == null || e.worldObj.isRemote)
 			return;
 		SpawnPoint spawn = this.getSpawn(e);
@@ -211,7 +263,7 @@ public final class PointSpawnSystem {
 		}
 	}
 
-	public static void tagEntityAsKilled(EntityLiving e) {
+	private void tagEntityAsKilled(EntityLiving e) {
 		setTag(e, KILLED_NBT_TAG, true);
 	}
 
@@ -239,7 +291,7 @@ public final class PointSpawnSystem {
 		return this.hasTag(e, HOSTILE_NBT_TAG);
 	}
 
-	public void tick(EntityPlayer ep) {
+	private void tick(EntityPlayer ep) {
 		World world = ep.worldObj;
 		if (world == null || world.isRemote)
 			return;

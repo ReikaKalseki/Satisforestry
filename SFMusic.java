@@ -11,6 +11,8 @@ import com.google.common.collect.HashBiMap;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.audio.SoundHandler;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -18,11 +20,15 @@ import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.Auxiliary.PopupWriter;
 import Reika.DragonAPI.Exception.InstallationException;
 import Reika.DragonAPI.IO.DirectResourceManager;
+import Reika.DragonAPI.Instantiable.Event.Client.PlayMusicEvent;
 import Reika.DragonAPI.Instantiable.IO.CustomMusic;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaObfuscationHelper;
 
+import cpw.mods.fml.common.eventhandler.EventPriority;
+import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import paulscode.sound.SoundSystemConfig;
@@ -47,8 +53,33 @@ public class SFMusic {
 	private SFMusic() {
 
 	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void playCustomMusic(ClientTickEvent evt) {
+		World world = Minecraft.getMinecraft().theWorld;
+		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
+		if (world != null && ep != null && Satisforestry.isPinkForest(world, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
+			this.tickMusicEngine(world);
+	}
+
+	@SideOnly(Side.CLIENT)
+	@SubscribeEvent(priority = EventPriority.LOWEST)
+	public void overrideMusic(PlayMusicEvent evt) {
+		World world = Minecraft.getMinecraft().theWorld;
+		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
+		if (world != null && ep != null && Satisforestry.isPinkForest(world, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
+			evt.setCanceled(true);
+	}
+
 	/*
-	public void loadCodecs() {
+	@SubscribeEvent
+	@SideOnly(Side.CLIENT)
+	public void addMusicCodecs(SoundSetupEvent evt) {
+		loadCodecs();
+	}
+
+	private void loadCodecs() {
 		try {
 			SoundSystemConfig.setCodec("mp3", CodecJLayerMP3.class);
 		}
