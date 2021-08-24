@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Random;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
@@ -28,12 +29,29 @@ public class WorldGenPowerSlugs {
 	private final ShuffledGrid[] noise = new ShuffledGrid[3];
 	private long seed;
 
+	//private static final HashSet<Coordinate> successes = new HashSet();
+	//private static final HashMap<Coordinate, BlockKey> failures = new HashMap();
+
 	public WorldGenPowerSlugs() {
 		noise[0] = new ShuffledGrid(40, 4, 6, true);
 		noise[1] = new ShuffledGrid(40, 6, 9, true);
 		noise[2] = new ShuffledGrid(40, 8, 12, true);
 	}
-
+	/*
+	public static ArrayList<String> getOutcropData() {
+		ArrayList<String> li = new ArrayList();
+		int total = successes.size()+failures.size();
+		li.add(successes.size()+" of "+total+" attempts succeeded.");
+		CountMap<BlockKey> map = new CountMap();
+		for (BlockKey bk : failures.values()) {
+			map.increment(bk);
+		}
+		for (BlockKey bk : map.keySet()) {
+			li.add(bk.getLocalized()+" ("+bk.blockID+"): "+map.get(bk));
+		}
+		return li;
+	}
+	 */
 	public int generate(World world, Random rand, int chunkX, int chunkZ) {
 		this.initNoise(world);
 		int flags = 0;
@@ -50,9 +68,10 @@ public class WorldGenPowerSlugs {
 					continue;
 				if (this.isReplaceable(world, c.xCoord, dy, c.zCoord) && SFBlocks.SLUG.getBlockInstance().canBlockStay(world, c.zCoord, dy, c.zCoord)) {
 					int diff = dy >= 130 ? 1 : 0;
-					if (rand.nextInt(1) == 0) {
+					if (rand.nextInt(3) == 0) {
 						Coordinate c2 = this.tryGenerateOutcrop(world, c.xCoord, dy, c.zCoord, rand);
 						if (c2 != null) {
+							//successes.add(c2);
 							c = c2;
 							dy = c2.yCoord;
 							diff++;
@@ -81,7 +100,14 @@ public class WorldGenPowerSlugs {
 			for (int i = -r; i < r; i++) {
 				for (int k = -r; k < r; k++) {
 					if (!this.isOverwritable(world, x+i, y+j, z+k)) {
-						if (j < 4) {
+						if (j < 4) {/*
+							Coordinate c = new Coordinate(x+i, y+j, z+k);
+							Block b = c.getBlock(world);
+							int meta = c.getBlockMetadata(world);
+							if (b instanceof BlockRotatedPillar)
+								meta = meta%4;
+							failures.put(c, new BlockKey(b, meta));
+						 */
 							return null;
 						}
 						else {
@@ -136,8 +162,8 @@ public class WorldGenPowerSlugs {
 					type.place(world, dx, dy, dz);
 				}
 				if (j >= 0) {
-					widths[i] += ReikaRandomHelper.getRandomPlusMinus(0, 0.4, rand);
-					widths[i] = MathHelper.clamp_float(widths[i], 0.5F, j <= lim2 ? 2 : 1);
+					widths[i] += ReikaRandomHelper.getRandomPlusMinus(0, 0.8, rand);
+					widths[i] = MathHelper.clamp_float(widths[i], 0.2F, j <= lim2 ? 2 : 1);
 				}
 			}
 		}
@@ -148,7 +174,7 @@ public class WorldGenPowerSlugs {
 		if (ReikaWorldHelper.softBlocks(world, x, y, z) || DecoratorPinkForest.isTerrain(world, x, y, z))
 			return true;
 		Block b = world.getBlock(x, y, z);
-		return b == SFBlocks.BAMBOO.getBlockInstance() || b == Blocks.gravel || b == Blocks.sand || b == Blocks.dirt || b == Blocks.grass;
+		return b == SFBlocks.BAMBOO.getBlockInstance() || b.getMaterial() == Material.vine || b.getMaterial() == Material.plants || b == Blocks.gravel || b == Blocks.dirt;
 	}
 
 	private void initNoise(World world) {

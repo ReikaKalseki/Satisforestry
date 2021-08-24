@@ -133,6 +133,7 @@ public class Satisforestry extends DragonAPIMod {
 	//public static BiomePinkRiver pinkriver;
 
 	public static ItemFood paleberry;
+	public static ItemFood sludge;
 
 	public static CreativeTabs tabCreative = new SatisforestryTab("Satisforestry");
 
@@ -191,6 +192,10 @@ public class Satisforestry extends DragonAPIMod {
 		paleberry = new ItemPaleberry();
 		paleberry.setUnlocalizedName("paleberry");
 		GameRegistry.registerItem(paleberry, "paleberry");
+
+		sludge = new ItemDoggoSludge();
+		sludge.setUnlocalizedName("doggosludge");
+		GameRegistry.registerItem(sludge, "doggosludge");
 
 		this.basicSetup(evt);
 		FMLCommonHandler.instance().bus().register(this);

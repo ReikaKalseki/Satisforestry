@@ -329,8 +329,9 @@ public class BiomeConfig {
 		for (int i = 0; i < 3; i++)
 			doggoEntries.add(new DoggoDrop(SFBlocks.SLUG.getStackOfMetadata(i), 1, 1, 12/ReikaMathLibrary.intpow2(3, i)));
 		doggoEntries.add(new DoggoDrop(Satisforestry.paleberry, 1, 6, 25));
-		doggoEntries.add(new DoggoDrop(Items.stick, 1, 2, 20));
-		doggoEntries.add(new DoggoDrop(Items.rotten_flesh, 1, 4, 15));
+		doggoEntries.add(new DoggoDrop(Items.stick, 1, 8, 20));
+		doggoEntries.add(new DoggoDrop(Items.rotten_flesh, 1, 12, 15));
+		doggoEntries.add(new DoggoDrop(Satisforestry.sludge, 1, 1, 2));
 	}
 
 	private void parseOreEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
