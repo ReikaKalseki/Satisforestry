@@ -39,7 +39,9 @@ import Reika.Satisforestry.Biome.Generator.WorldGenPowerSlugs;
 import Reika.Satisforestry.Biome.Generator.WorldGenRedBamboo;
 import Reika.Satisforestry.Blocks.BlockPowerSlug;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
+import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Config.BiomeConfig;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 public class DecoratorPinkForest extends StackableBiomeDecorator {
 
@@ -340,6 +342,8 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 	public static boolean isTerrain(World world, int x, int y, int z) {
 		Block b = world.getBlock(x, y, z);
+		if (b == SFBlocks.TERRAIN.getBlockInstance())
+			return TerrainType.list[world.getBlockMetadata(x, y, z)].isTerrain();
 		return b.isReplaceableOreGen(world, x, y, z, Blocks.stone) || b.isReplaceableOreGen(world, x, y, z, Blocks.sandstone) || b.getMaterial() == Material.ground || b.getMaterial() == Material.clay || b.getMaterial() == Material.sand || b.isReplaceableOreGen(world, x, y, z, Blocks.grass) || ReikaBlockHelper.isOre(b, world.getBlockMetadata(x, y, z));
 	}
 

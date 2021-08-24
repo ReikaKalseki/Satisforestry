@@ -3,16 +3,24 @@ package Reika.Satisforestry.Biome.Generator;
 import java.util.ArrayList;
 import java.util.Random;
 
+import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.ShuffledGrid;
+import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaChunkHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Blocks.BlockPowerSlug;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
+import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 public class WorldGenPowerSlugs {
@@ -41,7 +49,16 @@ public class WorldGenPowerSlugs {
 				if (dy < 80)
 					continue;
 				if (this.isReplaceable(world, c.xCoord, dy, c.zCoord) && SFBlocks.SLUG.getBlockInstance().canBlockStay(world, c.zCoord, dy, c.zCoord)) {
-					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, i, false, dy > 130 ? 1 : 0, true);
+					int diff = dy >= 130 ? 1 : 0;
+					if (rand.nextInt(1) == 0) {
+						Coordinate c2 = this.tryGenerateOutcrop(world, c.xCoord, dy, c.zCoord, rand);
+						if (c2 != null) {
+							c = c2;
+							dy = c2.yCoord;
+							diff++;
+						}
+					}
+					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, i, false, diff, true);
 					if (te != null) {
 						flags |= (1 << i);
 						break;
@@ -54,6 +71,84 @@ public class WorldGenPowerSlugs {
 		}
 
 		return flags;
+	}
+
+	private Coordinate tryGenerateOutcrop(World world, int x, int y, int z, Random rand) {
+		int h = ReikaRandomHelper.getRandomBetween(4, 7, rand);
+		int lim2 = h/5;
+		for (int j = 0; j < h; j++) {
+			int r = j <= lim2 ? 2 : 1;
+			for (int i = -r; i < r; i++) {
+				for (int k = -r; k < r; k++) {
+					if (!this.isOverwritable(world, x+i, y+j, z+k)) {
+						if (j < 4) {
+							return null;
+						}
+						else {
+							h = j;
+							i = k = j = 120;
+							break;
+						}
+					}
+				}
+			}
+		}
+		BlockKey type = null;
+		switch(rand.nextInt(6)) {
+			case 0:
+			case 1:
+			case 2:
+				type = new BlockKey(SFBlocks.TERRAIN.getBlockInstance(), TerrainType.OUTCROP.ordinal());
+				break;
+			case 3:
+			case 4:
+				type = new BlockKey(SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal());
+				break;
+			case 5:
+				type = new BlockKey(Blocks.stone, 0);
+				break;
+		}
+		float[] widths = new float[4];
+		for (int i = 0; i < 4; i++) {
+			widths[i] = 1+rand.nextFloat()*1.4F;
+		}
+		for (int j = -3; j < h; j++) {
+			int dy = y+j;
+			type.place(world, x, dy, z);
+			for (int i = 0; i < 4; i++) {
+				ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i+2];
+				float w = widths[i];
+				int r = Math.round(w);
+				if (j == -1)
+					r = 2;
+				for (int d = 1; d <= r; d++) {
+					int dx = x+dir.offsetX*d;
+					int dz = z+dir.offsetZ*d;
+					type.place(world, dx, dy, dz);
+				}
+				if (r == 2) {
+					ForgeDirection left = ReikaDirectionHelper.getLeftBy90(dir);
+					int dx = x+dir.offsetX+left.offsetX;
+					int dz = z+dir.offsetZ+left.offsetZ;
+					type.place(world, dx, dy, dz);
+					dx = x+dir.offsetX-left.offsetX;
+					dz = z+dir.offsetZ-left.offsetZ;
+					type.place(world, dx, dy, dz);
+				}
+				if (j >= 0) {
+					widths[i] += ReikaRandomHelper.getRandomPlusMinus(0, 0.4, rand);
+					widths[i] = MathHelper.clamp_float(widths[i], 0.5F, j <= lim2 ? 2 : 1);
+				}
+			}
+		}
+		return new Coordinate(x, y+h, z);
+	}
+
+	private boolean isOverwritable(World world, int x, int y, int z) {
+		if (ReikaWorldHelper.softBlocks(world, x, y, z) || DecoratorPinkForest.isTerrain(world, x, y, z))
+			return true;
+		Block b = world.getBlock(x, y, z);
+		return b == SFBlocks.BAMBOO.getBlockInstance() || b == Blocks.gravel || b == Blocks.sand || b == Blocks.dirt || b == Blocks.grass;
 	}
 
 	private void initNoise(World world) {

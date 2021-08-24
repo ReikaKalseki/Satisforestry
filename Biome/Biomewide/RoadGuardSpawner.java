@@ -28,13 +28,13 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 	public Collection<SpawnPoint> createSpawnPoints(World world, BiomeFootprint bf, Random rand) {
 		HashSet<SpawnPoint> ret = new HashSet();
 		ArrayList<Coordinate> blocks = new ArrayList(bf.getCoords());
-		int n = Math.round(bf.getArea()/3000F);
+		int n = Math.round(bf.getArea()/4500F);
 		while (ret.size() < n && !blocks.isEmpty()) {
 			int idx = rand.nextInt(blocks.size());
 			Coordinate c = blocks.remove(idx);
 			c = c.setY(DecoratorPinkForest.getTrueTopAt(world, c.xCoord, c.zCoord)+1);
 			if (this.isValidSpawnArea(world, c)) {
-				ret.add(new RoadGuardSpawnPoint(new WorldLocation(world, c)));
+				ret.add(new RoadGuardSpawnPoint(new WorldLocation(world, c), rand.nextBoolean()));
 			}
 		}
 		return ret;
@@ -60,6 +60,13 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 	public static class RoadGuardSpawnPoint extends SpawnPoint {
 
 		public final float roadValue;
+		private boolean allowStingers;
+
+		private RoadGuardSpawnPoint(WorldLocation loc, boolean stinger) {
+			this(loc);
+			allowStingers = stinger;
+			this.initializeBasedOnRoadValue();
+		}
 
 		private RoadGuardSpawnPoint(WorldLocation loc) {
 			super(loc);
@@ -75,14 +82,23 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 		}
 
 		@Override
+		public void writeToTag(NBTTagCompound NBT) {
+			super.writeToTag(NBT);
+
+			NBT.setBoolean("stingers", allowStingers);
+		}
+
+		@Override
 		public void readFromTag(NBTTagCompound NBT) {
 			super.readFromTag(NBT);
+
+			allowStingers = NBT.getBoolean("stingers");
 
 			this.initializeBasedOnRoadValue();
 		}
 
 		private void initializeBasedOnRoadValue() {
-			if (roadValue >= 0.9)
+			if (roadValue >= 0.9 && allowStingers)
 				this.setSpawnParameters(EntityEliteStinger.class, 1, 8);
 			else if (roadValue >= 0.5)
 				this.setSpawnParameters(EntitySpider.class, 4, 8);

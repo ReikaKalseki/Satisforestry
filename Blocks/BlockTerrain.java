@@ -109,6 +109,17 @@ public class BlockTerrain extends Block {
 			}
 			return false;
 		}
+
+		public boolean isTerrain() {
+			switch(this) {
+				case POISONROCK:
+					return false;
+				case PONDROCK:
+				case OUTCROP:
+					return true;
+			}
+			return false;
+		}
 	}
 
 }
