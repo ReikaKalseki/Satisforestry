@@ -23,6 +23,7 @@ import net.minecraft.world.biome.BiomeGenBase.SpawnListEntry;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
+import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
@@ -46,7 +47,9 @@ import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockGasEmitter.TileGasVent;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
+import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
+import Reika.Satisforestry.Miner.MinerStructure;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 public class UraniumCave {
@@ -249,8 +252,12 @@ public class UraniumCave {
 			rm.generateOreSpike(world, rand, spike.oreBlock);
 		}
 
+		rm.crackBlocks(world);
+
 		for (int i = 0; i < 6; i++) {
 			Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, rm.adjacentFloor);
+			while (rm.nodeClearArea.contains(c.to2D()))
+				c = ReikaJavaLibrary.getRandomCollectionEntry(rand, rm.adjacentFloor);
 			while (c.offset(0, -1, 0).softBlock(world) || c.offset(0, -1, 0).getBlock(world) == SFBlocks.CAVESHIELD.getBlockInstance())
 				c = c.offset(0, -1, 0);
 			TileCaveSpawner lgc = this.generateSpawnerAt(world, c.xCoord, c.yCoord, c.zCoord);
@@ -946,6 +953,7 @@ public class UraniumCave {
 
 		private Coordinate resourceNode;
 		private final HashSet<Coordinate> nodeClearArea = new HashSet();
+		private final HashSet<Coordinate> minerArea = new HashSet();
 
 		protected ResourceNodeRoom(CentralCave cc, DecimalPosition p) {
 			super(p);
@@ -1087,18 +1095,31 @@ public class UraniumCave {
 					if (Math.abs(i) == 2 && Math.abs(k) == 2)
 						continue;
 					Coordinate below = resourceNode.offset(i, -1, k);
-					Coordinate above = resourceNode.offset(i, 1, k);
-					Coordinate above2 = resourceNode.offset(i, 2, k);
 					Coordinate at = resourceNode.offset(i, 0, k);
-					cleared.add(above);
-					cleared.add(above2);
 					nodeClearArea.add(at.to2D());
 					if (i != 0 || k != 0) {
-						at.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
+						at.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance(), 1);
 					}
-					below.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
+					below.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance(), 1);
+					for (int j = 1; j <= 4; j++) {
+						cleared.add(at.offset(0, j, 0));
+					}
 				}
 			}
+			ForgeDirection axis = ForgeDirection.VALID_DIRECTIONS[rand.nextInt(4)+2];
+			/*
+			for (int j = 0; j <= 13; j++) {
+
+			}*/
+			FilledBlockArray arr = MinerStructure.getMinerStructure(world, resourceNode.xCoord, resourceNode.yCoord+1, resourceNode.zCoord, axis);
+			for (int x = arr.getMinX(); x <= arr.getMaxX(); x++) {
+				for (int y = arr.getMinY(); y <= arr.getMaxY(); y++) {
+					for (int z = arr.getMinZ(); z <= arr.getMaxZ(); z++) {
+						minerArea.add(new Coordinate(x, y, z));
+					}
+				}
+			}
+
 			for (Coordinate c2 : cleared) {
 				for (Coordinate c3 : c2.getAdjacentCoordinates()) {
 					if (!carve.containsKey(c3) && !cleared.contains(c3) && !instance.isSpecialCaveBlock(c3.getBlock(world))) {
@@ -1106,6 +1127,29 @@ public class UraniumCave {
 					}
 				}
 				c2.setBlock(world, Blocks.air);
+			}
+		}
+
+		private void crackBlocks(World world) {
+			HashSet<Coordinate> placed = new HashSet();
+			for (Coordinate c2 : minerArea) {
+				if (c2.getBlock(world) == SFBlocks.CAVESHIELD.getBlockInstance()) {
+					placed.add(c2);
+				}
+				else {
+					//ReikaJavaLibrary.pConsole(c2.getBlockKey(world).getLocalized());
+				}
+			}
+			for (Coordinate c2 : placed) {
+				for (Coordinate c3 : c2.getAdjacentCoordinates()) {
+					Block b = c3.getBlock(world);
+					if (!carve.containsKey(c3) && !instance.isSpecialCaveBlock(b) && !(b == SFBlocks.TERRAIN.getBlockInstance() && c3.getBlockMetadata(world) == TerrainType.CAVECRACKS.ordinal())) {
+						c3.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
+					}
+				}
+			}
+			for (Coordinate c2 : placed) {
+				c2.setBlock(world, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.CAVECRACKS.ordinal());
 			}
 		}
 

@@ -37,7 +37,7 @@ public class ItemDoggoSludge extends ItemFood {
 	@Override
 	@SideOnly(Side.CLIENT)
 	protected String getIconString() {
-		return "satisforestry:sludge";
+		return "satisforestry:sludge2";
 	}
 
 }
