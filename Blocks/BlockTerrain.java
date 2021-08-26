@@ -1,11 +1,13 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
@@ -16,10 +18,16 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.DragonAPI.Instantiable.Effects.ReikaModelledBreakFX;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Registry.SFBlocks;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class BlockTerrain extends Block {
 
@@ -30,13 +38,18 @@ public class BlockTerrain extends Block {
 
 	@Override
 	public Item getItemDropped(int meta, Random rand, int fortune) {
-		Item override = TerrainType.list[meta].getDrop();
-		return override != null ? override : super.getItemDropped(meta, rand, fortune);
+		return super.getItemDropped(meta, rand, fortune);
 	}
 
 	@Override
 	public int damageDropped(int meta) {
 		return meta;
+	}
+
+	@Override
+	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int meta, int fortune) {
+		ItemStack override = TerrainType.list[meta].getDrop();
+		return override != null ? ReikaJavaLibrary.makeListFrom(override) : super.getDrops(world, x, y, z, meta, fortune);
 	}
 
 	@Override
@@ -47,6 +60,69 @@ public class BlockTerrain extends Block {
 	@Override
 	public float getExplosionResistance(Entity e, World world, int x, int y, int z, double ex, double ey, double ez) {
 		return TerrainType.list[world.getBlockMetadata(x, y, z)].resistance;
+	}
+	/*
+	@Override
+	@SuppressWarnings("incomplete-switch")
+	public void setBlockBoundsBasedOnState(IBlockAccess world, int x, int y, int z) {
+		switch(TerrainType.list[world.getBlockMetadata(x, y, z)]) {
+			case CRACKS:
+				float x0 = 0;
+				float y0 = 0;
+				float z0 = 0;
+				float x1 = 1;
+				float y1 = 1;
+				float z1 = 1;
+				double d = 0.125;//0.0625;//0.125;
+				for (int i = 0; i < 6; i++) {
+					ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i];
+					int dx = x+dir.offsetX;
+					int dy = y+dir.offsetY;
+					int dz = z+dir.offsetZ;
+					if (!world.getBlock(dx, dy, dz).isSideSolid(world, dx, dy, dz, dir.getOpposite())) {
+						switch(dir) {
+							case DOWN:
+								y0 += d;
+								break;
+							case UP:
+								y1 -= d;
+								break;
+							case WEST:
+								x0 += d;
+								break;
+							case EAST:
+								x1 -= d;
+								break;
+							case NORTH:
+								z0 += d;
+								break;
+							case SOUTH:
+								z1 -= d;
+								break;
+						}
+					}
+				}
+				this.setBlockBounds(x0, y0, z0, x1, y1, z1);
+				break;
+			default:
+				this.setBlockBounds(0, 0, 0, 1, 1, 1);
+		}
+	}*/
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void randomDisplayTick(World world, int x, int y, int z, Random rand) {
+		if (world.getBlockMetadata(x, y, z) == TerrainType.CRACKS.ordinal() && world.getBlock(x, y-1, z).isAir(world, x, y-1, z)) {
+			int n = ReikaRandomHelper.getRandomBetween(1, 4);
+			for (int i = 0; i < n; i++) {
+				double vx = ReikaRandomHelper.getRandomPlusMinus(0D, 0.03125);
+				double vz = ReikaRandomHelper.getRandomPlusMinus(0D, 0.03125);
+				ReikaModelledBreakFX fx = new ReikaModelledBreakFX(world, x+rand.nextDouble(), y, z+rand.nextDouble(), vx, 0, vz, SFBlocks.CAVESHIELD.getBlockInstance(), 0, 0);
+				fx.particleScale = 0.4F;
+				fx.noClip = true;
+				Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+			}
+		}
 	}
 
 	@Override
@@ -100,11 +176,11 @@ public class BlockTerrain extends Block {
 			int dy = y+dir.offsetY;
 			int dz = z+dir.offsetZ;
 			Block b = world.getBlock(dx, dy, dz);
-			if ((b == SFBlocks.CAVESHIELD.getBlockInstance() && world.getBlockMetadata(x, y, z) == 0) || b == SFBlocks.SPAWNER.getBlockInstance()) {
+			if ((b == SFBlocks.CAVESHIELD.getBlockInstance() && world.getBlockMetadata(dx, dy, dz) == 0) || b == SFBlocks.SPAWNER.getBlockInstance()) {
 				if (world.isRemote)
 					ReikaRenderHelper.spawnDropParticles(world, dx, dy, dz, b, 0);
 				else
-					world.setBlock(dx, dy, dz, this, TerrainType.CAVECRACKS.ordinal(), 3);
+					world.setBlock(dx, dy, dz, this, TerrainType.CRACKS.ordinal(), 3);
 				ReikaSoundHelper.playBreakSound(world, dx, dy, dz, Blocks.stone);
 			}
 		}
@@ -114,7 +190,7 @@ public class BlockTerrain extends Block {
 		POISONROCK(3, 45),
 		PONDROCK(1, 30),
 		OUTCROP(2, 30),
-		CAVECRACKS(Blocks.stone.blockHardness*1.5F, 6000),
+		CRACKS(Blocks.stone.blockHardness*1.5F, 6000),
 		;
 
 		private IIcon iconTop;
@@ -131,10 +207,10 @@ public class BlockTerrain extends Block {
 			resistance = r;
 		}
 
-		public Item getDrop() {
+		public ItemStack getDrop() {
 			switch(this) {
-				case CAVECRACKS:
-					return Item.getItemFromBlock(Blocks.cobblestone);
+				case CRACKS:
+					return new ItemStack(Blocks.cobblestone);
 				default:
 					return null;
 			}
@@ -146,7 +222,7 @@ public class BlockTerrain extends Block {
 					return true;
 				case PONDROCK:
 				case OUTCROP:
-				case CAVECRACKS:
+				case CRACKS:
 					return false;
 			}
 			return false;
@@ -158,7 +234,7 @@ public class BlockTerrain extends Block {
 					return false;
 				case PONDROCK:
 				case OUTCROP:
-				case CAVECRACKS:
+				case CRACKS:
 					return true;
 			}
 			return false;

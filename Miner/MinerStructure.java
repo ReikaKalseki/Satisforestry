@@ -63,7 +63,6 @@ public class MinerStructure {
 
 	//default dir is EAST
 	public static FilledBlockArray getMinerStructure(World world, int x, int y, int z, ForgeDirection dir) {
-		dir = ForgeDirection.EAST;
 		FilledBlockArray array = new FilledBlockArray(world);
 		Block b = SFBlocks.MINERMULTI.getBlockInstance();
 		int i = x-3;

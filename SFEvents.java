@@ -89,14 +89,19 @@ public class SFEvents {
 	public void boostSlugMining(net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed evt) {
 		ItemStack is = evt.entityPlayer.getCurrentArmor(3); //helmet
 		if (is != null && SFBlocks.SLUG.matchWith(is)) {
-			evt.newSpeed *= 1+0.1667*(1+is.getItemDamage()%3);
+			float lim = 24;
+			if (evt.newSpeed < lim) {
+				float f = 1+0.667F*(1+is.getItemDamage()%3)/(float)Math.pow(evt.originalSpeed, 0.4);
+				//ReikaJavaLibrary.pConsole(evt.originalSpeed+" % "+evt.newSpeed+" & "+f);
+				evt.newSpeed = Math.min(lim, evt.newSpeed*f);
+			}
 		}
 	}
 
 	@SubscribeEvent
 	public void onAddArmor(AddToSlotEvent evt) {
 		int id = evt.slotID;
-		if (evt.inventory instanceof InventoryPlayer && evt.slotID == 36) { //foot armor
+		if (evt.inventory instanceof InventoryPlayer && evt.slotID == 39) { //head armor
 			ItemStack is = evt.getItem();
 			if (is == null || SFBlocks.SLUG.matchWith(is)) {
 				ItemBlockPowerSlug.removeBonuses(((InventoryPlayer)evt.inventory).player);
@@ -107,7 +112,7 @@ public class SFEvents {
 	@SubscribeEvent
 	public void onRemoveArmor(RemoveFromSlotEvent evt) {
 		int id = evt.slotID;
-		if (evt.slotID == 36) { //foot armor
+		if (evt.slotID == 39) { //head armor
 			ItemStack is = evt.getItem();
 			if (is != null && SFBlocks.SLUG.matchWith(is)) {
 				ItemBlockPowerSlug.removeBonuses(((InventoryPlayer)evt.inventory).player);

@@ -1,5 +1,6 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -12,6 +13,7 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.monster.EntitySpider;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
@@ -19,11 +21,13 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Instantiable.Math.Noise.Simplex3DGenerator;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
@@ -42,13 +46,9 @@ public class BlockDecoration extends Block {
 	}
 
 	@Override
-	public Item getItemDropped(int meta, Random rand, int fortune) {
-		return null;
-	}
-
-	@Override
-	public int damageDropped(int meta) {
-		return meta;
+	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int meta, int fortune) {
+		ItemStack override = DecorationType.list[meta].getDrop();
+		return override != null ? ReikaJavaLibrary.makeListFrom(override) : new ArrayList();
 	}
 
 	@Override
@@ -107,6 +107,21 @@ public class BlockDecoration extends Block {
 	}
 
 	@Override
+	public void onNeighborBlockChange(World world, int x, int y, int z, Block b) {
+		super.onNeighborBlockChange(world, x, y, z, b);
+		if (!this.canBlockStay(world, x, y, z)) {
+			this.dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0);
+			world.setBlock(x, y, z, Blocks.air, 0, 3);
+		}
+	}
+
+	@Override
+	public boolean canBlockStay(World world, int x, int y, int z) {
+		DecorationType gr = DecorationType.list[world.getBlockMetadata(x, y, z)];
+		return gr.canExistAt(world, x, y, z);
+	}
+
+	@Override
 	public boolean isOpaqueCube() {
 		return false;
 	}
@@ -139,6 +154,28 @@ public class BlockDecoration extends Block {
 		private DecorationType(float h, float r) {
 			hardness = h;
 			resistance = r;
+		}
+
+		public boolean canExistAt(World world, int x, int y, int z) {
+			switch(this) {
+				case STALAGMITE:
+					return world.getBlock(x, y-1, z).isSideSolid(world, x, y-1, z, ForgeDirection.UP);
+				case STALACTITE:
+					return world.getBlock(x, y+1, z).isSideSolid(world, x, y+1, z, ForgeDirection.DOWN);
+				case TENDRILS:
+					return true;
+			}
+			return false;
+		}
+
+		public ItemStack getDrop() {
+			switch(this) {
+				case STALAGMITE:
+				case STALACTITE:
+					return new ItemStack(Blocks.cobblestone);
+				default:
+					return null;
+			}
 		}
 
 		@SideOnly(Side.CLIENT)

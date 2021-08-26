@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -954,6 +955,7 @@ public class UraniumCave {
 		private Coordinate resourceNode;
 		private final HashSet<Coordinate> nodeClearArea = new HashSet();
 		private final HashSet<Coordinate> minerArea = new HashSet();
+		private final HashSet<Coordinate> crackDisallow = new HashSet();
 
 		protected ResourceNodeRoom(CentralCave cc, DecimalPosition p) {
 			super(p);
@@ -1097,6 +1099,8 @@ public class UraniumCave {
 					Coordinate below = resourceNode.offset(i, -1, k);
 					Coordinate at = resourceNode.offset(i, 0, k);
 					nodeClearArea.add(at.to2D());
+					crackDisallow.add(at);
+					crackDisallow.add(below);
 					if (i != 0 || k != 0) {
 						at.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance(), 1);
 					}
@@ -1112,10 +1116,12 @@ public class UraniumCave {
 
 			}*/
 			FilledBlockArray arr = MinerStructure.getMinerStructure(world, resourceNode.xCoord, resourceNode.yCoord+1, resourceNode.zCoord, axis);
-			for (int x = arr.getMinX(); x <= arr.getMaxX(); x++) {
-				for (int y = arr.getMinY(); y <= arr.getMaxY(); y++) {
-					for (int z = arr.getMinZ(); z <= arr.getMaxZ(); z++) {
-						minerArea.add(new Coordinate(x, y, z));
+			for (int x = arr.getMinX()-1; x <= arr.getMaxX()+1; x++) {
+				for (int y = arr.getMinY()-1; y <= arr.getMaxY()+1; y++) {
+					for (int z = arr.getMinZ()-1; z <= arr.getMaxZ()+1; z++) {
+						Coordinate c = new Coordinate(x, y, z);
+						if (!crackDisallow.contains(c))
+							minerArea.add(c);
 					}
 				}
 			}
@@ -1140,16 +1146,33 @@ public class UraniumCave {
 					//ReikaJavaLibrary.pConsole(c2.getBlockKey(world).getLocalized());
 				}
 			}
+
+			boolean flag = true;
+			while(flag) {
+				flag = false;
+				Iterator<Coordinate> it = placed.iterator();
+				while (it.hasNext()) {
+					Coordinate c = it.next();
+					for (Coordinate c2 : c.getAdjacentCoordinates()) {
+						if (placed.contains(c2)) {
+							it.remove();
+							flag = true;
+							break;
+						}
+					}
+				}
+			}
+
 			for (Coordinate c2 : placed) {
 				for (Coordinate c3 : c2.getAdjacentCoordinates()) {
 					Block b = c3.getBlock(world);
-					if (!carve.containsKey(c3) && !instance.isSpecialCaveBlock(b) && !(b == SFBlocks.TERRAIN.getBlockInstance() && c3.getBlockMetadata(world) == TerrainType.CAVECRACKS.ordinal())) {
+					if (!carve.containsKey(c3) && !instance.isSpecialCaveBlock(b) && !(b == SFBlocks.TERRAIN.getBlockInstance() && c3.getBlockMetadata(world) == TerrainType.CRACKS.ordinal())) {
 						c3.setBlock(world, SFBlocks.CAVESHIELD.getBlockInstance());
 					}
 				}
 			}
 			for (Coordinate c2 : placed) {
-				c2.setBlock(world, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.CAVECRACKS.ordinal());
+				c2.setBlock(world, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.CRACKS.ordinal());
 			}
 		}
 
