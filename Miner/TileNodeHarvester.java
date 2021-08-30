@@ -17,6 +17,7 @@ import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Exception.RegistrationException;
 import Reika.DragonAPI.Exception.UnreachableCodeException;
 import Reika.DragonAPI.Interfaces.TileEntity.BreakAction;
+import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaEngLibrary;
@@ -405,7 +406,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	@Override
 	public boolean shouldRenderInPass(int pass) {
-		return pass == 0;
+		return pass <= 1;
 	}
 
 	public final void setHasStructure(ForgeDirection flag) {
@@ -440,10 +441,13 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 	public final AxisAlignedBB getRenderBoundingBox() {
 		if (structureDir == null)
 			return super.getRenderBoundingBox();
-		boolean x = structureDir.offsetX != 0;
-		double wx = x ? 8 : 2;
-		double wz = x ? 2 : 8;
-		return AxisAlignedBB.getBoundingBox(xCoord-wx, yCoord, zCoord-wz, xCoord+1+wx, yCoord+14, zCoord+1+wz);
+		AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this);
+		box = box.addCoord(structureDir.offsetX*8.25, 13, structureDir.offsetZ*8.25);
+		box = box.addCoord(-structureDir.offsetX*3.5, 0, -structureDir.offsetZ*3.5);
+		box = box.addCoord(structureDir.offsetZ*2, 0, structureDir.offsetX*2);
+		box = box.addCoord(-structureDir.offsetZ*2, 0, -structureDir.offsetX*2);
+		box = box.expand(0.25, 0.25, 0.25);
+		return box;
 	}
 
 	private static abstract class TileNodeHarvesterBasicEnergy extends TileNodeHarvester {

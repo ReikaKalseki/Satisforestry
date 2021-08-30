@@ -41,7 +41,7 @@ public class SFMusic {
 
 	private static final String potentialSupportMsg = "This file type can be supported with the use of the NotEnoughCodecs Mod. ";
 	private static final String officialSiteMsg = "The mod can be downloaded from its official CurseForge page: https://www.curseforge.com/minecraft/mc-mods/notenoughcodecs/files";
-	private static final String backportMsg = "To support this file type, you will need a backported version of a modern version for new filetype support: ???";
+	private static final String backportMsg = "To support this file type, you will need a backported version of a modern version for new filetype support: https://gregtech.overminddl1.com/openmods/codecs/NotEnoughCodecs/1.7.10-0.6/NotEnoughCodecs-1.7.10-0.6.jar";
 
 	private int potentiallySupportedFiles = 0;
 	private boolean requiresBackportedNEC = false;
