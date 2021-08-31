@@ -4,10 +4,12 @@ import java.util.Locale;
 
 import Reika.DragonAPI.Exception.RegistrationException;
 import Reika.DragonAPI.IO.Shaders.ShaderHook;
+import Reika.DragonAPI.IO.Shaders.ShaderLibrary;
 import Reika.DragonAPI.IO.Shaders.ShaderProgram;
 import Reika.DragonAPI.IO.Shaders.ShaderRegistry;
 import Reika.DragonAPI.IO.Shaders.ShaderRegistry.ShaderDomain;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Render.BlurWithRedBleed;
 
 public enum SFShaders implements ShaderHook {
 
@@ -67,6 +69,7 @@ public enum SFShaders implements ShaderHook {
 	public static void registerAll() {
 		if (registered)
 			return;
+		ShaderLibrary.registerComputedLibrary(Satisforestry.instance, BlurWithRedBleed.ID, BlurWithRedBleed.class);
 		for (int i = 0; i < shaders.length; i++) {
 			SFShaders s = shaders[i];
 			s.create();

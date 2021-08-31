@@ -1,7 +1,6 @@
 #import color
 #import effects
-#generate blur 3
-#generate blurwithbleed 20 2
+#generate blur 2
 
 vec4 getColorAround(vec2 uv, vec2 offset, vec2 res, int r, float scale) {
 	vec4 ret = vec4(0.0);
@@ -19,10 +18,12 @@ vec4 getColorAround(vec2 uv, vec2 offset, vec2 res, int r, float scale) {
 	return ret;
 }
 
+#generate blurwithbleed 5 3
+
 void main() {
     vec4 orig = texture2D(bgl_RenderedTexture, texcoord);
     
-	vec4 blurred4 = blur3(texcoord);
+	vec4 blurred4 = blur2(texcoord);
 	vec4 blurred20 = min(vec4(1.0), blurWithLeakage(texcoord, 0.75)*1.1);
     
 	float r = mix(orig.r, blurred20.r, intensity);

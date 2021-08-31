@@ -3,11 +3,14 @@ package Reika.Satisforestry.Render;
 import java.util.ArrayList;
 
 import Reika.DragonAPI.IO.Shaders.ShaderLibrary.ComputedLibrary;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 
 public class BlurWithRedBleed extends ComputedLibrary {
 
+	public static final String ID = "blurwithbleed";
+
 	private BlurWithRedBleed(String[] args) {
-		super("blurwithbleed", args);
+		super(ID, args);
 	}
 
 	@Override
@@ -16,7 +19,7 @@ public class BlurWithRedBleed extends ComputedLibrary {
 		int bleed = (int)params[1];
 		ArrayList<String> li = new ArrayList();
 		li.add("vec4 blurWithLeakage(vec2 uv, float scale) {");
-		
+
 		li.add("vec4 color = vec4(0.0);");
 		li.add("color.a = 1.0;");
 		li.add("float sum = 0.0;");
@@ -24,13 +27,13 @@ public class BlurWithRedBleed extends ComputedLibrary {
 		li.add("float f = 0.0;");
 		li.add("vec2 offset = vec2(0.0);");
 		li.add("vec4 get = vec4(0.0);");
-		
+
 		li.add("vec2 res = vec2(1.0/float(screenWidth), 1.0/float(screenHeight));");
 		int r = radius+1;
 		for (int i = -r; i <= r; i++) {
 			for (int k = -r; k <= r; k++) {
-				float dd = i*i+k*k;
-				float f = dd <= radius ? (float)Math.sqrt(1D/(dd+1)) : 0;
+				float dd = (float)ReikaMathLibrary.py3d(i, 0, k);
+				float f = dd <= radius ? 1-(float)Math.sqrt(dd/radius) : 0;
 				if (f > 0) {
 					li.add("f = float("+f+");");
 					li.add("sum += f;");
@@ -42,7 +45,7 @@ public class BlurWithRedBleed extends ComputedLibrary {
 		}
 		li.add("color /= sum;");
 		li.add("color = min(vec4(1.0), color);");
-		
+
 		li.add("return color; ");
 		li.add("}");
 		return li;
