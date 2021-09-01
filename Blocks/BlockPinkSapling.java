@@ -17,6 +17,7 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Registry.SFBlocks;
 
@@ -48,7 +49,9 @@ public class BlockPinkSapling extends BlockSapling {
 	@Override
 	public void func_149878_d(World world, int x, int y, int z, Random rand) {
 		PinkTreeTypes type = PinkTreeTypes.getLeafType(world, x, y, z);
-		if (type.constructTreeGenerator().generate(world, rand, x, y, z)) {
+		PinkTreeGeneratorBase gen = type.constructTreeGenerator();
+		gen.allowSlugs = false;
+		if (gen.generate(world, rand, x, y, z)) {
 			if (type == PinkTreeTypes.GIANTTREE)
 				world.setBlock(x, y, z, Blocks.air);
 		}

@@ -38,6 +38,8 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	private final HashMap<Coordinate, Integer> logs = new HashMap();
 	private final HashMap<Coordinate, Integer> leavesTop = new HashMap();
 
+	public boolean allowSlugs = true;
+
 	public PinkTreeGeneratorBase(boolean force, PinkTreeTypes leaf) {
 		super(false);
 		forceGen = force;
@@ -73,6 +75,8 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	}
 
 	protected void postGenerate(World world, Random rand, int x, int y, int z) {
+		if (!allowSlugs)
+			return;
 		ArrayList<Entry<Coordinate, Integer>> set = null;
 		for (int n = 0; n < this.getTreeTopSlugAttemptCount(); n++) {
 			if (rand.nextFloat() < this.getTreeTopSlugChance()) {

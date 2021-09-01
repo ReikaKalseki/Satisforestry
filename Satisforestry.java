@@ -77,6 +77,7 @@ import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
+import cpw.mods.fml.common.event.FMLInterModComms;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerAboutToStartEvent;
@@ -240,6 +241,8 @@ public class Satisforestry extends DragonAPIMod {
 		//pinkriver = new BiomePinkRiver();
 
 		ReikaRegistryHelper.registerModEntities(instance, SFEntities.entityList);
+
+		FMLInterModComms.sendMessage(ModList.ARSMAGICA.modLabel, "bsb", "EntityDryad|"+SFOptions.BIOMEID.getValue());
 
 		this.finishTiming();
 	}

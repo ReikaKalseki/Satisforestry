@@ -202,7 +202,7 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 	@Override
 	protected void postGenerate(World world, Random rand, int x, int y, int z) {
 		super.postGenerate(world, rand, x, y, z);
-		if (rand.nextInt(25) == 0) {
+		if (allowSlugs && rand.nextInt(25) == 0) {
 			int tier = rand.nextInt(5) == 0 ? 1 : 0;
 			int dy = y+groundGap-1;
 			int dx = ReikaRandomHelper.getRandomPlusMinus(x, 1, rand);
