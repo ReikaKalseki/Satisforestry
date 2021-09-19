@@ -87,6 +87,11 @@ public class LizardDoggoSpawner implements SpawnPointDefinition {
 			return -1;
 		}
 
+		@Override
+		public boolean clearNonPlayerDrops() {
+			return false;
+		}
+
 	}
 
 	@Override

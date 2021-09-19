@@ -18,7 +18,7 @@ vec4 getColorAround(vec2 uv, vec2 offset, vec2 res, int r, float scale) {
 	return ret;
 }
 
-#generate blurwithbleed 5 3
+#generate blurwithbleed 4 3
 
 void main() {
     vec4 orig = texture2D(bgl_RenderedTexture, texcoord);

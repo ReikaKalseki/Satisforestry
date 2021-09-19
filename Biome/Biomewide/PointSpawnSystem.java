@@ -23,6 +23,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
+import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
@@ -62,6 +63,18 @@ public final class PointSpawnSystem {
 	private PointSpawnSystem() {
 		doggos = new LizardDoggoSpawner();
 		guards = new RoadGuardSpawner();
+	}
+
+	@SubscribeEvent
+	public void clearDropsForClearedEntities(LivingDropsEvent evt) {
+		Entity e = evt.source.getEntity();
+		if (e instanceof EntityLiving) {
+			SpawnPoint p = this.getSpawn((EntityLiving)evt.entityLiving);
+			if (p != null && p.clearNonPlayerDrops()) {
+				evt.drops.clear();
+				evt.setCanceled(true);
+			}
+		}
 	}
 
 	@SubscribeEvent
@@ -594,6 +607,10 @@ public final class PointSpawnSystem {
 
 		protected boolean denyPassivation() {
 			return false;
+		}
+
+		public boolean clearNonPlayerDrops() {
+			return true;
 		}
 
 		protected void onEntitySpawned(EntityLiving e) {
