@@ -25,6 +25,7 @@ import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.FurnaceRecipes;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
@@ -44,6 +45,7 @@ import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.DragonAPIMod.LoadProfiler.LoadPhase;
 import Reika.DragonAPI.Instantiable.IO.ControlledConfig;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
+import Reika.DragonAPI.Libraries.ReikaRecipeHelper;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
@@ -256,8 +258,12 @@ public class Satisforestry extends DragonAPIMod {
 	}
 
 	private void addRecipes() {
-		GameRegistry.addShapelessRecipe(new ItemStack(Blocks.planks, 4), SFBlocks.LOG.getStackOfMetadata(PinkTreeTypes.TREE.ordinal()));
-		GameRegistry.addShapelessRecipe(new ItemStack(Blocks.planks, 4), SFBlocks.LOG.getStackOfMetadata(PinkTreeTypes.JUNGLE.ordinal()));
+		float xp =  FurnaceRecipes.smelting().func_151398_b(ReikaItemHelper.charcoal);
+		for (PinkTreeTypes type : PinkTreeTypes.list) {
+			ItemStack log = SFBlocks.LOG.getStackOfMetadata(type.ordinal());
+			GameRegistry.addShapelessRecipe(new ItemStack(Blocks.planks, 4), log);
+			ReikaRecipeHelper.addSmelting(log, ReikaItemHelper.getSizedItemStack(log, type.getCharcoalYield()), xp);
+		}
 
 		ItemStack dark = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.DARK.ordinal());
 		ItemStack silver = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.SILVER.ordinal());

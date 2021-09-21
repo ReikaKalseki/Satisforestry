@@ -250,6 +250,15 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 		public static PinkTreeTypes getLogType(int meta) {
 			return PinkTreeTypes.list[meta%4];
 		}
+
+		public int getCharcoalYield() {
+			switch(this) {
+				case JUNGLE:
+					return 2;
+				default:
+					return 1;
+			}
+		}
 	}
 
 }
