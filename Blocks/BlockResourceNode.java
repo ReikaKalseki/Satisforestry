@@ -229,7 +229,7 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 				lastClickTick = time;
 				manualMiningCycle++;
 				if (manualMiningCycle >= MINING_TIME) {
-					ItemStack is = this.getRandomNodeItem();
+					ItemStack is = this.getRandomNodeItem(true);
 					if (is != null)
 						ReikaItemHelper.dropItem(worldObj, xCoord+0.5, yCoord+1, zCoord+0.5, is);
 					manualMiningCycle = 0;
@@ -275,16 +275,16 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 			return resource;
 		}
 
-		public ItemStack getRandomNodeItem() {
-			return this.getRandomNodeItem(Integer.MAX_VALUE);
+		public ItemStack getRandomNodeItem(boolean manual) {
+			return this.getRandomNodeItem(Integer.MAX_VALUE, manual);
 		}
 
-		private ItemStack getRandomNodeItem(int tier) {
-			ItemStack ri = resource.getRandomItem(tier, purity);
-			if (ri == null)
-				return null;
+		private ItemStack getRandomNodeItem(int tier, boolean manual) {
 			boolean peaceful = worldObj.difficultySetting == EnumDifficulty.PEACEFUL;
 			if (peaceful && !resource.worksOnPeaceful())
+				return null;
+			ItemStack ri = resource.getRandomItem(tier, purity, manual);
+			if (ri == null)
 				return null;
 			int amt = ReikaRandomHelper.getRandomBetween(resource.minCount, resource.maxCount);
 			if (peaceful)

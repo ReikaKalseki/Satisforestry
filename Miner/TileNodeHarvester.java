@@ -188,7 +188,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 								operationTimer++;
 							activityTimer = 20;
 							if (operationTimer >= stepTime) {
-								ItemStack is = te.getRandomNodeItem();
+								ItemStack is = te.getRandomNodeItem(false);
 								if (is != null) {
 									if (this.trySpawnItem(is)) {
 										operationTimer = 0;

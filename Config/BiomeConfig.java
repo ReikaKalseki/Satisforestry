@@ -98,6 +98,11 @@ public class BiomeConfig {
 		item = new ResourceLuaBlock("{", items, itemData);
 		item.putData("key", "minecraft:gold_ingot");
 		item.putData("weight", 6);
+		item.putData("manualModifier", 0.3);
+		ResourceLuaBlock scales = new ResourceLuaBlock("weightModifiers", item, itemData);
+		for (Purity p : Purity.list) {
+			scales.putData(p.name(), (p.ordinal()+1)/2F);
+		}
 		item.putData("minimumPurity", Purity.NORMAL.name());
 		ResourceLuaBlock effects = new ResourceLuaBlock("effects", example2, itemData);
 		item = new ResourceLuaBlock("{", effects, itemData);
@@ -431,10 +436,10 @@ public class BiomeConfig {
 				continue;
 			}
 			int weight = s.getInt("weight");
-			int tier = s.getInt("tier");
+			float man = s.containsKey("manualModifier") ? (float)s.getDouble("manualModifier") : 1;
 			Purity p = Purity.valueOf(s.getString("minimumPurity"));
 			while (p != null) {
-				ore.addItem(p, is, weight, tier);
+				ore.addItem(p, is, weight, s);
 				p = p.higher();
 			}
 		}

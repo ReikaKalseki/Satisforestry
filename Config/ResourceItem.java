@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map.Entry;
@@ -21,6 +22,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
+import Reika.DragonAPI.Instantiable.Data.WeightedRandom.DynamicWeight;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.Satisforestry.Satisforestry;
@@ -54,13 +56,15 @@ public class ResourceItem {
 		}
 	}
 
-	public void addItem(Purity p, ItemStack is, int weight, int tier) {
+	public void addItem(Purity p, ItemStack is, int weight, LuaBlock data) {
 		WeightedRandom<NodeItem> wr = items.get(p);
 		if (wr == null) {
 			wr = new WeightedRandom();
 			items.put(p, wr);
 		}
-		wr.addEntry(new NodeItem(is, tier), weight);
+		NodeItem ni = new NodeItem(is, weight);
+		ni.loadData(data);
+		wr.addDynamicEntry(ni);
 	}
 
 	public void addEffect(LuaBlock b) {
@@ -72,9 +76,13 @@ public class ResourceItem {
 		effects.add(e);
 	}
 
-	public ItemStack getRandomItem(int tier, Purity p) {
+	public ItemStack getRandomItem(int tier, Purity p, boolean manual) {
 		WeightedRandom<NodeItem> wr = items.get(p);
-		return wr == null ? null : wr.getRandomEntry().item;
+		if (wr == null)
+			return null;
+		for (NodeItem i : wr.getValues())
+			i.calc(tier, p, manual);
+		return wr.getRandomEntry().item;
 	}
 
 	public Purity getRandomPurity(Random rand) {
@@ -108,19 +116,54 @@ public class ResourceItem {
 		return "W="+spawnWeight+", C="+Integer.toHexString(color)+", L="+levels.toString()+", #="+minCount+"-"+maxCount+", I="+items.toString();
 	}
 
-	private static class NodeItem {
+	private static class NodeItem implements DynamicWeight {
 
 		private final ItemStack item;
-		private final int tier;
+		private final int defaultWeight;
 
-		private NodeItem(ItemStack is, int t) {
+		private float manualFactor = 1;
+		private int minimumTier = 0;
+		private EnumMap<Purity, Float> purityFactors = new EnumMap(Purity.class);
+
+		private float weight;
+
+		private NodeItem(ItemStack is, int def) {
 			item = is.copy();
-			tier = t;
+			defaultWeight = def;
+		}
+
+		private void loadData(LuaBlock lb) {
+			if (lb.containsKey("manualModifier"))
+				manualFactor = (float)lb.getDouble("manualModifier");
+			LuaBlock child = lb.getChild("weightModifiers");
+			if (child != null) {
+				for (String s : child.getKeys()) {
+					Purity p = Purity.valueOf(s);
+					purityFactors.put(p, (float)child.getDouble(s));
+				}
+			}
 		}
 
 		@Override
 		public String toString() {
-			return item.toString()+" > "+tier;
+			return item.toString()+" @ "+defaultWeight;
+		}
+
+		private void calc(int tier, Purity p, boolean manual) {
+			weight = defaultWeight;
+			if (manual)
+				weight *= manualFactor;
+			Float mult = purityFactors.get(p);
+			if (mult != null) {
+				weight *= mult.floatValue();
+			}
+			if (tier < minimumTier)
+				weight = 0;
+		}
+
+		@Override
+		public double getWeight() {
+			return weight;
 		}
 
 	}

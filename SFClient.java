@@ -46,6 +46,11 @@ public class SFClient extends SFCommon {
 	public static SoundCategory sfCategory;
 
 	@Override
+	public void loadMusicEngine() {
+		Satisforestry.registerEventHandler(SFMusic.instance);
+	}
+
+	@Override
 	public void registerSounds() {
 		sounds.register();
 		sfCategory = ReikaRegistryHelper.addSoundCategory("SF_MUSIC");

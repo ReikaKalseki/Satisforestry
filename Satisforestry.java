@@ -160,7 +160,7 @@ public class Satisforestry extends DragonAPIMod {
 
 		MinecraftForge.TERRAIN_GEN_BUS.register(SFEvents.instance);
 		this.registerEventHandler(SFEvents.instance);
-		this.registerEventHandler(SFMusic.instance);
+		proxy.loadMusicEngine();
 
 		ReikaPacketHelper.registerPacketHandler(instance, packetChannel, new SFPacketHandler());
 
@@ -205,7 +205,7 @@ public class Satisforestry extends DragonAPIMod {
 		this.finishTiming();
 	}
 
-	private void registerEventHandler(Object o) {
+	public static void registerEventHandler(Object o) {
 		MinecraftForge.EVENT_BUS.register(o);
 		FMLCommonHandler.instance().bus().register(o);
 	}
@@ -262,7 +262,7 @@ public class Satisforestry extends DragonAPIMod {
 		for (PinkTreeTypes type : PinkTreeTypes.list) {
 			ItemStack log = SFBlocks.LOG.getStackOfMetadata(type.ordinal());
 			GameRegistry.addShapelessRecipe(new ItemStack(Blocks.planks, 4), log);
-			ReikaRecipeHelper.addSmelting(log, ReikaItemHelper.getSizedItemStack(log, type.getCharcoalYield()), xp);
+			ReikaRecipeHelper.addSmelting(log, ReikaItemHelper.getSizedItemStack(ReikaItemHelper.charcoal, type.getCharcoalYield()), xp);
 		}
 
 		ItemStack dark = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.DARK.ordinal());

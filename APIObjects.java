@@ -93,8 +93,8 @@ public class APIObjects {
 	private static class SFNodeHandler implements PinkForestResourceNodeHandler {
 
 		@Override
-		public ItemStack generateRandomResourceFromNode(TileEntity node, Random rand) {
-			return ((TileResourceNode)node).getRandomNodeItem();
+		public ItemStack generateRandomResourceFromNode(TileEntity node, Random rand, boolean manualMining) {
+			return ((TileResourceNode)node).getRandomNodeItem(manualMining);
 		}
 
 		@Override

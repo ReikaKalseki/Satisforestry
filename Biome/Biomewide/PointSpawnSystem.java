@@ -68,7 +68,10 @@ public final class PointSpawnSystem {
 	@SubscribeEvent
 	public void clearDropsForClearedEntities(LivingDropsEvent evt) {
 		Entity e = evt.source.getEntity();
-		if (e instanceof EntityLiving) {
+		if (e instanceof EntityPlayer) {
+			return;
+		}
+		if (evt.entityLiving instanceof EntityLiving) {
 			SpawnPoint p = this.getSpawn((EntityLiving)evt.entityLiving);
 			if (p != null && p.clearNonPlayerDrops()) {
 				evt.drops.clear();

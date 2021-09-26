@@ -54,7 +54,6 @@ public class SFMusic {
 
 	}
 
-	@SideOnly(Side.CLIENT)
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void playCustomMusic(ClientTickEvent evt) {
 		World world = Minecraft.getMinecraft().theWorld;
@@ -63,7 +62,6 @@ public class SFMusic {
 			this.tickMusicEngine(world);
 	}
 
-	@SideOnly(Side.CLIENT)
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void overrideMusic(PlayMusicEvent evt) {
 		World world = Minecraft.getMinecraft().theWorld;

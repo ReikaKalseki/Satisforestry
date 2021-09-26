@@ -49,7 +49,7 @@ public class SFAPI {
 
 	public static interface PinkForestResourceNodeHandler {
 
-		public ItemStack generateRandomResourceFromNode(TileEntity node, Random rand);
+		public ItemStack generateRandomResourceFromNode(TileEntity node, Random rand, boolean manualMining);
 
 		public HashMap<ItemStack, Double> getPotentialItemsHere(TileEntity node);
 
@@ -90,7 +90,7 @@ public class SFAPI {
 		}
 
 		@Override
-		public ItemStack generateRandomResourceFromNode(TileEntity node, Random rand) {
+		public ItemStack generateRandomResourceFromNode(TileEntity node, Random rand, boolean manualMining) {
 			return null;
 		}
 

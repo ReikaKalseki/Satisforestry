@@ -47,4 +47,8 @@ public class SFCommon {
 		// TODO Auto-generated method stub
 	}
 
+	public void loadMusicEngine() {
+		// TODO Auto-generated method stub
+	}
+
 }
