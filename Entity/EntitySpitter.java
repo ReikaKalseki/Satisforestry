@@ -1,9 +1,16 @@
 package Reika.Satisforestry.Entity;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.EntityAILookIdle;
+import net.minecraft.entity.ai.EntityAINearestAttackableTarget;
+import net.minecraft.entity.ai.EntityAISwimming;
+import net.minecraft.entity.ai.EntityAIWander;
+import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.monster.EntityMob;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -31,13 +38,29 @@ public class EntitySpitter extends EntityMob {
 	//attacks: close blast, fireball (maybe alpha types)
 	public EntitySpitter(World world) {
 		super(world);
+
+		tasks.addTask(1, new EntityAISwimming(this));
+		tasks.addTask(5, new EntityAIWander(this, 1.0D));
+		tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 20F));
+		tasks.addTask(6, new EntityAILookIdle(this));
+		//targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
+		targetTasks.addTask(2, new EntityAINearestAttackableTarget(this, EntityPlayer.class, 0, true));
+
 		this.setSpitterType(SpitterType.BASIC);
 		//isImmuneToFire = true;
 	}
 
 	@Override
+	protected Entity findPlayerToAttack() {
+		EntityPlayer ep = worldObj.getClosestVulnerablePlayerToEntity(this, 32.0D);
+		return ep != null && this.canEntityBeSeen(ep) ? ep : null;
+	}
+
+	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
+		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(32);
+		this.setSpeed(0.25);
 	}
 
 	@Override
@@ -75,7 +98,7 @@ public class EntitySpitter extends EntityMob {
 	@Override
 	public void playLivingSound() {
 		SFSounds s = rand.nextBoolean() ? SFSounds.SPITTER1 : SFSounds.SPITTER2;
-		s.playSound(this);
+		s.playSound(this, 1, 0.7F+rand.nextFloat()*0.7F);
 	}
 
 	public void playHurtSound() {
@@ -172,22 +195,29 @@ public class EntitySpitter extends EntityMob {
 	private void setCombatTask() {
 		SpitterType type = this.getSpitterType();
 
+		tasks.removeTask(basicFireball);
+		tasks.removeTask(fastFireball);
+		tasks.removeTask(clusterFireball);
+		tasks.removeTask(splittingFireball);
+		tasks.removeTask(knockbackBlast);
+		tasks.removeTask(knockbackBlastBig);
+
 		if (type.isAlpha()) {
-			tasks.addTask(4, knockbackBlastBig);
+			tasks.addTask(2, knockbackBlastBig);
 		}
 		else {
-			tasks.addTask(4, knockbackBlast);
+			tasks.addTask(2, knockbackBlast);
 		}
 		switch(type) {
 			case BASIC:
-				tasks.addTask(5, basicFireball);
+				tasks.addTask(3, basicFireball);
 				break;
 			case GREEN:
-				tasks.addTask(5, fastFireball);
-				tasks.addTask(6, clusterFireball);
+				tasks.addTask(3, fastFireball);
+				tasks.addTask(4, clusterFireball);
 				break;
 			case RED:
-				tasks.addTask(5, splittingFireball);
+				tasks.addTask(3, splittingFireball);
 				break;
 		}
 	}

@@ -6,6 +6,8 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
+import Reika.Satisforestry.Registry.SFSounds;
+
 
 public class EntitySpitterFireball extends EntitySmallFireball {
 
@@ -24,6 +26,7 @@ public class EntitySpitterFireball extends EntitySmallFireball {
 					mov.entityHit.setFire(5);
 				}
 			}
+			SFSounds.SPITTERBALLHIT.playSound(this);
 			this.setDead();
 		}
 	}

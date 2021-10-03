@@ -50,12 +50,13 @@ public enum SFSounds implements CustomDistanceSound {
 	DRILLRUN("drillrun"),
 	DRILLSPINDOWN("drillspindown"),
 	SLUG("slugring"),
-	SPITTER1,
-	SPITTER2,
-	SPITTERHURT,
-	SPITTERBALLHIT,
-	STINGERGAS,
-	STINGERJUMP("stingerjump3"),
+	SPITTER1("spitter2"),
+	SPITTER2("spitter3"),
+	SPITTERHURT("spitterhurt"),
+	SPITTERBALLHIT("spitterball"),
+	STINGERGAS("stingergas2"),
+	STINGERJUMP1("stingerjump3"),
+	STINGERJUMP2("stingerjump4"),
 	;
 
 	public static final String PREFIX = "Reika/Satisforestry/";

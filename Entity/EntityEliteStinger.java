@@ -163,7 +163,8 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 		motionZ = dz/dd * vf * vat + motionZ * (1-vat);
 		motionY = 0.375+dd/40;//0.4;
 		//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.cat.hiss", 0.8F, 1.9F+rand.nextFloat()*0.1F);
-		SFSounds.STINGERJUMP.playSound(this);
+		SFSounds s = rand.nextBoolean() ? SFSounds.STINGERJUMP1 : SFSounds.STINGERJUMP2;
+		s.playSound(this);
 		jumpCooldown = JUMP_MAX_RATE;
 		isLeaping = true;
 	}
