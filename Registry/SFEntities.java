@@ -15,12 +15,14 @@ import Reika.DragonAPI.Interfaces.Registry.EntityEnum;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntityFlyingManta;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
+import Reika.Satisforestry.Entity.EntitySpitter;
 
 public enum SFEntities implements EntityEnum {
 
 	ELITESTINGER(EntityEliteStinger.class, "Elite Stinger", 0x00740E, 0x00BE0E),
 	MANTA(EntityFlyingManta.class, "Giant Flying Manta", 0x0094FF, 0x42AAFF),
 	DOGGO(EntityLizardDoggo.class, "Lizard Doggo", 0x42AAFF, 0xFF6A55),
+	SPITTER(EntitySpitter.class, "Spitter",	0x9B8B53, 0xFFFD5A),
 	;
 
 	public final String entityName;

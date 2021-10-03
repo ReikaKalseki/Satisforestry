@@ -25,7 +25,6 @@ import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.ReikaEntityHelper.ClassEntitySelector;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
-import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaVectorHelper;
@@ -34,6 +33,7 @@ import Reika.Satisforestry.SFPacketHandler.PacketInfo;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFShaders;
+import Reika.Satisforestry.Registry.SFSounds;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -111,7 +111,7 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 						ep.addPotionEffect(new PotionEffect(Potion.poison.id, 40, 0));
 				}
 				//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.chicken.plop", 0.7F, 0.2F);
-				ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.magmacube.jump", 0.7F, 2F);
+				///ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.magmacube.jump", 0.7F, 2F);
 			}
 		}
 
@@ -162,7 +162,8 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 		motionX = dx/dd * vf * vat + motionX * (1-vat);
 		motionZ = dz/dd * vf * vat + motionZ * (1-vat);
 		motionY = 0.375+dd/40;//0.4;
-		ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.cat.hiss", 0.8F, 1.9F+rand.nextFloat()*0.1F);
+		//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.cat.hiss", 0.8F, 1.9F+rand.nextFloat()*0.1F);
+		SFSounds.STINGERJUMP.playSound(this);
 		jumpCooldown = JUMP_MAX_RATE;
 		isLeaping = true;
 	}
@@ -223,8 +224,9 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 	private void startPoisonCloud() {
 		poisonGasTick = POISON_DURATION;
 		poisonGasCooldown = POISON_MAX_RATE;
-		ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.chicken.plop", 2F, 0.8F);
-		ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.cat.hiss", 2, 0.5F);
+		//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.chicken.plop", 2F, 0.8F);
+		//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.cat.hiss", 2, 0.5F);
+		SFSounds.STINGERGAS.playSound(this);
 	}
 
 	@SideOnly(Side.CLIENT)
