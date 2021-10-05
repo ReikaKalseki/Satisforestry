@@ -362,7 +362,7 @@ public final class PointSpawnSystem {
 			location = loc;
 		}
 
-		protected WorldLocation getLocation() {
+		public WorldLocation getLocation() {
 			return location;
 		}
 
@@ -500,11 +500,11 @@ public final class PointSpawnSystem {
 			return activationRadius;
 		}
 
-		protected double getResetRadius() {
+		public double getResetRadius() {
 			return activationRadius*4;
 		}
 
-		protected double getAutoClearRadius() {
+		public double getAutoClearRadius() {
 			return this.getResetRadius()*1.5;
 		}
 

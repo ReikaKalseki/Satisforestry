@@ -27,7 +27,7 @@ import Reika.Satisforestry.Entity.EntityEliteStinger;
 
 public class SFPacketHandler implements PacketHandler {
 
-	protected PacketInfo pack;
+	protected SFPackets pack;
 
 	private static final Random rand = new Random();
 
@@ -60,11 +60,11 @@ public class SFPacketHandler implements PacketHandler {
 				case STRING:
 					stringdata = packet.readString();
 					control = inputStream.readInt();
-					pack = PacketInfo.list[control];
+					pack = SFPackets.list[control];
 					break;
 				case DATA:
 					control = inputStream.readInt();
-					pack = PacketInfo.list[control];
+					pack = SFPackets.list[control];
 					len = 0; //TODO
 					data = new int[len];
 					for (int i = 0; i < len; i++)
@@ -82,11 +82,11 @@ public class SFPacketHandler implements PacketHandler {
 					break;
 				case UPDATE:
 					control = inputStream.readInt();
-					pack = PacketInfo.list[control];
+					pack = SFPackets.list[control];
 					break;
 				case FLOAT:
 					control = inputStream.readInt();
-					pack = PacketInfo.list[control];
+					pack = SFPackets.list[control];
 					floatdata = inputStream.readFloat();
 					break;
 				case SYNC:
@@ -106,7 +106,7 @@ public class SFPacketHandler implements PacketHandler {
 					return;
 				case RAW:
 					control = inputStream.readInt();
-					pack = PacketInfo.list[control];
+					pack = SFPackets.list[control];
 					len = 1;
 					data = new int[len];
 					for (int i = 0; i < len; i++)
@@ -114,7 +114,7 @@ public class SFPacketHandler implements PacketHandler {
 					break;
 				case PREFIXED:
 					control = inputStream.readInt();
-					pack = PacketInfo.list[control];
+					pack = SFPackets.list[control];
 					len = inputStream.readInt();
 					data = new int[len];
 					for (int i = 0; i < len; i++)
@@ -122,21 +122,21 @@ public class SFPacketHandler implements PacketHandler {
 					break;
 				case NBT:
 					control = inputStream.readInt();
-					pack = PacketInfo.list[control];
+					pack = SFPackets.list[control];
 					NBT = ((DataPacket)packet).asNBT();
 					break;
 				case STRINGINT:
 				case STRINGINTLOC:
 					stringdata = packet.readString();
 					control = inputStream.readInt();
-					pack = PacketInfo.list[control];
+					pack = SFPackets.list[control];
 					data = new int[1];
 					for (int i = 0; i < data.length; i++)
 						data[i] = inputStream.readInt();
 					break;
 				case UUID:
 					control = inputStream.readInt();
-					pack = PacketInfo.list[control];
+					pack = SFPackets.list[control];
 					long l1 = inputStream.readLong(); //most
 					long l2 = inputStream.readLong(); //least
 					id = new UUID(l1, l2);
@@ -158,6 +158,10 @@ public class SFPacketHandler implements PacketHandler {
 					if (world.isRemote)
 						EntityEliteStinger.activateShader();
 					break;
+				case SPITTERFIREHIT:
+					if (world.isRemote)
+						?
+								break;
 			}
 		}
 		catch (NullPointerException e) {
@@ -168,10 +172,11 @@ public class SFPacketHandler implements PacketHandler {
 		}
 	}
 
-	public static enum PacketInfo {
+	public static enum SFPackets {
 		STINGERHIT(),
+		SPITTERFIREHIT(),
 		;
 
-		public static final PacketInfo[] list = values();
+		public static final SFPackets[] list = values();
 	}
 }

@@ -20,11 +20,13 @@ public class EntityAISpitterBlast extends EntityAIBase {
 		spitter = e;
 		damageScale = scale;
 		maxDistance = maxDist;
-		this.setMutexBits(5);
+		this.setMutexBits(0);
 	}
 
 	@Override
 	public boolean shouldExecute() {
+		if (!spitter.isBlastReady())
+			return false;
 		target = spitter.getAttackTarget();
 
 		if (target == null || !target.isEntityAlive()) {
@@ -36,12 +38,13 @@ public class EntityAISpitterBlast extends EntityAIBase {
 
 	@Override
 	public boolean continueExecuting() {
-		return true;
+		return this.shouldExecute();
 	}
 
 	@Override
 	public void startExecuting() {
 		target.attackEntityFrom(DamageSource.causeMobDamage(spitter), damageScale*4);
 		ReikaEntityHelper.knockbackEntity(spitter, target, 1.5*damageScale);
+		spitter.resetBlastTimer();
 	}
 }

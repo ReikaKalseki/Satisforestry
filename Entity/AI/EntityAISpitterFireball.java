@@ -4,8 +4,12 @@ import java.util.Random;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Auxiliary.Trackers.KeyWatcher;
+import Reika.DragonAPI.Auxiliary.Trackers.KeyWatcher.Key;
 import Reika.DragonAPI.Auxiliary.Trackers.TickScheduler;
 import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent;
 import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent.ScheduledEntitySpawn;
@@ -49,7 +53,7 @@ public class EntityAISpitterFireball extends EntityAIBase
 	public final boolean shouldExecute() {
 		attackTarget = entityHost.getAttackTarget();
 		this.fetchDistance();
-		return this.isDistanceAppropriate();
+		return attackTarget != null && this.isDistanceAppropriate();
 	}
 
 	@Override
@@ -71,6 +75,8 @@ public class EntityAISpitterFireball extends EntityAIBase
 
 	@Override
 	public final void updateTask() {
+		if (attackTarget == null)
+			return;
 		boolean flag = entityHost.getEntitySenses().canSee(attackTarget);
 
 		if (flag) {
@@ -113,10 +119,26 @@ public class EntityAISpitterFireball extends EntityAIBase
 	protected final void fireFireball() {
 		World world = entityHost.worldObj;
 		Random rand = entityHost.getRNG();
-		double dl = 6;
-		double dx = attackTarget.posX+attackTarget.motionX*dl - entityHost.posX;
+		double dl = 4;
+		double vx = 0;
+		double vz = 0;
+		if (attackTarget instanceof EntityPlayer) {
+			EntityPlayer ep = (EntityPlayer)attackTarget;
+			boolean fwd = KeyWatcher.instance.isKeyDown(ep, Key.FORWARD);
+			boolean back = KeyWatcher.instance.isKeyDown(ep, Key.BACK);
+			boolean left = KeyWatcher.instance.isKeyDown(ep, Key.LEFT);
+			boolean right = KeyWatcher.instance.isKeyDown(ep, Key.RIGHT);
+			double v = attackTarget.isSneaking() ? 0.3 : 1;
+			double fwdSpeed = fwd == back ? 0 : (fwd ? v : -v);
+			double sideSpeed = left == right ? 0 : (left ? v : -v); //+ve to left
+			float f4 = MathHelper.sin(attackTarget.rotationYaw * (float)Math.PI / 180.0F);
+			float f5 = MathHelper.cos(attackTarget.rotationYaw * (float)Math.PI / 180.0F);
+			vx = sideSpeed * f5 - fwdSpeed * f4;
+			vz = fwdSpeed * f5 + sideSpeed * f4;
+		}
+		double dx = attackTarget.posX+vx*dl - entityHost.posX;
 		double dy = this.getYTarget(attackTarget, entityHost)+attackTarget.motionY*dl;
-		double dz = attackTarget.posZ+attackTarget.motionZ*dl - entityHost.posZ;
+		double dz = attackTarget.posZ+vz*dl - entityHost.posZ;
 		this.doFireFireball(world, entityHost, attackTarget, dx*fireballSpeed, dy*fireballSpeed, dz*fireballSpeed, fireballDamage);
 	}
 

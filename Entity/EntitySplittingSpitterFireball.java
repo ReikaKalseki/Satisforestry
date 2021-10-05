@@ -19,15 +19,23 @@ public class EntitySplittingSpitterFireball extends EntitySpitterFireball {
 		target = tgt;
 	}
 
+	public EntitySplittingSpitterFireball(World world) {
+		super(world);
+	}
+
 	@Override
 	public void onUpdate() {
 		super.onUpdate();
-		if (ticksExisted >= 40 || (spawnLocation != null && this.getDistanceSq(spawnLocation.xCoord, spawnLocation.yCoord, spawnLocation.zCoord) >= 256)) {
+		if (ticksExisted >= 40 || (spawnLocation != null && this.getDistanceSq(spawnLocation.xCoord, spawnLocation.yCoord, spawnLocation.zCoord) >= 144)) {
 			this.split();
 		}
 	}
 
 	private void split() {
+		if (target == null) {
+			this.setDead();
+			return;
+		}
 		for (int i = 0; i < 4; i++) {
 			double dx = target.posX-shootingEntity.posX;
 			double dy = EntityAISpitterFireball.getYTarget(target, (EntitySpitter)shootingEntity);

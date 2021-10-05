@@ -83,7 +83,7 @@ public class LizardDoggoSpawner implements SpawnPointDefinition {
 		}
 
 		@Override
-		protected double getResetRadius() {
+		public double getResetRadius() {
 			return -1;
 		}
 

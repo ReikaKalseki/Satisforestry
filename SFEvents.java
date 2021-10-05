@@ -84,7 +84,26 @@ public class SFEvents {
 	private SFEvents() {
 
 	}
-
+	/*
+	@SubscribeEvent
+	public void tagPlayerMotions(LivingUpdateEvent evt) {
+		if (evt.entityLiving instanceof EntityPlayer && !evt.entityLiving.worldObj.isRemote) {
+			EntityPlayer ep = (EntityPlayer)evt.entityLiving;
+			boolean fwd = KeyWatcher.instance.isKeyDown(ep, Key.FORWARD);
+			boolean back = KeyWatcher.instance.isKeyDown(ep, Key.BACK);
+			boolean left = KeyWatcher.instance.isKeyDown(ep, Key.LEFT);
+			boolean right = KeyWatcher.instance.isKeyDown(ep, Key.RIGHT);
+			double v = ep.isSneaking() ? 0.3 : 1;
+			double fwdSpeed = fwd == back ? 0 : (fwd ? v : -v);
+			double sideSpeed = left == right ? 0 : (left ? v : -v); //+ve to left
+			float f4 = MathHelper.sin(ep.rotationYaw * (float)Math.PI / 180.0F);
+			float f5 = MathHelper.cos(ep.rotationYaw * (float)Math.PI / 180.0F);
+			double motionX = sideSpeed * f5 - fwdSpeed * f4;
+			double motionZ = fwdSpeed * f5 + sideSpeed * f4;
+			ReikaJavaLibrary.pConsole(fwdSpeed+" / "+sideSpeed+" @ "+ep.rotationYaw+" : "+motionX+", "+motionZ);
+		}
+	}
+	 */
 	@SubscribeEvent
 	public void boostSlugMining(net.minecraftforge.event.entity.player.PlayerEvent.BreakSpeed evt) {
 		ItemStack is = evt.entityPlayer.getCurrentArmor(3); //helmet

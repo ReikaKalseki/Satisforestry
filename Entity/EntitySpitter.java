@@ -1,6 +1,7 @@
 package Reika.Satisforestry.Entity;
 
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -16,7 +17,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
+import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterBlast;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball.EntityAISpitterClusterFireball;
@@ -35,6 +40,8 @@ public class EntitySpitter extends EntityMob {
 
 	private EntityAISpitterFireball splittingFireball = new EntityAISpitterSplittingFireball(this, 1.0D, 150, 6, 24, 2, 5);
 
+	private int lastblast = 0;
+
 	//attacks: close blast, fireball (maybe alpha types)
 	public EntitySpitter(World world) {
 		super(world);
@@ -48,6 +55,12 @@ public class EntitySpitter extends EntityMob {
 
 		this.setSpitterType(SpitterType.BASIC);
 		//isImmuneToFire = true;
+	}
+
+	@Override
+	public void setAttackTarget(EntityLivingBase e) {
+		super.setAttackTarget(e);
+		ReikaJavaLibrary.pConsole(e);
 	}
 
 	@Override
@@ -67,6 +80,7 @@ public class EntitySpitter extends EntityMob {
 	public void onLivingUpdate() {
 		if (!worldObj.isRemote) {
 			this.setSpeed(this.isRunning() ? 0.4 : 0.25);
+			lastblast++;
 		}
 		super.onLivingUpdate();
 	}
@@ -96,9 +110,17 @@ public class EntitySpitter extends EntityMob {
 	}
 
 	@Override
+	public boolean canEntityBeSeen(Entity e) {
+		SpawnPoint p = PointSpawnSystem.instance.getSpawn(this);
+		return (p == null || e.getDistanceSq(p.getLocation().xCoord+0.5, p.getLocation().yCoord+0.5, p.getLocation().zCoord+0.5) <= p.getAutoClearRadius()) && super.canEntityBeSeen(e);
+	}
+
+	@Override
 	public void playLivingSound() {
 		SFSounds s = rand.nextBoolean() ? SFSounds.SPITTER1 : SFSounds.SPITTER2;
-		s.playSound(this, 1, 0.7F+rand.nextFloat()*0.7F);
+		SpitterType t = this.getSpitterType();
+		float f = (float)ReikaRandomHelper.getRandomBetween(t.isAlpha() ? 0.5 : 0.8, t.isAlpha() ? 1 : 1.5);
+		s.playSound(this, 1, f);
 	}
 
 	public void playHurtSound() {
@@ -165,12 +187,14 @@ public class EntitySpitter extends EntityMob {
 			byte b0 = tag.getByte("type");
 			this.setSpitterType(SpitterType.list[b0]);
 		}
+		lastblast = tag.getInteger("blast");
 	}
 
 	@Override
 	public void writeEntityToNBT(NBTTagCompound tag) {
 		super.writeEntityToNBT(tag);
 		tag.setByte("type", (byte)this.getSpitterType().ordinal());
+		tag.setInteger("blast", lastblast);
 	}
 
 	public SpitterType getSpitterType() {
@@ -217,12 +241,21 @@ public class EntitySpitter extends EntityMob {
 				tasks.addTask(4, clusterFireball);
 				break;
 			case RED:
-				tasks.addTask(3, splittingFireball);
+				tasks.addTask(3, basicFireball);
+				tasks.addTask(4, splittingFireball);
 				break;
 		}
 	}
 
-	private static enum SpitterType {
+	public void resetBlastTimer() {
+		lastblast = 0;
+	}
+
+	public boolean isBlastReady() {
+		return lastblast >= 30;
+	}
+
+	public static enum SpitterType {
 		BASIC(10, 1F),
 		RED(15, 2F),
 		GREEN(20, 1F),
@@ -231,7 +264,7 @@ public class EntitySpitter extends EntityMob {
 		private final int health;
 		private final float blastScale;
 
-		private static final SpitterType[] list = values();
+		public static final SpitterType[] list = values();
 
 		private SpitterType(int hearts, float sc) {
 			health = hearts*2;

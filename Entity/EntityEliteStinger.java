@@ -29,7 +29,7 @@ import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaVectorHelper;
 import Reika.ReactorCraft.API.RadiationHandler;
-import Reika.Satisforestry.SFPacketHandler.PacketInfo;
+import Reika.Satisforestry.SFPacketHandler.SFPackets;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFShaders;
@@ -294,7 +294,7 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 	}
 
 	private void activateShaders(Entity e) {
-		ReikaPacketHelper.sendDataPacket(Satisforestry.packetChannel, PacketInfo.STINGERHIT.ordinal(), (EntityPlayerMP)e);
+		ReikaPacketHelper.sendDataPacket(Satisforestry.packetChannel, SFPackets.STINGERHIT.ordinal(), (EntityPlayerMP)e);
 	}
 
 	@SideOnly(Side.CLIENT)

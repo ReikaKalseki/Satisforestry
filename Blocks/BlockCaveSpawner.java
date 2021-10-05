@@ -50,7 +50,8 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 
 	private static final class TileSpawnPoint extends SpawnPoint {
 
-		private TileCaveSpawner tile;
+		private final TileCaveSpawner tile;
+		private WorldLocation location;
 
 		protected TileSpawnPoint(TileCaveSpawner t) {
 			super(null);
@@ -58,8 +59,10 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		}
 
 		@Override
-		protected WorldLocation getLocation() {
-			return new WorldLocation(tile);
+		public WorldLocation getLocation() {
+			if (location == null)
+				location = new WorldLocation(tile);
+			return location;
 		}
 
 		@Override
@@ -101,12 +104,12 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		}
 
 		@Override
-		protected double getResetRadius() {
+		public double getResetRadius() {
 			return tile.getResetRadius(super.getResetRadius());
 		}
 
 		@Override
-		protected double getAutoClearRadius() {
+		public double getAutoClearRadius() {
 			return tile.getAutoClearRadius(super.getAutoClearRadius());
 		}
 
