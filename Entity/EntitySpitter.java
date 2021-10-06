@@ -1,5 +1,6 @@
 package Reika.Satisforestry.Entity;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureAttribute;
@@ -15,9 +16,12 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.IIcon;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
-import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
+import Reika.DragonAPI.Extras.IconPrefabs;
+import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
@@ -27,6 +31,9 @@ import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball.EntityAISpitterClusterFireball;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball.EntityAISpitterSplittingFireball;
 import Reika.Satisforestry.Registry.SFSounds;
+
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 public class EntitySpitter extends EntityMob {
 
@@ -60,7 +67,6 @@ public class EntitySpitter extends EntityMob {
 	@Override
 	public void setAttackTarget(EntityLivingBase e) {
 		super.setAttackTarget(e);
-		ReikaJavaLibrary.pConsole(e);
 	}
 
 	@Override
@@ -113,6 +119,24 @@ public class EntitySpitter extends EntityMob {
 	public boolean canEntityBeSeen(Entity e) {
 		SpawnPoint p = PointSpawnSystem.instance.getSpawn(this);
 		return (p == null || e.getDistanceSq(p.getLocation().xCoord+0.5, p.getLocation().yCoord+0.5, p.getLocation().zCoord+0.5) <= p.getAutoClearRadius()) && super.canEntityBeSeen(e);
+	}
+
+	@SideOnly(Side.CLIENT)
+	public final void doBlastFX() {
+		SpitterType type = this.getSpitterType();
+		int color = type.coreColor;
+		Vec3 vec = this.getLookVec();
+		double x0 = posX+vec.xCoord*0.5;
+		double y0 = posY+this.getEyeHeight()+vec.yCoord+0.25;
+		double z0 = posZ+vec.zCoord*0.5;
+		for (int i = 0; i < 6; i++) {
+			double x = ReikaRandomHelper.getRandomPlusMinus(x0, 0.5);
+			double y = ReikaRandomHelper.getRandomPlusMinus(y0, 0.25);
+			double z = ReikaRandomHelper.getRandomPlusMinus(z0, 0.5);
+			IIcon icon = IconPrefabs.FADE_GENTLE.getIcon();
+			EntityBlurFX fx = new EntityBlurFX(worldObj, x, y, z, icon);
+			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+		}
 	}
 
 	@Override
@@ -256,19 +280,21 @@ public class EntitySpitter extends EntityMob {
 	}
 
 	public static enum SpitterType {
-		BASIC(10, 1F),
-		RED(15, 2F),
-		GREEN(20, 1F),
+		BASIC(10, 1F, 0xFFCC4A),
+		RED(15, 2F, 0xFF6E00),
+		GREEN(20, 1F, 0x37E9B2),
 		;
 
 		private final int health;
 		private final float blastScale;
+		public final int coreColor;
 
 		public static final SpitterType[] list = values();
 
-		private SpitterType(int hearts, float sc) {
+		private SpitterType(int hearts, float sc, int c) {
 			health = hearts*2;
 			blastScale = sc;
+			coreColor = c;
 		}
 
 		public boolean isAlpha() {

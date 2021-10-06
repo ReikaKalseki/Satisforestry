@@ -1,11 +1,13 @@
 package Reika.Satisforestry.Entity;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball;
+import Reika.Satisforestry.Render.SpitterFireParticle;
 
 
 public class EntitySplittingSpitterFireball extends EntitySpitterFireball {
@@ -21,6 +23,15 @@ public class EntitySplittingSpitterFireball extends EntitySpitterFireball {
 
 	public EntitySplittingSpitterFireball(World world) {
 		super(world);
+	}
+
+	@Override
+	protected void spawnLifeParticle() {
+		float s = (float)ReikaRandomHelper.getRandomBetween(1.25, 1.5);
+		int l = ReikaRandomHelper.getRandomBetween(6, 12);
+		SpitterFireParticle fx = new SpitterFireParticle(worldObj, posX, posY, posZ, this.getSpitterType());
+		fx.setScale(s).setLife(l).setRapidExpand();
+		Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 	}
 
 	@Override

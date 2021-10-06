@@ -13,6 +13,8 @@ import net.minecraft.client.audio.SoundCategory;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 
+import Reika.DragonAPI.Extras.ThrottleableEffectRenderer;
+import Reika.DragonAPI.Instantiable.Rendering.ParticleEngine;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
 import Reika.Satisforestry.Miner.TileNodeHarvester;
@@ -27,9 +29,12 @@ import Reika.Satisforestry.Render.RedBambooRenderer;
 import Reika.Satisforestry.Render.RenderEliteStinger;
 import Reika.Satisforestry.Render.RenderFlyingManta;
 import Reika.Satisforestry.Render.RenderLizardDoggo;
+import Reika.Satisforestry.Render.RenderSpitter;
+import Reika.Satisforestry.Render.RenderSpitterFire;
 import Reika.Satisforestry.Render.ResourceNodeRenderer;
 import Reika.Satisforestry.Render.SFMinerItemRenderer;
 import Reika.Satisforestry.Render.SFMinerRenderer;
+import Reika.Satisforestry.Render.SpitterFireParticle;
 
 import cpw.mods.fml.client.FMLClientHandler;
 import cpw.mods.fml.client.registry.ClientRegistry;
@@ -44,6 +49,15 @@ public class SFClient extends SFCommon {
 	//public static PowerSlugRenderer slug;
 
 	public static SoundCategory sfCategory;
+
+	public static final ParticleEngine SFParticleEngine = new ParticleEngine() {
+
+		@Override
+		protected void registerClasses() {
+			ThrottleableEffectRenderer.getRegisteredInstance().registerDelegateRenderer(SpitterFireParticle.class, this);
+		}
+
+	};
 
 	@Override
 	public void loadMusicEngine() {
@@ -80,7 +94,11 @@ public class SFClient extends SFCommon {
 
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.ELITESTINGER.getObjectClass(), new RenderEliteStinger());
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.MANTA.getObjectClass(), new RenderFlyingManta());
+		RenderingRegistry.registerEntityRenderingHandler(SFEntities.SPITTER.getObjectClass(), new RenderSpitter());
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.DOGGO.getObjectClass(), RenderLizardDoggo.instance);
+
+		RenderingRegistry.registerEntityRenderingHandler(SFEntities.SPITTERFIRE.getObjectClass(), RenderSpitterFire.instance);
+		RenderingRegistry.registerEntityRenderingHandler(SFEntities.SPITTERSPLITFIRE.getObjectClass(), RenderSpitterFire.instance);
 
 		ClientRegistry.bindTileEntitySpecialRenderer(TileNodeHarvester.class, new SFMinerRenderer());
 		ClientRegistry.bindTileEntitySpecialRenderer(TilePowerSlug.class, new PowerSlugRenderer());
@@ -88,6 +106,8 @@ public class SFClient extends SFCommon {
 		MinecraftForgeClient.registerItemRenderer(SFBlocks.SLUG.getItem(), new PowerSlugItemRenderer());
 
 		SFShaders.registerAll();
+
+		SFParticleEngine.register();
 	}
 
 	// Override any other methods that need to be handled differently client side.

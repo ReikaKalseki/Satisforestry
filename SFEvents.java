@@ -81,6 +81,8 @@ public class SFEvents {
 	private IIcon biomeWaterIcon;
 	private IIcon biomeWaterIconFlow;
 
+	private IIcon flameParticle;
+
 	private SFEvents() {
 
 	}
@@ -211,6 +213,8 @@ public class SFEvents {
 			biomeGrassIconSide = event.map.registerIcon("Satisforestry:terrain/grass_side_overlay");
 			biomeWaterIconFlow = event.map.registerIcon("Satisforestry:terrain/water/water_flow");
 			biomeWaterIcon = event.map.registerIcon("Satisforestry:terrain/water/water_still");
+
+			flameParticle = event.map.registerIcon("Satisforestry:spitter_flame");
 		}
 	}
 

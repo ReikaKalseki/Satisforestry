@@ -5,6 +5,9 @@ import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.util.DamageSource;
 
 import Reika.DragonAPI.Libraries.ReikaEntityHelper;
+import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
+import Reika.Satisforestry.SFPacketHandler.SFPackets;
+import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Entity.EntitySpitter;
 
 public class EntityAISpitterBlast extends EntityAIBase {
@@ -45,6 +48,7 @@ public class EntityAISpitterBlast extends EntityAIBase {
 	public void startExecuting() {
 		target.attackEntityFrom(DamageSource.causeMobDamage(spitter), damageScale*4);
 		ReikaEntityHelper.knockbackEntity(spitter, target, 1.5*damageScale);
+		ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERBLAST.ordinal(), spitter, 32, spitter.getEntityId());
 		spitter.resetBlastTimer();
 	}
 }

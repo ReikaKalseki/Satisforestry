@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Random;
 import java.util.UUID;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.World;
@@ -24,6 +25,8 @@ import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper.DataPacket;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper.PacketObj;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
+import Reika.Satisforestry.Entity.EntitySpitter;
+import Reika.Satisforestry.Entity.EntitySpitterFireball;
 
 public class SFPacketHandler implements PacketHandler {
 
@@ -65,7 +68,7 @@ public class SFPacketHandler implements PacketHandler {
 				case DATA:
 					control = inputStream.readInt();
 					pack = SFPackets.list[control];
-					len = 0; //TODO
+					len = pack.numInts;
 					data = new int[len];
 					for (int i = 0; i < len; i++)
 						data[i] = inputStream.readInt();
@@ -159,9 +162,21 @@ public class SFPacketHandler implements PacketHandler {
 						EntityEliteStinger.activateShader();
 					break;
 				case SPITTERFIREHIT:
-					if (world.isRemote)
-						?
-								break;
+					if (world.isRemote) {
+						Entity e = world.getEntityByID(data[0]);
+						if (e instanceof EntitySpitterFireball) {
+							((EntitySpitterFireball)e).doHitFX();
+						}
+					}
+					break;
+				case SPITTERBLAST:
+					if (world.isRemote) {
+						Entity e = world.getEntityByID(data[0]);
+						if (e instanceof EntitySpitter) {
+							((EntitySpitter)e).doBlastFX();
+						}
+					}
+					break;
 			}
 		}
 		catch (NullPointerException e) {
@@ -173,10 +188,17 @@ public class SFPacketHandler implements PacketHandler {
 	}
 
 	public static enum SFPackets {
-		STINGERHIT(),
-		SPITTERFIREHIT(),
+		STINGERHIT(0),
+		SPITTERFIREHIT(1),
+		SPITTERBLAST(1),
 		;
 
+		public final int numInts;
+
 		public static final SFPackets[] list = values();
+
+		private SFPackets(int n) {
+			numInts = n;
+		}
 	}
 }
