@@ -1,12 +1,15 @@
 package Reika.Satisforestry.Entity;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.EntityFX;
 import net.minecraft.entity.projectile.EntitySmallFireball;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.Extras.IconPrefabs;
+import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
@@ -40,7 +43,8 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 	@Override
 	public void onUpdate() {
 		super.onUpdate();
-		this.spawnLifeParticle();
+		if (worldObj.isRemote)
+			;//this.spawnLifeParticle();
 	}
 
 	@Override
@@ -62,10 +66,14 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 		return false;
 	}
 
-	protected void spawnLifeParticle() {
-		float s = (float)ReikaRandomHelper.getRandomBetween(type.isAlpha() ? 1 : 0.8, type.isAlpha() ? 1.3 : 1.1);
-		int l = ReikaRandomHelper.getRandomBetween(4, 9);
-		SpitterFireParticle fx = new SpitterFireParticle(worldObj, posX, posY, posZ, type);
+	@SideOnly(Side.CLIENT)
+	public EntityFX spawnLifeParticle(float ptick) {
+		float s = (float)ReikaRandomHelper.getRandomBetween(type.isAlpha() ? 1.5 : 1, type.isAlpha() ? 2 : 1.5);
+		int l = ReikaRandomHelper.getRandomBetween(7, 15);
+		double px = lastTickPosX+(posX-lastTickPosX)*ptick;
+		double py = lastTickPosY+(posY-lastTickPosY)*ptick;
+		double pz = lastTickPosZ+(posZ-lastTickPosZ)*ptick;
+		EntityBlurFX fx = new EntityBlurFX(worldObj, px, py, pz, IconPrefabs.FADE.getIcon());
 		fx.setScale(s).setLife(l).setRapidExpand();
 		Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 	}

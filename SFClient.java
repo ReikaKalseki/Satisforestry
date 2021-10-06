@@ -50,14 +50,7 @@ public class SFClient extends SFCommon {
 
 	public static SoundCategory sfCategory;
 
-	public static final ParticleEngine SFParticleEngine = new ParticleEngine() {
-
-		@Override
-		protected void registerClasses() {
-			ThrottleableEffectRenderer.getRegisteredInstance().registerDelegateRenderer(SpitterFireParticle.class, this);
-		}
-
-	};
+	private static ParticleEngine SFParticleEngine;
 
 	@Override
 	public void loadMusicEngine() {
@@ -106,6 +99,14 @@ public class SFClient extends SFCommon {
 		MinecraftForgeClient.registerItemRenderer(SFBlocks.SLUG.getItem(), new PowerSlugItemRenderer());
 
 		SFShaders.registerAll();
+
+		SFParticleEngine = new ParticleEngine() {
+
+			@Override
+			protected void registerClasses() {
+				ThrottleableEffectRenderer.getRegisteredInstance().registerDelegateRenderer(SpitterFireParticle.class, this);
+			}
+		};
 
 		SFParticleEngine.register();
 	}

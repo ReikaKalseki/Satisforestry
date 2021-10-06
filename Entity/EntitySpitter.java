@@ -135,6 +135,9 @@ public class EntitySpitter extends EntityMob {
 			double z = ReikaRandomHelper.getRandomPlusMinus(z0, 0.5);
 			IIcon icon = IconPrefabs.FADE_GENTLE.getIcon();
 			EntityBlurFX fx = new EntityBlurFX(worldObj, x, y, z, icon);
+			int l = ReikaRandomHelper.getRandomBetween(5, 8);
+			float s = (float)ReikaRandomHelper.getRandomBetween(3.5, 6);
+			fx.setRapidExpand().setAlphaFading().setLife(l).setScale(s);
 			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 		}
 	}
