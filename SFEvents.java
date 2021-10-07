@@ -62,6 +62,7 @@ import Reika.Satisforestry.Blocks.ItemBlockPowerSlug;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Miner.GuiSFMiner;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Render.SpitterFireParticle;
 
 import WayofTime.alchemicalWizardry.api.event.TeleposeEvent;
 import cpw.mods.fml.common.eventhandler.Event.Result;
@@ -214,7 +215,8 @@ public class SFEvents {
 			biomeWaterIconFlow = event.map.registerIcon("Satisforestry:terrain/water/water_flow");
 			biomeWaterIcon = event.map.registerIcon("Satisforestry:terrain/water/water_still");
 
-			flameParticle = event.map.registerIcon("Satisforestry:spitter_flame");
+			flameParticle = event.map.registerIcon("Satisforestry:spitterfire");
+			SpitterFireParticle.setFireIcon(flameParticle);
 		}
 	}
 

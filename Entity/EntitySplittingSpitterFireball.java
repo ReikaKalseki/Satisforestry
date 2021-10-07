@@ -30,7 +30,7 @@ public class EntitySplittingSpitterFireball extends EntitySpitterFireball {
 		float s = (float)ReikaRandomHelper.getRandomBetween(1.25, 1.5);
 		int l = ReikaRandomHelper.getRandomBetween(6, 12);
 		SpitterFireParticle fx = new SpitterFireParticle(worldObj, x, y, z, this.getSpitterType());
-		fx.setScale(s).setLife(l).setRapidExpand();
+		fx.setScale(s*3).setLife(l).setRapidExpand();
 		return fx;
 	}
 

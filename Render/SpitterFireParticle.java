@@ -1,17 +1,19 @@
 package Reika.Satisforestry.Render;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
 
 
 public class SpitterFireParticle extends EntityBlurFX {
 
-	private static IIcon icon = ReikaTextureHelper.getMissingIcon();
+	private static IIcon icon;
 
 	private double rotationSpeed;
 	private SpitterType type;
@@ -23,10 +25,9 @@ public class SpitterFireParticle extends EntityBlurFX {
 	}
 
 	public SpitterFireParticle(World world, double x, double y, double z, double vx, double vy, double vz, SpitterType s) {
-		super(world, x, y, z, vx, vy, vz, icon);
+		super(world, x, y, z, vx, vy, vz, icon != null ? icon : ReikaTextureHelper.getMissingIcon());
 		rotationSpeed = ReikaRandomHelper.getRandomPlusMinus(0, 1.5);
 		type = s;
-		this.setParticleIcon(icon);
 	}
 
 	@Override
@@ -36,9 +37,21 @@ public class SpitterFireParticle extends EntityBlurFX {
 
 	@Override
 	public void onUpdate() {
+		lastTickPosX = posX;
+		lastTickPosY = posY;
+		lastTickPosZ = posZ;
 		super.onUpdate();
 		if (!canFade) {
 			particleAge = Math.min(particleAge, this.getMaximumSizeAge());
+		}
+		if (this.getMaxAge() >= 20) {
+			float ptick = ReikaRenderHelper.getPartialTickTime();
+			double dx = lastTickPosX+ptick*(posX-lastTickPosX);
+			double dy = lastTickPosY+ptick*(posY-lastTickPosY);
+			double dz = lastTickPosZ+ptick*(posZ-lastTickPosZ);
+			SpitterFireParticle fx = new SpitterFireParticle(worldObj, dx, dy, dz, type);
+			fx.setScale(particleScale).setLife(5).setRapidExpand();
+			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 		}
 	}
 

@@ -77,7 +77,7 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 		float s = (float)ReikaRandomHelper.getRandomBetween(type.isAlpha() ? 1.5 : 1, type.isAlpha() ? 2 : 1.5);
 		int l = ReikaRandomHelper.getRandomBetween(7, 15);
 		SpitterFireParticle fx = new SpitterFireParticle(worldObj, x, y, z, this.getSpitterType());
-		fx.setScale(s).setLife(l).setRapidExpand();
+		fx.setScale(s*3).setLife(l).setRapidExpand();
 		return fx;
 	}
 
@@ -85,9 +85,9 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 	public final void doHitFX(boolean blocksurf) {
 		for (int i = 0; i < 6; i++) {
 			double v0 = ReikaRandomHelper.getRandomBetween(0.125, 0.25);
-			float s = (float)ReikaRandomHelper.getRandomBetween(1.2, 1.5);
+			float s = (float)ReikaRandomHelper.getRandomBetween(2, 3.5);
 			if (type.isAlpha())
-				s *= 1.5;
+				s *= 1.75;
 			int l = ReikaRandomHelper.getRandomBetween(8, 15);
 			double[] v = null;
 			if (blocksurf) {
