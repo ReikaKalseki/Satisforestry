@@ -7,6 +7,7 @@ import net.minecraft.world.World;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball;
+import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.SpitterFireParticle;
 
 
@@ -15,8 +16,8 @@ public class EntitySplittingSpitterFireball extends EntitySpitterFireball {
 	private DecimalPosition spawnLocation;
 	private EntityLivingBase target;
 
-	public EntitySplittingSpitterFireball(World world, EntitySpitter e, EntityLivingBase tgt, double vx, double vy, double vz, float dmg) {
-		super(world, e, vx, vy, vz, dmg);
+	public EntitySplittingSpitterFireball(World world, EntitySpitter e, EntityLivingBase tgt, double vx, double vy, double vz, double sp, float dmg) {
+		super(world, e, vx, vy, vz, sp, dmg);
 		spawnLocation = new DecimalPosition(this);
 		target = tgt;
 	}
@@ -37,24 +38,33 @@ public class EntitySplittingSpitterFireball extends EntitySpitterFireball {
 	@Override
 	public void onUpdate() {
 		super.onUpdate();
-		if (ticksExisted >= 40 || (spawnLocation != null && this.getDistanceSq(spawnLocation.xCoord, spawnLocation.yCoord, spawnLocation.zCoord) >= 144)) {
+		//ReikaJavaLibrary.pConsole(target != null ? this.getDistanceSqToEntity(target) : -1, Side.SERVER);
+		if (!worldObj.isRemote && (ticksExisted >= 40 || (target != null && this.getDistanceSqToEntity(target) <= 36))) {
 			this.split();
 		}
+		if (ticksExisted >= 200)
+			this.setDead();
 	}
 
 	private void split() {
+		this.setDead();
 		if (target == null) {
-			this.setDead();
 			return;
 		}
-		for (int i = 0; i < 4; i++) {
-			double dx = target.posX-shootingEntity.posX;
+		SFSounds.SPITTERBALLHIT.playSound(this);
+		for (int i = 0; i < 12; i++) {
+			double xc = target.posX;
+			double zc = target.posZ;
 			double dy = EntityAISpitterFireball.getYTarget(target, (EntitySpitter)shootingEntity);
-			double dz = target.posZ-shootingEntity.posZ;
-			dx = ReikaRandomHelper.getRandomPlusMinus(dx, 0.5);
-			dy = ReikaRandomHelper.getRandomPlusMinus(dy, 0.25);
-			dz = ReikaRandomHelper.getRandomPlusMinus(dz, 0.5);
-			EntitySpitterFireball esf = new EntitySpitterFireball(worldObj, (EntitySpitter)shootingEntity, dx, dy, dz, this.getDamage());
+			dy = target.posY+target.height/2-posY;
+			xc = ReikaRandomHelper.getRandomPlusMinus(xc, 2.5);
+			dy = ReikaRandomHelper.getRandomPlusMinus(dy, 1);
+			zc = ReikaRandomHelper.getRandomPlusMinus(zc, 2.5);
+			double dx = xc-posX;
+			double dz = zc-posZ;
+			EntitySpitterFireball esf = new EntitySpitterFireball(worldObj, (EntitySpitter)shootingEntity, dx, dy, dz, 1.2, this.getDamage());
+			esf.setLocationAndAngles(posX, posY, posZ, 0, 0);
+			//ReikaJavaLibrary.pConsole(shootingEntity+"&"+target+": "+esf);
 			worldObj.spawnEntityInWorld(esf);
 		}
 	}

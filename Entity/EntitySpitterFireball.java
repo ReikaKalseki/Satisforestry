@@ -9,6 +9,7 @@ import net.minecraft.util.DamageSource;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.World;
+import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
@@ -30,10 +31,13 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 	private SpitterType type;
 	private float damageAmount;
 
-	public EntitySpitterFireball(World world, EntitySpitter e, double vx, double vy, double vz, float dmg) {
+	public EntitySpitterFireball(World world, EntitySpitter e, double vx, double vy, double vz, double sp, float dmg) {
 		super(world, e, vx, vy, vz);
 		damageAmount = dmg;
 		type = e.getSpitterType();
+		accelerationX *= sp;
+		accelerationY *= sp;
+		accelerationZ *= sp;
 	}
 
 	public EntitySpitterFireball(World world) {
@@ -51,17 +55,18 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 	protected final void onImpact(MovingObjectPosition mov) {
 		if (!worldObj.isRemote) {
 			if (mov.entityHit != null) {
-				if (!mov.entityHit.isImmuneToFire() && mov.entityHit.attackEntityFrom(DamageSource.causeFireballDamage(this, shootingEntity), damageAmount)) {
-					mov.entityHit.setFire(5);
+				if (mov.entityHit.isImmuneToFire()) {
+					mov.entityHit.attackEntityFrom(DamageSource.generic, damageAmount/2);
+				}
+				else if (mov.entityHit.attackEntityFrom(DamageSource.causeFireballDamage(this, shootingEntity), damageAmount)) {
+					mov.entityHit.setFire(type.burnDuration);
+					mov.entityHit.hurtResistantTime = Math.min(mov.entityHit.hurtResistantTime, 5);
 				}
 			}
 			SFSounds.SPITTERBALLHIT.playSound(this);
 			if (shootingEntity != null) {
-				int flag = 0;
-				if (mov != null && mov.typeOfHit == MovingObjectType.BLOCK && (mov.sideHit >= 0 && mov.sideHit <= 1)) {
-					flag = 1;
-				}
-				ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERFIREHIT.ordinal(), this, 32, this.getEntityId(), flag);
+				int id = mov.entityHit != null ? mov.entityHit.getEntityId() : Integer.MIN_VALUE;
+				ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERFIREHIT.ordinal(), this, 32, this.getEntityId(), mov.typeOfHit == MovingObjectType.BLOCK ? 1 : 0, mov.blockX, mov.blockY, mov.blockZ, mov.sideHit, id);
 			}
 			this.setDead();
 		}
@@ -82,7 +87,7 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 	}
 
 	@SideOnly(Side.CLIENT)
-	public final void doHitFX(boolean blocksurf) {
+	public final void doHitFX(MovingObjectPosition mov) {
 		for (int i = 0; i < 6; i++) {
 			double v0 = ReikaRandomHelper.getRandomBetween(0.125, 0.25);
 			float s = (float)ReikaRandomHelper.getRandomBetween(2, 3.5);
@@ -90,7 +95,7 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 				s *= 1.75;
 			int l = ReikaRandomHelper.getRandomBetween(8, 15);
 			double[] v = null;
-			if (blocksurf) {
+			if (mov.typeOfHit == MovingObjectType.BLOCK && mov.sideHit >= 0 && mov.sideHit <= 1) {
 				double ang = Math.toDegrees(Math.atan2(motionZ, motionX));
 				v = ReikaPhysicsHelper.polarToCartesian(v0, 10+rand.nextDouble()*40, ReikaRandomHelper.getRandomPlusMinus(ang, 15));
 				//v = new double[3];
@@ -99,9 +104,28 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 				//v[2] = ReikaRandomHelper.getRandomPlusMinus(motionZ*0.7, 0.1);
 			}
 			else {
-				v = ReikaPhysicsHelper.polarToCartesian(v0, 90-rand.nextDouble()*30, rand.nextDouble()*360);
+				double da = mov.typeOfHit == MovingObjectType.ENTITY ? 90-rand.nextDouble()*60 : 90-rand.nextDouble()*30;
+				v = ReikaPhysicsHelper.polarToCartesian(v0, da, rand.nextDouble()*360);
 			}
-			SpitterFireParticle fx = new SpitterFireParticle(worldObj, posX-motionX, posY-motionY, posZ-motionZ, v[0], Math.max(0, v[1]*0.67), v[2], type);
+			double px = mov.typeOfHit == MovingObjectType.ENTITY ? mov.entityHit.posX : mov.blockX;//posX-motionX
+			double py = mov.typeOfHit == MovingObjectType.ENTITY ? mov.entityHit.posY : Math.max(posY, mov.blockY);//posY-motionY
+			double pz = mov.typeOfHit == MovingObjectType.ENTITY ? mov.entityHit.posZ : mov.blockZ;//posZ-motionZ
+			if (mov.typeOfHit == MovingObjectType.BLOCK && mov.sideHit >= 0) {
+				switch(ForgeDirection.VALID_DIRECTIONS[mov.sideHit]) {
+					case UP:
+						py++;
+						break;
+					case EAST:
+						px++;
+						break;
+					case SOUTH:
+						pz++;
+						break;
+					default:
+						break;
+				}
+			}
+			SpitterFireParticle fx = new SpitterFireParticle(worldObj, px-motionX*0.25, py-motionY*0.25, pz-motionZ*0.25, v[0], Math.max(0, v[1]*0.67), v[2], type);
 			fx.setGravity(0.25F).setScale(s).setLife(l+10).setColliding(Double.NaN, Integer.MIN_VALUE).setRapidExpand();
 			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 		}

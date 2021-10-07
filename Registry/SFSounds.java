@@ -53,6 +53,7 @@ public enum SFSounds implements CustomDistanceSound {
 	SPITTER1("spitter2"),
 	SPITTER2("spitter3"),
 	SPITTERHURT("spitterhurt"),
+	SPITTERBLAST("spitterblast2"),
 	SPITTERBALLHIT("spitterball"),
 	STINGERGAS("stingergas2"),
 	STINGERJUMP1("stingerjump3"),

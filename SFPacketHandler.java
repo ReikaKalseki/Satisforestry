@@ -17,6 +17,9 @@ import java.util.UUID;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Auxiliary.PacketTypes;
@@ -165,7 +168,10 @@ public class SFPacketHandler implements PacketHandler {
 					if (world.isRemote) {
 						Entity e = world.getEntityByID(data[0]);
 						if (e instanceof EntitySpitterFireball) {
-							((EntitySpitterFireball)e).doHitFX(data[1] > 0);
+							MovingObjectPosition mov = new MovingObjectPosition(data[2], data[3], data[4], data[5], Vec3.createVectorHelper(0, 0, 0));
+							mov.typeOfHit = data[1] > 0 ? MovingObjectType.BLOCK : MovingObjectType.ENTITY;
+							mov.entityHit = data[6] == Integer.MIN_VALUE ? null : world.getEntityByID(data[6]);
+							((EntitySpitterFireball)e).doHitFX(mov);
 						}
 					}
 					break;
@@ -189,7 +195,7 @@ public class SFPacketHandler implements PacketHandler {
 
 	public static enum SFPackets {
 		STINGERHIT(0),
-		SPITTERFIREHIT(2),
+		SPITTERFIREHIT(7),
 		SPITTERBLAST(1),
 		;
 

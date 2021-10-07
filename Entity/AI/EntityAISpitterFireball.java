@@ -136,14 +136,14 @@ public class EntityAISpitterFireball extends EntityAIBase
 			vx = sideSpeed * f5 - fwdSpeed * f4;
 			vz = fwdSpeed * f5 + sideSpeed * f4;
 		}
-		double dx = attackTarget.posX+vx*dl - entityHost.posX+3;
+		double dx = attackTarget.posX+vx*dl - entityHost.posX;
 		double dy = this.getYTarget(attackTarget, entityHost)+attackTarget.motionY*dl;
 		double dz = attackTarget.posZ+vz*dl - entityHost.posZ;
-		this.doFireFireball(world, entityHost, attackTarget, dx*fireballSpeed, dy*fireballSpeed, dz*fireballSpeed, fireballDamage);
+		this.doFireFireball(world, entityHost, attackTarget, dx, dy, dz, fireballSpeed, fireballDamage);
 	}
 
-	protected void doFireFireball(World world, EntitySpitter src, EntityLivingBase tgt, double vx, double vy, double vz, float dmg) {
-		EntitySpitterFireball esf = new EntitySpitterFireball(world, src, vx, vy, vz, dmg);
+	protected void doFireFireball(World world, EntitySpitter src, EntityLivingBase tgt, double vx, double vy, double vz, double sp, float dmg) {
+		EntitySpitterFireball esf = new EntitySpitterFireball(world, src, vx, vy, vz, sp, dmg);
 		esf.posY = entityHost.posY + entityHost.height / 2.0F + 0.5D;
 		world.spawnEntityInWorld(esf);
 	}
@@ -155,15 +155,18 @@ public class EntityAISpitterFireball extends EntityAIBase
 		}
 
 		@Override
-		protected void doFireFireball(World world, EntitySpitter src, EntityLivingBase tgt, double vx, double vy, double vz, float dmg) {
+		protected void doFireFireball(World world, EntitySpitter src, EntityLivingBase tgt, double vx, double vy, double vz, double sp, float dmg) {
 			for (int i = 0; i < 18; i++) {
-				double vx2 = ReikaRandomHelper.getRandomPlusMinus(vx, 0.2);
-				double vy2 = ReikaRandomHelper.getRandomPlusMinus(vy, 0.1);
-				double vz2 = ReikaRandomHelper.getRandomPlusMinus(vz, 0.2);
-				EntitySpitterFireball esf = new EntitySpitterFireball(world, src, vx2, vy2, vz2, dmg);
+				double vx2 = ReikaRandomHelper.getRandomPlusMinus(vx, 0.3);
+				double vy2 = ReikaRandomHelper.getRandomPlusMinus(vy, 0.15);
+				double vz2 = ReikaRandomHelper.getRandomPlusMinus(vz, 0.3);
+				EntitySpitterFireball esf = new EntitySpitterFireball(world, src, vx2, vy2, vz2, sp, dmg);
 				esf.posY = src.posY + src.height / 2.0F + 0.5D;
+				double px = ReikaRandomHelper.getRandomPlusMinus(src.posX, 0.5);
+				double pz = ReikaRandomHelper.getRandomPlusMinus(src.posZ, 0.5);
+				esf.setLocationAndAngles(px, esf.posY, pz, 0, 0);
 				//world.spawnEntityInWorld(esf);
-				TickScheduler.instance.scheduleEvent(new ScheduledTickEvent(new ScheduledEntitySpawn(esf)), i*4);
+				TickScheduler.instance.scheduleEvent(new ScheduledTickEvent(new ScheduledEntitySpawn(esf)), 1+i*5);
 				//queueEntitySpawn(esf, world, i*4);
 			}
 		}
@@ -177,8 +180,8 @@ public class EntityAISpitterFireball extends EntityAIBase
 		}
 
 		@Override
-		protected void doFireFireball(World world, EntitySpitter src, EntityLivingBase tgt, double vx, double vy, double vz, float dmg) {
-			EntitySplittingSpitterFireball esf = new EntitySplittingSpitterFireball(world, src, tgt, vx, vy, vz, dmg);
+		protected void doFireFireball(World world, EntitySpitter src, EntityLivingBase tgt, double vx, double vy, double vz, double sp, float dmg) {
+			EntitySplittingSpitterFireball esf = new EntitySplittingSpitterFireball(world, src, tgt, vx, vy, vz, sp, dmg);
 			esf.posY = src.posY + src.height / 2.0F + 0.5D;
 			world.spawnEntityInWorld(esf);
 		}

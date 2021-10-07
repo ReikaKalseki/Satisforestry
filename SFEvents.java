@@ -216,7 +216,7 @@ public class SFEvents {
 			biomeWaterIcon = event.map.registerIcon("Satisforestry:terrain/water/water_still");
 
 			flameParticle = event.map.registerIcon("Satisforestry:spitterfire");
-			SpitterFireParticle.setFireIcon(flameParticle);
+			SpitterFireParticle.setFireIcon(flameParticle, event.map.registerIcon("Satisforestry:spitterfire_green"));
 		}
 	}
 

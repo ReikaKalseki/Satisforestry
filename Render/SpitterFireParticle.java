@@ -14,6 +14,7 @@ import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
 public class SpitterFireParticle extends EntityBlurFX {
 
 	private static IIcon icon;
+	private static IIcon iconGreen;
 
 	private double rotationSpeed;
 	private SpitterType type;
@@ -25,9 +26,19 @@ public class SpitterFireParticle extends EntityBlurFX {
 	}
 
 	public SpitterFireParticle(World world, double x, double y, double z, double vx, double vy, double vz, SpitterType s) {
-		super(world, x, y, z, vx, vy, vz, icon != null ? icon : ReikaTextureHelper.getMissingIcon());
+		super(world, x, y, z, vx, vy, vz, getIcon(s) != null ? getIcon(s) : ReikaTextureHelper.getMissingIcon());
+		this.setColor(0xffffff);
 		rotationSpeed = ReikaRandomHelper.getRandomPlusMinus(0, 1.5);
 		type = s;
+	}
+
+	private static IIcon getIcon(SpitterType s) {
+		switch(s) {
+			case GREEN:
+				return iconGreen;
+			default:
+				return icon;
+		}
 	}
 
 	@Override
@@ -62,8 +73,9 @@ public class SpitterFireParticle extends EntityBlurFX {
 		canFade = true;
 	}
 
-	public static void setFireIcon(IIcon ico) {
+	public static void setFireIcon(IIcon ico, IIcon g) {
 		icon = ico;
+		iconGreen = g;
 	}
 	/*
 	@Override
