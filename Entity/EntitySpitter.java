@@ -127,7 +127,7 @@ public class EntitySpitter extends EntityMob {
 		int color = type.coreColor;
 		Vec3 vec = this.getLookVec();
 		double x0 = posX+vec.xCoord*0.5;
-		double y0 = posY+this.getEyeHeight()+vec.yCoord+0.25;
+		double y0 = posY+this.getEyeHeight()+vec.yCoord*0.25;
 		double z0 = posZ+vec.zCoord*0.5;
 		for (int i = 0; i < 6; i++) {
 			double x = ReikaRandomHelper.getRandomPlusMinus(x0, 0.5);
@@ -283,21 +283,23 @@ public class EntitySpitter extends EntityMob {
 	}
 
 	public static enum SpitterType {
-		BASIC(10, 1F, 0xFFCC4A),
-		RED(15, 2F, 0xFF6E00),
-		GREEN(20, 1F, 0x37E9B2),
+		BASIC(10, 1F, 0xFFCC4A, 0xF14C00),
+		RED(15, 2F, 0xFF6E00, 0xC80D00),
+		GREEN(20, 1F, 0x37E9B2, 0x138855),
 		;
 
 		private final int health;
 		private final float blastScale;
 		public final int coreColor;
+		public final int edgeColor;
 
 		public static final SpitterType[] list = values();
 
-		private SpitterType(int hearts, float sc, int c) {
+		private SpitterType(int hearts, float sc, int c, int c2) {
 			health = hearts*2;
 			blastScale = sc;
 			coreColor = c;
+			edgeColor = c2;
 		}
 
 		public boolean isAlpha() {

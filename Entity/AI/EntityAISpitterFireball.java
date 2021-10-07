@@ -136,7 +136,7 @@ public class EntityAISpitterFireball extends EntityAIBase
 			vx = sideSpeed * f5 - fwdSpeed * f4;
 			vz = fwdSpeed * f5 + sideSpeed * f4;
 		}
-		double dx = attackTarget.posX+vx*dl - entityHost.posX;
+		double dx = attackTarget.posX+vx*dl - entityHost.posX+3;
 		double dy = this.getYTarget(attackTarget, entityHost)+attackTarget.motionY*dl;
 		double dz = attackTarget.posZ+vz*dl - entityHost.posZ;
 		this.doFireFireball(world, entityHost, attackTarget, dx*fireballSpeed, dy*fireballSpeed, dz*fireballSpeed, fireballDamage);

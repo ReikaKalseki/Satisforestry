@@ -2,14 +2,14 @@ package Reika.Satisforestry.Entity;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.projectile.EntitySmallFireball;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MovingObjectPosition;
+import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.world.World;
 
-import Reika.DragonAPI.Extras.IconPrefabs;
-import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
@@ -56,7 +56,13 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 				}
 			}
 			SFSounds.SPITTERBALLHIT.playSound(this);
-			ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERFIREHIT.ordinal(), this, 32, shootingEntity.getEntityId());
+			if (shootingEntity != null) {
+				int flag = 0;
+				if (mov != null && mov.typeOfHit == MovingObjectType.BLOCK && (mov.sideHit >= 0 && mov.sideHit <= 1)) {
+					flag = 1;
+				}
+				ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERFIREHIT.ordinal(), this, 32, this.getEntityId(), flag);
+			}
 			this.setDead();
 		}
 	}
@@ -67,28 +73,36 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 	}
 
 	@SideOnly(Side.CLIENT)
-	public EntityFX spawnLifeParticle(float ptick) {
+	public EntityFX spawnLifeParticle(double x, double y, double z) {
 		float s = (float)ReikaRandomHelper.getRandomBetween(type.isAlpha() ? 1.5 : 1, type.isAlpha() ? 2 : 1.5);
 		int l = ReikaRandomHelper.getRandomBetween(7, 15);
-		double px = lastTickPosX+(posX-lastTickPosX)*ptick;
-		double py = lastTickPosY+(posY-lastTickPosY)*ptick;
-		double pz = lastTickPosZ+(posZ-lastTickPosZ)*ptick;
-		EntityBlurFX fx = new EntityBlurFX(worldObj, px, py, pz, IconPrefabs.FADE.getIcon());
+		SpitterFireParticle fx = new SpitterFireParticle(worldObj, x, y, z, this.getSpitterType());
 		fx.setScale(s).setLife(l).setRapidExpand();
-		Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+		return fx;
 	}
 
 	@SideOnly(Side.CLIENT)
-	public final void doHitFX() {
+	public final void doHitFX(boolean blocksurf) {
 		for (int i = 0; i < 6; i++) {
-			double v0 = ReikaRandomHelper.getRandomBetween(0.0625, 0.125);
-			float s = (float)ReikaRandomHelper.getRandomBetween(1, 1.5);
+			double v0 = ReikaRandomHelper.getRandomBetween(0.125, 0.25);
+			float s = (float)ReikaRandomHelper.getRandomBetween(1.2, 1.5);
 			if (type.isAlpha())
-				s *= 1.2;
+				s *= 1.5;
 			int l = ReikaRandomHelper.getRandomBetween(8, 15);
-			double[] v = ReikaPhysicsHelper.polarToCartesian(v0, 90-rand.nextDouble()*30, rand.nextDouble());
-			SpitterFireParticle fx = new SpitterFireParticle(worldObj, posX, posY, posZ, v[0], v[1], v[2], type);
-			fx.setGravity(0.125F).setScale(s).setLife(2000).setColliding(Double.NaN, l);
+			double[] v = null;
+			if (blocksurf) {
+				double ang = Math.toDegrees(Math.atan2(motionZ, motionX));
+				v = ReikaPhysicsHelper.polarToCartesian(v0, 10+rand.nextDouble()*40, ReikaRandomHelper.getRandomPlusMinus(ang, 15));
+				//v = new double[3];
+				//v[0] = ReikaRandomHelper.getRandomPlusMinus(motionX*0.7, 0.1);
+				//v[1] = ReikaRandomHelper.getRandomBetween(0.15, 0.35);
+				//v[2] = ReikaRandomHelper.getRandomPlusMinus(motionZ*0.7, 0.1);
+			}
+			else {
+				v = ReikaPhysicsHelper.polarToCartesian(v0, 90-rand.nextDouble()*30, rand.nextDouble()*360);
+			}
+			SpitterFireParticle fx = new SpitterFireParticle(worldObj, posX-motionX, posY-motionY, posZ-motionZ, v[0], Math.max(0, v[1]*0.67), v[2], type);
+			fx.setGravity(0.25F).setScale(s).setLife(l+10).setColliding(Double.NaN, Integer.MIN_VALUE).setRapidExpand();
 			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 		}
 	}
@@ -107,6 +121,8 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 
 		damageAmount = tag.getFloat("damage");
 		type = SpitterType.list[tag.getInteger("type")];
+		if (worldObj != null && tag.hasKey("entity"))
+			shootingEntity = (EntityLivingBase)worldObj.getEntityByID(tag.getInteger("entity"));
 	}
 
 	@Override
@@ -114,6 +130,8 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 		super.writeEntityToNBT(tag);
 		tag.setFloat("damage", damageAmount);
 		tag.setInteger("type", type.ordinal());
+		if (shootingEntity != null)
+			tag.setInteger("entity", shootingEntity.getEntityId());
 	}
 
 	@Override
@@ -126,8 +144,8 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 		type = SpitterType.list[buf.readInt()];
 	}
 
-	public int getRenderColor() {
-		return type.coreColor;
+	public int getRenderColor(int pass) {
+		return pass == 1 ? type.edgeColor : type.coreColor;
 	}
 
 }

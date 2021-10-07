@@ -1,6 +1,6 @@
 package Reika.Satisforestry.Entity;
 
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.particle.EntityFX;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.world.World;
 
@@ -26,12 +26,12 @@ public class EntitySplittingSpitterFireball extends EntitySpitterFireball {
 	}
 
 	@Override
-	protected void spawnLifeParticle() {
+	public EntityFX spawnLifeParticle(double x, double y, double z) {
 		float s = (float)ReikaRandomHelper.getRandomBetween(1.25, 1.5);
 		int l = ReikaRandomHelper.getRandomBetween(6, 12);
-		SpitterFireParticle fx = new SpitterFireParticle(worldObj, posX, posY, posZ, this.getSpitterType());
+		SpitterFireParticle fx = new SpitterFireParticle(worldObj, x, y, z, this.getSpitterType());
 		fx.setScale(s).setLife(l).setRapidExpand();
-		Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+		return fx;
 	}
 
 	@Override

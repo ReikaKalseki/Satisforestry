@@ -47,7 +47,7 @@ public class EntityAISpitterBlast extends EntityAIBase {
 	@Override
 	public void startExecuting() {
 		target.attackEntityFrom(DamageSource.causeMobDamage(spitter), damageScale*4);
-		ReikaEntityHelper.knockbackEntity(spitter, target, 1.5*damageScale);
+		ReikaEntityHelper.knockbackEntity(spitter, target, 1.5*damageScale, 0.1);
 		ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERBLAST.ordinal(), spitter, 32, spitter.getEntityId());
 		spitter.resetBlastTimer();
 	}

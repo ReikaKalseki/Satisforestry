@@ -165,7 +165,7 @@ public class SFPacketHandler implements PacketHandler {
 					if (world.isRemote) {
 						Entity e = world.getEntityByID(data[0]);
 						if (e instanceof EntitySpitterFireball) {
-							((EntitySpitterFireball)e).doHitFX();
+							((EntitySpitterFireball)e).doHitFX(data[1] > 0);
 						}
 					}
 					break;
@@ -189,7 +189,7 @@ public class SFPacketHandler implements PacketHandler {
 
 	public static enum SFPackets {
 		STINGERHIT(0),
-		SPITTERFIREHIT(1),
+		SPITTERFIREHIT(2),
 		SPITTERBLAST(1),
 		;
 
