@@ -48,6 +48,7 @@ public class EntityAISpitterBlast extends EntityAIBase {
 
 	@Override
 	public void startExecuting() {
+		spitter.getLookHelper().setLookPositionWithEntity(target, 10.0F, spitter.getVerticalFaceSpeed());
 		target.attackEntityFrom(DamageSource.causeMobDamage(spitter), damageScale*4);
 		ReikaEntityHelper.knockbackEntity(spitter, target, damageScale, 0.1);
 		target.motionY = 0.4*damageScale;

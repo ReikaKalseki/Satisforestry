@@ -20,6 +20,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
@@ -93,8 +94,20 @@ public class EntitySpitter extends EntityMob {
 			if (headshake > 0)
 				headshake--;
 			dataWatcher.updateObject(15, (byte)(headshake > 0 ? 1 : 0));
+
+			Vec3 vec = this.getLookVec();
+			double[] angs = ReikaPhysicsHelper.polarToCartesianFast(1, rotationPitch, rotationYawHead);
+			vec.xCoord = angs[0];
+			vec.zCoord = angs[2];
+			EntitySpitterFireball esf = new EntitySpitterFireball(worldObj, this, vec.xCoord, vec.yCoord*0, vec.zCoord, 0.5, 1);
+			worldObj.spawnEntityInWorld(esf);
 		}
 		super.onLivingUpdate();
+	}
+
+	@Override
+	public float getEyeHeight() {
+		return height/2;
 	}
 
 	private void setSpeed(double d) {

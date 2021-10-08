@@ -2,17 +2,18 @@ package Reika.Satisforestry.Entity;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
-import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.projectile.EntitySmallFireball;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
+import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.Satisforestry.SFPacketHandler.SFPackets;
 import Reika.Satisforestry.Satisforestry;
@@ -33,11 +34,15 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 
 	public EntitySpitterFireball(World world, EntitySpitter e, double vx, double vy, double vz, double sp, float dmg) {
 		super(world, e, vx, vy, vz);
-		damageAmount = dmg;
+		Vec3 vec = e.getLookVec();
 		type = e.getSpitterType();
-		accelerationX *= sp;
-		accelerationY *= sp;
-		accelerationZ *= sp;
+		double d = type.isAlpha() ? 0.8 : 0.6;
+		this.setLocationAndAngles(e.posX+vec.xCoord*d, e.posY+e.getEyeHeight()+vec.yCoord*d, e.posZ+vec.zCoord*d, 0, 0);
+		damageAmount = dmg;
+		double d3 = ReikaMathLibrary.py3d(vx, vy, vz);
+		accelerationX = vx / d3 * 0.1D*sp;
+		accelerationY = vy / d3 * 0.1D*sp;
+		accelerationZ = vz / d3 * 0.1D*sp;
 	}
 
 	public EntitySpitterFireball(World world) {
@@ -145,8 +150,8 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 
 		damageAmount = tag.getFloat("damage");
 		type = SpitterType.list[tag.getInteger("type")];
-		if (worldObj != null && tag.hasKey("entity"))
-			shootingEntity = (EntityLivingBase)worldObj.getEntityByID(tag.getInteger("entity"));
+		//if (worldObj != null && tag.hasKey("entity"))
+		//	shootingEntity = (EntityLivingBase)worldObj.getEntityByID(tag.getInteger("entity"));
 	}
 
 	@Override
@@ -154,8 +159,8 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 		super.writeEntityToNBT(tag);
 		tag.setFloat("damage", damageAmount);
 		tag.setInteger("type", type.ordinal());
-		if (shootingEntity != null)
-			tag.setInteger("entity", shootingEntity.getEntityId());
+		//if (shootingEntity != null)
+		//	tag.setInteger("entity", shootingEntity.getEntityId());
 	}
 
 	@Override

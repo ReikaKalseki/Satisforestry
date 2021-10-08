@@ -77,6 +77,7 @@ public class EntityAISpitterFireball extends EntityAIBase
 	public final void updateTask() {
 		if (attackTarget == null)
 			return;
+		entityHost.getLookHelper().setLookPositionWithEntity(attackTarget, 10.0F, entityHost.getVerticalFaceSpeed());
 		boolean flag = entityHost.getEntitySenses().canSee(attackTarget);
 
 		if (flag) {

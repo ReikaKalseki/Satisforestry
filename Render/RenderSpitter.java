@@ -1,9 +1,18 @@
 package Reika.Satisforestry.Render;
 
+import java.util.Locale;
+
+import org.lwjgl.opengl.GL11;
+
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.ResourceLocation;
+
+import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
+import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Entity.EntitySpitter;
+import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
 
 
 public class RenderSpitter extends RenderLiving {
@@ -19,7 +28,12 @@ public class RenderSpitter extends RenderLiving {
 
 	@Override
 	protected void preRenderCallback(EntityLivingBase e, float ptick) {
-
+		GL11.glScalef(1.5F, 1.5F, 1.5F);
+		SpitterType s = ((EntitySpitter)e).getSpitterType();
+		if (s.isAlpha()) {
+			GL11.glScalef(1.25F, 1.25F, 1.25F);
+		}
+		shadowSize = s.isAlpha() ? 1.1F : 0.8F;
 	}
 
 	@Override
@@ -29,7 +43,8 @@ public class RenderSpitter extends RenderLiving {
 
 	@Override
 	protected void bindEntityTexture(Entity e) {
-
+		SpitterType s = ((EntitySpitter)e).getSpitterType();
+		ReikaTextureHelper.bindTexture(Satisforestry.class, "Textures/spitter_"+s.name().toLowerCase(Locale.ENGLISH)+".png");
 	}
 
 	@Override
