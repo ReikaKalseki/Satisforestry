@@ -71,7 +71,7 @@ public class LizardDoggoSpawner implements SpawnPointDefinition {
 		}
 
 		@Override
-		protected EntityLiving getSpawn(World world, int cx, int cy, int cz) {
+		protected EntityLiving getSpawn(World world, int cx, int cy, int cz, Random rand) {
 			EntityLiving e = this.getRandomPlacedEntity(7.5, world, cx, cy, cz);
 			e.setLocationAndAngles(e.posX, cy+1, e.posZ, 0, 0);
 			return e;

@@ -34,6 +34,8 @@ import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
+import Reika.Satisforestry.Entity.EntitySpitter;
+import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.EntitySlugStreak;
@@ -244,23 +246,52 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 						}
 						else if (reachDifficulty > 0) {
 							if (reachDifficulty >= 2) {
-								if (rand.nextBoolean())
+								if (rand.nextBoolean()) {
 									te.setNoSpawns();
-								else
+								}
+								else {
 									te.setSingleStrongEnemy(EntitySpider.class, 2);
+								}
 							}
 							else {
-								te.setDefaultSpawn(rand.nextBoolean() ? EntityCaveSpider.class : EntitySpider.class);
-								te.setEnemyBoost(1.5F);
+								switch(rand.nextInt(7)) {
+									case 0:
+									case 1:
+									case 2:
+										te.setDefaultSpawn(rand.nextBoolean() ? EntityCaveSpider.class : EntitySpider.class);
+										te.setEnemyBoost(1.5F);
+										break;
+									case 3:
+									case 4:
+									case 5:
+										te.setDefaultSpawn(EntitySpitter.class, SpitterType.BASIC);
+										break;
+									case 6:
+										te.setDefaultSpawn(EntitySpitter.class, 1, SpitterType.RED);
+										break;
+								}
 							}
 						}
 						else {
-							if (rand.nextBoolean()) {
-								te.setSingleStrongEnemy(rand.nextInt(4) == 0 ? EntityEliteStinger.class : EntitySpider.class, 3);
-							}
-							else {
-								te.setDefaultSpawn(EntitySpider.class);
-								te.setEnemyBoost(2);
+							switch(rand.nextInt(7)) {
+								case 0:
+								case 1:
+									te.setDefaultSpawn(EntitySpider.class);
+									te.setEnemyBoost(2);
+									break;
+								case 2:
+								case 3:
+									boolean stinger = rand.nextInt(5) == 0;
+									te.setSingleStrongEnemy(stinger ? EntityEliteStinger.class : EntitySpider.class, stinger ? 1 : 3);
+									break;
+								case 4:
+								case 5:
+									te.setDefaultSpawn(EntitySpitter.class, SpitterType.BASIC);
+									te.setEnemyBoost(1.5F);
+									break;
+								case 6:
+									te.setDefaultSpawn(EntitySpitter.class, 1, rand.nextInt(3) == 0 ? SpitterType.GREEN : SpitterType.RED);
+									break;
 							}
 						}
 						break;
@@ -273,8 +304,22 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 							power = 0;
 						switch(power) {
 							case 4:
-								te.setDefaultSpawn(EntityEliteStinger.class);
-								te.setEnemyBoost(2);
+								switch(rand.nextInt(7)) {
+									case 0:
+									case 1:
+										te.setDefaultSpawn(EntityEliteStinger.class);
+										te.setEnemyBoost(2);
+										break;
+									case 2:
+									case 3:
+										te.setDefaultSpawn(EntitySpitter.class, 2, SpitterType.RED);
+										break;
+									case 4:
+									case 5:
+									case 6:
+										te.setDefaultSpawn(EntitySpitter.class, 2, SpitterType.GREEN);
+										break;
+								}
 								break;
 							case 3:
 							case 2:
@@ -445,12 +490,16 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		}
 
 		protected final void setDefaultSpawn(Class<? extends EntityMob> e) {
-			this.setSpawnParameters(e, 3, 8, 6, FOLLOW_RANGE);
+			this.setDefaultSpawn(e, 3);
+		}
+
+		protected final void setDefaultSpawn(Class<? extends EntityMob> e, int n) {
+			this.setSpawnParameters(e, n, 8, 6, FOLLOW_RANGE);
 		}
 
 		protected final void setSingleStrongEnemy(Class<? extends EntityMob> c, float boost) {
 			this.setSpawnParameters(c, 1, 12, 2, FOLLOW_RANGE);
-			healthBuff = boost;
+			this.setEnemyBoost(boost);
 		}
 
 		protected final void setEnemyBoost(float boost) {

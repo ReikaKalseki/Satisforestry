@@ -1,5 +1,7 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.Random;
+
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
@@ -75,9 +77,9 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		}
 
 		@Override
-		protected EntityLiving getSpawn(World world, int cx, int cy, int cz) {
-			double x = ReikaRandomHelper.getRandomBetween(cx+0.5-tile.spawnRadius, cx+0.5+tile.spawnRadius);
-			double z = ReikaRandomHelper.getRandomBetween(cz+0.5-tile.spawnRadius, cz+0.5+tile.spawnRadius);
+		protected EntityLiving getSpawn(World world, int cx, int cy, int cz, Random rand) {
+			double x = ReikaRandomHelper.getRandomBetween(cx+0.5-tile.spawnRadius, cx+0.5+tile.spawnRadius, rand);
+			double z = ReikaRandomHelper.getRandomBetween(cz+0.5-tile.spawnRadius, cz+0.5+tile.spawnRadius, rand);
 			EntityMob e = (EntityMob)this.constructEntity(world);
 			e.setLocationAndAngles(x, cy, z, 0, 0);
 			return e;

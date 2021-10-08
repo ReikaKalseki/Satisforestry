@@ -575,14 +575,14 @@ public final class PointSpawnSystem {
 			return (EntityLiving)EntityList.createEntityByName(mobType, world);
 		}
 
-		protected abstract EntityLiving getSpawn(World world, int cx, int cy, int cz);
+		protected abstract EntityLiving getSpawn(World world, int cx, int cy, int cz, Random rand);
 
 		public final Class<? extends EntityLiving> getSpawnType() {
 			return mobClass;
 		}
 
 		private boolean attemptSpawn(World world, WorldLocation loc) {
-			EntityLiving e = this.getSpawn(world, loc.xCoord, loc.yCoord, loc.zCoord);
+			EntityLiving e = this.getSpawn(world, loc.xCoord, loc.yCoord, loc.zCoord, world.rand);
 			if (e != null) {
 				int i = 0;
 				while (!e.getCanSpawnHere() && i < 5) {

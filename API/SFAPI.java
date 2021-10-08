@@ -21,14 +21,17 @@ public class SFAPI {
 
 		public boolean isPinkForest(BiomeGenBase b);
 
+		/** Returns the base (offset from base MC) height of the terrain in the biome. */
 		public int getBaseTerrainHeight(BiomeGenBase b);
 
+		/** Like getTopSolidOrLiquid, but passes through the pink tree canopy. Returns the coord of the ground, not the lowest air. */
 		public int getTrueTopAt(World world, int x, int z);
 
 	}
 
 	public static interface PinkTreeHandler {
 
+		/** Get the values() of the PinkTreeTypes enum. */
 		public PinkTreeType[] getTypes();
 
 		public boolean placeTree(World world, Random rand, int x, int y, int z, PinkTreeType type);
@@ -43,14 +46,17 @@ public class SFAPI {
 
 		public boolean isInCave(World world, double x, double y, double z);
 
+		/** Whether the given block is a special block used to form the structure of the cave or its functionality. */
 		public boolean isSpecialCaveBlock(Block b);
 
 	}
 
 	public static interface PinkForestResourceNodeHandler {
 
+		/** Generate a random harvest result from a resource node TE. */
 		public ItemStack generateRandomResourceFromNode(TileEntity node, Random rand, boolean manualMining);
 
+		/** Get the overall WeightedRandom harvest table, before things like speed or manual modifiers. */
 		public HashMap<ItemStack, Double> getPotentialItemsHere(TileEntity node);
 
 		public void registerCustomNodeEffect(String name, NodeEffectCallback eff);
