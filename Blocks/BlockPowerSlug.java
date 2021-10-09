@@ -424,13 +424,16 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 
 	}
 
-	private static class SpitterDistribution extends SpawnCallback {
+	static class SpitterDistribution extends SpawnCallback {
 
 		private static final NBTIO<SpitterType> enu = (NBTIO<SpitterType>)ReikaNBTHelper.getEnumConverter(SpitterType.class);
 
 		private final CountMap<SpitterType> data = new CountMap();
 		private final HashMap<SpitterType, Float> buff = new HashMap();
 
+		SpitterDistribution() {
+
+		}
 
 		private SpitterDistribution(SpitterType only) {
 			this(new SpitterType[] {only}, new int[] {1}, new float[] {1});
@@ -460,7 +463,9 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 				int needed = data.get(s)-has.get(s);
 				if (needed > 0) {
 					((EntitySpitter)e).setSpitterType(s);
-					TilePowerSlug.buffHealth(e, buff.get(s));
+					Float i = buff.get(s);
+					if (i != null)
+						TilePowerSlug.buffHealth(e, i.floatValue());
 					break;
 				}
 			}

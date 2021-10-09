@@ -230,6 +230,21 @@ public class EntitySpitter extends EntityMob {
 	}
 
 	@Override
+	protected boolean isValidLightLevel() {
+		return true;
+	}
+
+	@Override
+	public float getBlockPathWeight(int x, int y, int z) {
+		return 1F;
+	}
+
+	@Override
+	public boolean getCanSpawnHere() {
+		return false && super.getCanSpawnHere();
+	}
+
+	@Override
 	public IEntityLivingData onSpawnWithEgg(IEntityLivingData data) {
 		data = super.onSpawnWithEgg(data);
 		return data;

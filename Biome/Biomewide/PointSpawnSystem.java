@@ -411,7 +411,8 @@ public final class PointSpawnSystem {
 			ret.setLong("tick", lastTick);
 			ret.setLong("empty", emptyTicks);
 			ret.setBoolean("dead", isDead);
-			ret.setString("mob", mobType);
+			if (!Strings.isNullOrEmpty(mobType))
+				ret.setString("mob", mobType);
 			ret.setString("type", mobClass.getName());
 
 			NBTTagList li = new NBTTagList();
@@ -430,7 +431,7 @@ public final class PointSpawnSystem {
 			lastTick = NBT.getLong("tick");
 			emptyTicks = NBT.getLong("empty");
 			isDead = NBT.getBoolean("dead");
-			mobType = NBT.getString("mob");
+			mobType = NBT.hasKey("mob") ? NBT.getString("mob") : "";
 			try {
 				mobClass = (Class<? extends EntityLiving>)Class.forName(NBT.getString("type"));
 			}
@@ -463,7 +464,7 @@ public final class PointSpawnSystem {
 					emptyTicks = 0;
 				}
 			}
-			if (mobClass == null)
+			if (mobClass == null || Strings.isNullOrEmpty(mobType))
 				return;
 			if (EntityMob.class.isAssignableFrom(mobClass) && world.difficultySetting == EnumDifficulty.PEACEFUL)
 				return;
