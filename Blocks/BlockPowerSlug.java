@@ -1,5 +1,7 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -9,6 +11,7 @@ import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.entity.monster.EntityCaveSpider;
@@ -19,6 +22,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -26,8 +30,12 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.Extras.IconPrefabs;
+import Reika.DragonAPI.Instantiable.Data.Maps.CountMap;
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Interfaces.Block.Submergeable;
+import Reika.DragonAPI.Libraries.ReikaNBTHelper;
+import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTIO;
+import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
@@ -254,44 +262,39 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 								}
 							}
 							else {
-								switch(rand.nextInt(7)) {
-									case 0:
-									case 1:
-									case 2:
-										te.setDefaultSpawn(rand.nextBoolean() ? EntityCaveSpider.class : EntitySpider.class);
-										te.setEnemyBoost(1.5F);
-										break;
-									case 3:
-									case 4:
-									case 5:
-										te.setDefaultSpawn(EntitySpitter.class, SpitterType.BASIC);
-										break;
-									case 6:
-										te.setDefaultSpawn(EntitySpitter.class, 1, SpitterType.RED);
-										break;
+								double f = rand.nextDouble();
+								if (f <= 0.45) {
+									te.setDefaultSpawn(rand.nextBoolean() ? EntityCaveSpider.class : EntitySpider.class);
+									te.setEnemyBoost(1.5F);
+								}
+								else if (f < 0.95) {
+									te.setDefaultSpawn(EntitySpitter.class);
+									te.spawnCallback = new SpitterDistribution(SpitterType.BASIC);
+								}
+								else {
+									te.setDefaultSpawn(EntitySpitter.class, 1);
+									te.spawnCallback = new SpitterDistribution(SpitterType.RED);
 								}
 							}
 						}
 						else {
-							switch(rand.nextInt(7)) {
-								case 0:
-								case 1:
-									te.setDefaultSpawn(EntitySpider.class);
-									te.setEnemyBoost(2);
-									break;
-								case 2:
-								case 3:
-									boolean stinger = rand.nextInt(5) == 0;
-									te.setSingleStrongEnemy(stinger ? EntityEliteStinger.class : EntitySpider.class, stinger ? 1 : 3);
-									break;
-								case 4:
-								case 5:
-									te.setDefaultSpawn(EntitySpitter.class, SpitterType.BASIC);
-									te.setEnemyBoost(1.5F);
-									break;
-								case 6:
-									te.setDefaultSpawn(EntitySpitter.class, 1, rand.nextInt(3) == 0 ? SpitterType.GREEN : SpitterType.RED);
-									break;
+							double f = rand.nextDouble();
+							if (f <= 0.1) {
+								boolean stinger = rand.nextInt(5) == 0;
+								te.setSingleStrongEnemy(stinger ? EntityEliteStinger.class : EntitySpider.class, stinger ? 1 : 3);
+							}
+							else if (f < 0.3) {
+								te.setDefaultSpawn(EntitySpider.class);
+								te.setEnemyBoost(2);
+							}
+							else if (f < 0.6) {
+								te.setDefaultSpawn(EntitySpitter.class);
+								te.spawnCallback = new SpitterDistribution(SpitterType.BASIC);
+								te.setEnemyBoost(1.5F);
+							}
+							else {
+								te.setDefaultSpawn(EntitySpitter.class, 1);
+								te.spawnCallback = new SpitterDistribution(f >= 0.95 ? SpitterType.GREEN : SpitterType.RED);
 							}
 						}
 						break;
@@ -302,45 +305,73 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 						power -= reachDifficulty;
 						if (power < 0)
 							power = 0;
+						double f = rand.nextDouble();
 						switch(power) {
 							case 4:
-								switch(rand.nextInt(7)) {
-									case 0:
-									case 1:
-										te.setDefaultSpawn(EntityEliteStinger.class);
-										te.setEnemyBoost(2);
-										break;
-									case 2:
-									case 3:
-										te.setDefaultSpawn(EntitySpitter.class, 2, SpitterType.RED);
-										break;
-									case 4:
-									case 5:
-									case 6:
-										te.setDefaultSpawn(EntitySpitter.class, 2, SpitterType.GREEN);
-										break;
+								if (f < 0.3) {
+									te.setDefaultSpawn(EntityEliteStinger.class);
+									te.setEnemyBoost(2);
+								}
+								else if (f < 0.6) {
+									te.spawnCallback = new SpitterDistribution(rand.nextDouble() < 0.4 ? SpitterType.RED : SpitterType.GREEN, 1, 1, SpitterType.BASIC, 4, 1.5F);
+									te.setDefaultSpawn(EntitySpitter.class, ((SpitterDistribution)te.spawnCallback).totalCount());
+								}
+								else {
+									//te.setDefaultSpawn(EntitySpitter.class, 2, rand.nextBoolean() ? SpitterType.GREEN : SpitterType.RED);
+									te.spawnCallback = new SpitterDistribution(rand.nextDouble() < 0.6 ? SpitterType.RED : SpitterType.GREEN, 2, 1, SpitterType.BASIC, 4, 1);
+									te.setDefaultSpawn(EntitySpitter.class, ((SpitterDistribution)te.spawnCallback).totalCount());
 								}
 								break;
 							case 3:
 							case 2:
-								if (rand.nextBoolean()) {
+								if (f < 0.2) {
 									te.setDefaultSpawn(EntityEliteStinger.class);
 								}
-								else {
+								else if (f < 0.5) {
 									te.setDefaultSpawn(EntitySpider.class);
 									te.setEnemyBoost(power);
 								}
+								else {
+									te.spawnCallback = new SpitterDistribution(rand.nextDouble() < 0.5 ? SpitterType.RED : SpitterType.GREEN, 1, 1, SpitterType.BASIC, 4, 1.5F);
+									te.setDefaultSpawn(EntitySpitter.class, ((SpitterDistribution)te.spawnCallback).totalCount());
+								}
 								break;
 							case 1:
-								te.setSingleStrongEnemy(rand.nextInt(3) == 0 ? EntityEliteStinger.class : EntitySpider.class, 4);
-								break;
-							case 0:
-								if (rand.nextBoolean()) {
-									te.setSingleStrongEnemy(rand.nextInt(4) == 0 ? EntityEliteStinger.class : EntitySpider.class, 3);
+								if (f < 0.15) {
+									te.setSingleStrongEnemy(EntityEliteStinger.class, 3);
+								}
+								else if (f < 0.3) {
+									te.setSingleStrongEnemy(EntitySpider.class, 4);
+								}
+								else if (f < 0.7) {
+									te.spawnCallback = new SpitterDistribution(rand.nextDouble() < 0.55 ? SpitterType.RED : SpitterType.GREEN, 1, 1, SpitterType.BASIC, 3, 1.5F);
+									te.setDefaultSpawn(EntitySpitter.class, ((SpitterDistribution)te.spawnCallback).totalCount());
 								}
 								else {
+									te.setDefaultSpawn(EntitySpitter.class, 1);
+									te.spawnCallback = new SpitterDistribution(rand.nextDouble() < 0.7 ? SpitterType.GREEN : SpitterType.RED);
+								}
+								break;
+							case 0:
+								if (f < 0.15) {
+									te.setSingleStrongEnemy(EntityEliteStinger.class, 2);
+								}
+								else if (f < 0.3) {
 									te.setDefaultSpawn(EntitySpider.class);
 									te.setEnemyBoost(2.5F);
+								}
+								else if (f < 0.5) {
+									te.spawnCallback = new SpitterDistribution(rand.nextDouble() < 0.6 ? SpitterType.RED : SpitterType.GREEN, 1, 1, SpitterType.BASIC, 4, 1);
+									te.setDefaultSpawn(EntitySpitter.class, ((SpitterDistribution)te.spawnCallback).totalCount());
+								}
+								else if (f < 0.9) {
+									te.setDefaultSpawn(EntitySpitter.class, 1);
+									te.spawnCallback = new SpitterDistribution(rand.nextBoolean() ? SpitterType.GREEN : SpitterType.RED);
+								}
+								else {
+									te.setDefaultSpawn(EntitySpitter.class);
+									te.spawnCallback = new SpitterDistribution(SpitterType.BASIC);
+									te.setEnemyBoost(1.5F);
 								}
 								break;
 						}
@@ -393,6 +424,82 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 
 	}
 
+	private static class SpitterDistribution extends SpawnCallback {
+
+		private static final NBTIO<SpitterType> enu = (NBTIO<SpitterType>)ReikaNBTHelper.getEnumConverter(SpitterType.class);
+
+		private final CountMap<SpitterType> data = new CountMap();
+		private final HashMap<SpitterType, Float> buff = new HashMap();
+
+
+		private SpitterDistribution(SpitterType only) {
+			this(new SpitterType[] {only}, new int[] {1}, new float[] {1});
+		}
+
+		private SpitterDistribution(SpitterType t1, int amt1, float b1, SpitterType t2, int amt2, float b2) {
+			this(new SpitterType[] {t1, t2}, new int[] {amt1, amt2}, new float[] {b1, b2});
+		}
+
+		private SpitterDistribution(SpitterType[] t, int[] amt, float[] b) {
+			for (int i = 0; i < t.length; i++) {
+				SpitterType st = t[i];
+				data.increment(st, amt[i]);
+				buff.put(st, b[i]);
+			}
+		}
+
+		@Override
+		public void onSpawn(EntityMob e, ArrayList<EntityLiving> spawned) {
+			CountMap<SpitterType> has = new CountMap();
+			for (EntityLiving e2 : spawned) {
+				SpitterType s = ((EntitySpitter)e2).getSpitterType();
+				has.increment(s, 1);
+			}
+
+			for (SpitterType s : data.keySet()) {
+				int needed = data.get(s)-has.get(s);
+				if (needed > 0) {
+					((EntitySpitter)e).setSpitterType(s);
+					TilePowerSlug.buffHealth(e, buff.get(s));
+					break;
+				}
+			}
+		}
+
+		public int totalCount() {
+			return data.getTotalCount();
+		}
+
+		@Override
+		protected void readFromNBT(NBTTagCompound tag) {
+			buff.clear();
+			data.clear();
+			NBTTagList li = tag.getTagList("buffs", NBTTypes.COMPOUND.ID);
+			data.readFromNBT(tag.getCompoundTag("counts"), enu);
+			ReikaNBTHelper.readMapFromNBT(buff, li, enu, null);
+		}
+
+		@Override
+		protected void writeToNBT(NBTTagCompound tag) {
+			NBTTagCompound counts = new NBTTagCompound();
+			NBTTagList li = new NBTTagList();
+			data.writeToNBT(counts, enu);
+			ReikaNBTHelper.writeMapToNBT(buff, li, enu, null);
+			tag.setTag("buffs", li);
+			tag.setTag("counts", counts);
+		}
+
+	}
+
+	private static abstract class SpawnCallback {
+
+		public abstract void onSpawn(EntityMob e, ArrayList<EntityLiving> spawned);
+
+		protected abstract void readFromNBT(NBTTagCompound tag);
+		protected abstract void writeToNBT(NBTTagCompound tag);
+
+	}
+
 	public static class TilePowerSlug extends TileCaveSpawner {
 
 		private static final int FOLLOW_RANGE = 32;
@@ -407,6 +514,8 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		private float healthBuff = 0;
 
 		private int soundtick;
+
+		private SpawnCallback spawnCallback = null;
 
 		public TilePowerSlug() {
 			this(0);
@@ -515,13 +624,27 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		}
 
 		@Override
-		protected void onSpawnEntity(EntityMob e) {
-			super.onSpawnEntity(e);
+		protected void onSpawnEntity(EntityMob e, ArrayList<EntityLiving> spawned) {
+			super.onSpawnEntity(e, spawned);
+			if (spawnCallback != null)
+				spawnCallback.onSpawn(e, spawned);
 			if (healthBuff > 0) {
-				AttributeModifier m = new AttributeModifier(healthBonus, "slugHealth", healthBuff-1, 2);
-				e.getEntityAttribute(SharedMonsterAttributes.maxHealth).applyModifier(m);
-				e.setHealth(e.getMaxHealth());
+				buffHealth(e, healthBuff);
 			}
+		}
+
+		private static void buffHealth(EntityMob e, float buff) {
+			AttributeModifier m = e.getEntityAttribute(SharedMonsterAttributes.maxHealth).getModifier(healthBonus);
+			if (m == null) {
+				m = new AttributeModifier(healthBonus, "slugHealth", buff-1, 2);
+			}
+			else {
+				double amt = 1+m.getAmount();
+				e.getEntityAttribute(SharedMonsterAttributes.maxHealth).removeModifier(m);
+				m = new AttributeModifier(healthBonus, "slugHealth", amt*buff-1, 2);
+			}
+			e.getEntityAttribute(SharedMonsterAttributes.maxHealth).applyModifier(m);
+			e.setHealth(e.getMaxHealth());
 		}
 
 		@Override
@@ -557,6 +680,13 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 
 			NBT.setInteger("tier", tier);
 			NBT.setInteger("side", mounting.ordinal());
+
+			if (spawnCallback != null) {
+				NBTTagCompound tag = new NBTTagCompound();
+				spawnCallback.writeToNBT(tag);
+				tag.setString("classType", spawnCallback.getClass().getName());
+				NBT.setTag("callback", tag);
+			}
 		}
 
 		@Override
@@ -569,6 +699,18 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 
 			tier = NBT.getInteger("tier");
 			mounting = ForgeDirection.VALID_DIRECTIONS[NBT.getInteger("side")];
+
+			if (NBT.hasKey("callback")) {
+				try {
+					NBTTagCompound tag = NBT.getCompoundTag("callback");
+					spawnCallback = (SpawnCallback)Class.forName(tag.getString("classType")).newInstance();
+					spawnCallback.readFromNBT(tag);
+				}
+				catch (Exception e) {
+					e.printStackTrace();
+					Satisforestry.logger.logError("Could not reconstruct slug spawn callback: "+e.toString());
+				}
+			}
 		}
 
 	}

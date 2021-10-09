@@ -1,5 +1,6 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import net.minecraft.block.BlockContainer;
@@ -86,8 +87,8 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		}
 
 		@Override
-		protected void onEntitySpawned(EntityLiving e) {
-			tile.onSpawnEntity((EntityMob)e);
+		protected void onEntitySpawned(EntityLiving e, ArrayList<EntityLiving> spawned) {
+			tile.onSpawnEntity((EntityMob)e, spawned);
 		}
 
 		@Override
@@ -238,7 +239,7 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 			}
 		}
 
-		protected void onSpawnEntity(EntityMob e) {
+		protected void onSpawnEntity(EntityMob e, ArrayList<EntityLiving> spawned) {
 			PointSpawnSystem.setTag(e, "tileSpawned", true);
 			if (followRange > 0) {
 				PointSpawnSystem.setTag(e, FOLLOW_TAG, followRange);

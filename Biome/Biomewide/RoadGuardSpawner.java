@@ -38,24 +38,24 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 		PointSpawnSystem.registerSpawnerType(this);
 
 		if (types.isEmpty()) {
-			types.addDynamicEntry(new SpawnEntry(EntitySpider.class, 0, 0.1, 0.5, 50, 50, 0));
-			types.addDynamicEntry(new SpawnEntry(EntityCaveSpider.class, 0.2, 0.4, 0.6, 40));
+			types.addDynamicEntry(new SpawnEntry(EntitySpider.class, 0, 0.1, 0.6, 50, 50, 0));
+			types.addDynamicEntry(new SpawnEntry(EntityCaveSpider.class, 0.2, 0.4, 0.7, 40));
 
 			types.addDynamicEntry(new SpitterEntry(SpitterType.BASIC, 0.4, 0.75, 1.1, 50));
 			types.addDynamicEntry(new SpitterEntry(SpitterType.RED, 0.8, 1.15, 1.4, 30));
-			types.addDynamicEntry(new SpitterEntry(SpitterType.GREEN, 1.0, 1.3, 1.5, 20));
+			types.addDynamicEntry(new SpitterEntry(SpitterType.GREEN, 1.05, 1.3, 1.5, 20));
 
 			types.addDynamicEntry(new SpawnEntry(EntityEliteStinger.class, 1+RANDOM_FACTOR-0.2, 1+RANDOM_FACTOR-0.1, 1+RANDOM_FACTOR, 0, 5, 8));
 		}
 
-		for (double y = 0; y <= 1+RANDOM_FACTOR; y += 0.05) {
-			String s = "At R="+y+": ";
+		for (double y = 0; y <= 1+RANDOM_FACTOR+0.05; y += 0.05) {
+			String s = "At R="+String.format("%.2f", y)+": ";
 			for (SpawnEntry b : types.getValues()) {
 				b.calcWeight(y);
 			}
 			for (SpawnEntry b : types.getValues()) {
 				double f = types.getProbability(b);
-				s = s+" Spawn "+b+" = "+f*100+"%;";
+				s = s+" Spawn "+b+" = "+String.format("%09.5f", f*100)+"%;";
 			}
 			ReikaJavaLibrary.pConsole(s);
 		}
@@ -98,11 +98,11 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 		private void calcWeight(double f) {
 			if (f <= minValue)
 				currentWeight = minValueWeight;
-			if (f >= maxValue)
+			else if (f >= maxValue)
 				currentWeight = maxValueWeight;
-			if (f == inflectionPoint)
+			else if (f == inflectionPoint)
 				currentWeight = inflectionPointWeight;
-			if (f < inflectionPoint)
+			else if (f < inflectionPoint)
 				currentWeight = ReikaMathLibrary.linterpolate(f, minValue, inflectionPoint, minValueWeight, inflectionPointWeight);
 			else if (f > inflectionPoint)
 				currentWeight = ReikaMathLibrary.linterpolate(f, inflectionPoint, maxValue, inflectionPointWeight, maxValueWeight);

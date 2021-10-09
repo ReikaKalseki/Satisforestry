@@ -477,8 +477,9 @@ public final class PointSpawnSystem {
 			double dist = ep.getDistanceSq(loc.xCoord+0.5, loc.yCoord+0.5, loc.zCoord+0.5);
 			if (amt > 0) {
 				if (dist <= activationRadius*activationRadius) {
+					ArrayList<EntityLiving> spawned = new ArrayList();
 					for (int i = 0; i < amt; i++) {
-						if (this.attemptSpawn(world, loc)) {
+						if (this.attemptSpawn(world, loc, spawned)) {
 							existingCount++;
 						}
 					}
@@ -581,7 +582,7 @@ public final class PointSpawnSystem {
 			return mobClass;
 		}
 
-		private boolean attemptSpawn(World world, WorldLocation loc) {
+		private boolean attemptSpawn(World world, WorldLocation loc, ArrayList<EntityLiving> spawned) {
 			EntityLiving e = this.getSpawn(world, loc.xCoord, loc.yCoord, loc.zCoord, world.rand);
 			if (e != null) {
 				int i = 0;
@@ -600,8 +601,9 @@ public final class PointSpawnSystem {
 					if (this.denyPassivation()) {
 						setTag(e, HOSTILE_NBT_TAG, true);
 					}
+					spawned.add(e);
 					//ReikaJavaLibrary.pConsole("Spawned "+e+" @ "+this+", has "+existingCount+"/"+numberToSpawn);
-					this.onEntitySpawned(e);
+					this.onEntitySpawned(e, spawned);
 					return true;
 				}
 			}
@@ -616,7 +618,7 @@ public final class PointSpawnSystem {
 			return true;
 		}
 
-		protected void onEntitySpawned(EntityLiving e) {
+		protected void onEntitySpawned(EntityLiving e, ArrayList<EntityLiving> spawned) {
 
 		}
 
