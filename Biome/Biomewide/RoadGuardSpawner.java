@@ -16,7 +16,6 @@ import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom.DynamicWeight;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
-import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Satisforestry;
@@ -47,7 +46,7 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 
 			types.addDynamicEntry(new SpawnEntry(EntityEliteStinger.class, 1+RANDOM_FACTOR-0.2, 1+RANDOM_FACTOR-0.1, 1+RANDOM_FACTOR, 0, 5, 8));
 		}
-
+		/*
 		for (double y = 0; y <= 1+RANDOM_FACTOR+0.05; y += 0.05) {
 			String s = "At R="+String.format("%.2f", y)+": ";
 			for (SpawnEntry b : types.getValues()) {
@@ -59,7 +58,7 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 			}
 			ReikaJavaLibrary.pConsole(s);
 		}
-		ReikaJavaLibrary.pConsole("------------------------");
+		ReikaJavaLibrary.pConsole("------------------------");*/
 	}
 
 	private static class SpawnEntry implements DynamicWeight {
@@ -223,6 +222,7 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 		private RoadGuardSpawnPoint(WorldLocation loc, float f) {
 			this(loc);
 			dangerOffset = f;
+			this.setSpawnData();
 		}
 
 		private RoadGuardSpawnPoint(WorldLocation loc) {
@@ -232,7 +232,7 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 
 		@Override
 		protected EntityLiving getSpawn(World world, int cx, int cy, int cz, Random rand) {
-			this.setSpawnData(rand);
+			this.setSpawnData();
 			EntityLiving e = this.getRandomPlacedEntity(4, world, cx, cy, cz);
 			if (e instanceof EntitySpitter) {
 				((EntitySpitter)e).setSpitterType(spitter);
@@ -241,12 +241,13 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 			return e;
 		}
 
-		private void setSpawnData(Random rand) {
+		private void setSpawnData() {
 			if (spawnType == null) {
 				double f = roadValue+dangerOffset;
 				for (SpawnEntry b : types.getValues()) {
 					b.calcWeight(f);
 				}
+				types.setSeed(this.getLocation().hashCode());
 				spawnType = types.getRandomEntry();
 				this.setSpawnParameters(spawnType.entityClass, spawnType.getEntityCount(f), spawnType.getSpawnRange());
 			}
@@ -265,6 +266,7 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 
 			dangerOffset = NBT.getFloat("bias");
 			spawnType = null;
+			this.setSpawnData();
 		}
 
 	}

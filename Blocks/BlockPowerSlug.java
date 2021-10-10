@@ -231,9 +231,13 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			y--;
 		Block b = world.getBlock(x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ);
 		Block b1 = world.getBlock(x, y, z);
-		if ((b1.isAir(world, x, y, z) || ReikaBlockHelper.isLiquid(b1) || b1 == Blocks.vine) && canExistOn(b)) {
+		if (y < 256 && (b1.isAir(world, x, y, z) || ReikaBlockHelper.isLiquid(b1) || b1 == Blocks.vine) && canExistOn(b)) {
 			world.setBlock(x, y, z, SFBlocks.SLUG.getBlockInstance(), tier, 3);
 			TilePowerSlug te = (TilePowerSlug)world.getTileEntity(x, y, z);
+			if (te == null) {
+				te = new TilePowerSlug();
+				world.setTileEntity(x, y, z, te);
+			}
 			te.setDirection(dir);
 			if (allowSpawns) {
 				switch(tier) {

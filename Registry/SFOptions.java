@@ -13,24 +13,27 @@ import net.minecraftforge.common.config.Property;
 
 import Reika.DragonAPI.Interfaces.Configuration.BooleanConfig;
 import Reika.DragonAPI.Interfaces.Configuration.BoundedConfig;
+import Reika.DragonAPI.Interfaces.Configuration.DecimalConfig;
 import Reika.DragonAPI.Interfaces.Configuration.IntegerConfig;
 import Reika.DragonAPI.Interfaces.Configuration.StringConfig;
 import Reika.DragonAPI.Interfaces.Configuration.UserSpecificConfig;
 import Reika.Satisforestry.Satisforestry;
 
-public enum SFOptions implements BooleanConfig, IntegerConfig, StringConfig, UserSpecificConfig, BoundedConfig {
+public enum SFOptions implements BooleanConfig, IntegerConfig, DecimalConfig, StringConfig, UserSpecificConfig, BoundedConfig {
 
 	BIOMEID("Pink Forest Biome ID", 144),
 	//SIMPLEAUTO("Enable Simple Automation for Resource Node", false),
 	CAVEMOBS("Cave Mob Spawn Multiplier", 1),
 	GLOBALSHADER("Apply Poison Shader In All Biomes", false),
 	MUSIC("Satisfactory OST Folder", ""),
+	BORDERORE("Biome Border Ore Cluster Rate", 1F),
 	;
 
 	private String label;
 	private boolean defaultState;
 	private int defaultValue;
 	private String defaultString;
+	private float defaultFloat;
 	private Class type;
 
 	public static final SFOptions[] optionList = SFOptions.values();
@@ -53,12 +56,22 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, StringConfig, Use
 		type = String.class;
 	}
 
+	private SFOptions(String l, float d) {
+		label = l;
+		defaultFloat = d;
+		type = float.class;
+	}
+
 	public boolean isBoolean() {
 		return type == boolean.class;
 	}
 
 	public boolean isNumeric() {
 		return type == int.class;
+	}
+
+	public boolean isDecimal() {
+		return type == float.class;
 	}
 
 	@Override
@@ -87,6 +100,10 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, StringConfig, Use
 		return (String)Satisforestry.config.getControl(this.ordinal());
 	}
 
+	public float getFloat() {
+		return (Float)Satisforestry.config.getControl(this.ordinal());
+	}
+
 	public boolean isDummiedOut() {
 		return type == null;
 	}
@@ -104,6 +121,11 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, StringConfig, Use
 	@Override
 	public String getDefaultString() {
 		return defaultString;
+	}
+
+	@Override
+	public float getDefaultFloat() {
+		return defaultFloat;
 	}
 
 	@Override

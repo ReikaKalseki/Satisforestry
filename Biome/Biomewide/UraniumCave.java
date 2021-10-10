@@ -140,7 +140,7 @@ public class UraniumCave {
 			carveSet.addAll(t.carve.keySet());
 		}
 
-		double dr = cc.outerCircleRadius+5;
+		double dr = cc.outerCircleRadius*1.5+12;
 		ResourceNodeRoom rm = cache != null ? cache.reconstructNode(cc, cache.nodeTile) : new ResourceNodeRoom(cc, cc.center.offset(-avg.xCoord*dr, 0, -avg.zCoord*dr));
 		rm.calculate(world, rand);
 
@@ -230,7 +230,7 @@ public class UraniumCave {
 			if (!c.isEmpty(world))
 				continue;
 			BlockKey prev = BlockKey.getAt(world, c.xCoord, c.yCoord, c.zCoord);
-			OreClusterType ore = DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, c.yCoord, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4, pits);
+			BlockKey ore = DecoratorPinkForest.generateOreClumpAt(world, c.xCoord, c.yCoord, c.zCoord, rand, OreSpawnLocation.CAVE_MAIN_RING, 4, pits);
 			if (ore != null) {
 				gen++;
 				//ReikaJavaLibrary.pConsole("Generating ore clump "+ore.id+" @ "+c+" over "+prev);
@@ -250,7 +250,7 @@ public class UraniumCave {
 		}
 		OreClusterType spike = OreSpawnLocation.CAVE_RESOURCE_NODE.getRandomOreSpawn();
 		if (spike != null) {
-			rm.generateOreSpike(world, rand, spike.oreBlock);
+			rm.generateOreSpike(world, rand, spike.getRandomBlock(rand));
 		}
 
 		rm.crackBlocks(world);
@@ -778,9 +778,10 @@ public class UraniumCave {
 				OreClusterType ore = (isToBiomeEdge ? OreSpawnLocation.CAVE_ENTRY_TUNNEL : OreSpawnLocation.CAVE_NODE_TUNNEL).getRandomOreSpawn();
 
 				if (ore != null) {
+					BlockKey oreBlock = ore.getRandomBlock(rand);
 					for (Coordinate c2 : below.getAdjacentCoordinates()) {
 						if (c2.softBlock(world)) {
-							c2.setBlock(world, ore.oreBlock.blockID, ore.oreBlock.metadata);
+							c2.setBlock(world, oreBlock.blockID, oreBlock.metadata);
 						}
 					}
 				}

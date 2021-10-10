@@ -413,7 +413,8 @@ public final class PointSpawnSystem {
 			ret.setBoolean("dead", isDead);
 			if (!Strings.isNullOrEmpty(mobType))
 				ret.setString("mob", mobType);
-			ret.setString("type", mobClass.getName());
+			if (mobClass != null)
+				ret.setString("type", mobClass.getName());
 
 			NBTTagList li = new NBTTagList();
 			for (UUID uid : spawnedMobs) {

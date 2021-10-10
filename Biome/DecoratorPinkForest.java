@@ -9,6 +9,7 @@
  ******************************************************************************/
 package Reika.Satisforestry.Biome;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
@@ -27,6 +28,7 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Instantiable.Worldgen.StackableBiomeDecorator;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
@@ -347,15 +349,15 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		return b.isReplaceableOreGen(world, x, y, z, Blocks.stone) || b.isReplaceableOreGen(world, x, y, z, Blocks.sandstone) || b.getMaterial() == Material.ground || b.getMaterial() == Material.clay || b.getMaterial() == Material.sand || b.isReplaceableOreGen(world, x, y, z, Blocks.grass) || ReikaBlockHelper.isOre(b, world.getBlockMetadata(x, y, z));
 	}
 
-	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize) {
+	public static BlockKey generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize) {
 		return generateOreClumpAt(world, x, y, z, rand, sec, maxSize, (OreValidityFunction)null);
 	}
 
-	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize, Set<Coordinate> set) {
+	public static BlockKey generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize, Set<Coordinate> set) {
 		return generateOreClumpAt(world, x, y, z, rand, sec, maxSize, (w, c) -> !set.contains(c.to2D()));
 	}
 
-	public static OreClusterType generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize, OreValidityFunction func) {
+	public static BlockKey generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize, OreValidityFunction func) {
 		OreClusterType type = sec.getRandomOreSpawn();
 		if (type == null)
 			return null;
@@ -382,30 +384,36 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 			set = next;
 		}
 
-		BlockKey ore = type.oreBlock;
+		BlockKey ore = type.getRandomBlock(rand);
 		for (Coordinate c : place) {
 			c.setBlock(world, ore.blockID, ore.metadata);
 		}
 
-		return type;
+		return ore;
 
 	}
 
 	public static class OreClusterType {
 
 		public final String id;
-		public final BlockKey oreBlock;
+		//public final BlockKey oreBlock;
 		public final int spawnWeight;
 		public final OreSpawnLocation spawnArea;
+
+		private final ArrayList<BlockKey> blocks = new ArrayList();
 
 		public float sizeScale = 1;
 		public int maxDepth = 3;
 
-		public OreClusterType(String s, BlockKey bk, OreSpawnLocation a, int w) {
+		public OreClusterType(String s, OreSpawnLocation a, int w, ArrayList<BlockKey> li) {
 			id = s;
 			spawnWeight = w;
 			spawnArea = a;
-			oreBlock = bk;
+			blocks.addAll(li);
+		}
+
+		public BlockKey getRandomBlock(Random rand) {
+			return ReikaJavaLibrary.getRandomListEntry(rand, blocks);
 		}
 
 	}

@@ -16,6 +16,7 @@ import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.AbstractSearch.PropagationCondition;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.BlockArray;
+import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
@@ -24,7 +25,6 @@ import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.BiomePinkForest.BiomeSection;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
-import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Registry.SFBlocks;
@@ -197,9 +197,9 @@ public class WorldGenPonds extends WorldGenerator {
 						Coordinate c2 = new Coordinate(ctr.xCoord+dx*dr, 0, ctr.zCoord+dz*dr);
 						Integer level = waterLevel.get(c2);
 						if (level != null) {
-							OreClusterType ore = DecoratorPinkForest.generateOreClumpAt(world, c2.xCoord, level, c2.zCoord, rand, OreSpawnLocation.PONDS, 2);
+							BlockKey ore = DecoratorPinkForest.generateOreClumpAt(world, c2.xCoord, level, c2.zCoord, rand, OreSpawnLocation.PONDS, 2);
 							if (ore != null) {
-								world.setBlock(c2.xCoord, level+1, c2.zCoord, ore.oreBlock.blockID, ore.oreBlock.metadata, 2);
+								world.setBlock(c2.xCoord, level+1, c2.zCoord, ore.blockID, ore.metadata, 2);
 								break;
 							}
 						}

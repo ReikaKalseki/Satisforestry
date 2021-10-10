@@ -33,9 +33,9 @@ public class WorldGenPowerSlugs {
 	//private static final HashMap<Coordinate, BlockKey> failures = new HashMap();
 
 	public WorldGenPowerSlugs() {
-		noise[0] = new ShuffledGrid(40, 4, 6, true);
-		noise[1] = new ShuffledGrid(40, 6, 9, true);
-		noise[2] = new ShuffledGrid(40, 8, 12, true);
+		noise[0] = new ShuffledGrid(40, 4, 5, true);
+		noise[1] = new ShuffledGrid(40, 5, 8, true);
+		noise[2] = new ShuffledGrid(40, 7, 10, true);
 	}
 	/*
 	public static ArrayList<String> getOutcropData() {
@@ -138,6 +138,7 @@ public class WorldGenPowerSlugs {
 		for (int i = 0; i < 4; i++) {
 			widths[i] = 1+rand.nextFloat()*1.4F;
 		}
+		y--;
 		for (int j = -3; j < h; j++) {
 			int dy = y+j;
 			type.place(world, x, dy, z);

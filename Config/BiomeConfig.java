@@ -369,6 +369,7 @@ public class BiomeConfig {
 
 		entryAttemptsCount += blocks.size()*sections.size();
 
+		ArrayList<BlockKey> types = new ArrayList();
 		for (String s : blocks) {
 			BlockKey bk = null;
 			try {
@@ -382,17 +383,22 @@ public class BiomeConfig {
 				Satisforestry.logger.logError("Could not load block type '"+s+"' for ore type '"+type+"'; skipping.");
 				continue;
 			}
-			for (Entry<OreSpawnLocation, LuaBlock> e : sections.entrySet()) {
-				OreSpawnLocation cs = e.getKey();
-				LuaBlock data = e.getValue();
-				String id = type+"_"+s+"_"+cs.name();
-				OreClusterType ore = new OreClusterType(id, bk, cs, b.getInt("spawnWeight"));
-				ore.sizeScale = (float)data.getDouble("sizeScale");
-				ore.maxDepth = data.getInt("maxSize");
-				oreEntries.put(id, ore);
-				Satisforestry.logger.log("Registered ore type '"+type+"' with block '"+bk+" for area "+cs);
-				entryCount++;
+			else {
+				types.add(bk);
 			}
+		}
+		for (Entry<OreSpawnLocation, LuaBlock> e : sections.entrySet()) {
+			OreSpawnLocation cs = e.getKey();
+			LuaBlock data = e.getValue();
+			String id = type+"_"+cs.name();
+			OreClusterType ore = new OreClusterType(id, cs, data.getInt("spawnWeight"), types);
+			if (data.containsKey("sizeScale"))
+				ore.sizeScale = (float)data.getDouble("sizeScale");
+			if (data.containsKey("maxSize"))
+				ore.maxDepth = data.getInt("maxSize");
+			oreEntries.put(id, ore);
+			Satisforestry.logger.log("Registered ore type '"+type+"' with "+types.size()+" blocks '"+types+"' for area "+cs+", wt="+ore.spawnWeight+" s="+ore.sizeScale+" d="+ore.maxDepth);
+			entryCount++;
 		}
 	}
 
@@ -418,6 +424,8 @@ public class BiomeConfig {
 		ResourceItem ore = new ResourceItem(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), map);
 		ore.minCount = b.getInt("minCount");
 		ore.maxCount = b.getInt("maxCount");
+		if (ore.maxCount < ore.minCount)
+			throw new IllegalArgumentException("Min count is greater than max count");
 		if (b.containsKey("speedFactor"))
 			ore.speedFactor = (float)b.getDouble("speedFactor");
 		if (ore.speedFactor <= 0)

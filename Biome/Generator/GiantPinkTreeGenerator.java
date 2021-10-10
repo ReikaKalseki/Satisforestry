@@ -238,7 +238,7 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 
 	@Override
 	protected float getTreeTopSlugChance() {
-		return 0.35F/this.getTreeTopSlugAttemptCount();
+		return 0.25F/this.getTreeTopSlugAttemptCount();
 	}
 
 	@Override
