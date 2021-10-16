@@ -18,6 +18,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.StatCollector;
+import net.minecraftforge.oredict.OreDictionary;
 
 import Reika.DragonAPI.Instantiable.MetadataItemBlock;
 import Reika.DragonAPI.Interfaces.Registry.BlockEnum;
@@ -256,5 +257,9 @@ public enum SFBlocks implements BlockEnum {
 
 	public boolean matchWith(ItemStack is) {
 		return is != null && ReikaItemHelper.matchStackWithBlock(is, this.getBlockInstance());
+	}
+
+	public ItemStack getAnyMetaStack() {
+		return this.getStackOfMetadata(OreDictionary.WILDCARD_VALUE);
 	}
 }

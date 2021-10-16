@@ -1,31 +1,38 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemShears;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.EnumPlantType;
 import net.minecraftforge.common.IPlantable;
+import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BlockRedBamboo extends Block implements IPlantable {
+public class BlockRedBamboo extends Block implements IPlantable, IShearable {
 
 	private IIcon stemIcon;
 	private IIcon topIcon;
@@ -226,5 +233,41 @@ public class BlockRedBamboo extends Block implements IPlantable {
 	@Override
 	public boolean isLeaves(IBlockAccess world, int x, int y, int z) {
 		return false;
+	}
+
+	@Override
+	public boolean isShearable(ItemStack item, IBlockAccess world, int x, int y, int z) {
+		return true;
+	}
+	/*
+	@Override
+	public ArrayList<ItemStack> onSheared(ItemStack item, IBlockAccess world, int x, int y, int z, int fortune) {
+		return ReikaJavaLibrary.makeListFrom(new ItemStack(this));
+	}*/
+
+	@Override
+	public ArrayList<ItemStack> onSheared(ItemStack item, IBlockAccess world, int x, int y, int z, int fortune) {
+		int meta = world.getBlockMetadata(x, y, z);
+		ItemStack is = new ItemStack(this);
+		if (world instanceof World) {
+			int dy = y+1;
+			while (world.getBlock(x, dy, z) == this && world.getBlockMetadata(x, dy, z) == meta) {
+				dy++;
+			}
+			for (int i = dy-1; i > y; i--) {
+				((World)world).setBlock(x, i, z, Blocks.air);
+				ReikaItemHelper.dropItem((World)world, x+0.5, i+0.5, z+0.5, is);
+			}
+		}
+		return ReikaJavaLibrary.makeListFrom(is.copy());
+	}
+
+	@Override
+	public void harvestBlock(World world, EntityPlayer ep, int x, int y, int z, int meta) {
+		ItemStack is = ep.getCurrentEquippedItem();
+		if (is != null && is.getItem() instanceof ItemShears) {
+			return;
+		}
+		super.harvestBlock(world, ep, x, y, z, meta);
 	}
 }

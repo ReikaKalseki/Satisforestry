@@ -234,11 +234,15 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 		protected EntityLiving getSpawn(World world, int cx, int cy, int cz, Random rand) {
 			this.setSpawnData();
 			EntityLiving e = this.getRandomPlacedEntity(4, world, cx, cy, cz);
+			e.setLocationAndAngles(e.posX, cy+1, e.posZ, 0, 0);
+			return e;
+		}
+
+		@Override
+		protected void onEntitySpawned(EntityLiving e, ArrayList<EntityLiving> spawned) {
 			if (e instanceof EntitySpitter) {
 				((EntitySpitter)e).setSpitterType(spitter);
 			}
-			e.setLocationAndAngles(e.posX, cy+1, e.posZ, 0, 0);
-			return e;
 		}
 
 		private void setSpawnData() {

@@ -1,5 +1,7 @@
 package Reika.Satisforestry.Biome;
 
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.Random;
 
 import net.minecraft.block.Block;
@@ -39,6 +41,7 @@ import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Generator.PinkTreeChooser;
 import Reika.Satisforestry.Biome.Generator.WorldGenPinkGrass;
 
+import cpw.mods.fml.common.IWorldGenerator;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -58,6 +61,8 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 	/** Fades between zero and one as the biome is entered or left */
 	@SideOnly(Side.CLIENT)
 	public static float renderFactor;
+
+	private static HashMap<Class, Boolean> generatorRules = new HashMap();
 
 	public BiomePinkForest(int id) {
 		super(id);
@@ -457,6 +462,19 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 	@SideOnly(Side.CLIENT)
 	public int getMapColor(World world, int x, int z) {
 		return this.getBiomeFoliageColor(x, (int)ReikaMathLibrary.normalizeToBounds(waterColorMix.getValue(x/5D, z/5D), 120, 170), z);
+	}
+
+	public static boolean canRunGenerator(IWorldGenerator gen) {
+		Class c = gen.getClass();
+		Boolean flag = generatorRules.get(c);
+		if (flag == null) {
+			String s = c.getSimpleName().toLowerCase(Locale.ENGLISH);
+			flag = true;
+			if (s.contains("slimeisland"))
+				flag = false;
+			generatorRules.put(c, flag);
+		}
+		return flag.booleanValue();
 	}
 
 }

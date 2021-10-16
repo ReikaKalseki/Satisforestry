@@ -40,6 +40,7 @@ import net.minecraftforge.oredict.ShapedOreRecipe;
 import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.DragonOptions;
 import Reika.DragonAPI.ModList;
+import Reika.DragonAPI.Auxiliary.WorldGenInterceptionRegistry;
 import Reika.DragonAPI.Auxiliary.Trackers.CommandableUpdateChecker;
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.DragonAPIMod.LoadProfiler.LoadPhase;
@@ -61,6 +62,7 @@ import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
+import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
@@ -68,6 +70,7 @@ import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntityFlyingManta;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
+import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Miner.TileNodeHarvester;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFEntities;
@@ -267,6 +270,9 @@ public class Satisforestry extends DragonAPIMod {
 			GameRegistry.addShapelessRecipe(new ItemStack(Blocks.planks, 4), log);
 			ReikaRecipeHelper.addSmelting(log, ReikaItemHelper.getSizedItemStack(ReikaItemHelper.charcoal, type.getCharcoalYield()), xp);
 		}
+		OreDictionary.registerOre("logWood", SFBlocks.LOG.getAnyMetaStack());
+		OreDictionary.registerOre("treeLeaves", SFBlocks.LEAVES.getAnyMetaStack());
+		OreDictionary.registerOre("treeSapling", SFBlocks.SAPLING.getAnyMetaStack());
 
 		ItemStack dark = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.DARK.ordinal());
 		ItemStack silver = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.SILVER.ordinal());
@@ -348,22 +354,48 @@ public class Satisforestry extends DragonAPIMod {
 
 		//((BlockPowerSlug)SFBlocks.SLUG.getBlockInstance()).updateStepSounds();
 
+		WorldGenInterceptionRegistry.instance.addWatcher(SFAux.populationWatcher);
+		WorldGenInterceptionRegistry.instance.addIWGWatcher(SFAux.slimeIslandBlocker);
+
 		if (ModList.THAUMCRAFT.isLoaded()) {
 			ReikaThaumHelper.addAspectsToItem(paleberry, Aspect.HEAL, 4, Aspect.HUNGER, 1, Aspect.EXCHANGE, 1);
 
 			ReikaThaumHelper.addAspects(EntityEliteStinger.class, Aspect.BEAST, 12, Aspect.POISON, 10, Aspect.HUNGER, 6, Aspect.FLIGHT, 2);
 			ReikaThaumHelper.addAspects(EntityFlyingManta.class, Aspect.AIR, 6, Aspect.FLIGHT, 24, Aspect.TRAVEL, 18);
 			ReikaThaumHelper.addAspects(EntityLizardDoggo.class, Aspect.BEAST, 1, Aspect.GREED, 1, Aspect.HARVEST, 2);
+			ReikaThaumHelper.addAspects(EntitySpitter.class, Aspect.BEAST, 8, Aspect.FIRE, 12, Aspect.MIND, 1, Aspect.ELDRITCH, 3);
 
-			ReikaThaumHelper.addAspectsToBlock(SFBlocks.BAMBOO.getBlockInstance(), Aspect.PLANT, 3, Aspect.TREE, 1);
-			ReikaThaumHelper.addAspectsToBlock(SFBlocks.LOG.getBlockInstance(), Aspect.TREE, 6, Aspect.ARMOR, 4, Aspect.TRAVEL, 1);
-			ReikaThaumHelper.addAspectsToBlock(SFBlocks.LEAVES.getBlockInstance(), Aspect.TREE, 4, Aspect.PLANT, 4, Aspect.SENSES, 2);
-			ReikaThaumHelper.addAspectsToBlock(SFBlocks.GRASS.getBlockInstance(), Aspect.PLANT, 2, Aspect.LIFE, 1);
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.BAMBOO.getBlockInstance(), Aspect.PLANT, 3);
+
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.GRASS.getBlockInstance(), GrassTypes.FERN.ordinal(), Aspect.PLANT, 2);
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.GRASS.getBlockInstance(), GrassTypes.PEACH_FRINGE.ordinal(), Aspect.PLANT, 2);
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.GRASS.getBlockInstance(), GrassTypes.TINY_PINK_LUMPS.ordinal(), Aspect.PLANT, 2);
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.GRASS.getBlockInstance(), GrassTypes.RED_STRANDS.ordinal(), Aspect.PLANT, 2);
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.GRASS.getBlockInstance(), GrassTypes.VINE.ordinal(), Aspect.PLANT, 2);
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.GRASS.getBlockInstance(), GrassTypes.TREE_VINE.ordinal(), Aspect.PLANT, 2);
+
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.GRASS.getBlockInstance(), GrassTypes.BLUE_MUSHROOM_STALK.ordinal(), Aspect.DARKNESS, 2, Aspect.LIGHT, 2);
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.GRASS.getBlockInstance(), GrassTypes.BLUE_MUSHROOM_TOP.ordinal(), Aspect.DARKNESS, 2, Aspect.LIGHT, 2);
+
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.GRASS.getBlockInstance(), GrassTypes.PALEBERRY_NEW.ordinal(), Aspect.PLANT, 2, Aspect.HEAL, 2);
+
+			for (PinkTreeTypes type : PinkTreeTypes.list) {
+				int f = type == PinkTreeTypes.GIANTTREE ? 2 : 1;
+				ReikaThaumHelper.addAspects(SFBlocks.LOG.getStackOfMetadata(type.ordinal()), Aspect.TREE, 5*f, Aspect.ARMOR, 2*f, Aspect.TRAVEL, 1);
+				ReikaThaumHelper.addAspects(SFBlocks.SAPLING.getStackOfMetadata(type.ordinal()), Aspect.TREE, f);
+				ReikaThaumHelper.addAspects(SFBlocks.LEAVES.getStackOfMetadata(type.ordinal()), Aspect.PLANT, 3*f, Aspect.GREED, f);
+			}
+
+			ReikaThaumHelper.addAspects(SFBlocks.SLUG.getStackOfMetadata(0), Aspect.ENERGY, 6, Aspect.GREED, 3, Aspect.MECHANISM, 1);
+			ReikaThaumHelper.addAspects(SFBlocks.SLUG.getStackOfMetadata(1), Aspect.ENERGY, 18, Aspect.GREED, 8, Aspect.MECHANISM, 2);
+			ReikaThaumHelper.addAspects(SFBlocks.SLUG.getStackOfMetadata(2), Aspect.ENERGY, 24, Aspect.GREED, 15, Aspect.MECHANISM, 5);
 
 			ReikaThaumHelper.addAspectsToBlock(SFBlocks.CAVESHIELD.getBlockInstance(), Aspect.DARKNESS, 8, Aspect.ARMOR, 8, Aspect.VOID, 4, Aspect.EARTH, 6, Aspect.MINE, 3);
 			ReikaThaumHelper.addAspectsToBlock(SFBlocks.GASEMITTER.getBlockInstance(), Aspect.POISON, 8, Aspect.TRAP, 6, Aspect.AURA, 4);
-			ReikaThaumHelper.addAspectsToBlock(SFBlocks.RESOURCENODE.getBlockInstance(), Aspect.GREED, 12, Aspect.MINE, 8, Aspect.HARVEST, 8);
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.RESOURCENODE.getBlockInstance(), Aspect.GREED, 20, Aspect.MINE, 15, Aspect.HARVEST, 8);
 			ReikaThaumHelper.addAspectsToBlock(SFBlocks.SPAWNER.getBlockInstance(), Aspect.DARKNESS, 8, Aspect.ARMOR, 8, Aspect.BEAST, 12);
+
+			ReikaThaumHelper.addAspectsToBlock(SFBlocks.MINERMULTI.getBlockInstance(), Aspect.MECHANISM, 5, Aspect.METAL, 3, Aspect.MINE, 5);
 
 			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.TERRAIN.getBlockInstance(), TerrainType.POISONROCK.ordinal(), Aspect.EARTH, 3, Aspect.POISON, 1);
 			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), Aspect.EARTH, 3, Aspect.WATER, 2);
