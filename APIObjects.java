@@ -32,6 +32,11 @@ public class APIObjects {
 		SFAPI.treeHandler = new SFTreeHandler();
 		SFAPI.caveHandler = new SFCaveHandler();
 		SFAPI.resourceNodeHandler = new SFNodeHandler();
+		SFAPI.genericLookups = new SFLookups();
+	}
+
+	private static class SFLookups implements Reika.Satisforestry.API.SFAPI.SFLookups {
+
 	}
 
 	private static class SFBiomeHandler implements PinkForestBiomeHandler {

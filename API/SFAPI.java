@@ -16,6 +16,7 @@ public class SFAPI {
 	public static PinkTreeHandler treeHandler = new DummyPlaceholder();
 	public static PinkForestCaveHandler caveHandler = new DummyPlaceholder();
 	public static PinkForestResourceNodeHandler resourceNodeHandler = new DummyPlaceholder();
+	public static SFLookups genericLookups = new DummyPlaceholder();
 
 	public static interface PinkForestBiomeHandler {
 
@@ -63,7 +64,11 @@ public class SFAPI {
 
 	}
 
-	private static class DummyPlaceholder implements PinkForestBiomeHandler, PinkForestResourceNodeHandler, PinkForestCaveHandler, PinkTreeHandler {
+	public static interface SFLookups {
+
+	}
+
+	private static class DummyPlaceholder implements PinkForestBiomeHandler, PinkForestResourceNodeHandler, PinkForestCaveHandler, PinkTreeHandler, SFLookups {
 
 		@Override
 		public PinkTreeType[] getTypes() {
