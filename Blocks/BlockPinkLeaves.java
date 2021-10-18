@@ -187,24 +187,12 @@ public class BlockPinkLeaves extends BlockCustomLeaf implements LeafBlockWithExt
 
 	@Override
 	public void onPreWoodcutterBreak(World world, int x, int y, int z) {
-		int y2 = y;
-		while (world.getBlock(x, y2-1, z) == SFBlocks.GRASS.getBlockInstance() && world.getBlockMetadata(x, y2-1, z) == GrassTypes.TREE_VINE.ordinal()) {
-			y2--;
-		}
-		for (; y2 < y; y2++) {
-			world.setBlockToAir(x, y2, z);
-		}
+		LeafBlockWithExtras.breakHangingVine(world, x, y, z, SFBlocks.GRASS.getBlockInstance(), GrassTypes.TREE_VINE.ordinal());
 	}
 
 	@Override
 	public ArrayList<ItemStack> getExtraDrops(World world, int x, int y, int z, int fortune) {
-		ArrayList<ItemStack> ret = new ArrayList();
-		int y2 = y;
-		while (world.getBlock(x, y2-1, z) == SFBlocks.GRASS.getBlockInstance() && world.getBlockMetadata(x, y2-1, z) == GrassTypes.TREE_VINE.ordinal()) {
-			y2--;
-			ret.addAll(SFBlocks.GRASS.getBlockInstance().getDrops(world, x, y2, z, GrassTypes.TREE_VINE.ordinal(), fortune));
-		}
-		return ret;
+		return LeafBlockWithExtras.getExtraDropsForHangingVine(world, x, y, z, fortune, SFBlocks.GRASS.getBlockInstance(), GrassTypes.TREE_VINE.ordinal());
 	}
 
 }

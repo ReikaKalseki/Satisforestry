@@ -347,7 +347,7 @@ public class BlockPinkGrass extends BlockTallGrass {
 				case TREE_VINE:
 					ArrayList<ItemStack> ret = new ArrayList();
 					ItemStack add = null;
-					if (world.rand.nextInt(Math.max(1, 10-fortune)) == 0) {
+					if (world.rand.nextInt(Math.max(1, 24-fortune)) == 0) {
 						add = world.rand.nextInt(6) == 0 ? ForgeHooks.getGrassSeed(world) : new ItemStack(Items.wheat_seeds);
 					}
 					if (add != null)
