@@ -68,7 +68,7 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 		super(id);
 		biomeName = "Pink Birch Forest";
 		theBiomeDecorator.treesPerChunk = 6;
-		theBiomeDecorator.grassPerChunk = 24; //was 12
+		theBiomeDecorator.grassPerChunk = 30; //was 12, then 24
 		enableRain = true;
 		enableSnow = true; //but melt the snow when it is daytime and sunny, and disallow all water freezing to ice
 

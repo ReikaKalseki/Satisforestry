@@ -28,7 +28,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 	public boolean generate(World world, Random rand, int x, int y, int z) {
 		if (!ReikaPlantHelper.SAPLING.canPlantAt(world, x, y, z))
 			return false;
-		int h0 = ReikaRandomHelper.getRandomBetween(8, 12, rand);
+		int h0 = ReikaRandomHelper.getRandomBetween(isSaplingGrowth ? 6 : 8, isSaplingGrowth ? 14 : 12, rand);
 		for (int d = 2; d < 6; d++) {
 			ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[d];
 			int i = 1;
@@ -52,7 +52,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 				rf[i] = MathHelper.clamp_double(rf[i], factors[i][0], rf[i-1]*0.9);
 			}
 		}
-		double r0 = ReikaRandomHelper.getRandomBetween(4.75, 6.5, rand);
+		double r0 = ReikaRandomHelper.getRandomBetween(isSaplingGrowth ? 4.5 : 4.75, 6.5, rand);
 
 		int ri = MathHelper.ceiling_double_int(r0);
 		HashMap<Coordinate, Double> leaves = new HashMap();
@@ -67,9 +67,11 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 							continue;
 						if (i != 0 || k != 0 || h >= 0) {
 							Coordinate c = new Coordinate(x+i, dy+h, z+k);
-							this.setBlockAndNotifyAdequately(world, c.xCoord, c.yCoord, c.zCoord, SFBlocks.LEAVES.getBlockInstance(), PinkTreeTypes.JUNGLE.ordinal());
-							if (i != 0 || k != 0) {
-								leaves.put(c, dd);
+							if (c.canBeReplacedByLeaves(world)) {
+								this.setBlockAndNotifyAdequately(world, c.xCoord, c.yCoord, c.zCoord, SFBlocks.LEAVES.getBlockInstance(), PinkTreeTypes.JUNGLE.ordinal());
+								if (i != 0 || k != 0) {
+									leaves.put(c, dd);
+								}
 							}
 						}
 					}
@@ -88,7 +90,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 		for (Entry<Coordinate, Double> e : leaves.entrySet()) {
 			wr.addEntry(e.getKey(), e.getValue());
 		}
-		double f = 0.83;
+		//double f = 0.83;
 		for (int i = -2; i <= h0-2; i++) {
 			int d = i >= 2 ? 1 : 2;
 			this.tryPlaceVine(world, rand, x+d, y+i, z, ForgeDirection.WEST);
@@ -102,7 +104,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 				this.tryPlaceVine(world, rand, x-1, y+i, z-1, ForgeDirection.EAST, ForgeDirection.SOUTH);
 			}
 		}
-		int n = ReikaRandomHelper.getRandomBetween(15, 20, rand);
+		int n = ReikaRandomHelper.getRandomBetween(isSaplingGrowth ? 6 : 15, isSaplingGrowth ? 12 : 20, rand);
 		for (int i = 0; i < n; i++) {
 			Coordinate c = wr.getRandomEntry().offset(0, -1, 0);
 			while (c.getBlock(world) == SFBlocks.LEAVES.getBlockInstance())
@@ -115,7 +117,7 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 	}
 
 	private void tryPlaceVine(World world, Random rand, int x, int y, int z, ForgeDirection... sides) {
-		if (rand.nextDouble() <= 0.9 && world.getBlock(x, y, z).isAir(world, x, y, z))
+		if (rand.nextDouble() <= (isSaplingGrowth ? 0.75 : 0.9) && world.getBlock(x, y, z).isAir(world, x, y, z))
 			this.setBlockAndNotifyAdequately(world, x, y, z, Blocks.vine, ReikaBlockHelper.getVineMetadatasFor(sides));
 	}
 

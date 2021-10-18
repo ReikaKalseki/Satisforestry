@@ -51,7 +51,7 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 		}
 		int h1 = ReikaRandomHelper.getRandomBetween(10, 18, treeRand); //was 20-30, then 18-25, then 12-24
 		int h2 = ReikaRandomHelper.getRandomBetween(64, 80, treeRand); //was 15-30, then 40-72, then 36-64, then 48-72, then 55-80
-		groundGap = ReikaRandomHelper.getRandomBetween(3, 6, treeRand); //was 2-5, then 3-6
+		groundGap = ReikaRandomHelper.getRandomBetween(3, isSaplingGrowth ? 5 : 6, treeRand); //was 2-5, then 3-6
 		/*
 		int y1 = groundGap+h1;
 		int y2 = y1+h2;

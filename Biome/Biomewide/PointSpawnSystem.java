@@ -588,11 +588,11 @@ public final class PointSpawnSystem {
 			EntityLiving e = this.getSpawn(world, loc.xCoord, loc.yCoord, loc.zCoord, world.rand);
 			if (e != null) {
 				int i = 0;
-				while (!e.getCanSpawnHere() && i < 5) {
+				while (!this.canSpawnAt(e) && i < 5) {
 					e.setLocationAndAngles(e.posX, e.posY+0.5, e.posZ, e.rotationYaw, e.rotationPitch);
 					i++;
 				}
-				if (e.getCanSpawnHere()) {
+				if (this.canSpawnAt(e)) {
 					e.rotationYaw = world.rand.nextFloat()*360;
 					this.setSpawnCallback(e, loc);
 					spawnedMobs.add(e.getUniqueID());
@@ -610,6 +610,14 @@ public final class PointSpawnSystem {
 				}
 			}
 			return false;
+		}
+
+		private boolean canSpawnAt(EntityLiving e) {
+			return e.getCanSpawnHere() && this.canSpawnEntityAt(e);
+		}
+
+		protected boolean canSpawnEntityAt(EntityLiving e) {
+			return true;
 		}
 
 		protected boolean denyPassivation() {

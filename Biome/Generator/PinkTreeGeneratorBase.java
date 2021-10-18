@@ -39,6 +39,7 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	private final HashMap<Coordinate, Integer> leavesTop = new HashMap();
 
 	public boolean allowSlugs = true;
+	public boolean isSaplingGrowth = false;
 
 	public PinkTreeGeneratorBase(boolean force, PinkTreeTypes leaf) {
 		super(false);
@@ -104,8 +105,11 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 							Coordinate c2 = c.offset(dir, -1);
 							int dy = c2.yCoord-generationOriginY;
 							int tier = this.getSlugByHeight(c2.yCoord, dy, rand);
-							if (BlockPowerSlug.generatePowerSlugAt(world, c2.xCoord, c2.yCoord, c2.zCoord, rand, tier, false, this.getDifficultyByHeight(c2.yCoord-generationOriginY, dy, rand), false, 1, dir) != null)
+							TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c2.xCoord, c2.yCoord, c2.zCoord, rand, tier, false, this.getDifficultyByHeight(c2.yCoord-generationOriginY, dy, rand), false, 1, dir);
+							if (te != null) {
+								te.setNoSpawns();
 								break;
+							}
 						}
 					}
 				}
@@ -255,6 +259,19 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 			switch(this) {
 				case JUNGLE:
 					return 2;
+				default:
+					return 1;
+			}
+		}
+
+		public float getBerryModifier() {
+			switch(this) {
+				case TREE:
+					return 1.5F;
+				case GIANTTREE:
+					return 0.03F;
+				case JUNGLE:
+					return 0.833F;
 				default:
 					return 1;
 			}

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.ISidedInventory;
 import net.minecraft.item.ItemStack;
@@ -55,8 +56,9 @@ public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 	public BlockMinerMulti(Material mat) {
 		super(mat);
 		this.setCreativeTab(Satisforestry.tabCreative);
-		this.setResistance(30);
 		this.setLightOpacity(0);
+		this.setHardness(Blocks.mob_spawner.blockHardness);
+		this.setResistance(30);
 	}
 
 	@Override

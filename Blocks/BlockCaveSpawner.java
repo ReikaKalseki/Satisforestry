@@ -82,13 +82,19 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 			double x = ReikaRandomHelper.getRandomBetween(cx+0.5-tile.spawnRadius, cx+0.5+tile.spawnRadius, rand);
 			double z = ReikaRandomHelper.getRandomBetween(cz+0.5-tile.spawnRadius, cz+0.5+tile.spawnRadius, rand);
 			EntityMob e = (EntityMob)this.constructEntity(world);
-			e.setLocationAndAngles(x, cy, z, 0, 0);
+			if (e != null)
+				e.setLocationAndAngles(x, cy, z, 0, 0);
 			return e;
 		}
 
 		@Override
 		protected void onEntitySpawned(EntityLiving e, ArrayList<EntityLiving> spawned) {
 			tile.onSpawnEntity((EntityMob)e, spawned);
+		}
+
+		@Override
+		protected boolean canSpawnEntityAt(EntityLiving e) {
+			return tile.canSpawnEntityAt((EntityMob)e);
 		}
 
 		@Override
@@ -244,6 +250,10 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 			if (followRange > 0) {
 				PointSpawnSystem.setTag(e, FOLLOW_TAG, followRange);
 			}
+		}
+
+		protected boolean canSpawnEntityAt(EntityMob e) {
+			return true;
 		}
 
 		@Override

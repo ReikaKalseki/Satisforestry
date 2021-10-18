@@ -33,7 +33,7 @@ public class WorldGenPinkGrass extends WorldGenerator {
 		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.FERN.ordinal(), new Interpolation(false).addPoint(60, 40).addPoint(100, 15).addPoint(120, 5)));
 		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.PEACH_FRINGE.ordinal(), new Interpolation(false).addPoint(60, 0).addPoint(80, 10).addPoint(100, 30).addPoint(128, 10)));
 		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.RED_STRANDS.ordinal(), new Interpolation(false).addPoint(55, 0).addPoint(64, 20).addPoint(96, 40).addPoint(144, 25)));
-		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.TINY_PINK_LUMPS.ordinal(), new Interpolation(false).addPoint(72, 0).addPoint(80, 10).addPoint(110, 30).addPoint(144, 50)));
+		grassTypes.addDynamicEntry(new GrassType(b, GrassTypes.TINY_PINK_LUMPS.ordinal(), new Interpolation(false).addPoint(72, 0).addPoint(80, 15).addPoint(110, 40).addPoint(144, 60)));
 	}
 
 	@Override

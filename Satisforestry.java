@@ -34,6 +34,7 @@ import net.minecraftforge.common.BiomeManager;
 import net.minecraftforge.common.BiomeManager.BiomeEntry;
 import net.minecraftforge.common.BiomeManager.BiomeType;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapedOreRecipe;
 
@@ -54,6 +55,7 @@ import Reika.DragonAPI.ModInteract.ItemStackRepository;
 import Reika.DragonAPI.ModInteract.ReikaClimateControl;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler.IC2Stacks;
+import Reika.DragonAPI.ModInteract.RecipeHandlers.ForestryRecipeHelper;
 import Reika.DragonAPI.ModRegistry.PowerTypes;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.CaveNightvisionHandler;
@@ -83,6 +85,8 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import forestry.api.recipes.ISqueezerRecipe;
+import forestry.api.recipes.RecipeManagers;
 
 @Mod( modid = "Satisforestry", name="Satisforestry", version = "v@MAJOR_VERSION@@MINOR_VERSION@", certificateFingerprint = "@GET_FINGERPRINT@", dependencies="required-after:DragonAPI;after:CritterPet;after:RotaryCraft;after:IC2;after:ThermalExpansion;before:climatecontrol")
 
@@ -236,7 +240,6 @@ public class Satisforestry extends DragonAPIMod {
 
 		this.addRecipes();
 
-
 		//pinkriver = new BiomePinkRiver();
 
 		ReikaRegistryHelper.registerModEntities(instance, SFEntities.entityList);
@@ -350,6 +353,18 @@ public class Satisforestry extends DragonAPIMod {
 
 		if (ModList.THAUMCRAFT.isLoaded()) {
 			SFThaumHandler.load();
+		}
+
+		if (ModList.FORESTRY.isLoaded()) {
+			ISqueezerRecipe rec = ForestryRecipeHelper.getInstance().getSqueezerOutput(new ItemStack(Items.apple));
+			if (rec != null) {
+				FluidStack fs = rec.getFluidOutput().copy();
+				fs.amount *= 0.75;
+				float chance = rec.getRemnantsChance()*100;
+				RecipeManagers.squeezerManager.addRecipe(rec.getProcessingTime(), new ItemStack[] {new ItemStack(paleberry)}, fs.copy(), rec.getRemnants(), (int)(chance*1.5));
+				fs.amount *= 0.2;
+				RecipeManagers.squeezerManager.addRecipe(rec.getProcessingTime(), new ItemStack[] {new ItemStack(paleberry, 1, 1)}, fs.copy(), rec.getRemnants(), (int)(chance*0.25));
+			}
 		}
 
 		this.finishTiming();

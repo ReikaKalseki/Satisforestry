@@ -24,6 +24,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -628,8 +629,33 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			this.setSpawnRadius(Math.min(r, this.getSpawnRadius()));
 		}
 
-		protected final void setNoSpawns() {
+		public final void setNoSpawns() {
 			this.setSpawnParameters(null, 0, 0, 0, FOLLOW_RANGE);
+		}
+
+		@Override
+		protected boolean canSpawnEntityAt(EntityMob e) {
+			return this.hasFloor(e);
+		}
+
+		private boolean hasFloor(EntityMob e) {
+			int n = 0;
+			int x1 = MathHelper.floor_double(e.boundingBox.minX);
+			int x2 = MathHelper.floor_double(e.boundingBox.maxX);
+			int z1 = MathHelper.floor_double(e.boundingBox.minZ);
+			int z2 = MathHelper.floor_double(e.boundingBox.maxZ);
+			int y0 = MathHelper.floor_double(e.boundingBox.minY);
+			for (int x = x1; x <= x2; x++) {
+				for (int z = z1; z <= z2; z++) {
+					for (int y = y0; y >= y0-2; y--) {
+						if (e.worldObj.getBlock(x, y, z).getMaterial().isSolid()) {
+							n++;
+							break;
+						}
+					}
+				}
+			}
+			return n >= 2;
 		}
 
 		@Override

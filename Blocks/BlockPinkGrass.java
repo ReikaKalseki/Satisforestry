@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
@@ -22,6 +23,7 @@ import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.EnumPlantType;
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.IPlantable;
 import net.minecraftforge.common.util.ForgeDirection;
 
@@ -342,6 +344,15 @@ public class BlockPinkGrass extends BlockTallGrass {
 				case PALEBERRY_EMPTY:
 				case PALEBERRY_STALK:
 					return new ArrayList();
+				case TREE_VINE:
+					ArrayList<ItemStack> ret = new ArrayList();
+					ItemStack add = null;
+					if (world.rand.nextInt(Math.max(1, 10-fortune)) == 0) {
+						add = world.rand.nextInt(6) == 0 ? ForgeHooks.getGrassSeed(world) : new ItemStack(Items.wheat_seeds);
+					}
+					if (add != null)
+						ret.add(add);
+					return ret;
 				default:
 					return null;
 			}

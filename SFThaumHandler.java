@@ -5,6 +5,7 @@ import net.minecraft.util.ResourceLocation;
 import Reika.DragonAPI.ModInteract.DeepInteract.ReikaThaumHelper;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
+import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
@@ -57,7 +58,14 @@ public class SFThaumHandler {
 		ReikaThaumHelper.addAspectsToBlock(SFBlocks.RESOURCENODE.getBlockInstance(), Aspect.GREED, 20, Aspect.MINE, 15, Aspect.HARVEST, 8, FICSIT, 2);
 		ReikaThaumHelper.addAspectsToBlock(SFBlocks.SPAWNER.getBlockInstance(), Aspect.DARKNESS, 8, Aspect.ARMOR, 8, Aspect.BEAST, 12);
 
-		ReikaThaumHelper.addAspectsToBlock(SFBlocks.MINERMULTI.getBlockInstance(), Aspect.MECHANISM, 5, Aspect.METAL, 3, Aspect.MINE, 5, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.ORANGE.ordinal(), Aspect.MECHANISM, 2, Aspect.METAL, 3, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.DARK.ordinal(), Aspect.MECHANISM, 2, Aspect.METAL, 3, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.SILVER.ordinal(), Aspect.MECHANISM, 2, Aspect.METAL, 3, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.GRAY.ordinal(), Aspect.MECHANISM, 3, Aspect.METAL, 3, Aspect.MINE, 2, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.DRILL.ordinal(), Aspect.MECHANISM, 5, Aspect.METAL, 3, Aspect.MINE, 5, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.CONVEYOR.ordinal(), Aspect.MECHANISM, 5, Aspect.METAL, 3, FICSIT, 10, Aspect.TRAVEL, 5);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.HUB.ordinal(), Aspect.MECHANISM, 5, Aspect.METAL, 3, Aspect.MINE, 5, FICSIT, 10, Aspect.MOTION, 5);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.POWER.ordinal(), Aspect.MECHANISM, 5, Aspect.METAL, 3, Aspect.MINE, 5, FICSIT, 10, Aspect.ENERGY, 5);
 
 		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.TERRAIN.getBlockInstance(), TerrainType.POISONROCK.ordinal(), Aspect.EARTH, 3, Aspect.POISON, 1);
 		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), Aspect.EARTH, 3, Aspect.WATER, 2);

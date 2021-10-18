@@ -51,6 +51,7 @@ public class BlockPinkSapling extends BlockSapling {
 		PinkTreeTypes type = PinkTreeTypes.getLeafType(world, x, y, z);
 		PinkTreeGeneratorBase gen = type.constructTreeGenerator();
 		gen.allowSlugs = false;
+		gen.isSaplingGrowth = true;
 		if (gen.generate(world, rand, x, y, z)) {
 			if (type == PinkTreeTypes.GIANTTREE)
 				world.setBlock(x, y, z, Blocks.air);

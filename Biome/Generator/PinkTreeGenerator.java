@@ -29,7 +29,7 @@ public class PinkTreeGenerator extends PinkTreeGeneratorBase {
 		int h = ReikaRandomHelper.getRandomBetween(10, 16, rand)-2;
 		int hl = Math.min(h-4, ReikaRandomHelper.getRandomBetween(6, 9, rand));
 		this.resetHeight();
-		leafDistanceLimit = rand.nextInt(3) == 0 ? 3 : 2;
+		leafDistanceLimit = rand.nextInt(isSaplingGrowth ? 2 : 3) == 0 ? 3 : 2;
 		heightLimitLimit = h;
 		branchSlope = ReikaRandomHelper.getRandomPlusMinus(0, BASE_SLOPE*1.5, rand);
 		heightAttenuation = BASE_ATTENUATION;

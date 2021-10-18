@@ -1,5 +1,6 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -11,11 +12,14 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Base.BlockCustomLeaf;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.RotaryCraft.API.Interfaces.LeafBlockWithExtras;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
+import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Registry.SFBlocks;
 
-public class BlockPinkLeaves extends BlockCustomLeaf {
+public class BlockPinkLeaves extends BlockCustomLeaf implements LeafBlockWithExtras {
 
 	public BlockPinkLeaves() {
 		super();
@@ -168,8 +172,39 @@ public class BlockPinkLeaves extends BlockCustomLeaf {
 	}
 
 	@Override
+	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
+		ArrayList<ItemStack> ret = super.getDrops(world, x, y, z, metadata, fortune);
+		if (ReikaRandomHelper.doWithChance(fortune*fortune*0.004*PinkTreeTypes.getLeafType(metadata).getBerryModifier())) {
+			ret.add(new ItemStack(Satisforestry.paleberry, 1, 1));
+		}
+		return ret;
+	}
+
+	@Override
 	protected int getMetaLimit() {
 		return PinkTreeTypes.list.length;
+	}
+
+	@Override
+	public void onPreWoodcutterBreak(World world, int x, int y, int z) {
+		int y2 = y;
+		while (world.getBlock(x, y2-1, z) == SFBlocks.GRASS.getBlockInstance() && world.getBlockMetadata(x, y2-1, z) == GrassTypes.TREE_VINE.ordinal()) {
+			y2--;
+		}
+		for (; y2 < y; y2++) {
+			world.setBlockToAir(x, y2, z);
+		}
+	}
+
+	@Override
+	public ArrayList<ItemStack> getExtraDrops(World world, int x, int y, int z, int fortune) {
+		ArrayList<ItemStack> ret = new ArrayList();
+		int y2 = y;
+		while (world.getBlock(x, y2-1, z) == SFBlocks.GRASS.getBlockInstance() && world.getBlockMetadata(x, y2-1, z) == GrassTypes.TREE_VINE.ordinal()) {
+			y2--;
+			ret.addAll(SFBlocks.GRASS.getBlockInstance().getDrops(world, x, y2, z, GrassTypes.TREE_VINE.ordinal(), fortune));
+		}
+		return ret;
 	}
 
 }
