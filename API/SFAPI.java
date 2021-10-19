@@ -62,7 +62,7 @@ public class SFAPI {
 		 They are also always hostile, and will infinitely respawn until the player has killed all of them. See {@link PointSpawnLocation} for details. */
 		public PointSpawnLocation getEntitySpawnPoint(EntityLiving e);
 
-		/** Be aware that this is not performant to call at a high frequency, and will return null if the player is not in a pink forest. */
+		/** Be aware that this is not terribly performant to call at a high frequency, and will return null if the player is not in a pink forest. */
 		public PointSpawnLocation getNearestSpawnPoint(EntityPlayer ep);
 
 	}

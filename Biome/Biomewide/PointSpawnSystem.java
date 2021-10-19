@@ -26,6 +26,7 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
+import Reika.DragonAPI.Instantiable.Data.Immutable.WorldChunk;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Data.Maps.MultiMap;
 import Reika.DragonAPI.Instantiable.Event.EntityRemovedEvent;
@@ -60,7 +61,7 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 	private final RoadGuardSpawner guards;
 
 	private final HashSet<WorldLocation> locationsUsed = new HashSet();
-	private final HashMap<Integer, MultiMap<Class<? extends EntityLiving>, SpawnPoint>> spawns = new HashMap();
+	private final HashMap<Integer, MultiMap<WorldChunk, SpawnPoint>> spawns = new HashMap();
 
 	private PointSpawnSystem() {
 		doggos = new LizardDoggoSpawner();
@@ -156,12 +157,12 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 			throw new IllegalArgumentException("Unregistered spawner type "+s.id+"!");
 		if (s.location == null)
 			throw new IllegalArgumentException("Spawnpoint "+s+" has a null location!");
-		MultiMap<Class<? extends EntityLiving>, SpawnPoint> map = spawns.get(s.location.dimensionID);
+		MultiMap<WorldChunk, SpawnPoint> map = spawns.get(s.location.dimensionID);
 		if (map == null) {
 			map = new MultiMap();
 			spawns.put(s.location.dimensionID, map);
 		}
-		map.addValue(s.mobClass, s);
+		map.addValue(s.getChunk(), s);
 		locationsUsed.add(s.location);
 	}
 
@@ -210,7 +211,7 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 	}
 
 	public void saveSpawnPoints(NBTTagList li) {
-		for (MultiMap<Class<? extends EntityLiving>, SpawnPoint> map : spawns.values()) {
+		for (MultiMap<WorldChunk, SpawnPoint> map : spawns.values()) {
 			for (Collection<SpawnPoint> c : map.values()) {
 				for (SpawnPoint loc : c) {
 					if (loc.isDead())
@@ -229,13 +230,13 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 	}
 
 	public Collection<SpawnPoint> getWorldSpawns(World world) {
-		MultiMap<Class<? extends EntityLiving>, SpawnPoint> map = spawns.get(world.provider.dimensionId);
+		MultiMap<WorldChunk, SpawnPoint> map = spawns.get(world.provider.dimensionId);
 		return map != null ? Collections.unmodifiableCollection(map.allValues(false)) : new ArrayList();
 	}
 
-	public Collection<SpawnPoint> getSpawns(World world, Class<? extends EntityLiving> c) {
-		MultiMap<Class<? extends EntityLiving>, SpawnPoint> map = spawns.get(world.provider.dimensionId);
-		return map != null ? Collections.unmodifiableCollection(map.get(c)) : new ArrayList();
+	public Collection<SpawnPoint> getSpawns(World world, WorldChunk wc) {
+		MultiMap<WorldChunk, SpawnPoint> map = spawns.get(world.provider.dimensionId);
+		return map != null ? Collections.unmodifiableCollection(map.get(wc)) : new ArrayList();
 	}
 
 	public PointSpawnLocation getNearestSpawnPoint(EntityPlayer ep) {
@@ -252,17 +253,17 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 		return ret;
 	}
 
-	public SpawnPoint getSpawnAt(WorldLocation loc, Class<? extends EntityLiving> c) {
+	public SpawnPoint getSpawnAt(WorldLocation loc) {
 		if (loc == null)
 			return null;
 		if (loc.getBlock() instanceof PointSpawnBlock) {
 			TileEntity tile = loc.getWorld().getTileEntity(loc.xCoord, loc.yCoord, loc.zCoord);
 			return tile instanceof PointSpawnTile ? ((PointSpawnTile)tile).getSpawner() : null;
 		}
-		MultiMap<Class<? extends EntityLiving>, SpawnPoint> map = spawns.get(loc.dimensionID);
+		MultiMap<WorldChunk, SpawnPoint> map = spawns.get(loc.dimensionID);
 		if (map == null)
 			return null;
-		for (SpawnPoint spawn : map.get(c)) {
+		for (SpawnPoint spawn : map.get(loc.getChunk())) {
 			if (spawn.getLocation().equals(loc)) {
 				return spawn;
 			}
@@ -271,7 +272,7 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 	}
 
 	public SpawnPoint getSpawn(EntityLiving e) {
-		return this.getSpawnAt(this.getSpawnLocation(e), e.getClass());
+		return this.getSpawnAt(this.getSpawnLocation(e));
 	}
 
 	public PointSpawnLocation getEntitySpawnPoint(EntityLiving e) {
@@ -333,7 +334,7 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 			return;
 		long time = world.getTotalWorldTime();
 		if (time%10 == 0 && Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ))) {
-			MultiMap<Class<? extends EntityLiving>, SpawnPoint> map = spawns.get(world.provider.dimensionId);
+			MultiMap<WorldChunk, SpawnPoint> map = spawns.get(world.provider.dimensionId);
 			if (map == null)
 				return;
 			for (Collection<SpawnPoint> c : map.values()) {
@@ -346,7 +347,7 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 	}
 
 	public void removeSpawner(SpawnPoint p) {
-		MultiMap<Class<? extends EntityLiving>, SpawnPoint> map = spawns.get(p.getDimension());
+		MultiMap<WorldChunk, SpawnPoint> map = spawns.get(p.getDimension());
 		if (map == null)
 			return;
 		map.removeValue(p);
@@ -380,6 +381,12 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 		 */
 		protected SpawnPoint(WorldLocation loc) {
 			location = loc;
+		}
+
+		protected final WorldChunk getChunk() {
+			//WorldLocation loc = this.getLocation();
+			//return new WorldChunk(loc.dimensionID, loc.xCoord >> 4, loc.zCoord >> 4);
+			return this.getLocation().getChunk();
 		}
 
 		public WorldLocation getLocation() {
