@@ -69,8 +69,13 @@ public class BlockCaveSpawner extends BlockContainer implements PointSpawnBlock 
 		}
 
 		@Override
-		protected int getDimension() {
+		public int getDimension() {
 			return tile.worldObj.provider.dimensionId;
+		}
+
+		@Override
+		public boolean isBlock() {
+			return true;
 		}
 
 		private void tick(World world) {

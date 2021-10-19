@@ -35,6 +35,8 @@ import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.DragonAPI.Libraries.ReikaPlayerAPI;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.API.PointSpawnLocation;
+import Reika.Satisforestry.API.SFAPI.PinkForestSpawningHandler;
 import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Blocks.PointSpawnBlock;
@@ -43,7 +45,7 @@ import Reika.Satisforestry.Entity.SpawnPointEntity;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 
-public final class PointSpawnSystem {
+public final class PointSpawnSystem implements PinkForestSpawningHandler {
 
 	private static final HashMap<String, SpawnPointDefinition> spawnerTypes = new HashMap();
 	private static final HashMap<Class<? extends SpawnPoint>, String> spawnerTypeClasses = new HashMap();
@@ -236,6 +238,20 @@ public final class PointSpawnSystem {
 		return map != null ? Collections.unmodifiableCollection(map.get(c)) : new ArrayList();
 	}
 
+	public PointSpawnLocation getNearestSpawnPoint(EntityPlayer ep) {
+		if (!Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
+			return null;
+		double dist = Double.POSITIVE_INFINITY;
+		SpawnPoint ret = null;
+		for (SpawnPoint s : this.getWorldSpawns(ep.worldObj)) {
+			if (ret == null || s.getLocation().getDistanceTo(ep) < dist) {
+				dist = s.getLocation().getDistanceTo(ep);
+				ret = s;
+			}
+		}
+		return ret;
+	}
+
 	public SpawnPoint getSpawnAt(WorldLocation loc, Class<? extends EntityLiving> c) {
 		if (loc == null)
 			return null;
@@ -256,6 +272,10 @@ public final class PointSpawnSystem {
 
 	public SpawnPoint getSpawn(EntityLiving e) {
 		return this.getSpawnAt(this.getSpawnLocation(e), e.getClass());
+	}
+
+	public PointSpawnLocation getEntitySpawnPoint(EntityLiving e) {
+		return this.getSpawn(e);
 	}
 
 	private WorldLocation getSpawnLocation(EntityLiving e) {
@@ -333,7 +353,7 @@ public final class PointSpawnSystem {
 		p.isDead = true;
 	}
 
-	public static abstract class SpawnPoint {
+	public static abstract class SpawnPoint implements PointSpawnLocation {
 
 		private final WorldLocation location;
 
@@ -366,8 +386,20 @@ public final class PointSpawnSystem {
 			return location;
 		}
 
-		protected int getDimension() {
+		public int getDimension() {
 			return this.getLocation().dimensionID;
+		}
+
+		public int getX() {
+			return this.getLocation().xCoord;
+		}
+
+		public int getY() {
+			return this.getLocation().yCoord;
+		}
+
+		public int getZ() {
+			return this.getLocation().zCoord;
 		}
 
 		public void setSpawnParameters(Class<? extends EntityLiving> c, int n, double r) {
@@ -548,7 +580,7 @@ public final class PointSpawnSystem {
 				BiomewideFeatureGenerator.instance.save(e.worldObj);
 		}
 
-		protected boolean canBeCleared() {
+		public boolean canBeCleared() {
 			return true;
 		}
 
@@ -641,6 +673,10 @@ public final class PointSpawnSystem {
 				loc.writeToNBT("location", tag);
 				e.getEntityData().setTag(SPAWN_NBT_TAG, tag);
 			}
+		}
+
+		public boolean isBlock() {
+			return false;
 		}
 
 	}

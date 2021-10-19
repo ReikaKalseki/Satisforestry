@@ -78,7 +78,7 @@ public class LizardDoggoSpawner implements SpawnPointDefinition {
 		}
 
 		@Override
-		protected boolean canBeCleared() {
+		public boolean canBeCleared() {
 			return false;
 		}
 

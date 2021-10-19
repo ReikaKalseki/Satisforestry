@@ -5,12 +5,15 @@ import java.util.HashMap;
 import java.util.Random;
 
 import net.minecraft.block.Block;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 
+import Reika.DragonAPI.ModList;
+import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.Satisforestry.API.NodeEffectCallback;
 import Reika.Satisforestry.API.PinkTreeType;
 import Reika.Satisforestry.API.SFAPI;
@@ -25,6 +28,8 @@ import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 import Reika.Satisforestry.Config.ResourceItem;
 
+import thaumcraft.api.aspects.Aspect;
+
 public class APIObjects {
 
 	public static void load() {
@@ -36,6 +41,21 @@ public class APIObjects {
 	}
 
 	private static class SFLookups implements Reika.Satisforestry.API.SFAPI.SFLookups {
+
+		@Override
+		public Object getAspect() {
+			return ModList.THAUMCRAFT.isLoaded() ? this.loadTCHandler() : null;
+		}
+
+		@ModDependent(ModList.THAUMCRAFT)
+		private Aspect loadTCHandler() {
+			return SFThaumHandler.FICSIT;
+		}
+
+		@Override
+		public Item getPaleberries() {
+			return Satisforestry.paleberry;
+		}
 
 	}
 
@@ -54,6 +74,11 @@ public class APIObjects {
 		@Override
 		public int getTrueTopAt(World world, int x, int z) {
 			return DecoratorPinkForest.getTrueTopAt(world, x, z);
+		}
+
+		@Override
+		public BiomeGenBase getBiome() {
+			return Satisforestry.pinkforest;
 		}
 
 	}

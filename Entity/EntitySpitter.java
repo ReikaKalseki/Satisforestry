@@ -22,6 +22,7 @@ import net.minecraft.world.World;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.Satisforestry.API.Spitter;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
 import Reika.Satisforestry.Entity.AI.EntityAIRunToNewPosition;
@@ -35,7 +36,7 @@ import Reika.Satisforestry.Render.SpitterFireParticle;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class EntitySpitter extends EntityMob {
+public class EntitySpitter extends EntityMob implements Spitter {
 
 	private EntityAISpitterBlast knockbackBlast = new EntityAISpitterBlast(this, 2, 1);
 	private EntityAISpitterFireball basicFireball = new EntityAISpitterFireball(this, 1.0D, 40, 2, 15, 1, 4);

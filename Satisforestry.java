@@ -85,6 +85,7 @@ import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import forestry.api.recipes.IFermenterRecipe;
 import forestry.api.recipes.ISqueezerRecipe;
 import forestry.api.recipes.RecipeManagers;
 
@@ -260,7 +261,7 @@ public class Satisforestry extends DragonAPIMod {
 	private void addRecipes() {
 		float xp =  FurnaceRecipes.smelting().func_151398_b(ReikaItemHelper.charcoal);
 		for (PinkTreeTypes type : PinkTreeTypes.list) {
-			ItemStack log = SFBlocks.LOG.getStackOfMetadata(type.ordinal());
+			ItemStack log = type.getBaseLog();
 			GameRegistry.addShapelessRecipe(new ItemStack(Blocks.planks, 4), log);
 			ReikaRecipeHelper.addSmelting(log, ReikaItemHelper.getSizedItemStack(ReikaItemHelper.charcoal, type.getCharcoalYield()), xp);
 		}
@@ -365,6 +366,14 @@ public class Satisforestry extends DragonAPIMod {
 				fs.amount *= 0.2;
 				RecipeManagers.squeezerManager.addRecipe(rec.getProcessingTime(), new ItemStack[] {new ItemStack(paleberry, 1, 1)}, fs.copy(), rec.getRemnants(), (int)(chance*0.25));
 			}
+			IFermenterRecipe rec2 = ForestryRecipeHelper.getInstance().getFermenterOutput(new ItemStack(Blocks.sapling));
+			if (rec2 != null) {
+				for (PinkTreeTypes type : PinkTreeTypes.list) {
+					float f = Math.max(type.getBerryModifier()*1.2F, 0.2F);
+					ForestryRecipeHelper.getInstance().addStandardFermenterRecipes(type.getSapling(), (int)(rec2.getFermentationValue()*f));
+				}
+			}
+
 		}
 
 		this.finishTiming();

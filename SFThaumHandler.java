@@ -44,9 +44,9 @@ public class SFThaumHandler {
 
 		for (PinkTreeTypes type : PinkTreeTypes.list) {
 			int f = type == PinkTreeTypes.GIANTTREE ? 2 : 1;
-			ReikaThaumHelper.addAspects(SFBlocks.LOG.getStackOfMetadata(type.ordinal()), Aspect.TREE, 5*f, Aspect.ARMOR, 2*f, Aspect.TRAVEL, 1);
-			ReikaThaumHelper.addAspects(SFBlocks.SAPLING.getStackOfMetadata(type.ordinal()), Aspect.TREE, f);
-			ReikaThaumHelper.addAspects(SFBlocks.LEAVES.getStackOfMetadata(type.ordinal()), Aspect.PLANT, 3*f, Aspect.GREED, f);
+			ReikaThaumHelper.addAspects(type.getBaseLog(), Aspect.TREE, 5*f, Aspect.ARMOR, 2*f, Aspect.TRAVEL, 1);
+			ReikaThaumHelper.addAspects(type.getSapling(), Aspect.TREE, f);
+			ReikaThaumHelper.addAspects(type.getBaseLeaf(), Aspect.PLANT, 3*f, Aspect.GREED, f);
 		}
 
 		ReikaThaumHelper.addAspects(SFBlocks.SLUG.getStackOfMetadata(0), Aspect.ENERGY, 6, Aspect.GREED, 3, Aspect.MECHANISM, 5, FICSIT, 1);

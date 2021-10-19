@@ -167,6 +167,11 @@ public class BlockPinkLeaves extends BlockCustomLeaf implements LeafBlockWithExt
 	}
 
 	@Override
+	protected void func_150124_c(World world, int x, int y, int z, int p_150124_5_, int p_150124_6_) {
+
+	}
+
+	@Override
 	public int damageDropped(int meta) {
 		return PinkTreeTypes.getLeafType(meta).getTypeDropped().ordinal();
 	}
@@ -174,7 +179,7 @@ public class BlockPinkLeaves extends BlockCustomLeaf implements LeafBlockWithExt
 	@Override
 	public ArrayList<ItemStack> getDrops(World world, int x, int y, int z, int metadata, int fortune) {
 		ArrayList<ItemStack> ret = super.getDrops(world, x, y, z, metadata, fortune);
-		if (ReikaRandomHelper.doWithChance(fortune*fortune*0.004*PinkTreeTypes.getLeafType(metadata).getBerryModifier())) {
+		if (ReikaRandomHelper.doWithChance(fortune*fortune*0.0025*PinkTreeTypes.getLeafType(metadata).getBerryModifier())) {
 			ret.add(new ItemStack(Satisforestry.paleberry, 1, 1));
 		}
 		return ret;

@@ -7,6 +7,7 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.item.ItemStack;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -191,11 +192,11 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 		public double getSaplingDropChance() { //5% base
 			switch(this) {
 				case TREE:
-					return 8;
+					return 6.67;
 				case GIANTTREE:
 					return 0.2;
 				case JUNGLE:
-					return 4;
+					return 3;
 			}
 			return 0;
 		}
@@ -275,6 +276,21 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 				default:
 					return 1;
 			}
+		}
+
+		@Override
+		public ItemStack getBaseLog() {
+			return SFBlocks.LOG.getStackOfMetadata(this.ordinal());
+		}
+
+		@Override
+		public ItemStack getBaseLeaf() {
+			return SFBlocks.LEAVES.getStackOfMetadata(this.ordinal());
+		}
+
+		@Override
+		public ItemStack getSapling() {
+			return SFBlocks.SAPLING.getStackOfMetadata(this.ordinal());
 		}
 	}
 

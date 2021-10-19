@@ -41,6 +41,7 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMusicHelper.MusicKey;
 import Reika.DragonAPI.Libraries.Registry.ReikaParticleHelper;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.API.LizardDoggo;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.DoggoDrop;
 import Reika.Satisforestry.Entity.AI.EntityAIComeGetPaleberry;
@@ -53,7 +54,7 @@ import Reika.Satisforestry.Registry.SFSounds;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntity {
+public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntity, LizardDoggo {
 
 	private static final int SNEEZE_LENGTH_1 = 8;
 	private static final int SNEEZE_LENGTH_2 = 40;
@@ -248,7 +249,9 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 		dataWatcher.updateObject(15, flags);
 	}
 
-	private void generateItem() {
+	public void generateItem() {
+		if (foundItem != null)
+			return;
 		foundItem = this.getRandomDrop();
 		lastItemTick = worldObj.getTotalWorldTime();
 		ReikaPacketHelper.sendEntitySyncPacket(DragonAPIInit.packetChannel, this, 128);
@@ -536,6 +539,12 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 
 	public boolean hasItem() {
 		return foundItem != null;
+	}
+
+	public ItemStack takeItem() {
+		ItemStack ret = foundItem.copy();
+		foundItem = null;
+		return ret;
 	}
 
 	public boolean justDepositedItem() {
