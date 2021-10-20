@@ -1,5 +1,7 @@
 package Reika.Satisforestry.API;
 
+import net.minecraft.entity.EntityLiving;
+
 /** An active mob spawning point. These are not like vanilla mob spawners, but more like the spawns in Satisfactory: A spawn point has a defined profile of
  which mobs it will spawn (count and type), and will fill that cap when a player approaches. Should a player leave, the mobs despawn and will reappear for
  the next time. If despawned or killed from non-player sources, spawnpoint mobs will infinitely replenish themselves to fill this cap.
@@ -31,4 +33,13 @@ public interface PointSpawnLocation {
 
 	/** Whether this spawn point is tied to a block. */
 	public boolean isBlock();
+
+	/** Which entity class this point spawns. Do <i>not</i> attempt spawning your own. */
+	public Class<? extends EntityLiving> getSpawnType();
+
+	/** How many mobs are to be spawned by this point, equal to the original base cap minus how many the player has killed since the last reset. */
+	public int getActiveSpawnCap();
+
+	/** How many mobs are currently "in play" (ie spawned in world and active) from this spawn point. */
+	public int getCurrentlySpawned();
 }

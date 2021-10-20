@@ -28,7 +28,8 @@ import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldChunk;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
-import Reika.DragonAPI.Instantiable.Data.Maps.MultiMap;
+import Reika.DragonAPI.Instantiable.Data.Maps.TileEntityCache;
+import Reika.DragonAPI.Instantiable.Data.Maps.TileEntityCache.LocationEntry;
 import Reika.DragonAPI.Instantiable.Event.EntityRemovedEvent;
 import Reika.DragonAPI.Instantiable.Event.SpiderLightPassivationEvent;
 import Reika.DragonAPI.Libraries.ReikaEntityHelper;
@@ -61,7 +62,7 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 	private final RoadGuardSpawner guards;
 
 	private final HashSet<WorldLocation> locationsUsed = new HashSet();
-	private final HashMap<Integer, MultiMap<WorldChunk, SpawnPoint>> spawns = new HashMap();
+	private final HashMap<Integer, TileEntityCache<SpawnPoint>> spawns = new HashMap();
 
 	private PointSpawnSystem() {
 		doggos = new LizardDoggoSpawner();
@@ -157,12 +158,12 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 			throw new IllegalArgumentException("Unregistered spawner type "+s.id+"!");
 		if (s.location == null)
 			throw new IllegalArgumentException("Spawnpoint "+s+" has a null location!");
-		MultiMap<WorldChunk, SpawnPoint> map = spawns.get(s.location.dimensionID);
+		TileEntityCache<SpawnPoint> map = spawns.get(s.location.dimensionID);
 		if (map == null) {
-			map = new MultiMap();
+			map = new TileEntityCache();
 			spawns.put(s.location.dimensionID, map);
 		}
-		map.addValue(s.getChunk(), s);
+		map.put(s);
 		locationsUsed.add(s.location);
 	}
 
@@ -211,46 +212,42 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 	}
 
 	public void saveSpawnPoints(NBTTagList li) {
-		for (MultiMap<WorldChunk, SpawnPoint> map : spawns.values()) {
-			for (Collection<SpawnPoint> c : map.values()) {
-				for (SpawnPoint loc : c) {
-					if (loc.isDead())
-						continue;
-					NBTTagCompound tag = new NBTTagCompound();
-					loc.writeToTag(tag);
-					if (Strings.isNullOrEmpty(loc.id)) {
-						Satisforestry.logger.logError("Could not save spawnpoint of unrecognized/null-mapped type '"+loc.id+"': "+loc);
-						continue;
-					}
-					tag.setString("spawnerType", loc.id);
-					li.appendTag(tag);
+		for (TileEntityCache<SpawnPoint> map : spawns.values()) {
+			for (SpawnPoint loc : map.values()) {
+				if (loc.isDead())
+					continue;
+				NBTTagCompound tag = new NBTTagCompound();
+				loc.writeToTag(tag);
+				if (Strings.isNullOrEmpty(loc.id)) {
+					Satisforestry.logger.logError("Could not save spawnpoint of unrecognized/null-mapped type '"+loc.id+"': "+loc);
+					continue;
 				}
+				tag.setString("spawnerType", loc.id);
+				li.appendTag(tag);
 			}
 		}
 	}
 
 	public Collection<SpawnPoint> getWorldSpawns(World world) {
-		MultiMap<WorldChunk, SpawnPoint> map = spawns.get(world.provider.dimensionId);
-		return map != null ? Collections.unmodifiableCollection(map.allValues(false)) : new ArrayList();
+		TileEntityCache<SpawnPoint> map = spawns.get(world.provider.dimensionId);
+		return map != null ? Collections.unmodifiableCollection(map.values()) : new ArrayList();
 	}
 
-	public Collection<SpawnPoint> getSpawns(World world, WorldChunk wc) {
-		MultiMap<WorldChunk, SpawnPoint> map = spawns.get(world.provider.dimensionId);
-		return map != null ? Collections.unmodifiableCollection(map.get(wc)) : new ArrayList();
-	}
-
-	public PointSpawnLocation getNearestSpawnPoint(EntityPlayer ep) {
+	public PointSpawnLocation getNearestSpawnPoint(EntityPlayer ep, double r) {
 		if (!Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
 			return null;
+		TileEntityCache<SpawnPoint> map = spawns.get(ep.worldObj.provider.dimensionId);
+		if (map == null)
+			return null;
 		double dist = Double.POSITIVE_INFINITY;
-		SpawnPoint ret = null;
-		for (SpawnPoint s : this.getWorldSpawns(ep.worldObj)) {
-			if (ret == null || s.getLocation().getDistanceTo(ep) < dist) {
-				dist = s.getLocation().getDistanceTo(ep);
-				ret = s;
+		WorldLocation ret = null;
+		for (WorldLocation loc : map.getAllLocationsNear(new WorldLocation(ep), r)) {
+			if (ret == null || loc.getDistanceTo(ep) < dist) {
+				dist = loc.getDistanceTo(ep);
+				ret = loc;
 			}
 		}
-		return ret;
+		return ret != null ? map.get(ret) : null;
 	}
 
 	public SpawnPoint getSpawnAt(WorldLocation loc) {
@@ -260,15 +257,10 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 			TileEntity tile = loc.getWorld().getTileEntity(loc.xCoord, loc.yCoord, loc.zCoord);
 			return tile instanceof PointSpawnTile ? ((PointSpawnTile)tile).getSpawner() : null;
 		}
-		MultiMap<WorldChunk, SpawnPoint> map = spawns.get(loc.dimensionID);
+		TileEntityCache<SpawnPoint> map = spawns.get(loc.dimensionID);
 		if (map == null)
 			return null;
-		for (SpawnPoint spawn : map.get(loc.getChunk())) {
-			if (spawn.getLocation().equals(loc)) {
-				return spawn;
-			}
-		}
-		return null;
+		return map.get(loc);
 	}
 
 	public SpawnPoint getSpawn(EntityLiving e) {
@@ -334,27 +326,24 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 			return;
 		long time = world.getTotalWorldTime();
 		if (time%10 == 0 && Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ))) {
-			MultiMap<WorldChunk, SpawnPoint> map = spawns.get(world.provider.dimensionId);
+			TileEntityCache<SpawnPoint> map = spawns.get(world.provider.dimensionId);
 			if (map == null)
 				return;
-			for (Collection<SpawnPoint> c : map.values()) {
-				for (SpawnPoint loc : c) {
-					//ReikaJavaLibrary.pConsole(loc);
-					loc.tick(ep.worldObj, ep);
-				}
+			for (SpawnPoint loc : map.values()) {
+				loc.tick(ep.worldObj, ep);
 			}
 		}
 	}
 
 	public void removeSpawner(SpawnPoint p) {
-		MultiMap<WorldChunk, SpawnPoint> map = spawns.get(p.getDimension());
+		TileEntityCache<SpawnPoint> map = spawns.get(p.getDimension());
 		if (map == null)
 			return;
-		map.removeValue(p);
+		map.remove(p);
 		p.isDead = true;
 	}
 
-	public static abstract class SpawnPoint implements PointSpawnLocation {
+	public static abstract class SpawnPoint implements PointSpawnLocation, LocationEntry {
 
 		private final WorldLocation location;
 
@@ -473,10 +462,11 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 			isDead = NBT.getBoolean("dead");
 			mobType = NBT.hasKey("mob") ? NBT.getString("mob") : "";
 			try {
-				mobClass = (Class<? extends EntityLiving>)Class.forName(NBT.getString("type"));
+				String cl = NBT.getString("type");
+				mobClass = Strings.isNullOrEmpty(cl) ? null : (Class<? extends EntityLiving>)Class.forName(cl);
 			}
 			catch (ClassNotFoundException e) {
-				e.printStackTrace();
+				Satisforestry.logger.logError("Could not find mob type for spawn point: "+NBT);
 				mobClass = (Class<? extends EntityLiving>)EntityList.stringToClassMapping.get(mobType);
 			}
 
@@ -585,6 +575,14 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 			}
 			if (location != null)
 				BiomewideFeatureGenerator.instance.save(e.worldObj);
+		}
+
+		public final int getActiveSpawnCap() {
+			return numberToSpawn-playerKilled;
+		}
+
+		public final int getCurrentlySpawned() {
+			return existingCount;
 		}
 
 		public boolean canBeCleared() {

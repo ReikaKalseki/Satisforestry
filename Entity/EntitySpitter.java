@@ -331,6 +331,18 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		return lastblast >= (type.isAlpha() ? 90 : 30);
 	}
 
+	public void initiateHeadShake() {
+		headshake = 300;
+	}
+
+	public boolean canContinueHeadshake() {
+		return headshake >= 200;
+	}
+
+	public boolean canInitiateHeadshake() {
+		return headshake <= 0;
+	}
+
 	public static enum SpitterType {
 		BASIC(10, 1F, 2, 0xFFCC4A, 0xF14C00),
 		RED(15, 2F, 6, 0xFF6E00, 0xC80D00),
@@ -356,18 +368,6 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		public boolean isAlpha() {
 			return this != BASIC;
 		}
-	}
-
-	public void initiateHeadShake() {
-		headshake = 300;
-	}
-
-	public boolean canContinueHeadshake() {
-		return headshake >= 200;
-	}
-
-	public boolean canInitiateHeadshake() {
-		return headshake <= 0;
 	}
 
 }
