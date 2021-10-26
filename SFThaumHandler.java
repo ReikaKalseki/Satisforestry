@@ -21,6 +21,8 @@ public class SFThaumHandler {
 	public static final Aspect FICSIT = new Aspect("praestantia", 0xFA9549, new Aspect[]{Aspect.ELDRITCH, Aspect.MECHANISM}, new ResourceLocation("satisforestry", "textures/aspects/ficsit.png"), 1);
 
 	public static void load() {
+		//ThaumcraftApi.addCrucibleRecipe("SFLOGUNPACK", unpacked, PinkTreeTypes.JUNGLE.getBaseLog(), new AspectList().add(Aspect.EXCHANGE, 2));
+
 		ReikaThaumHelper.addAspectsToItem(Satisforestry.paleberry, Aspect.HEAL, 4, Aspect.HUNGER, 1, Aspect.EXCHANGE, 1);
 
 		ReikaThaumHelper.addAspects(EntityEliteStinger.class, Aspect.BEAST, 12, Aspect.POISON, 10, Aspect.HUNGER, 6, Aspect.FLIGHT, 2);

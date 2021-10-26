@@ -26,7 +26,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
+import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityFurnace;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.BiomeDictionary;
@@ -43,6 +45,7 @@ import Reika.DragonAPI.DragonOptions;
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.Auxiliary.WorldGenInterceptionRegistry;
 import Reika.DragonAPI.Auxiliary.Trackers.CommandableUpdateChecker;
+import Reika.DragonAPI.Auxiliary.Trackers.FurnaceFuelRegistry;
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.DragonAPIMod.LoadProfiler.LoadPhase;
 import Reika.DragonAPI.Instantiable.IO.ControlledConfig;
@@ -51,6 +54,7 @@ import Reika.DragonAPI.Libraries.ReikaRecipeHelper;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.DragonAPI.Libraries.Registry.ReikaTreeHelper;
 import Reika.DragonAPI.ModInteract.ItemStackRepository;
 import Reika.DragonAPI.ModInteract.ReikaClimateControl;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
@@ -88,6 +92,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 import forestry.api.recipes.IFermenterRecipe;
 import forestry.api.recipes.ISqueezerRecipe;
 import forestry.api.recipes.RecipeManagers;
+import vazkii.botania.api.BotaniaAPI;
+import vazkii.botania.api.recipe.RecipeManaInfusion;
 
 @Mod( modid = "Satisforestry", name="Satisforestry", version = "v@MAJOR_VERSION@@MINOR_VERSION@", certificateFingerprint = "@GET_FINGERPRINT@", dependencies="required-after:DragonAPI;after:CritterPet;after:RotaryCraft;after:IC2;after:ThermalExpansion;before:climatecontrol")
 
@@ -247,6 +253,10 @@ public class Satisforestry extends DragonAPIMod {
 
 		FMLInterModComms.sendMessage(ModList.ARSMAGICA.modLabel, "bsb", "EntityDryad|"+SFOptions.BIOMEID.getValue());
 
+		if (ModList.THAUMCRAFT.isLoaded()) {
+			SFThaumHandler.load();
+		}
+
 		this.finishTiming();
 	}
 
@@ -263,7 +273,12 @@ public class Satisforestry extends DragonAPIMod {
 		for (PinkTreeTypes type : PinkTreeTypes.list) {
 			ItemStack log = type.getBaseLog();
 			GameRegistry.addShapelessRecipe(new ItemStack(Blocks.planks, 4), log);
-			ReikaRecipeHelper.addSmelting(log, ReikaItemHelper.getSizedItemStack(ReikaItemHelper.charcoal, type.getCharcoalYield()), xp);
+			int yield = type.getCharcoalYield();
+			ReikaRecipeHelper.addSmelting(log, ReikaItemHelper.getSizedItemStack(ReikaItemHelper.charcoal, yield), xp);
+
+			FurnaceFuelRegistry.instance.registerItem(log, yield*TileEntityFurnace.getItemBurnTime(ReikaTreeHelper.OAK.getItem().asItemStack()));
+			FurnaceFuelRegistry.instance.registerItem(type.getSapling(), yield*TileEntityFurnace.getItemBurnTime(ReikaTreeHelper.OAK.getSapling().asItemStack()));
+			FurnaceFuelRegistry.instance.registerItem(type.getBaseLeaf(), TileEntityFurnace.getItemBurnTime(ReikaTreeHelper.OAK.getBasicLeaf().asItemStack()));
 		}
 		OreDictionary.registerOre("logWood", SFBlocks.LOG.getAnyMetaStack());
 		OreDictionary.registerOre("treeLeaves", SFBlocks.LEAVES.getAnyMetaStack());
@@ -352,8 +367,12 @@ public class Satisforestry extends DragonAPIMod {
 		WorldGenInterceptionRegistry.instance.addWatcher(SFAux.populationWatcher);
 		WorldGenInterceptionRegistry.instance.addIWGWatcher(SFAux.slimeIslandBlocker);
 
-		if (ModList.THAUMCRAFT.isLoaded()) {
-			SFThaumHandler.load();
+		if (ModList.BOTANIA.isLoaded()) {
+			ItemStack unpacked = PinkTreeTypes.TREE.getBaseLog();
+			unpacked.stackTagCompound = new NBTTagCompound();
+			unpacked.stackTagCompound.setBoolean("unpacking", true);
+			RecipeManaInfusion rec = BotaniaAPI.registerManaInfusionRecipe(unpacked, PinkTreeTypes.JUNGLE.getBaseLog(), 10);
+			rec.setAlchemy(true);
 		}
 
 		if (ModList.FORESTRY.isLoaded()) {

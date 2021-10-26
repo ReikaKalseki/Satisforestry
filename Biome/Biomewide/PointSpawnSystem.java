@@ -325,14 +325,30 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 		if (world == null || world.isRemote)
 			return;
 		long time = world.getTotalWorldTime();
-		if (time%10 == 0 && Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ))) {
+		if (time%5 == 0 && Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ))) {
 			TileEntityCache<SpawnPoint> map = spawns.get(world.provider.dimensionId);
 			if (map == null)
 				return;
-			for (SpawnPoint loc : map.values()) {
-				loc.tick(ep.worldObj, ep);
+			int dist = this.getTickDist(time);
+			if (dist < 0) {
+				for (SpawnPoint loc : map.values()) {
+					loc.tick(ep.worldObj, ep);
+				}
+			}
+			else {
+				for (WorldLocation loc : map.getAllLocationsNear(new WorldLocation(ep), dist)) {
+					map.get(loc).tick(ep.worldObj, ep);
+				}
 			}
 		}
+	}
+
+	private int getTickDist(long time) {
+		if (time%100 == 0)
+			return -1;
+		if (time%40 == 0)
+			return 128;
+		return time%20 == 0 ? 64 : 32;
 	}
 
 	public void removeSpawner(SpawnPoint p) {

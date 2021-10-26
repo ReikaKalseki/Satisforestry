@@ -4,6 +4,7 @@ package Reika.Satisforestry;
 import java.util.Map;
 import java.util.Random;
 
+import net.minecraft.init.Blocks;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -45,6 +46,9 @@ public class SFAux {
 				if (Satisforestry.isPinkForest(world, c.xCoord, c.zCoord)) {
 					BlockSetData dat = set.get(c);
 					if (dat.newBlock == ThaumItemHelper.BlockEntry.TOTEM.getBlock()) {
+						dat.revert(world);
+					}
+					else if (dat.newBlock == Blocks.obsidian && c.yCoord >= 100) {
 						dat.revert(world);
 					}
 					else if (ModList.TINKERER.isLoaded() && TinkerBlockHandler.getInstance().isSlimeIslandBlock(dat.newBlock, dat.newMetadata)) {

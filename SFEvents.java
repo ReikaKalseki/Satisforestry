@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.command.IEntitySelector;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.EntitySpider;
 import net.minecraft.entity.player.InventoryPlayer;
 import net.minecraft.init.Blocks;
@@ -20,6 +21,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
 import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.event.entity.EntityJoinWorldEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -27,6 +29,7 @@ import net.minecraftforge.event.terraingen.ChunkProviderEvent;
 import net.minecraftforge.event.terraingen.DecorateBiomeEvent.Decorate;
 import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.oredict.OreDictionary;
 
 import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.ModList;
@@ -48,6 +51,8 @@ import Reika.DragonAPI.Instantiable.Event.Client.LiquidBlockIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
@@ -86,6 +91,23 @@ public class SFEvents {
 
 	private SFEvents() {
 
+	}
+
+	@SubscribeEvent
+	public void splitUnpackedLog(EntityJoinWorldEvent evt) {
+		if (evt.entity instanceof EntityItem) {
+			ItemStack is = ((EntityItem)evt.entity).getEntityItem();
+			if (is != null && SFBlocks.LOG.matchWith(is) && is.stackTagCompound != null && is.stackTagCompound.getBoolean("unpacking")) {
+				is.stackTagCompound = null;
+				((EntityItem)evt.entity).setEntityItemStack(is);
+				List<ItemStack> li = OreDictionary.getOres("dustWood");
+				if (!li.isEmpty()) {
+					ItemStack bonus = ReikaJavaLibrary.getRandomListEntry(DragonAPICore.rand, li);
+					EntityItem ei = ReikaItemHelper.dropItem(evt.entity, ReikaItemHelper.getSizedItemStack(bonus, 4*ReikaRandomHelper.getRandomBetween(1, 4)));
+					ei.age = ((EntityItem)evt.entity).age;
+				}
+			}
+		}
 	}
 	/*
 	@SubscribeEvent
