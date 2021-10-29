@@ -86,7 +86,7 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 	public EntityFX spawnLifeParticle(double x, double y, double z) {
 		float s = (float)ReikaRandomHelper.getRandomBetween(type.isAlpha() ? 1.5 : 1, type.isAlpha() ? 2 : 1.5);
 		int l = ReikaRandomHelper.getRandomBetween(7, 15);
-		SpitterFireParticle fx = new SpitterFireParticle(worldObj, x, y, z, this.getSpitterType());
+		SpitterFireParticle fx = new SpitterFireParticle(worldObj, x, y, z, type);
 		fx.setScale(s*3).setLife(l).setRapidExpand();
 		return fx;
 	}

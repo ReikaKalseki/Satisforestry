@@ -20,11 +20,11 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
-import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.API.Spitter;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
+import Reika.Satisforestry.Entity.AI.EntityAIChasePlayer;
 import Reika.Satisforestry.Entity.AI.EntityAIRunToNewPosition;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterBlast;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball;
@@ -39,28 +39,30 @@ import cpw.mods.fml.relauncher.SideOnly;
 public class EntitySpitter extends EntityMob implements Spitter {
 
 	private EntityAISpitterBlast knockbackBlast = new EntityAISpitterBlast(this, 2, 1);
-	private EntityAISpitterFireball basicFireball = new EntityAISpitterFireball(this, 1.0D, 40, 2, 15, 1, 4);
+	private EntityAISpitterFireball basicFireball = new EntityAISpitterFireball(this, 40, 2, 15, 1, 4);
 
 	private EntityAISpitterBlast knockbackBlastBig = new EntityAISpitterBlast(this, 3, 2);
 
-	private EntityAISpitterFireball fastFireball = new EntityAISpitterFireball(this, 1.0D, 50, 3, 16, 1.85, 7);
-	private EntityAISpitterFireball clusterFireball = new EntityAISpitterClusterFireball(this, 1.0D, 150, 12, 40, 4, 3);
+	private EntityAISpitterFireball fastFireball = new EntityAISpitterFireball(this, 50, 3, 16, 1.85, 7);
+	private EntityAISpitterFireball clusterFireball = new EntityAISpitterClusterFireball(this, 150, 12, 40, 4, 3);
 
-	private EntityAISpitterFireball basicFireballForAlpha = new EntityAISpitterFireball(this, 1.0D, 40, 3, 12, 1, 8);
-	private EntityAISpitterFireball splittingFireball = new EntityAISpitterSplittingFireball(this, 1.0D, 150, 9, 40, 1, 5);
+	private EntityAISpitterFireball basicFireballForAlpha = new EntityAISpitterFireball(this, 40, 3, 12, 1, 8);
+	private EntityAISpitterFireball splittingFireball = new EntityAISpitterSplittingFireball(this, 150, 9, 40, 1, 5);
 
 	private int lastblast = 0;
 	private int headshake = 0;
+	private int reposition = 0;
 
 	//attacks: close blast, fireball (maybe alpha types)
 	public EntitySpitter(World world) {
 		super(world);
 
 		tasks.addTask(1, new EntityAISwimming(this));
-		tasks.addTask(5, new EntityAIWander(this, 1.0D));
-		tasks.addTask(6, new EntityAIWatchClosest(this, EntityPlayer.class, 20F));
-		tasks.addTask(6, new EntityAILookIdle(this));
-		tasks.addTask(8, new EntityAIRunToNewPosition(this));
+		tasks.addTask(2, new EntityAIRunToNewPosition(this));
+		tasks.addTask(2, new EntityAIChasePlayer(this));
+		tasks.addTask(6, new EntityAIWander(this, 1.0D));
+		tasks.addTask(7, new EntityAIWatchClosest(this, EntityPlayer.class, 20F));
+		tasks.addTask(7, new EntityAILookIdle(this));
 		//targetTasks.addTask(1, new EntityAIHurtByTarget(this, false));
 		targetTasks.addTask(2, new EntityAINearestAttackableTarget(this, EntityPlayer.class, 0, true));
 
@@ -83,25 +85,19 @@ public class EntitySpitter extends EntityMob implements Spitter {
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
 		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(40);
-		this.setSpeed(0.25);
+		this.setRunning(false);
 	}
 
 	@Override
 	public void onLivingUpdate() {
 		if (!worldObj.isRemote) {
 			this.setRunning(entityToAttack != null);
-			this.setSpeed(this.isRunning() ? 0.4 : 0.25);
 			lastblast++;
 			if (headshake > 0)
 				headshake--;
+			if (reposition > 0)
+				reposition--;
 			dataWatcher.updateObject(15, (byte)(headshake > 0 ? 1 : 0));
-
-			Vec3 vec = this.getLookVec();
-			double[] angs = ReikaPhysicsHelper.polarToCartesianFast(1, rotationPitch, rotationYawHead);
-			vec.xCoord = angs[0];
-			vec.zCoord = angs[2];
-			EntitySpitterFireball esf = new EntitySpitterFireball(worldObj, this, vec.xCoord, vec.yCoord*0, vec.zCoord, 0.5, 1);
-			worldObj.spawnEntityInWorld(esf);
 		}
 		super.onLivingUpdate();
 	}
@@ -112,7 +108,7 @@ public class EntitySpitter extends EntityMob implements Spitter {
 	}
 
 	private void setSpeed(double d) {
-		this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(d);
+		this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(d*this.getSpitterType().movementSpeed);
 	}
 
 	@Override
@@ -122,6 +118,7 @@ public class EntitySpitter extends EntityMob implements Spitter {
 
 	public void setRunning(boolean run) {
 		dataWatcher.updateObject(14, (byte)(run ? 1 : 0));
+		this.setSpeed(this.isRunning() ? 0.65 : 0.2);
 	}
 
 	public boolean isRunning() {
@@ -158,10 +155,11 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		double x0 = posX+vec.xCoord*0.5;
 		double y0 = posY+this.getEyeHeight()+vec.yCoord*0.25;
 		double z0 = posZ+vec.zCoord*0.5;
+		double d = type.isAlpha() ? 0.875 : 0.5;
 		for (int i = 0; i < 12; i++) {
-			double x = ReikaRandomHelper.getRandomPlusMinus(x0, 0.5);
-			double y = ReikaRandomHelper.getRandomPlusMinus(y0, 0.25);
-			double z = ReikaRandomHelper.getRandomPlusMinus(z0, 0.5);
+			double x = ReikaRandomHelper.getRandomPlusMinus(x0, d);
+			double y = ReikaRandomHelper.getRandomPlusMinus(y0, d/2);
+			double z = ReikaRandomHelper.getRandomPlusMinus(z0, d);
 			int l = ReikaRandomHelper.getRandomBetween(12, 20);
 			float s = (float)ReikaRandomHelper.getRandomBetween(4.5, 8);
 			SpitterFireParticle fx = new SpitterFireParticle(worldObj, x, y, z, type);
@@ -242,7 +240,7 @@ public class EntitySpitter extends EntityMob implements Spitter {
 
 	@Override
 	public boolean getCanSpawnHere() {
-		return false && super.getCanSpawnHere();
+		return super.getCanSpawnHere();
 	}
 
 	@Override
@@ -276,18 +274,21 @@ public class EntitySpitter extends EntityMob implements Spitter {
 	}
 
 	public void setSpitterType(SpitterType type) {
+		SpitterType old = this.getSpitterType();
 		dataWatcher.updateObject(13, Byte.valueOf((byte)type.ordinal()));
-		this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(type.health);
-		this.setHealth(this.getMaxHealth());
+		if (old != type || ticksExisted < 5) {
+			this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(type.health);
+			this.setHealth(this.getMaxHealth());
 
-		if (type.isAlpha()) {
-			this.setSize(0.72F, 2.34F);
-		}
-		else {
-			this.setSize(0.6F, 1.8F);
-		}
+			if (type.isAlpha()) {
+				this.setSize(0.72F, 2.34F);
+			}
+			else {
+				this.setSize(0.6F, 1.8F);
+			}
 
-		this.setCombatTask();
+			this.setCombatTask();
+		}
 	}
 
 	private void setCombatTask() {
@@ -302,22 +303,22 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		tasks.removeTask(knockbackBlastBig);
 
 		if (type.isAlpha()) {
-			tasks.addTask(2, knockbackBlastBig);
+			tasks.addTask(3, knockbackBlastBig);
 		}
 		else {
-			tasks.addTask(2, knockbackBlast);
+			tasks.addTask(3, knockbackBlast);
 		}
 		switch(type) {
 			case BASIC:
-				tasks.addTask(3, basicFireball);
+				tasks.addTask(4, basicFireball);
 				break;
 			case GREEN:
-				tasks.addTask(3, fastFireball);
-				tasks.addTask(4, clusterFireball);
+				tasks.addTask(4, fastFireball);
+				tasks.addTask(5, clusterFireball);
 				break;
 			case RED:
-				tasks.addTask(3, basicFireballForAlpha);
-				tasks.addTask(4, splittingFireball);
+				tasks.addTask(4, basicFireballForAlpha);
+				tasks.addTask(5, splittingFireball);
 				break;
 		}
 	}
@@ -343,10 +344,18 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		return headshake <= 0;
 	}
 
+	public void setRepositioned() {
+		reposition = 120;
+	}
+
+	public boolean canReposition() {
+		return reposition <= 0;
+	}
+
 	public static enum SpitterType {
-		BASIC(10, 1F, 2, 0xFFCC4A, 0xF14C00),
-		RED(15, 2F, 6, 0xFF6E00, 0xC80D00),
-		GREEN(20, 1F, 4, 0x37E9B2, 0x138855),
+		BASIC(10, 1F, 2, 0xFFD34A, 0xF15F00, 1),
+		RED(15, 2F, 6, 0xFF6E00, 0xC80D00, 0.8),
+		GREEN(20, 1F, 4, 0x37E9B2, 0x138855, 0.92),
 		;
 
 		private final int health;
@@ -354,19 +363,25 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		public final int burnDuration;
 		public final int coreColor;
 		public final int edgeColor;
+		public final double movementSpeed;
 
 		public static final SpitterType[] list = values();
 
-		private SpitterType(int hearts, float sc, int b, int c, int c2) {
+		private SpitterType(int hearts, float sc, int b, int c, int c2, double sp) {
 			health = hearts*2;
 			burnDuration = b;
 			blastScale = sc;
 			coreColor = c;
 			edgeColor = c2;
+			movementSpeed = sp;
 		}
 
 		public boolean isAlpha() {
 			return this != BASIC;
+		}
+
+		public double getPursuitDistance() {
+			return this.isAlpha() ? 15 : 9;
 		}
 	}
 

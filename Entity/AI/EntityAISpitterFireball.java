@@ -3,7 +3,6 @@ package Reika.Satisforestry.Entity.AI;
 import java.util.Random;
 
 import net.minecraft.entity.EntityLivingBase;
-import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
@@ -18,14 +17,11 @@ import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitterFireball;
 import Reika.Satisforestry.Entity.EntitySplittingSpitterFireball;
 
-public class EntityAISpitterFireball extends EntityAIBase
+public class EntityAISpitterFireball extends EntityAIDistanceDependent
 {
 	private final EntitySpitter entityHost;
 
 	private final int maxRangedAttackTime;
-	private final double minDistSq;
-	private final double maxDistSq;
-	private final double entityMoveSpeed;
 
 	private final double fireballSpeed;
 	private final float fireballDamage;
@@ -33,27 +29,26 @@ public class EntityAISpitterFireball extends EntityAIBase
 	private EntityLivingBase attackTarget;
 	private int rangedAttackTime;
 	private int ticksOfSight;
-	private double currentDistSq;
 
-	public EntityAISpitterFireball(EntitySpitter e, double speed, int maxTime, double mind, double maxd, double fs, float fd) {
+	public EntityAISpitterFireball(EntitySpitter e, int maxTime, double mind, double maxd, double fs, float fd) {
+		super(mind, maxd);
 		rangedAttackTime = -1;
 		entityHost = e;
-		entityMoveSpeed = speed;
 		maxRangedAttackTime = maxTime;
-		minDistSq = mind * mind;
-		maxDistSq = maxd * maxd;
 
 		fireballSpeed = fs;
 		fireballDamage = fd;
 
-		this.setMutexBits(3);
+		this.setMutexBits(8);
 	}
 
 	@Override
 	public final boolean shouldExecute() {
 		attackTarget = entityHost.getAttackTarget();
-		this.fetchDistance();
-		return attackTarget != null && this.isDistanceAppropriate();
+		if (attackTarget == null)
+			return false;
+		this.fetchDistance(entityHost, attackTarget);
+		return this.isDistanceAppropriate();
 	}
 
 	@Override
@@ -61,22 +56,19 @@ public class EntityAISpitterFireball extends EntityAIBase
 		return this.shouldExecute() || !entityHost.getNavigator().noPath();
 	}
 
-	private final boolean isDistanceAppropriate() {
-		return currentDistSq >= 0 && currentDistSq <= maxDistSq && currentDistSq >= minDistSq;
-	}
-
 	@Override
 	public final void resetTask() {
+		super.resetTask();
 		attackTarget = null;
 		ticksOfSight = 0;
 		rangedAttackTime = -1;
-		currentDistSq = -1;
 	}
 
 	@Override
 	public final void updateTask() {
 		if (attackTarget == null)
 			return;
+		//ReikaJavaLibrary.pConsole(entityHost.getSpitterType()+" "+entityHost+" executing "+this+" "+fireballSpeed+"/"+fireballDamage);
 		entityHost.getLookHelper().setLookPositionWithEntity(attackTarget, 10.0F, entityHost.getVerticalFaceSpeed());
 		boolean flag = entityHost.getEntitySenses().canSee(attackTarget);
 
@@ -86,13 +78,14 @@ public class EntityAISpitterFireball extends EntityAIBase
 		else {
 			ticksOfSight = 0;
 		}
-
+		/*
 		if (currentDistSq <= maxDistSq && ticksOfSight >= 20) {
 			entityHost.getNavigator().clearPathEntity();
 		}
 		else {
-			entityHost.getNavigator().tryMoveToEntityLiving(attackTarget, entityMoveSpeed);
+			entityHost.getNavigator().tryMoveToEntityLiving(attackTarget, entityMoveSpeed*2.5);
 		}
+		 */
 
 		entityHost.getLookHelper().setLookPositionWithEntity(attackTarget, 30.0F, 30.0F);
 
@@ -107,14 +100,8 @@ public class EntityAISpitterFireball extends EntityAIBase
 		else if (rangedAttackTime < 0) {
 			rangedAttackTime = maxRangedAttackTime;
 		}
-	}
-
-	protected final void fetchDistance() {
-		if (entityHost == null || !entityHost.isEntityAlive() || attackTarget == null || !attackTarget.isEntityAlive()) {
-			currentDistSq = -1;
-			return;
-		}
-		currentDistSq = entityHost.getDistanceSq(attackTarget.posX, attackTarget.boundingBox.minY, attackTarget.posZ);
+		if (false)
+			rangedAttackTime = Math.min(rangedAttackTime, 5);
 	}
 
 	protected final void fireFireball() {
@@ -151,8 +138,8 @@ public class EntityAISpitterFireball extends EntityAIBase
 
 	public static class EntityAISpitterClusterFireball extends EntityAISpitterFireball {
 
-		public EntityAISpitterClusterFireball(EntitySpitter e, double speed, int maxTime, double mind, double maxd, double fs, float fd) {
-			super(e, speed, maxTime, mind, maxd, fs, fd);
+		public EntityAISpitterClusterFireball(EntitySpitter e, int maxTime, double mind, double maxd, double fs, float fd) {
+			super(e,  maxTime, mind, maxd, fs, fd);
 		}
 
 		@Override
@@ -176,8 +163,8 @@ public class EntityAISpitterFireball extends EntityAIBase
 
 	public static class EntityAISpitterSplittingFireball extends EntityAISpitterFireball {
 
-		public EntityAISpitterSplittingFireball(EntitySpitter e, double speed, int maxTime, double mind, double maxd, double fs, float fd) {
-			super(e, speed, maxTime, mind, maxd, fs, fd);
+		public EntityAISpitterSplittingFireball(EntitySpitter e, int maxTime, double mind, double maxd, double fs, float fd) {
+			super(e,  maxTime, mind, maxd, fs, fd);
 		}
 
 		@Override
@@ -190,6 +177,6 @@ public class EntityAISpitterFireball extends EntityAIBase
 	}
 
 	public static double getYTarget(EntityLivingBase e, EntitySpitter src) {
-		return e.boundingBox.minY + e.height / 2.0F - (src.posY + src.height / 2.0F);
+		return e.boundingBox.minY + e.height / 2.0F - (src.posY + src.height / 2.0F);//+(true ? -1.5 : 0);
 	}
 }

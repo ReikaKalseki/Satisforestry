@@ -1,53 +1,37 @@
 package Reika.Satisforestry.Entity.AI;
 
-import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.util.Vec3;
 
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.Satisforestry.Entity.EntitySpitter;
 
-public class EntityAIRunToNewPosition extends EntityAIBase {
-
-	private EntitySpitter entity;
-	private double xPosition;
-	private double yPosition;
-	private double zPosition;
+public class EntityAIRunToNewPosition extends EntityAISpitterReposition {
 
 	public EntityAIRunToNewPosition(EntitySpitter e) {
-		entity = e;
-		this.setMutexBits(1);
-	}
-
-	/**
-	 * Returns whether the EntityAIBase should begin execution.
-	 */
-	@Override
-	public boolean shouldExecute() {
-		if (entity.getEntityToAttack() == null) {
-			return false;
-		}
-		else {
-			Vec3 vec3 = RandomPositionGenerator.findRandomTarget(entity, 5, 4);
-
-			if (vec3 == null) {
-				return false;
-			}
-			else {
-				xPosition = vec3.xCoord;
-				yPosition = vec3.yCoord;
-				zPosition = vec3.zCoord;
-				return true;
-			}
-		}
+		super(e, 0, e.getSpitterType().getPursuitDistance()*0.8);
 	}
 
 	@Override
-	public boolean continueExecuting() {
-		return !entity.getNavigator().noPath();
+	protected Vec3 getTargetPosition() {
+		//return RandomPositionGenerator.findRandomTarget(entity, 4, 3);
+		double dist = ReikaRandomHelper.getRandomBetween(3.5, 7.5, entity.getRNG());
+		double[] xyz = ReikaPhysicsHelper.polarToCartesianFast(dist, 0, entity.getRNG().nextDouble()*360);
+		return Vec3.createVectorHelper(attackTarget.posX+xyz[0], attackTarget.posY+xyz[1], attackTarget.posY+xyz[2]);
 	}
 
 	@Override
-	public void startExecuting() {
-		entity.getNavigator().tryMoveToXYZ(xPosition, yPosition, zPosition, entity.getAIMoveSpeed());
+	protected boolean needsTargetPosition() {
+		return true;
+	}
+
+	@Override
+	protected boolean isRunning() {
+		return true;
+	}
+
+	@Override
+	protected double getStoppingDistance() {
+		return 0.5;
 	}
 }
