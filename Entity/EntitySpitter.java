@@ -26,6 +26,7 @@ import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
 import Reika.Satisforestry.Entity.AI.EntityAIChasePlayer;
 import Reika.Satisforestry.Entity.AI.EntityAIRunToNewPosition;
+import Reika.Satisforestry.Entity.AI.EntityAIShakeHead;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterBlast;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball.EntityAISpitterClusterFireball;
@@ -43,23 +44,25 @@ public class EntitySpitter extends EntityMob implements Spitter {
 
 	private EntityAISpitterBlast knockbackBlastBig = new EntityAISpitterBlast(this, 3, 2);
 
-	private EntityAISpitterFireball fastFireball = new EntityAISpitterFireball(this, 50, 3, 16, 1.85, 7);
-	private EntityAISpitterFireball clusterFireball = new EntityAISpitterClusterFireball(this, 150, 12, 40, 4, 3);
+	private EntityAISpitterFireball fastFireball = new EntityAISpitterFireball(this, 50, 3, 12.5, 1.85, 7);
+	private EntityAISpitterFireball clusterFireball = new EntityAISpitterClusterFireball(this, 150, 12, 50, 4, 3);
 
-	private EntityAISpitterFireball basicFireballForAlpha = new EntityAISpitterFireball(this, 40, 3, 12, 1, 8);
-	private EntityAISpitterFireball splittingFireball = new EntityAISpitterSplittingFireball(this, 150, 9, 40, 1, 5);
+	private EntityAISpitterFireball basicFireballForAlpha = new EntityAISpitterFireball(this, 40, 3, 9, 1, 8);
+	private EntityAISpitterFireball splittingFireball = new EntityAISpitterSplittingFireball(this, 150, 7, 50, 1, 5);
 
 	private int lastblast = 0;
 	private int headshake = 0;
 	private int reposition = 0;
+	private long lastAttack;
 
 	//attacks: close blast, fireball (maybe alpha types)
 	public EntitySpitter(World world) {
 		super(world);
 
 		tasks.addTask(1, new EntityAISwimming(this));
-		tasks.addTask(2, new EntityAIRunToNewPosition(this));
-		tasks.addTask(2, new EntityAIChasePlayer(this));
+		tasks.addTask(1, new EntityAIShakeHead(this));
+		tasks.addTask(5, new EntityAIRunToNewPosition(this));
+		tasks.addTask(5, new EntityAIChasePlayer(this));
 		tasks.addTask(6, new EntityAIWander(this, 1.0D));
 		tasks.addTask(7, new EntityAIWatchClosest(this, EntityPlayer.class, 20F));
 		tasks.addTask(7, new EntityAILookIdle(this));
@@ -93,8 +96,10 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		if (!worldObj.isRemote) {
 			this.setRunning(entityToAttack != null);
 			lastblast++;
-			if (headshake > 0)
+			if (headshake > 250) {
+				rotationYawHead = (float)(rotationYaw+30*Math.sin(this.getHeadshake()/20D));
 				headshake--;
+			}
 			if (reposition > 0)
 				reposition--;
 			dataWatcher.updateObject(15, (byte)(headshake > 0 ? 1 : 0));
@@ -303,10 +308,10 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		tasks.removeTask(knockbackBlastBig);
 
 		if (type.isAlpha()) {
-			tasks.addTask(3, knockbackBlastBig);
+			tasks.addTask(2, knockbackBlastBig);
 		}
 		else {
-			tasks.addTask(3, knockbackBlast);
+			tasks.addTask(2, knockbackBlast);
 		}
 		switch(type) {
 			case BASIC:
@@ -314,11 +319,11 @@ public class EntitySpitter extends EntityMob implements Spitter {
 				break;
 			case GREEN:
 				tasks.addTask(4, fastFireball);
-				tasks.addTask(5, clusterFireball);
+				tasks.addTask(3, clusterFireball);
 				break;
 			case RED:
 				tasks.addTask(4, basicFireballForAlpha);
-				tasks.addTask(5, splittingFireball);
+				tasks.addTask(3, splittingFireball);
 				break;
 		}
 	}
@@ -337,11 +342,15 @@ public class EntitySpitter extends EntityMob implements Spitter {
 	}
 
 	public boolean canContinueHeadshake() {
-		return headshake >= 200;
+		return headshake >= 250;
 	}
 
 	public boolean canInitiateHeadshake() {
 		return headshake <= 0;
+	}
+
+	public int getHeadshake() {
+		return Math.max(headshake-250, 0);
 	}
 
 	public void setRepositioned() {
@@ -350,6 +359,14 @@ public class EntitySpitter extends EntityMob implements Spitter {
 
 	public boolean canReposition() {
 		return reposition <= 0;
+	}
+
+	public void updateAttackTime() {
+		lastAttack = worldObj.getTotalWorldTime();
+	}
+
+	public long getAttackTime() {
+		return worldObj.getTotalWorldTime()-lastAttack;
 	}
 
 	public static enum SpitterType {

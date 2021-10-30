@@ -8,7 +8,7 @@ public abstract class EntityAIDistanceDependent extends EntityAIBase {
 	private final double minDistSq;
 	private final double maxDistSq;
 
-	private double currentDistSq;
+	protected double currentDistSq;
 
 	public EntityAIDistanceDependent(double min, double max) {
 		minDistSq = min*min;

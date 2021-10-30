@@ -3,6 +3,7 @@ package Reika.Satisforestry.Entity.AI;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.pathfinding.PathNavigate;
 
+import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.Satisforestry.Entity.EntitySpitter;
 
@@ -11,7 +12,7 @@ public class EntityAIShakeHead extends EntityAIBase {
 	private EntitySpitter spitter;
 	private PathNavigate pathfinder;
 
-	public EntityAIShakeHead(EntitySpitter e, double dd, double sp) {
+	public EntityAIShakeHead(EntitySpitter e) {
 		spitter = e;
 		pathfinder = e.getNavigator();
 		this.setMutexBits(8);
@@ -33,7 +34,7 @@ public class EntityAIShakeHead extends EntityAIBase {
 
 	@Override
 	public void startExecuting() {
-		ReikaJavaLibrary.pConsole(spitter.getSpitterType()+" "+spitter+" executing "+this);
+		ReikaJavaLibrary.pConsole(spitter.getSpitterType()+" "+new DecimalPosition(spitter)+" executing "+this);
 		pathfinder.clearPathEntity();
 		spitter.initiateHeadShake();
 	}
@@ -46,5 +47,7 @@ public class EntityAIShakeHead extends EntityAIBase {
 	@Override
 	public void updateTask() {
 		pathfinder.clearPathEntity();
+		//int shake = spitter.getHeadshake();
+		ReikaJavaLibrary.pConsole(spitter.getSpitterType()+" "+new DecimalPosition(spitter)+" ticking "+this);
 	}
 }

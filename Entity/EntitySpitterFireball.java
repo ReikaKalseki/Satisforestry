@@ -54,6 +54,10 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 		super.onUpdate();
 		if (worldObj.isRemote)
 			;//this.spawnLifeParticle();
+		else {
+			if (ticksExisted%3 == 0)
+				SFSounds.SPITTERBALLAMBIENT.playSound(this, 0.5F, 1.1F);
+		}
 	}
 
 	@Override
@@ -68,7 +72,7 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 					mov.entityHit.hurtResistantTime = Math.min(mov.entityHit.hurtResistantTime, 5);
 				}
 			}
-			SFSounds.SPITTERBALLHIT.playSound(this);
+			SFSounds.SPITTERBALLHIT.playSound(this, 1, 1.2F+rand.nextFloat()*0.5F);
 			if (shootingEntity != null) {
 				int id = mov.entityHit != null ? mov.entityHit.getEntityId() : Integer.MIN_VALUE;
 				ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERFIREHIT.ordinal(), this, 32, this.getEntityId(), mov.typeOfHit == MovingObjectType.BLOCK ? 1 : 0, mov.blockX, mov.blockY, mov.blockZ, mov.sideHit, id);
