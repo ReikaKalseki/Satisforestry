@@ -1,5 +1,7 @@
 package Reika.Satisforestry.Entity;
 
+import java.util.Locale;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
@@ -16,6 +18,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
@@ -26,7 +29,6 @@ import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
 import Reika.Satisforestry.Entity.AI.EntityAIChasePlayer;
 import Reika.Satisforestry.Entity.AI.EntityAIRunToNewPosition;
-import Reika.Satisforestry.Entity.AI.EntityAIShakeHead;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterBlast;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball.EntityAISpitterClusterFireball;
@@ -44,11 +46,11 @@ public class EntitySpitter extends EntityMob implements Spitter {
 
 	private EntityAISpitterBlast knockbackBlastBig = new EntityAISpitterBlast(this, 3, 2);
 
-	private EntityAISpitterFireball fastFireball = new EntityAISpitterFireball(this, 50, 3, 12.5, 1.85, 7);
-	private EntityAISpitterFireball clusterFireball = new EntityAISpitterClusterFireball(this, 150, 12, 50, 4, 3);
+	private EntityAISpitterFireball fastFireball = new EntityAISpitterFireball(this, 50, 3, 10, 1.85, 7);
+	private EntityAISpitterFireball clusterFireball = new EntityAISpitterClusterFireball(this, 150, 10, 50, 4, 3);
 
-	private EntityAISpitterFireball basicFireballForAlpha = new EntityAISpitterFireball(this, 40, 3, 9, 1, 8);
-	private EntityAISpitterFireball splittingFireball = new EntityAISpitterSplittingFireball(this, 150, 7, 50, 1, 5);
+	private EntityAISpitterFireball basicFireballForAlpha = new EntityAISpitterFireball(this, 40, 3, 7.5, 1, 8);
+	private EntityAISpitterFireball splittingFireball = new EntityAISpitterSplittingFireball(this, 150, 7.5, 50, 1, 5);
 
 	private int lastblast = 0;
 	private int headshake = 0;
@@ -60,7 +62,7 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		super(world);
 
 		tasks.addTask(1, new EntityAISwimming(this));
-		tasks.addTask(1, new EntityAIShakeHead(this));
+		//tasks.addTask(1, new EntityAIShakeHead(this));
 		tasks.addTask(5, new EntityAIRunToNewPosition(this));
 		tasks.addTask(5, new EntityAIChasePlayer(this));
 		tasks.addTask(6, new EntityAIWander(this, 1.0D));
@@ -354,7 +356,7 @@ public class EntitySpitter extends EntityMob implements Spitter {
 	}
 
 	public void setRepositioned() {
-		reposition = 120;
+		reposition = 50;
 	}
 
 	public boolean canReposition() {
@@ -398,7 +400,11 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		}
 
 		public double getPursuitDistance() {
-			return this.isAlpha() ? 15 : 9;
+			return this.isAlpha() ? 20 : 12;
+		}
+
+		public String getName() {
+			return StatCollector.translateToLocal("spitter.type."+this.name().toLowerCase(Locale.ENGLISH));
 		}
 	}
 

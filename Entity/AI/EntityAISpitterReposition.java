@@ -3,6 +3,7 @@ package Reika.Satisforestry.Entity.AI;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.Vec3;
 
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.Satisforestry.Entity.EntitySpitter;
 
 public abstract class EntityAISpitterReposition extends EntityAIDistanceDependent {
@@ -82,11 +83,14 @@ public abstract class EntityAISpitterReposition extends EntityAIDistanceDependen
 	public final void startExecuting() {
 		//ReikaJavaLibrary.pConsole(entity.getSpitterType()+" "+new DecimalPosition(entity)+" executing "+this);
 		entity.setRunning(this.isRunning());
-		if (Double.isFinite(xPosition))
-			entity.getNavigator().tryMoveToXYZ(xPosition, yPosition, zPosition, entity.getAIMoveSpeed()*4);
-		else
-			entity.getNavigator().tryMoveToEntityLiving(attackTarget, entity.getAIMoveSpeed()*6);
-		entity.setRepositioned();
+		if (Double.isFinite(xPosition)) {
+			entity.getNavigator().tryMoveToXYZ(xPosition, yPosition, zPosition, entity.getAIMoveSpeed()*2);
+			entity.setRepositioned();
+		}
+		else {
+			entity.getNavigator().tryMoveToEntityLiving(attackTarget, entity.getAIMoveSpeed()*3);
+		}
+		ReikaJavaLibrary.pConsole("Repositioning to "+(Double.isFinite(xPosition) ? Vec3.createVectorHelper(xPosition, yPosition, zPosition) : attackTarget));
 	}
 
 	@Override

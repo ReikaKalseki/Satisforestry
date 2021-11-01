@@ -2,9 +2,9 @@ package Reika.Satisforestry.Entity;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.particle.EntityFX;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.projectile.EntitySmallFireball;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
 import net.minecraft.util.Vec3;
@@ -17,6 +17,7 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.Satisforestry.SFPacketHandler.SFPackets;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.SpitterDamage;
 import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
 import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.SpitterFireParticle;
@@ -63,20 +64,12 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 	@Override
 	protected final void onImpact(MovingObjectPosition mov) {
 		if (!worldObj.isRemote) {
-			if (mov.entityHit != null) {
-				if (mov.entityHit.isImmuneToFire()) {
-					mov.entityHit.attackEntityFrom(DamageSource.generic, damageAmount/2);
-				}
-				else if (mov.entityHit.attackEntityFrom(DamageSource.causeFireballDamage(this, shootingEntity), damageAmount)) {
-					mov.entityHit.setFire(type.burnDuration);
-					mov.entityHit.hurtResistantTime = Math.min(mov.entityHit.hurtResistantTime, 5);
-				}
+			if (shootingEntity != null && mov.entityHit instanceof EntityLivingBase) {
+				SpitterDamage.doDamage((EntitySpitter)shootingEntity, this, (EntityLivingBase)mov.entityHit, damageAmount);
 			}
 			SFSounds.SPITTERBALLHIT.playSound(this, 1, 1.2F+rand.nextFloat()*0.5F);
-			if (shootingEntity != null) {
-				int id = mov.entityHit != null ? mov.entityHit.getEntityId() : Integer.MIN_VALUE;
-				ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERFIREHIT.ordinal(), this, 32, this.getEntityId(), mov.typeOfHit == MovingObjectType.BLOCK ? 1 : 0, mov.blockX, mov.blockY, mov.blockZ, mov.sideHit, id);
-			}
+			int id = mov.entityHit != null ? mov.entityHit.getEntityId() : Integer.MIN_VALUE;
+			ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERFIREHIT.ordinal(), this, 32, this.getEntityId(), mov.typeOfHit == MovingObjectType.BLOCK ? 1 : 0, mov.blockX, mov.blockY, mov.blockZ, mov.sideHit, id);
 			this.setDead();
 		}
 	}

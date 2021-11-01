@@ -9,15 +9,15 @@ import Reika.Satisforestry.Entity.EntitySpitter;
 public class EntityAIRunToNewPosition extends EntityAISpitterReposition {
 
 	public EntityAIRunToNewPosition(EntitySpitter e) {
-		super(e, 0, e.getSpitterType().getPursuitDistance()*0.8);
+		super(e, 0, e.getSpitterType().getPursuitDistance()*0.9);
 	}
 
 	@Override
 	protected Vec3 getTargetPosition() {
 		//return RandomPositionGenerator.findRandomTarget(entity, 4, 3);
-		double dist = ReikaRandomHelper.getRandomBetween(3.5, 7.5, entity.getRNG());
+		double dist = ReikaRandomHelper.getRandomBetween(Math.sqrt(maxDistSq)-4, Math.sqrt(maxDistSq)-1, entity.getRNG());
 		double[] xyz = ReikaPhysicsHelper.polarToCartesianFast(dist, 0, entity.getRNG().nextDouble()*360);
-		return Vec3.createVectorHelper(attackTarget.posX+xyz[0], attackTarget.posY+xyz[1], attackTarget.posY+xyz[2]);
+		return Vec3.createVectorHelper(attackTarget.posX+xyz[0], attackTarget.posY+xyz[1], attackTarget.posZ+xyz[2]);
 	}
 
 	@Override

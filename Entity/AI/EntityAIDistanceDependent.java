@@ -5,8 +5,8 @@ import net.minecraft.entity.ai.EntityAIBase;
 
 public abstract class EntityAIDistanceDependent extends EntityAIBase {
 
-	private final double minDistSq;
-	private final double maxDistSq;
+	protected final double minDistSq;
+	protected final double maxDistSq;
 
 	protected double currentDistSq;
 

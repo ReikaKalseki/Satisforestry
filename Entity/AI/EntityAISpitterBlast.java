@@ -2,7 +2,6 @@ package Reika.Satisforestry.Entity.AI;
 
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
-import net.minecraft.util.DamageSource;
 
 import Reika.DragonAPI.Libraries.ReikaEntityHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
@@ -10,6 +9,7 @@ import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.SFPacketHandler.SFPackets;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.SpitterDamage;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Registry.SFSounds;
 
@@ -51,7 +51,7 @@ public class EntityAISpitterBlast extends EntityAIBase {
 	public void startExecuting() {
 		ReikaJavaLibrary.pConsole(spitter.getSpitterType()+" "+spitter+" executing "+this);
 		spitter.getLookHelper().setLookPositionWithEntity(target, 10.0F, spitter.getVerticalFaceSpeed());
-		target.attackEntityFrom(DamageSource.causeMobDamage(spitter), damageScale*4);
+		SpitterDamage.doDamage(spitter, null, target, damageScale*4);
 		ReikaEntityHelper.knockbackEntity(spitter, target, damageScale, 0.1);
 		target.motionY = 0.4*damageScale;
 		ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERBLAST.ordinal(), spitter, 64, spitter.getEntityId());

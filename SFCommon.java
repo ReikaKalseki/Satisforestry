@@ -9,6 +9,7 @@
  ******************************************************************************/
 package Reika.Satisforestry;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.IO.SoundLoader;
@@ -49,6 +50,10 @@ public class SFCommon {
 
 	public void loadMusicEngine() {
 		// TODO Auto-generated method stub
+	}
+
+	public void activateDamageShader(Entity hitter) {
+
 	}
 
 }

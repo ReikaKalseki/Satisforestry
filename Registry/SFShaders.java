@@ -16,7 +16,7 @@ public enum SFShaders implements ShaderHook {
 	//Block/Entity
 	POISONGAS(),
 	CAVEGAS(),
-	STINGERBITE(),
+	MOBDAMAGE(),
 	SLUG(),
 	;
 

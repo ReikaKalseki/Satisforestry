@@ -27,7 +27,6 @@ import Reika.DragonAPI.Interfaces.PacketHandler;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper.DataPacket;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper.PacketObj;
-import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitterFireball;
 
@@ -160,9 +159,11 @@ public class SFPacketHandler implements PacketHandler {
 		}
 		try {
 			switch (pack) {
-				case STINGERHIT:
-					if (world.isRemote)
-						EntityEliteStinger.activateShader();
+				case MOBDAMAGE:
+					if (world.isRemote) {
+						Entity e = world.getEntityByID(data[0]);
+						Satisforestry.proxy.activateDamageShader(e);
+					}
 					break;
 				case SPITTERFIREHIT:
 					if (world.isRemote) {
@@ -194,7 +195,7 @@ public class SFPacketHandler implements PacketHandler {
 	}
 
 	public static enum SFPackets {
-		STINGERHIT(0),
+		MOBDAMAGE(1),
 		SPITTERFIREHIT(7),
 		SPITTERBLAST(1),
 		;

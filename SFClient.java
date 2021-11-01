@@ -10,13 +10,19 @@
 package Reika.Satisforestry;
 
 import net.minecraft.client.audio.SoundCategory;
+import net.minecraft.entity.Entity;
 import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 
 import Reika.DragonAPI.Extras.ThrottleableEffectRenderer;
 import Reika.DragonAPI.Instantiable.Rendering.ParticleEngine;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
+import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
+import Reika.Satisforestry.Entity.EntitySpitter;
+import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
+import Reika.Satisforestry.Entity.EntitySpitterFireball;
 import Reika.Satisforestry.Miner.TileNodeHarvester;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFEntities;
@@ -117,6 +123,76 @@ public class SFClient extends SFCommon {
 	public World getClientWorld()
 	{
 		return FMLClientHandler.instance().getClient().theWorld;
+	}
+
+	@Override
+	public void activateDamageShader(Entity hitter) {
+		int r1 = 0;
+		int g1 = 0;
+		int b1 = 0;
+		int a1 = 127;
+		int r2 = r1;
+		int g2 = g1;
+		int b2 = b1;
+		int a2 = a1;
+		float f = 1;
+		float nX = 1;
+		float nY = 1;
+		float add = 1;
+		float mult = 0;
+		float rf = 0.05F;
+		float min = 0;
+		if (hitter instanceof EntityEliteStinger) {
+			r1 = 192;
+			g1 = 255;
+			b1 = 48;
+			a1 = 255;
+			r2 = r1;
+			g2 = g1;
+			b2 = b1;
+			a2 = a1;
+		}
+		if (hitter instanceof EntitySpitter) {
+			mult = 1;
+			add = 0;
+			rf = 0.025F;
+		}
+		if (hitter instanceof EntitySpitterFireball) {
+			SpitterType s = ((EntitySpitterFireball)hitter).getSpitterType();
+			r1 = ReikaColorAPI.getRed(s.coreColor);
+			g1 = ReikaColorAPI.getGreen(s.coreColor);
+			b1 = ReikaColorAPI.getBlue(s.coreColor);
+			r2 = ReikaColorAPI.getRed(s.edgeColor);
+			g2 = ReikaColorAPI.getGreen(s.edgeColor);
+			b2 = ReikaColorAPI.getBlue(s.edgeColor);
+			a1 = 255;
+			a2 = a1;
+			f = 0.33F;
+			nX = 0.15F;
+			nY = 0.075F;
+			add = 0;
+			mult = 1;
+			rf = 0.01F;
+			min = 0.3F;
+		}
+		SFShaders.MOBDAMAGE.getShader().setField("red1", r1);
+		SFShaders.MOBDAMAGE.getShader().setField("green1", g1);
+		SFShaders.MOBDAMAGE.getShader().setField("blue1", b1);
+		SFShaders.MOBDAMAGE.getShader().setField("alpha1", a1);
+		SFShaders.MOBDAMAGE.getShader().setField("red2", r2);
+		SFShaders.MOBDAMAGE.getShader().setField("green2", g2);
+		SFShaders.MOBDAMAGE.getShader().setField("blue2", b2);
+		SFShaders.MOBDAMAGE.getShader().setField("alpha2", a2);
+		SFShaders.MOBDAMAGE.getShader().setField("fadeFactor", f);
+		SFShaders.MOBDAMAGE.getShader().setField("noiseScaleX", nX);
+		SFShaders.MOBDAMAGE.getShader().setField("noiseScaleY", nY);
+		SFShaders.MOBDAMAGE.getShader().setField("additiveScale", add);
+		SFShaders.MOBDAMAGE.getShader().setField("multiplyScale", mult);
+		SFShaders.MOBDAMAGE.getShader().setField("minimumEffect", min);
+		SFShaders.MOBDAMAGE.setIntensity(1);
+		SFShaders.MOBDAMAGE.lingerTime = 20;
+		SFShaders.MOBDAMAGE.rampDownAmount = rf;
+		SFShaders.MOBDAMAGE.rampDownFactor = 1F;
 	}
 
 }

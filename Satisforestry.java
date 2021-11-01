@@ -109,7 +109,7 @@ public class Satisforestry extends DragonAPIMod {
 	public static BlockPinkLog log;
 	public static BlockPinkLeaves leaves;
 
-	public static Material slugMaterial = new Material(MapColor.foliageColor) {
+	public static final Material slugMaterial = new Material(MapColor.foliageColor) {
 
 		@Override
 		public boolean blocksMovement() {

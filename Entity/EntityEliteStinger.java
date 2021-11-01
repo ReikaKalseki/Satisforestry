@@ -32,7 +32,6 @@ import Reika.ReactorCraft.API.RadiationHandler;
 import Reika.Satisforestry.SFPacketHandler.SFPackets;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Registry.SFEntities;
-import Reika.Satisforestry.Registry.SFShaders;
 import Reika.Satisforestry.Registry.SFSounds;
 
 import cpw.mods.fml.relauncher.Side;
@@ -287,22 +286,10 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 		if (flag && e instanceof EntityLivingBase) {
 			((EntityLivingBase)e).addPotionEffect(new PotionEffect(Potion.poison.id, 20, 1));
 			if (e instanceof EntityPlayerMP) {
-				this.activateShaders(e);
+				ReikaPacketHelper.sendDataPacket(Satisforestry.packetChannel, SFPackets.MOBDAMAGE.ordinal(), (EntityPlayerMP)e, this.getEntityId());
 			}
 		}
 		return flag;
-	}
-
-	private void activateShaders(Entity e) {
-		ReikaPacketHelper.sendDataPacket(Satisforestry.packetChannel, SFPackets.STINGERHIT.ordinal(), (EntityPlayerMP)e);
-	}
-
-	@SideOnly(Side.CLIENT)
-	public static void activateShader() {
-		SFShaders.STINGERBITE.setIntensity(1);
-		SFShaders.STINGERBITE.lingerTime = 20;
-		SFShaders.STINGERBITE.rampDownAmount = 0.05F;
-		SFShaders.STINGERBITE.rampDownFactor = 1F;
 	}
 
 	@Override
