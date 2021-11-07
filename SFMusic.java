@@ -56,6 +56,8 @@ public class SFMusic {
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void playCustomMusic(ClientTickEvent evt) {
+		if (!this.isLoaded())
+			return;
 		World world = Minecraft.getMinecraft().theWorld;
 		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
 		if (world != null && ep != null && Satisforestry.isPinkForest(world, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
@@ -64,6 +66,8 @@ public class SFMusic {
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void overrideMusic(PlayMusicEvent evt) {
+		if (!this.isLoaded())
+			return;
 		World world = Minecraft.getMinecraft().theWorld;
 		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
 		if (world != null && ep != null && Satisforestry.isPinkForest(world, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
@@ -120,6 +124,10 @@ public class SFMusic {
 		else {
 			throw new InstallationException(Satisforestry.instance, "Specified OST folder does not exist @ "+path);
 		}
+	}
+
+	public boolean isLoaded() {
+		return !musicCache.isEmpty();
 	}
 
 	private int loadTracks(File f0, DayQuadrant... set) {

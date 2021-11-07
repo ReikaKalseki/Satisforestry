@@ -24,6 +24,7 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.API.Spitter;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem.SpawnPoint;
@@ -281,6 +282,11 @@ public class EntitySpitter extends EntityMob implements Spitter {
 	}
 
 	public void setSpitterType(SpitterType type) {
+		if (type == null) {
+			Satisforestry.logger.logError("Tried to set null spitter type!");
+			Thread.dumpStack();
+			type = SpitterType.BASIC;
+		}
 		SpitterType old = this.getSpitterType();
 		dataWatcher.updateObject(13, Byte.valueOf((byte)type.ordinal()));
 		if (old != type || ticksExisted < 5) {

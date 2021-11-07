@@ -472,6 +472,8 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 			flag = true;
 			if (s.contains("slimeisland"))
 				flag = false;
+			if (s.contains("thaumcraft"))
+				flag = false;
 			generatorRules.put(c, flag);
 		}
 		return flag.booleanValue();

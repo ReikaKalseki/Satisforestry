@@ -22,6 +22,7 @@ import net.minecraftforge.common.IShearable;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
+import Reika.DragonAPI.Interfaces.Block.Reedlike;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
@@ -32,7 +33,7 @@ import Reika.Satisforestry.Satisforestry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
-public class BlockRedBamboo extends Block implements IPlantable, IShearable {
+public class BlockRedBamboo extends Block implements Reedlike, IPlantable, IShearable {
 
 	private IIcon stemIcon;
 	private IIcon topIcon;

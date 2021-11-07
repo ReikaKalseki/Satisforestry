@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Random;
 
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySpider;
@@ -44,7 +45,7 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 			types.addDynamicEntry(new SpitterEntry(SpitterType.RED, 0.8, 1.15, 1.4, 30));
 			types.addDynamicEntry(new SpitterEntry(SpitterType.GREEN, 1.05, 1.3, 1.5, 20));
 
-			types.addDynamicEntry(new SpawnEntry(EntityEliteStinger.class, 1+RANDOM_FACTOR-0.2, 1+RANDOM_FACTOR-0.1, 1+RANDOM_FACTOR, 0, 5, 8));
+			types.addDynamicEntry(new StingerEntry(1+RANDOM_FACTOR-0.2, 1+RANDOM_FACTOR-0.1, 1+RANDOM_FACTOR, 0, 5, 8));
 		}
 		/*
 		for (double y = 0; y <= 1+RANDOM_FACTOR+0.05; y += 0.05) {
@@ -107,7 +108,7 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 				currentWeight = ReikaMathLibrary.linterpolate(f, inflectionPoint, maxValue, inflectionPointWeight, maxValueWeight);
 		}
 
-		protected void createEntity(EntityMob e) {
+		protected void prepareEntity(EntityMob e) {
 
 		}
 
@@ -129,8 +130,31 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 		}
 
 		public double getSpawnRange() {
-			return 8;
+			return 10;
 		}
+	}
+
+	private static class StingerEntry extends SpawnEntry {
+
+		private StingerEntry(double min, double peak, double max, double ymin, double ypeak, double ymax) {
+			super(EntityEliteStinger.class, min, peak, max, ymin, ypeak, ymax);
+		}
+
+		@Override
+		protected void prepareEntity(EntityMob e) {
+			e.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(20); //down from 15 hearts
+		}
+
+		@Override
+		public int getEntityCount(double f) {
+			return 1;
+		}
+
+		@Override
+		public double getSpawnRange() {
+			return 7.5;
+		}
+
 	}
 
 	private static class SpitterEntry extends SpawnEntry {
@@ -147,7 +171,7 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 		}
 
 		@Override
-		protected void createEntity(EntityMob e) {
+		protected void prepareEntity(EntityMob e) {
 			((EntitySpitter)e).setSpitterType(type);
 		}
 
@@ -174,6 +198,69 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 		@Override
 		public double getSpawnRange() {
 			return type.isAlpha() ? 16 : 12;
+		}
+
+	}
+
+	public static class RoadGuardSpawnPoint extends SpawnPoint {
+
+		public final float roadValue;
+		private float dangerOffset;
+
+		//private SpitterType spitter;
+
+		private SpawnEntry spawnType;
+
+		private RoadGuardSpawnPoint(WorldLocation loc, float f) {
+			this(loc);
+			dangerOffset = f;
+			this.setSpawnData();
+		}
+
+		private RoadGuardSpawnPoint(WorldLocation loc) {
+			super(loc);
+			roadValue = (float)Satisforestry.pinkforest.getRoadFactor(loc.getWorld(), loc.xCoord, loc.zCoord);
+		}
+
+		@Override
+		protected EntityLiving getSpawn(World world, int cx, int cy, int cz, Random rand) {
+			this.setSpawnData();
+			EntityLiving e = this.getRandomPlacedEntity(4, world, cx, cy, cz);
+			e.setLocationAndAngles(e.posX, cy+1, e.posZ, 0, 0);
+			return e;
+		}
+
+		@Override
+		protected void onEntitySpawned(EntityLiving e, ArrayList<EntityLiving> spawned) {
+			spawnType.prepareEntity((EntityMob)e);
+		}
+
+		private void setSpawnData() {
+			if (spawnType == null) {
+				double f = roadValue+dangerOffset;
+				for (SpawnEntry b : types.getValues()) {
+					b.calcWeight(f);
+				}
+				types.setSeed(this.getLocation().hashCode());
+				spawnType = types.getRandomEntry();
+				this.setSpawnParameters(spawnType.entityClass, spawnType.getEntityCount(f), spawnType.getSpawnRange());
+			}
+		}
+
+		@Override
+		public void writeToTag(NBTTagCompound NBT) {
+			super.writeToTag(NBT);
+
+			NBT.setFloat("bias", dangerOffset);
+		}
+
+		@Override
+		public void readFromTag(NBTTagCompound NBT) {
+			super.readFromTag(NBT);
+
+			dangerOffset = NBT.getFloat("bias");
+			spawnType = null;
+			this.setSpawnData();
 		}
 
 	}
@@ -208,71 +295,6 @@ public class RoadGuardSpawner implements SpawnPointDefinition {
 			}
 		}
 		return true;
-	}
-
-	public static class RoadGuardSpawnPoint extends SpawnPoint {
-
-		public final float roadValue;
-		private float dangerOffset;
-
-		private SpitterType spitter;
-
-		private SpawnEntry spawnType;
-
-		private RoadGuardSpawnPoint(WorldLocation loc, float f) {
-			this(loc);
-			dangerOffset = f;
-			this.setSpawnData();
-		}
-
-		private RoadGuardSpawnPoint(WorldLocation loc) {
-			super(loc);
-			roadValue = (float)Satisforestry.pinkforest.getRoadFactor(loc.getWorld(), loc.xCoord, loc.zCoord);
-		}
-
-		@Override
-		protected EntityLiving getSpawn(World world, int cx, int cy, int cz, Random rand) {
-			this.setSpawnData();
-			EntityLiving e = this.getRandomPlacedEntity(4, world, cx, cy, cz);
-			e.setLocationAndAngles(e.posX, cy+1, e.posZ, 0, 0);
-			return e;
-		}
-
-		@Override
-		protected void onEntitySpawned(EntityLiving e, ArrayList<EntityLiving> spawned) {
-			if (e instanceof EntitySpitter) {
-				((EntitySpitter)e).setSpitterType(spitter);
-			}
-		}
-
-		private void setSpawnData() {
-			if (spawnType == null) {
-				double f = roadValue+dangerOffset;
-				for (SpawnEntry b : types.getValues()) {
-					b.calcWeight(f);
-				}
-				types.setSeed(this.getLocation().hashCode());
-				spawnType = types.getRandomEntry();
-				this.setSpawnParameters(spawnType.entityClass, spawnType.getEntityCount(f), spawnType.getSpawnRange());
-			}
-		}
-
-		@Override
-		public void writeToTag(NBTTagCompound NBT) {
-			super.writeToTag(NBT);
-
-			NBT.setFloat("bias", dangerOffset);
-		}
-
-		@Override
-		public void readFromTag(NBTTagCompound NBT) {
-			super.readFromTag(NBT);
-
-			dangerOffset = NBT.getFloat("bias");
-			spawnType = null;
-			this.setSpawnData();
-		}
-
 	}
 
 	@Override

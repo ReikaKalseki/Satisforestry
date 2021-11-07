@@ -43,6 +43,7 @@ import Reika.Satisforestry.Biome.BiomeFootprint;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Blocks.PointSpawnBlock;
 import Reika.Satisforestry.Blocks.PointSpawnBlock.PointSpawnTile;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.SpawnPointEntity;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
@@ -96,7 +97,7 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 
 	@SubscribeEvent
 	public void spidersAlwaysHostile(SpiderLightPassivationEvent evt) {
-		if (this.isAlwaysHostile(evt.spider)) {
+		if (evt.spider instanceof EntityEliteStinger || this.isAlwaysHostile(evt.spider)) {
 			evt.threshold = Float.POSITIVE_INFINITY;
 		}
 	}

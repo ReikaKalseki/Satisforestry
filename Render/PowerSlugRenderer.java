@@ -134,16 +134,18 @@ public class PowerSlugRenderer extends TileEntitySpecialRenderer {
 					else if (dist <= 8) {
 						f = 1-(float)((dist-4D)/4D);
 					}
-					HashMap<String, Object> map = new HashMap();
-					map.put("distance", dist*dist);
-					map.put("scale", 1.5F);
-					map.put("factor", 0.1F);
-					map.put("speed", 1.5F);
-					SFShaders.SLUG.getShader().addFocus(te.xCoord, te.yCoord, te.zCoord);
-					SFShaders.SLUG.getShader().modifyLastCompoundFocus(f, map);
-					SFShaders.SLUG.getShader().setEnabled(true);
-					SFShaders.SLUG.setIntensity(Math.max(SFShaders.SLUG.getIntensity(), f));
-					SFShaders.SLUG.clearOnRender = true;
+					if (f > 0) {
+						HashMap<String, Object> map = new HashMap();
+						map.put("distance", dist*dist);
+						map.put("scale", 1.5F);
+						map.put("factor", 0.1F);
+						map.put("speed", 1.5F);
+						SFShaders.SLUG.getShader().addFocus(te.xCoord, te.yCoord, te.zCoord);
+						SFShaders.SLUG.getShader().modifyLastCompoundFocus(f, map);
+						SFShaders.SLUG.getShader().setEnabled(true);
+						SFShaders.SLUG.setIntensity(Math.max(SFShaders.SLUG.getIntensity(), f));
+						SFShaders.SLUG.clearOnRender = true;
+					}
 				}
 			}
 		}
