@@ -9,6 +9,8 @@
  ******************************************************************************/
 package Reika.Satisforestry.Render;
 
+import org.lwjgl.opengl.GL11;
+
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
@@ -36,7 +38,39 @@ public class ResourceNodeRenderer extends ISBRH {
 
 	@Override
 	public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
+		Tessellator v5 = Tessellator.instance;
 
+		GL11.glColor4f(1, 1, 1, 1);
+		GL11.glDisable(GL11.GL_LIGHTING);
+
+		GL11.glPushMatrix();
+		GL11.glRotated(45, 0, 1, 0);
+		GL11.glRotated(-30, 1, 0, 0);
+		double s = 1.6;
+		GL11.glScaled(s, s, s);
+		double x = -0.5;
+		double y = -0.5;
+		double z = 0;
+
+		GL11.glTranslated(x, y, z);
+		v5.startDrawingQuads();
+		v5.setColorOpaque_I(0xffffff);
+		v5.setBrightness(240);
+
+		IIcon ico = BlockResourceNode.getItem();
+		float u = ico.getMinU();
+		float v = ico.getMinV();
+		float du = ico.getMaxU();
+		float dv = ico.getMaxV();
+
+		v5.addVertexWithUV(0, 0, 0, u, dv);
+		v5.addVertexWithUV(1, 0, 0, du, dv);
+		v5.addVertexWithUV(1, 1, 0, du, v);
+		v5.addVertexWithUV(0, 1, 0, u, v);
+
+		v5.draw();
+		GL11.glPopMatrix();
+		GL11.glEnable(GL11.GL_LIGHTING);
 	}
 
 	@Override
@@ -250,7 +284,7 @@ public class ResourceNodeRenderer extends ISBRH {
 
 	@Override
 	public boolean shouldRender3DInInventory(int modelId) {
-		return false;
+		return true;
 	}
 
 }

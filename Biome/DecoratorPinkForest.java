@@ -23,6 +23,7 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 
+import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
@@ -32,6 +33,7 @@ import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
+import Reika.DragonAPI.ModInteract.ItemHandlers.ChiselBlockHandler;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Generator.WorldGenOreCluster;
@@ -344,9 +346,12 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 	public static boolean isTerrain(World world, int x, int y, int z) {
 		Block b = world.getBlock(x, y, z);
+		int meta = world.getBlockMetadata(x, y, z);
 		if (b == SFBlocks.TERRAIN.getBlockInstance())
-			return TerrainType.list[world.getBlockMetadata(x, y, z)].isTerrain();
-		return b.isReplaceableOreGen(world, x, y, z, Blocks.stone) || b.isReplaceableOreGen(world, x, y, z, Blocks.sandstone) || b.getMaterial() == Material.ground || b.getMaterial() == Material.clay || b.getMaterial() == Material.sand || b.isReplaceableOreGen(world, x, y, z, Blocks.grass) || ReikaBlockHelper.isOre(b, world.getBlockMetadata(x, y, z));
+			return TerrainType.list[meta].isTerrain();
+		if (ModList.CHISEL.isLoaded() && ChiselBlockHandler.isWorldgenBlock(b, meta))
+			return true;
+		return b.isReplaceableOreGen(world, x, y, z, Blocks.stone) || b.isReplaceableOreGen(world, x, y, z, Blocks.sandstone) || b.getMaterial() == Material.ground || b.getMaterial() == Material.clay || b.getMaterial() == Material.sand || b.isReplaceableOreGen(world, x, y, z, Blocks.grass) || ReikaBlockHelper.isOre(b, meta);
 	}
 
 	public static BlockKey generateOreClumpAt(World world, int x, int y, int z, Random rand, OreSpawnLocation sec, int maxSize) {

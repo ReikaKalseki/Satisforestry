@@ -19,12 +19,12 @@ import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
-import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.SFClient;
@@ -33,6 +33,7 @@ import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.ResourceItem;
 import Reika.Satisforestry.Config.ResourceItem.NodeEffect;
+import Reika.Satisforestry.Config.ResourceItem.NodeItem;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Registry.SFBlocks;
 
@@ -49,6 +50,7 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 
 	private static IIcon crystalIcon;
 	private static IIcon overlayIcon;
+	private static IIcon itemIcon;
 
 	public BlockResourceNode(Material mat) {
 		super(mat);
@@ -73,6 +75,7 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 
 		overlayIcon = ico.registerIcon("satisforestry:resourcenode_overlay");
 		crystalIcon = ico.registerIcon("satisforestry:resourcenode_crystal");
+		itemIcon = ico.registerIcon("satisforestry:resourcenode_item");
 	}
 
 	@Override
@@ -104,6 +107,10 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 
 	public static IIcon getOverlay() {
 		return overlayIcon;
+	}
+
+	public static IIcon getItem() {
+		return itemIcon;
 	}
 
 	@Override
@@ -283,13 +290,10 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 			boolean peaceful = worldObj.difficultySetting == EnumDifficulty.PEACEFUL;
 			if (peaceful && !resource.worksOnPeaceful())
 				return null;
-			ItemStack ri = resource.getRandomItem(tier, purity, manual);
+			NodeItem ri = resource.getRandomItem(tier, purity, manual);
 			if (ri == null)
 				return null;
-			int amt = ReikaRandomHelper.getRandomBetween(resource.minCount, resource.maxCount);
-			if (peaceful)
-				amt = Math.max(1, (int)(amt*resource.peacefulYieldScale));
-			return ReikaItemHelper.getSizedItemStack(ri, amt);
+			return ReikaItemHelper.getSizedItemStack(ri.getItem(), ri.getDropCount(purity, tier, manual, peaceful, DragonAPICore.rand));
 		}
 
 		public Purity getPurity() {

@@ -81,8 +81,6 @@ public class BiomeConfig {
 		itemData = new LuaBlockDatabase();
 		ResourceLuaBlock example2 = new ResourceLuaBlock("example", null, itemData);
 		example2.putData("type", "example_resources");
-		example2.putData("minCount", 1);
-		example2.putData("maxCount", 1);
 		example2.putData("spawnWeight", 10);
 		example2.putData("renderColor", "0xffffff");
 		//example2.putData("generate", "true");
@@ -94,14 +92,23 @@ public class BiomeConfig {
 		LuaBlock item = new ResourceLuaBlock("{", items, itemData);
 		item.putData("key", "minecraft:iron_ingot");
 		item.putData("weight", 10);
+		item.putData("minCount", 1);
+		item.putData("maxCount", 3);
 		item.putData("minimumPurity", Purity.IMPURE.name());
 		item = new ResourceLuaBlock("{", items, itemData);
 		item.putData("key", "minecraft:gold_ingot");
 		item.putData("weight", 6);
-		item.putData("manualModifier", 0.3);
+		item.putData("minCount", 1);
+		item.putData("maxCount", 1);
+		item.putData("manualWeightModifier", 0.3);
+		item.putData("manualAmountModifier", 0.5);
 		ResourceLuaBlock scales = new ResourceLuaBlock("weightModifiers", item, itemData);
 		for (Purity p : Purity.list) {
 			scales.putData(p.name(), (p.ordinal()+1)/2F);
+		}
+		scales = new ResourceLuaBlock("amountModifiers", item, itemData);
+		for (Purity p : Purity.list) {
+			scales.putData(p.name(), p == Purity.PURE ? 1F : 0.5F);
 		}
 		item.putData("minimumPurity", Purity.NORMAL.name());
 		ResourceLuaBlock effects = new ResourceLuaBlock("effects", example2, itemData);
@@ -422,18 +429,10 @@ public class BiomeConfig {
 			throw new IllegalArgumentException("No purity levels specified");
 
 		ResourceItem ore = new ResourceItem(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), map);
-		ore.minCount = b.getInt("minCount");
-		ore.maxCount = b.getInt("maxCount");
-		if (ore.maxCount < ore.minCount)
-			throw new IllegalArgumentException("Min count is greater than max count");
 		if (b.containsKey("speedFactor"))
 			ore.speedFactor = (float)b.getDouble("speedFactor");
 		if (ore.speedFactor <= 0)
 			throw new IllegalArgumentException("Invalid speed factor");
-		if (b.containsKey("peacefulScale"))
-			ore.peacefulYieldScale = (float)b.getDouble("peacefulScale");
-		if (ore.peacefulYieldScale > 1 || ore.peacefulYieldScale < 0)
-			throw new IllegalArgumentException("Invalid peaceful scale");
 
 		for (LuaBlock s : items) {
 			entryAttemptsCount++;
@@ -445,9 +444,15 @@ public class BiomeConfig {
 			}
 			int weight = s.getInt("weight");
 			float man = s.containsKey("manualModifier") ? (float)s.getDouble("manualModifier") : 1;
+			int min = s.getInt("minCount");
+			int max = s.getInt("maxCount");
+			if (max <= 0)
+				throw new IllegalArgumentException("Invalid drop count");
+			if (max < min)
+				throw new IllegalArgumentException("Min count is greater than max count");
 			Purity p = Purity.valueOf(s.getString("minimumPurity"));
 			while (p != null) {
-				ore.addItem(p, is, weight, s);
+				ore.addItem(p, is, weight, min, max, s);
 				p = p.higher();
 			}
 		}

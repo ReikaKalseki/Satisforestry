@@ -25,6 +25,7 @@ import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom.DynamicWeight;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.API.NodeEffectCallback;
 import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
@@ -41,10 +42,8 @@ public class ResourceItem {
 	private final HashMap<Purity, WeightedRandom<NodeItem>> items = new HashMap();
 	private final ArrayList<NodeEffect> effects = new ArrayList();
 
-	public int minCount = 1;
-	public int maxCount = 1;
 	public float speedFactor = 1;
-	public float peacefulYieldScale = 1;
+	private float peacefulYieldScale = 1;
 
 	public ResourceItem(String s, String n, int w, int c, HashMap<String, Object> map) {
 		id = s;
@@ -56,13 +55,13 @@ public class ResourceItem {
 		}
 	}
 
-	public void addItem(Purity p, ItemStack is, int weight, LuaBlock data) {
+	public void addItem(Purity p, ItemStack is, int weight, int min, int max, LuaBlock data) {
 		WeightedRandom<NodeItem> wr = items.get(p);
 		if (wr == null) {
 			wr = new WeightedRandom();
 			items.put(p, wr);
 		}
-		NodeItem ni = new NodeItem(is, weight);
+		NodeItem ni = new NodeItem(is, weight, min, max);
 		ni.loadData(data);
 		wr.addDynamicEntry(ni);
 	}
@@ -76,13 +75,13 @@ public class ResourceItem {
 		effects.add(e);
 	}
 
-	public ItemStack getRandomItem(int tier, Purity p, boolean manual) {
+	public NodeItem getRandomItem(int tier, Purity p, boolean manual) {
 		WeightedRandom<NodeItem> wr = items.get(p);
 		if (wr == null)
 			return null;
 		for (NodeItem i : wr.getValues())
 			i.calc(tier, p, manual);
-		return wr.getRandomEntry().item;
+		return wr.getRandomEntry();
 	}
 
 	public Purity getRandomPurity(Random rand) {
@@ -113,33 +112,59 @@ public class ResourceItem {
 
 	@Override
 	public String toString() {
-		return "W="+spawnWeight+", C="+Integer.toHexString(color)+", L="+levels.toString()+", #="+minCount+"-"+maxCount+", I="+items.toString();
+		return "W="+spawnWeight+", C="+Integer.toHexString(color)+", L="+levels.toString()+", I="+items.toString();
 	}
 
-	private static class NodeItem implements DynamicWeight {
+	public class NodeItem implements DynamicWeight {
 
 		private final ItemStack item;
 		private final int defaultWeight;
+		private final int minCount;
+		private final int maxCount;
 
-		private float manualFactor = 1;
+		private float manualWeightFactor = 1;
+		private float manualAmountFactor = 1;
 		private int minimumTier = 0;
-		private EnumMap<Purity, Float> purityFactors = new EnumMap(Purity.class);
+		private EnumMap<Purity, Float> purityWeights = new EnumMap(Purity.class);
+		private EnumMap<Purity, Float> purityYields = new EnumMap(Purity.class);
 
 		private float weight;
 
-		private NodeItem(ItemStack is, int def) {
+		private NodeItem(ItemStack is, int def, int min, int max) {
 			item = is.copy();
 			defaultWeight = def;
+			minCount = min;
+			maxCount = max;
 		}
 
 		private void loadData(LuaBlock lb) {
-			if (lb.containsKey("manualModifier"))
-				manualFactor = (float)lb.getDouble("manualModifier");
+			if (lb.containsKey("manualWeightModifier"))
+				manualWeightFactor = (float)lb.getDouble("manualWeightModifier");
+			if (manualWeightFactor < 0)
+				throw new IllegalArgumentException("Invalid manual weight scale");
+
+			if (lb.containsKey("manualAmountModifier"))
+				manualAmountFactor = (float)lb.getDouble("manualAmountModifier");
+			if (manualAmountFactor < 0)
+				throw new IllegalArgumentException("Invalid manual yield scale");
+
+			if (lb.containsKey("peacefulScale"))
+				peacefulYieldScale = (float)lb.getDouble("peacefulScale");
+			if (peacefulYieldScale > 1 || peacefulYieldScale < 0)
+				throw new IllegalArgumentException("Invalid peaceful scale");
+
 			LuaBlock child = lb.getChild("weightModifiers");
 			if (child != null) {
 				for (String s : child.getKeys()) {
 					Purity p = Purity.valueOf(s);
-					purityFactors.put(p, (float)child.getDouble(s));
+					purityWeights.put(p, (float)child.getDouble(s));
+				}
+			}
+			child = lb.getChild("amountModifiers");
+			if (child != null) {
+				for (String s : child.getKeys()) {
+					Purity p = Purity.valueOf(s);
+					purityYields.put(p, (float)child.getDouble(s));
 				}
 			}
 		}
@@ -152,8 +177,8 @@ public class ResourceItem {
 		private void calc(int tier, Purity p, boolean manual) {
 			weight = defaultWeight;
 			if (manual)
-				weight *= manualFactor;
-			Float mult = purityFactors.get(p);
+				weight *= manualWeightFactor;
+			Float mult = purityWeights.get(p);
 			if (mult != null) {
 				weight *= mult.floatValue();
 			}
@@ -164,6 +189,22 @@ public class ResourceItem {
 		@Override
 		public double getWeight() {
 			return weight;
+		}
+
+		public int getDropCount(Purity p, int tier, boolean manual, boolean peaceful, Random rand) {
+			double amt = ReikaRandomHelper.getRandomBetween(minCount, (double)maxCount, rand);
+			if (peaceful)
+				amt *= peacefulYieldScale;
+			if (manual)
+				amt *= manualAmountFactor;
+			Float sc = purityYields.get(p);
+			if (sc != null)
+				amt *= sc.floatValue();
+			return (int)Math.max(1, amt);
+		}
+
+		public ItemStack getItem() {
+			return item.copy();
 		}
 
 	}
