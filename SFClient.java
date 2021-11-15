@@ -15,6 +15,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.client.MinecraftForgeClient;
 
 import Reika.DragonAPI.Extras.ThrottleableEffectRenderer;
+import Reika.DragonAPI.Instantiable.Event.Client.ChunkWorldRenderEvent;
 import Reika.DragonAPI.Instantiable.Rendering.ParticleEngine;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
@@ -32,6 +33,7 @@ import Reika.Satisforestry.Render.PinkGrassRenderer;
 import Reika.Satisforestry.Render.PowerSlugItemRenderer;
 import Reika.Satisforestry.Render.PowerSlugRenderer;
 import Reika.Satisforestry.Render.RedBambooRenderer;
+import Reika.Satisforestry.Render.RenderCullingSystem;
 import Reika.Satisforestry.Render.RenderEliteStinger;
 import Reika.Satisforestry.Render.RenderFlyingManta;
 import Reika.Satisforestry.Render.RenderLizardDoggo;
@@ -123,6 +125,11 @@ public class SFClient extends SFCommon {
 	public World getClientWorld()
 	{
 		return FMLClientHandler.instance().getClient().theWorld;
+	}
+
+	@Override
+	public void registerRenderCullingSystem() {
+		ChunkWorldRenderEvent.addHandler(RenderCullingSystem.instance);
 	}
 
 	@Override

@@ -39,6 +39,10 @@ public class SFCommon {
 		return null;
 	}
 
+	public void registerRenderCullingSystem() {
+
+	}
+
 	public void registerRenderInformation() {
 		// TODO Auto-generated method stub
 

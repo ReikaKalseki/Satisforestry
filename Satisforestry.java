@@ -364,6 +364,8 @@ public class Satisforestry extends DragonAPIMod {
 
 		//((BlockPowerSlug)SFBlocks.SLUG.getBlockInstance()).updateStepSounds();
 
+		proxy.registerRenderCullingSystem();
+
 		WorldGenInterceptionRegistry.instance.addWatcher(SFAux.populationWatcher);
 		WorldGenInterceptionRegistry.instance.addIWGWatcher(SFAux.slimeIslandBlocker);
 

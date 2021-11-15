@@ -136,11 +136,11 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 
 	public void createSpawnPoints(World world, int x, int z, BiomeFootprint bf, Random rand) {
 		Collection<SpawnPoint> spawns = doggos.createDoggoSpawnPoints(world, bf, rand);
-		Satisforestry.logger.log("Doggo spawn locations around "+x+", "+z+": "+spawns.size()+"="+spawns);
+		Satisforestry.logger.log("Doggo spawn locations around "+x+", "+z+": "+spawns.size());
 		this.addSpawnPoints(spawns);
 
 		spawns = guards.createSpawnPoints(world, bf, rand);
-		Satisforestry.logger.log("Road Guard spawn locations around "+x+", "+z+": "+spawns.size()+"="+spawns);
+		Satisforestry.logger.log("Road Guard spawn locations around "+x+", "+z+": "+spawns.size());
 		this.addSpawnPoints(spawns);
 	}
 
