@@ -113,6 +113,10 @@ public class APIObjects {
 			return BiomewideFeatureGenerator.instance.isInCave(world, x, y, z);
 		}
 
+		public double getDistanceToCaveCenter(World world, double x, double y, double z) {
+			return BiomewideFeatureGenerator.instance.getDistanceToCaveCenter(world, x, y, z);
+		}
+
 		@Override
 		public boolean isSpecialCaveBlock(Block b) {
 			return UraniumCave.instance.isSpecialCaveBlock(b);

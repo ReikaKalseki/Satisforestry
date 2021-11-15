@@ -1,13 +1,9 @@
 package Reika.Satisforestry.Render;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.WorldRenderer;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.util.MathHelper;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Event.Client.ChunkWorldRenderEvent.ChunkWorldRenderWatcher;
-import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 
 import cpw.mods.fml.relauncher.Side;
@@ -25,7 +21,7 @@ public class RenderCullingSystem implements ChunkWorldRenderWatcher {
 	}
 
 	@Override
-	public boolean interceptChunkRender(WorldRenderer wr, int renderPass, int GLListID) {
+	public boolean interceptChunkRender(WorldRenderer wr, int renderPass, int GLListID) {/*
 		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
 		int x = MathHelper.floor_double(ep.posX);
 		int z = MathHelper.floor_double(ep.posZ);
@@ -37,7 +33,7 @@ public class RenderCullingSystem implements ChunkWorldRenderWatcher {
 			else if (this.intersectsCave(ep.worldObj, wr) && ep.getDistanceSq(wr.posX+8.5, wr.posY+8.5, wr.posZ+8.5) >= 1024) {
 				return true;
 			}
-		}
+		}*/
 		return false;
 	}
 

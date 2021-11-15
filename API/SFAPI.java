@@ -73,6 +73,8 @@ public class SFAPI {
 		/** Whether the given block is a special block used to form the structure of the cave or its functionality. */
 		public boolean isSpecialCaveBlock(Block b);
 
+		public double getDistanceToCaveCenter(World world, double x, double y, double z);
+
 	}
 
 	public static interface PinkForestResourceNodeHandler {
@@ -181,6 +183,11 @@ public class SFAPI {
 		@Override
 		public PointSpawnLocation getNearestSpawnPoint(EntityPlayer ep, double r) {
 			return null;
+		}
+
+		@Override
+		public double getDistanceToCaveCenter(World world, double x, double y, double z) {
+			return 0;
 		}
 
 	}

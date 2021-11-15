@@ -97,6 +97,23 @@ public class BiomewideFeatureGenerator {
 		return false;
 	}
 
+	public double getDistanceToCaveCenter(World world, double x, double y, double z) {
+		if (!world.isRemote && !initialized.contains(world.provider.dimensionId)) {
+			initialized.add(world.provider.dimensionId);
+			PinkForestPersistentData.initNetworkData(world);
+		}
+		double min = Double.POSITIVE_INFINITY;
+		for (Entry<WorldLocation, CachedCave> e : caveNetworks.entrySet()) {
+			if (e.getKey().dimensionID == world.provider.dimensionId) {
+				CachedCave cv = e.getValue();
+				double dist = cv.center.getDistanceTo(x, y, z);
+				if (dist < min)
+					min = dist;
+			}
+		}
+		return min;
+	}
+
 	public MantaPath getPathAround(World world, WorldLocation loc) {
 		if (!world.isRemote && !initialized.contains(world.provider.dimensionId)) {
 			initialized.add(world.provider.dimensionId);
