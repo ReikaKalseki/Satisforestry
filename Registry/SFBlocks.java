@@ -188,7 +188,10 @@ public enum SFBlocks implements BlockEnum {
 			case MINERMULTI:
 				return StatCollector.translateToLocal("multiblock.sfminer."+MinerBlocks.list[meta&7].name().toLowerCase(Locale.ENGLISH));
 			case SLUG:
-				return StatCollector.translateToLocal("powerslug."+meta%3)+" "+this.getBasicName();
+				String type = String.valueOf(meta%3);
+				if ((meta&3) == 0 && SFOptions.BLUEGREEN.getState())
+					type = type+"b";
+				return StatCollector.translateToLocal("powerslug."+type)+" "+this.getBasicName();
 			default:
 				return "";
 		}

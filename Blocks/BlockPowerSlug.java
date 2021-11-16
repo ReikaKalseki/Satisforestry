@@ -46,6 +46,7 @@ import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFOptions;
 import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.EntitySlugStreak;
 
@@ -119,7 +120,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 	public static int getColor(int tier) {
 		switch(tier) {
 			case 0:
-				return 0x94FF7F;
+				return SFOptions.BLUEGREEN.getState() ? 0x5bd7ff : 0x94FF7F;
 			case 1:
 				return 0xF2F268;
 			case 2:
