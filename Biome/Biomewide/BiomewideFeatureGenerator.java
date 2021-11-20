@@ -132,6 +132,7 @@ public class BiomewideFeatureGenerator {
 			DecimalPosition off = DecimalPosition.readTag(tag.getCompoundTag("offset"));
 			double radius = tag.getDouble("radius");
 			double inner = tag.getDouble("inner");
+			int bsize = tag.hasKey("biomesize") ? tag.getInteger("biomesize") : 4;
 			HashMap<Coordinate, CachedTunnel> map = new HashMap();
 			NBTTagList tunnels = tag.getTagList("tunnels", NBTTypes.COMPOUND.ID);
 			for (Object o2 : tunnels.tagList) {
@@ -139,7 +140,7 @@ public class BiomewideFeatureGenerator {
 				map.put(end.endpoint, end);
 			}
 			WorldLocation key = WorldLocation.readTag(tag.getCompoundTag("key"));
-			caveNetworks.put(key, new CachedCave(center, node, tile, radius, inner, off, map));
+			caveNetworks.put(key, new CachedCave(center, node, tile, radius, inner, off, map, bsize));
 		}
 
 		mantaPaths.clear();
@@ -172,6 +173,7 @@ public class BiomewideFeatureGenerator {
 			cave.setTag("offset", cv.innerOffset.writeToTag());
 			cave.setDouble("radius", cv.outerRadius);
 			cave.setDouble("inner", cv.innerRadius);
+			cave.setInteger("biomesize", cv.biomeSize);
 			NBTTagList tunnels = new NBTTagList();
 			for (CachedTunnel e2 : cv.tunnels.values()) {
 				tunnels.appendTag(e2.writeToTag());

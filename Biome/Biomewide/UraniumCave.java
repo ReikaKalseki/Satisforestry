@@ -377,7 +377,7 @@ public class UraniumCave {
 		}
 
 		for (Tunnel t : cc.tunnels) {
-			for (int i = 0; i < 16; i++) {
+			for (int i = 0; i < 16*cc.getBiomeScaleFactor(); i++) {
 				Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, t.carve.keySet());
 				while (carveSet.contains(c.offset(0, -1, 0))) {
 					c = c.offset(0, -1, 0);
@@ -761,7 +761,8 @@ public class UraniumCave {
 		protected void generate(World world, Random rand) {
 			super.generate(world, rand);
 
-			int n = ReikaRandomHelper.getRandomBetween(4, 6, rand);
+			double sc = cave.getBiomeScaleFactor(3);
+			int n = (int)ReikaRandomHelper.getRandomBetween(4*sc, 6*sc, rand);
 			for (int i = 0; i < 5; i++) {
 				Coordinate c = ReikaJavaLibrary.getRandomCollectionEntry(rand, carve.keySet());
 				if (c.yCoord >= DecoratorPinkForest.getTrueTopAt(world, c.xCoord, c.zCoord)-15)
@@ -817,8 +818,18 @@ public class UraniumCave {
 
 		private int lowestFloor = 255;
 
+		private int biomeSize;
+
 		public CentralCave(int x, int y, int z) {
 			super(new DecimalPosition(x+0.5, y+0.5, z+0.5));
+		}
+
+		public double getBiomeScaleFactor() {
+			return this.getBiomeScaleFactor(4);
+		}
+
+		public double getBiomeScaleFactor(double exp) {
+			return Math.pow(biomeSize, exp)/Math.pow(4, exp);
 		}
 
 		public boolean carves(Coordinate c) {
@@ -835,6 +846,7 @@ public class UraniumCave {
 
 		@Override
 		protected void calculate(World world, Random rand) {
+			biomeSize = ReikaWorldHelper.getBiomeSize(world);
 
 			floorHeightNoise = (SimplexNoiseGenerator)new SimplexNoiseGenerator(rand.nextLong()).setFrequency(1/16D).addOctave(2.6, 0.17);
 			ceilingHeightNoise = (SimplexNoiseGenerator)new SimplexNoiseGenerator(rand.nextLong()).setFrequency(1/8D).addOctave(1.34, 0.41);
@@ -1262,6 +1274,7 @@ public class UraniumCave {
 		public final DecimalPosition nodeRoom;
 		public final Coordinate nodeTile;
 		final HashMap<Coordinate, CachedTunnel> tunnels = new HashMap();
+		final int biomeSize;
 
 		private CentralCave reference;
 
@@ -1275,6 +1288,7 @@ public class UraniumCave {
 			for (Tunnel t : cc.tunnels) {
 				tunnels.put(t.endpoint, new CachedTunnel(t));
 			}
+			biomeSize = cc.biomeSize;
 			reference = cc;
 		}
 
@@ -1289,11 +1303,12 @@ public class UraniumCave {
 			ret.outerCircleRadius = outerRadius;
 			ret.innerCircleRadius = innerRadius;
 			ret.innerCircleOffset = innerOffset;
+			ret.biomeSize = biomeSize;
 			reference = ret;
 			return ret;
 		}
 
-		public CachedCave(Coordinate ctr, DecimalPosition node, Coordinate tile, double radius, double inner, DecimalPosition off, HashMap<Coordinate, CachedTunnel> map) {
+		public CachedCave(Coordinate ctr, DecimalPosition node, Coordinate tile, double radius, double inner, DecimalPosition off, HashMap<Coordinate, CachedTunnel> map, int bsize) {
 			center = ctr;
 			nodeRoom = node;
 			nodeTile = tile;
@@ -1301,6 +1316,7 @@ public class UraniumCave {
 			innerRadius = inner;
 			innerOffset = off;
 			tunnels.putAll(map);
+			biomeSize = bsize;
 		}
 
 		public boolean isInside(double x, double y, double z) {

@@ -1,22 +1,25 @@
 package Reika.Satisforestry.Miner;
 
 import java.util.ArrayList;
+import java.util.Collection;
 
 import net.minecraft.block.Block;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
+import Reika.DragonAPI.Auxiliary.ChunkManager;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Exception.RegistrationException;
 import Reika.DragonAPI.Exception.UnreachableCodeException;
-import Reika.DragonAPI.Interfaces.TileEntity.BreakAction;
+import Reika.DragonAPI.Interfaces.TileEntity.ChunkLoadingTile;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
@@ -39,12 +42,13 @@ import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFSounds;
 
 import cofh.api.energy.IEnergyReceiver;
+import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import ic2.api.energy.tile.IEnergySink;
 
 
-public abstract class TileNodeHarvester extends TileEntityBase implements BreakAction {
+public abstract class TileNodeHarvester extends TileEntityBase implements ChunkLoadingTile {
 
 	private static final double MAX_DRILL_SPEED = 24;
 
@@ -60,6 +64,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	public float progressFactor;
 	public float powerBar;
+	public int overclockDisplay;
 
 	private OverclockingInv overclock;
 
@@ -167,6 +172,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 	public void updateEntity(World world, int x, int y, int z, int meta) {
 		if (world.isRemote) {
 			drillSpinAngle += this.getDrillSpeed(MAX_DRILL_SPEED);
+			overclockDisplay = this.getOverclockingStep(false);
 			if (activityTimer > 0) {
 				this.doActivityFX(world, x, y, z);
 			}
@@ -181,11 +187,14 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 					flag = true;
 					this.useEnergy(false);
 					if (this.isReady()) {
-						stepTime = (int)(te.getHarvestInterval()/this.getNetSpeedFactor());
+						stepTime = (int)(te.getHarvestInterval()/this.getNetSpeedFactor(false));
 						if (this.hasEnergy(true)) {
 							state = MachineState.OPERATING;
 							if (operationTimer < stepTime)
 								operationTimer++;
+							if (activityTimer == 0) {
+								ChunkManager.instance.loadChunks(this);
+							}
 							activityTimer = 20;
 							if (operationTimer >= stepTime) {
 								ItemStack is = te.getRandomNodeItem(false);
@@ -233,6 +242,8 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 			powerBar = this.getOperationEnergyFraction();
 			if (activityTimer > 0) {
 				activityTimer--;
+				if (activityTimer == 0)
+					this.unload();
 			}
 		}
 	}
@@ -280,8 +291,8 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		return te instanceof TileResourceNode ? (TileResourceNode)te : null;
 	}
 
-	public final float getNetSpeedFactor() {
-		return (1+this.getTier())*this.getOverclockingLevel()*this.getSpeedFactor();
+	public final float getNetSpeedFactor(boolean display) {
+		return (1+this.getTier())*this.getOverclockingLevel(display)*this.getSpeedFactor();
 	}
 
 	private boolean trySpawnItem(ItemStack is) {
@@ -318,12 +329,12 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		return (int)(px*progressFactor);
 	}
 
-	public final int getOverclockingStep() {
-		return overclock.getOverclockingLevel();
+	public final int getOverclockingStep(boolean display) {
+		return FMLCommonHandler.instance().getEffectiveSide() == Side.CLIENT && display ? overclockDisplay : overclock.getOverclockingLevel();
 	}
 
-	public final float getOverclockingLevel() {
-		return 1+this.getOverclockingStep()*0.5F;
+	public final float getOverclockingLevel(boolean display) {
+		return 1+this.getOverclockingStep(display)*0.5F;
 	}
 
 	public abstract float getSpeedFactor();
@@ -353,6 +364,15 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	public final void breakBlock() {
 		this.updateInputs(false);
+		this.unload();
+	}
+
+	public final Collection<ChunkCoordIntPair> getChunksToLoad() {
+		return ChunkManager.getChunkSquare(xCoord, zCoord, 1);
+	}
+
+	private void unload() {
+		ChunkManager.instance.unloadChunks(this);
 	}
 
 	public final ItemStack getUpgradeSlot(int slot) {
@@ -437,6 +457,8 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 	public abstract String getOperationPowerCost(boolean withOverclock);
 
+	public abstract String getPowerType();
+
 	@Override
 	public final AxisAlignedBB getRenderBoundingBox() {
 		if (structureDir == null)
@@ -488,7 +510,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		}
 
 		protected final long getActualMaxFlow() {
-			return (long)(maxFlowRate*(1+this.getTier())*this.getOverclockingPowerFactor());
+			return (long)(maxFlowRate*(1+this.getTier())*this.getOverclockingPowerFactor(false));
 		}
 
 		protected final long getEnergy() {
@@ -519,23 +541,28 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		protected abstract String getEnergyUnit();
 
 		@Override
+		public final String getPowerType() {
+			return this.getEnergyUnit();
+		}
+
+		@Override
 		protected final float getOperationEnergyFraction() {
 			return Math.min(1, energy/(float)this.getActualOperationCost(true));
 		}
 
 		protected final long getActualOperationCost(boolean operation) {
-			return (long)((operation ? energyPerCycle : standbyCost)*this.getOverclockingPowerFactor());
+			return (long)((operation ? energyPerCycle : standbyCost)*this.getOverclockingPowerFactor(false));
 		}
 
-		protected final float getOverclockingPowerFactor() {
-			return (float)ReikaMathLibrary.roundToNearestFraction(Math.pow(this.getOverclockingLevel(), 1.82), 0.25); //SF uses 1.6
+		protected final float getOverclockingPowerFactor(boolean display) {
+			return (float)ReikaMathLibrary.roundToNearestFraction(Math.pow(this.getOverclockingLevel(display), 1.82), 0.25); //SF uses 1.6
 		}
 
 		@Override
 		public final String getOperationPowerCost(boolean withOverclock) {
 			double amt = energyPerCycle;
 			if (withOverclock)
-				amt *= this.getOverclockingPowerFactor();
+				amt *= this.getOverclockingPowerFactor(true);
 			return String.format("%.3f k%s", amt/1000D, this.getEnergyUnit());
 		}
 
@@ -693,28 +720,28 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 		@Override
 		protected boolean hasEnergy(boolean operation) {
-			return operation ? power >= this.getMinPowerCost() && torque >= MINTORQUE && omega >= this.getMinSpeed() : (power >= this.getStandbyPowerCost());
+			return operation ? power >= this.getMinPowerCost(false) && torque >= MINTORQUE && omega >= this.getMinSpeed() : (power >= this.getStandbyPowerCost());
 		}
 
 		private long getStandbyPowerCost() {
-			return STANDBY_BASE*this.getPowerScalar();
+			return STANDBY_BASE*this.getPowerScalar(false);
 		}
 
 		private int getMinSpeed() {
-			return (int)(this.getMinPowerCost()/MINTORQUE);
+			return (int)(this.getMinPowerCost(false)/MINTORQUE);
 		}
 
-		private long getMinPowerCost() {
-			return MINPOWER_BASE*this.getPowerScalar();
+		private long getMinPowerCost(boolean display) {
+			return MINPOWER_BASE*this.getPowerScalar(display);
 		}
 
-		private int getPowerScalar() {
-			return ReikaMathLibrary.intpow2(2, this.getOverclockingStep());
+		private int getPowerScalar(boolean display) {
+			return ReikaMathLibrary.intpow2(2, this.getOverclockingStep(display));
 		}
 
 		@Override
 		public final String getOperationPowerCost(boolean withOverclock) {
-			double amt = withOverclock ? this.getMinPowerCost() : MINPOWER_BASE;
+			double amt = withOverclock ? this.getMinPowerCost(true) : MINPOWER_BASE;
 			String unit = ReikaEngLibrary.getSIPrefix(amt);
 			double base = ReikaMathLibrary.getThousandBase(amt);
 			return String.format("%.3f %sW", base, unit);
@@ -722,7 +749,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 
 		@Override
 		public float getOperationEnergyFraction() {
-			return ReikaMathLibrary.multiMin(1F, power/(float)this.getMinPowerCost(), torque/(float)MINTORQUE, omega/(float)this.getMinSpeed());
+			return ReikaMathLibrary.multiMin(1F, power/(float)this.getMinPowerCost(false), torque/(float)MINTORQUE, omega/(float)this.getMinSpeed());
 		}
 
 		@Override
@@ -733,6 +760,11 @@ public abstract class TileNodeHarvester extends TileEntityBase implements BreakA
 		@Override
 		protected String getTEName() {
 			return "Resource Node Harvester (Shaft)";
+		}
+
+		@Override
+		public final String getPowerType() {
+			return "RotaryCraft shaft";
 		}
 
 		@Override

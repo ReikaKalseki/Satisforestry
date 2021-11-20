@@ -57,7 +57,7 @@ public class GuiSFMiner extends GuiContainer {
 		f = (int)Math.min(74, tile.powerBar*74);
 		this.drawTexturedModalRect(j + 56, k + 38, 0, 230, f, 6);
 
-		int o = tile.getOverclockingStep();
+		int o = tile.getOverclockingStep(true);
 		int dx = 0;
 		for (int i = 0; i <= o; i++) {
 			int w = i == 0 ? 43 : 21;
@@ -85,7 +85,7 @@ public class GuiSFMiner extends GuiContainer {
 			ResourceItem ri = te.getResource();
 			int basetime = te.getHarvestInterval();
 			int baseyield = 20*60/basetime;
-			float sp = tile.getNetSpeedFactor();
+			float sp = tile.getNetSpeedFactor(true);
 			float time = basetime/sp;
 			float yield = baseyield*sp;
 			fontRendererObj.drawString(String.format("%.2fs", time/20F), (int)((j+83)/sc), (int)((k+29)/sc), 0xFA9549);
@@ -93,7 +93,7 @@ public class GuiSFMiner extends GuiContainer {
 			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, ri.displayName, (int)((j+90)/sc), (int)((k+76)/sc), 0x646464);
 			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, baseyield+"/min Base", (int)((j+90)/sc), (int)((k+76+fontRendererObj.FONT_HEIGHT*sc)/sc), 0x646464);
 
-			fontRendererObj.drawString(String.format("%.0f%s", tile.getOverclockingLevel()*100, "%"), (int)((j+27)/sc), (int)((k+103)/sc), 0xFA9549);
+			fontRendererObj.drawString(String.format("%.0f%s", tile.getOverclockingLevel(true)*100, "%"), (int)((j+27)/sc), (int)((k+103)/sc), 0xFA9549);
 			String s = String.format("%.1f", yield);
 			fontRendererObj.drawString(s, (int)((j+27)/sc), (int)((k+114)/sc), 0xFA9549);
 			fontRendererObj.drawString("/min", (int)((j+27+fontRendererObj.getStringWidth(s)*sc)/sc), (int)((k+114)/sc), 0x646464);

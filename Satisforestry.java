@@ -61,6 +61,7 @@ import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler.IC2Stacks;
 import Reika.DragonAPI.ModInteract.RecipeHandlers.ForestryRecipeHelper;
 import Reika.DragonAPI.ModRegistry.PowerTypes;
+import Reika.RotaryCraft.API.RecipeInterface;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.CaveNightvisionHandler;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
@@ -245,8 +246,6 @@ public class Satisforestry extends DragonAPIMod {
 
 		ReikaClimateControl.registerBiome(pinkforest, 3, false, "COOL");
 
-		this.addRecipes();
-
 		//pinkriver = new BiomePinkRiver();
 
 		ReikaRegistryHelper.registerModEntities(instance, SFEntities.entityList);
@@ -294,26 +293,28 @@ public class Satisforestry extends DragonAPIMod {
 		Object panel2 = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "basepanel"), silver);
 		Object drill = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "drill"), Items.diamond);
 		Object rfcoil = getItemWithFallback(GameRegistry.findItemStack(ModList.THERMALEXPANSION.modLabel, "powerCoilElectrum", 1), Items.redstone);
+		Object redblock = getItemWithFallback(ReikaItemHelper.lookupItem("ThermalExpansion:Frame:7"), Blocks.redstone_block);
 		Object eucoil = getItemWithFallback(IC2Handler.IC2Stacks.ENERGIUM.getItem(), Items.redstone);
-		Object alloy = getItemWithFallback(IC2Handler.IC2Stacks.ADVANCEDALLOY.getItem(), Items.iron_ingot);
+		ItemStack alloy = (ItemStack)getItemWithFallback(IC2Handler.IC2Stacks.ADVANCEDALLOY.getItem(), new ItemStack(Items.iron_ingot));
+		Object alloy2 = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "springtungsten"), alloy);
 		List<ItemStack> bronze = OreDictionary.getOres("ingotBronze");
 		Object orange = getItemWithFallback(bronze.isEmpty() ? null : "ingotBronze", ReikaItemHelper.orangeDye);
 		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.ORANGE.ordinal()), "ioi", "ibi", "ioi", 'b', Blocks.iron_bars, 'o', orange, 'i', Items.iron_ingot);
 		addRecipe(dark, "isi", "sbs", "isi", 'b', Blocks.iron_bars, 's', steel, 'i', Items.iron_ingot);
 		addRecipe(silver, "bib", "ibi", "bib", 'b', Blocks.iron_bars, 'i', Items.iron_ingot);
 		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.GRAY.ordinal()), "i i", " s ", "i i", 's', steel, 'i', Items.iron_ingot);
-		addRecipe(drillbit, "aDa", "dBd", "iRi", 'a', alloy, 'R', drill, 'D', dark, 'B', Blocks.obsidian, 'd', Items.diamond, 'i', Items.iron_ingot);
+		addRecipe(drillbit, "aDa", "dBd", "iRi", 'a', alloy2, 'R', drill, 'D', dark, 'B', Blocks.obsidian, 'd', Items.diamond, 'i', Items.iron_ingot);
 		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.CONVEYOR.ordinal()), "ihi", "pcp", "ihi", 'h', Blocks.hopper, 'c', Blocks.chest, 'p', panel2, 'i', silver);
 		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.HUB.ordinal()), "ihi", "dgd", "ihi", 'g', gear, 'h', shaft, 'd', dark, 'i', plate);
 		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.POWER.ordinal()), "iri", "iri", "iri", 'r', Items.redstone, 'i', Items.iron_ingot);
 
 		Object rfcoil2 = getItemWithFallback(GameRegistry.findItemStack(ModList.THERMALEXPANSION.modLabel, "powerCoilGold", 1), Items.redstone);
 		if (PowerTypes.RF.isLoaded())
-			addRecipe(SFBlocks.HARVESTER.getStackOfMetadata(0), "ici", "iri", "idi", 'c', rfcoil2, 'r', Blocks.redstone_block, 'i', Items.iron_ingot, 'd', drillbit);
+			addWRRecipe(SFBlocks.HARVESTER.getStackOfMetadata(0), "ici", "iri", "idi", 'c', rfcoil2, 'r', redblock, 'i', Items.iron_ingot, 'd', drillbit);
 		if (PowerTypes.EU.isLoaded())
-			addRecipe(SFBlocks.HARVESTER.getStackOfMetadata(1), "iei", "aca", "idi", 'a', alloy, 'e', eucoil, 'c', IC2Stacks.LAPOTRON.getItem(), 'i', Items.iron_ingot, 'd', drillbit);
+			addWRRecipe(SFBlocks.HARVESTER.getStackOfMetadata(1), "iei", "aca", "idi", 'a', alloy, 'e', eucoil, 'c', ReikaItemHelper.getAnyMetaStack(IC2Stacks.LAPOTRON.getItem()), 'i', Items.iron_ingot, 'd', drillbit);
 		if (PowerTypes.ROTARYCRAFT.isLoaded())
-			addRecipe(SFBlocks.HARVESTER.getStackOfMetadata(2), "bgb", "bGb", "sds", 's', steel, 'b', plate, 'g', gear, 'G', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit4"), 'd', drillbit);
+			addWRRecipe(SFBlocks.HARVESTER.getStackOfMetadata(2), "bgb", "bGb", "sds", 's', steel, 'b', plate, 'g', gear, 'G', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit4"), 'd', drillbit);
 		/*
 		if (ModList.THERMALEXPANSION.isLoaded()) {
 			ItemStack silverCoil = GameRegistry.findItemStack(ModList.THERMALEXPANSION.modLabel, "powerCoilSilver", 1);
@@ -339,6 +340,15 @@ public class Satisforestry extends DragonAPIMod {
 		 */
 	}
 
+	private static void addWRRecipe(ItemStack out, Object... in) {
+		if (ModList.ROTARYCRAFT.isLoaded()) {
+			RecipeInterface.worktable.addAPIRecipe(new ShapedOreRecipe(out, in));
+		}
+		else {
+			addRecipe(out, in);
+		}
+	}
+
 	private static void addRecipe(ItemStack out, Object... in) {
 		GameRegistry.addRecipe(new ShapedOreRecipe(out, in));
 	}
@@ -359,6 +369,8 @@ public class Satisforestry extends DragonAPIMod {
 	@EventHandler
 	public void postload(FMLPostInitializationEvent evt) {
 		this.startTiming(LoadPhase.POSTLOAD);
+
+		this.addRecipes();
 
 		BiomeConfig.instance.loadConfigs();
 

@@ -98,7 +98,7 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 		ReikaRenderHelper.disableLighting();
 		ReikaRenderHelper.disableEntityLighting();
 		int c = te.getState().color;
-		if (te.getOverclockingStep() > 0) {
+		if (te.getOverclockingStep(true) > 0) {
 			float f = 0.5F+(float)(0.5*Math.sin(te.getTicksExisted()*0.004));
 			c = ReikaColorAPI.mixColors(c, 0xffffff, f);
 		}
