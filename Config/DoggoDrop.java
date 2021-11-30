@@ -1,7 +1,10 @@
 package Reika.Satisforestry.Config;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Random;
 
@@ -9,6 +12,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumDifficulty;
+import net.minecraft.world.biome.BiomeGenBase;
 
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
@@ -45,6 +49,10 @@ public class DoggoDrop {
 
 	public ItemStack generateItem(Random rand) {
 		return ReikaItemHelper.getSizedItemStack(item, ReikaRandomHelper.getRandomBetween(minCount, maxCount, rand));
+	}
+
+	public ItemStack getItem() {
+		return item.copy();
 	}
 
 	public LuaBlock createLuaBlock(LuaBlock parent, LuaBlockDatabase tree) {
@@ -123,6 +131,8 @@ public class DoggoDrop {
 	}
 
 	public void addWeightFactor(Checks c, Object req, double f) {
+		if (c == null)
+			throw new IllegalArgumentException("Null check type!");
 		weightFactors.put(new Condition(c, req), f);
 	}
 
@@ -135,10 +145,25 @@ public class DoggoDrop {
 	}
 
 	public void addCondition(Checks c, Object req) {
+		if (c == null)
+			throw new IllegalArgumentException("Null check type!");
 		requirements.add(new Condition(c, req));
 	}
 
-	private static class Condition {
+	public Collection<Condition> getRequirements() {
+		return Collections.unmodifiableCollection(requirements);
+	}
+
+	public Map<Condition, Double> getModifiers() {
+		return Collections.unmodifiableMap(weightFactors);
+	}
+
+	@Override
+	public String toString() {
+		return item+" @ "+baseWeight;
+	}
+
+	public static class Condition {
 
 		public final Checks check;
 		public final Object value;
@@ -146,6 +171,10 @@ public class DoggoDrop {
 		private Condition(Checks c, Object req) {
 			check = c;
 			value = req;
+		}
+
+		public String getDisplayString() {
+			return check.getDisplayString(value);
 		}
 
 	}
@@ -192,6 +221,26 @@ public class DoggoDrop {
 					return e.worldObj.canBlockSeeTheSky(MathHelper.floor_double(e.posX), (int)e.posY+1, MathHelper.floor_double(e.posZ));
 			}
 			return false;
+		}
+
+		public String getDisplayString(Object value) {
+			switch(this) {
+				case BIOME:
+					return "Is in biome: "+BiomeGenBase.biomeList[(int)value].biomeName;
+				case HEALTH:
+					return "Doggo Health at least "+((double)value*100)+"%";
+				case MAXY:
+					return "Doggo below Y="+value;
+				case MINY:
+					return "Doggo above Y="+value;
+				case NIGHT:
+					return (boolean)value ? "Is night time" : "Is day time";
+				case PEACEFUL:
+					return (boolean)value ? "Is peaceful mode" : "Is not peaceful mode";
+				case SKY:
+					return "Doggo can"+((boolean)value ? "" : "not")+" see the sky";
+			}
+			return comment+" = "+value;
 		}
 
 		public Object parseReq(String input) {

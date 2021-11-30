@@ -26,6 +26,7 @@ import Reika.DragonAPI.Instantiable.Data.WeightedRandom.DynamicWeight;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.API.NodeEffectCallback;
 import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
@@ -47,7 +48,7 @@ public class ResourceItem {
 
 	public ResourceItem(String s, String n, int w, int c, HashMap<String, Object> map) {
 		id = s;
-		displayName = Strings.isNullOrEmpty(n) ? id : n;
+		displayName = Strings.isNullOrEmpty(n) || n.contains("NULL KEY") ? id : n;
 		spawnWeight = w;
 		color = c;
 		for (Entry<String, Object> e : map.entrySet()) {
@@ -105,14 +106,72 @@ public class ResourceItem {
 		HashMap<ItemStack, Double> ret = new HashMap();
 		WeightedRandom<NodeItem> wr = items.get(p);
 		for (NodeItem is : wr.getValues()) {
-			ret.put(is.item.copy(), wr.getWeight(is));
+			is.calc(Integer.MAX_VALUE, p, false);
+			ret.put(is.item.copy(), is.getWeight());
 		}
 		return ret;
+	}
+
+	public Collection<ResourceItemView> getAllItems(Purity p) {
+		Collection<ResourceItemView> ret = new ArrayList();
+		for (NodeItem ni : items.get(p).getValues()) {
+			ret.add(new ResourceItemView(ni, p));
+		}
+		return ret;
+	}
+
+	public boolean produces(ItemStack is) {
+		for (Purity p : Purity.list) {
+			if (this.producesAt(is, p))
+				return true;
+		}
+		return false;
+	}
+
+	public boolean producesAt(ItemStack is, Purity p) {
+		for (NodeItem ni : items.get(p).getValues()) {
+			if (ReikaItemHelper.matchStacks(is, ni.item)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
 	public String toString() {
 		return "W="+spawnWeight+", C="+Integer.toHexString(color)+", L="+levels.toString()+", I="+items.toString();
+	}
+
+	public class ResourceItemView {
+
+		private final ItemStack item;
+		public final Purity purity;
+
+		public final float weight;
+		public final int minCount;
+		public final int maxCount;
+
+		public final float manualWeightScale;
+		public final float manualYieldScale;
+
+		private ResourceItemView(NodeItem ni, Purity p) {
+			item = ni.item;
+			purity = p;
+
+			Float pw = ni.purityWeights.get(p);
+			Float py = ni.purityYields.get(p);
+			weight = (int)(ni.defaultWeight*(pw != null ? pw.floatValue() : 1));
+			minCount = (int)(ni.minCount*(py != null ? py.floatValue() : 1));
+			maxCount = (int)(ni.maxCount*(py != null ? py.floatValue() : 1));
+
+			manualWeightScale = ni.manualWeightFactor;
+			manualYieldScale = ni.manualAmountFactor;
+		}
+
+		public ItemStack getItem() {
+			return item.copy();
+		}
+
 	}
 
 	public class NodeItem implements DynamicWeight {

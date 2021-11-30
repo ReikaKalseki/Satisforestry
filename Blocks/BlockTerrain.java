@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -168,6 +169,11 @@ public class BlockTerrain extends Block {
 	}
 
 	@Override
+	public boolean canSilkHarvest(World world, EntityPlayer player, int x, int y, int z, int metadata) {
+		return TerrainType.list[metadata].canSilkTouch();
+	}
+
+	@Override
 	public void breakBlock(World world, int x, int y, int z, Block old, int oldmeta) {
 		super.breakBlock(world, x, y, z, old, oldmeta);
 		for (int i = 0; i < 6; i++) {
@@ -213,6 +219,15 @@ public class BlockTerrain extends Block {
 					return new ItemStack(Blocks.cobblestone);
 				default:
 					return null;
+			}
+		}
+
+		public boolean canSilkTouch() {
+			switch(this) {
+				case CRACKS:
+					return false;
+				default:
+					return true;
 			}
 		}
 

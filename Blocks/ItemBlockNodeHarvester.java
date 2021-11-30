@@ -22,7 +22,7 @@ public class ItemBlockNodeHarvester extends MetadataItemBlock {
 	public void addInformation(ItemStack is, EntityPlayer ep, List li, boolean vb) {
 		TileNodeHarvester te = (TileNodeHarvester)field_150939_a.createTileEntity(ep.worldObj, is.getItemDamage());
 		li.add("Requires "+EnumChatFormatting.WHITE+te.getPowerType()+EnumChatFormatting.GRAY+" power.");
-		if (GuiScreen.isCtrlKeyDown()) {
+		if (GuiScreen.isShiftKeyDown()) {
 			li.add(String.format("Efficiency: %s%.1f%s", EnumChatFormatting.WHITE.toString(), te.getSpeedFactor()*100, "%"));
 			for (int i = 0; i <= 3; i++) {
 				te.overclockDisplay = i;
@@ -30,7 +30,7 @@ public class ItemBlockNodeHarvester extends MetadataItemBlock {
 			}
 		}
 		else {
-			li.add(EnumChatFormatting.GREEN+"Hold LCTRL to see speed/power data.");
+			li.add(EnumChatFormatting.GREEN+"Hold LSHIFT to see speed/power data.");
 		}
 	}
 

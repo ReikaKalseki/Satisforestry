@@ -6,6 +6,7 @@ import java.util.Random;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -23,8 +24,11 @@ import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
+import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
+import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.Satisforestry.SFClient;
@@ -76,6 +80,25 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 		overlayIcon = ico.registerIcon("satisforestry:resourcenode_overlay");
 		crystalIcon = ico.registerIcon("satisforestry:resourcenode_crystal");
 		itemIcon = ico.registerIcon("satisforestry:resourcenode_item");
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public void randomDisplayTick(World world, int x, int y, int z, Random rand) {
+		int n = 5;
+		TileResourceNode te = (TileResourceNode)world.getTileEntity(x, y, z);
+		if (te != null) {
+			n = 5-te.getPurity().ordinal()*2;
+		}
+		if (rand.nextInt(n) == 0) {
+			double px = x+0.5+rand.nextGaussian();//ReikaRandomHelper.getRandomBetween(x-1.5, x+2.5);
+			double pz = z+0.5+rand.nextGaussian();//ReikaRandomHelper.getRandomBetween(z-1.5, z+2.5);
+			double py = ReikaRandomHelper.getRandomBetween(y+1.0625, y+1.375);
+			EntityBlurFX fx = new EntityBlurFX(world, px, py, pz, IconPrefabs.FADE.getIcon());
+			fx.setScale((float)ReikaRandomHelper.getRandomBetween(0.6, 1.2)).setLife(ReikaRandomHelper.getRandomBetween(3, 6));
+			fx.setAlphaFading().setRapidExpand().setColor(0xffffff);
+			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+		}
 	}
 
 	@Override

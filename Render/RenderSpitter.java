@@ -31,7 +31,7 @@ public class RenderSpitter extends RenderLiving {
 		GL11.glScalef(1.5F, 1.5F, 1.5F);
 		SpitterType s = ((EntitySpitter)e).getSpitterType();
 		if (s.isAlpha()) {
-			GL11.glScalef(1.25F, 1.25F, 1.25F);
+			GL11.glScalef(1.4F, 1.4F, 1.4F);
 		}
 		shadowSize = s.isAlpha() ? 1.1F : 0.8F;
 	}

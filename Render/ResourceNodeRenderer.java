@@ -22,6 +22,7 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Base.ISBRH;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
+import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
@@ -79,11 +80,11 @@ public class ResourceNodeRenderer extends ISBRH {
 		TileResourceNode te = (TileResourceNode)world.getTileEntity(x, y, z);
 		ResourceItem ri = te.getResource();
 		int c = ri == null ? 0xffffff : ri.color;
-		if (renderPass == 0) {
+		if (renderPass == 0 || StructureRenderer.isRenderingTiles()) {
 			v5.setColorOpaque_I(0xffffff);
 			renderer.renderStandardBlockWithAmbientOcclusion(block, x, y, z, 1, 1, 1);
 		}
-		else {
+		if (renderPass == 1) {
 			v5.setBrightness(240);
 
 			World w = Minecraft.getMinecraft().theWorld;
@@ -208,7 +209,7 @@ public class ResourceNodeRenderer extends ISBRH {
 			}
 		}
 
-		if (renderPass == 1) {
+		if (renderPass == 1 || StructureRenderer.isRenderingTiles()) {
 			v5.setColorOpaque_I(c);
 			ico = BlockResourceNode.getCrystal();
 

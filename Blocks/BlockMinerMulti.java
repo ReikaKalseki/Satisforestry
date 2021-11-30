@@ -20,6 +20,7 @@ import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Base.BlockMultiBlock;
+import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray.BlockMatchFailCallback;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.StructuredBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
@@ -130,11 +131,11 @@ public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 	}
 
 	@Override
-	public ForgeDirection checkForFullMultiBlock(World world, int x, int y, int z, ForgeDirection placeDir) {
+	public ForgeDirection checkForFullMultiBlock(World world, int x, int y, int z, ForgeDirection placeDir, BlockMatchFailCallback call) {
 		TileEntity te = this.getTileEntityForPosition(world, x, y, z);
 		//ReikaJavaLibrary.pConsole(te);
 		if (te instanceof TileNodeHarvester) {
-			return MinerStructure.getStructureDirection(world, te.xCoord, te.yCoord, te.zCoord);
+			return MinerStructure.getStructureDirection(world, te.xCoord, te.yCoord, te.zCoord, call);
 		}
 		return null;
 	}
@@ -276,6 +277,44 @@ public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 	public static class TileMinerConveyorPort extends TileMinerConnection implements ISidedInventory {
 
 		private ItemStack currentSlot;
+
+		@Override
+		public boolean canUpdate() {
+			return ModList.IMMERSIVEENG.isLoaded();
+		}
+
+		@Override
+		public void updateEntity() {
+			if (currentSlot == null || currentSlot.stackSize <= 0)
+				return;
+			TileNodeHarvester root = this.getRoot();
+			if (root == null || !root.hasStructure())
+				return;
+			ForgeDirection dir = root.getDirection();
+			if (dir == null)
+				return;
+			TileEntity te = worldObj.getTileEntity(xCoord+dir.offsetX, yCoord, zCoord+dir.offsetZ);
+			if (te instanceof IInventory) {
+				this.tryAddToInv((IInventory)te);
+			}
+		}
+
+		private void tryAddToInv(IInventory te) {
+			/*
+			if (ReikaInventoryHelper.addToIInv(currentSlot, te)) {
+				this.currentSlot = null;
+			}
+			else {
+
+			}
+			 */
+			ItemStack is = ReikaItemHelper.getSizedItemStack(currentSlot, 1);
+			if (ReikaInventoryHelper.addToIInv(is, te)) {
+				currentSlot.stackSize--;
+				if (currentSlot.stackSize <= 0)
+					currentSlot = null;
+			}
+		}
 
 		@Override
 		public int getSizeInventory() {

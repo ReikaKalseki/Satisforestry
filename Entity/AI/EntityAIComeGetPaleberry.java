@@ -46,6 +46,9 @@ public class EntityAIComeGetPaleberry extends EntityAIBase {
 		if (closestPlayer.getDistanceSqToEntity(doggo) <= MIN_DIST*MIN_DIST)
 			return false;
 
+		if (closestPlayer.isJumping || !closestPlayer.onGround || closestPlayer.isSprinting())
+			return false;
+
 		if (!EntityAIRunFromPlayer.hasPaleberry(closestPlayer))
 			return false;
 

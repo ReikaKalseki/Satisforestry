@@ -19,6 +19,9 @@ import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Registry.SFBlocks;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 public class BlockPinkLeaves extends BlockCustomLeaf implements LeafBlockWithExtras {
 
 	public BlockPinkLeaves() {
@@ -183,6 +186,31 @@ public class BlockPinkLeaves extends BlockCustomLeaf implements LeafBlockWithExt
 			ret.add(new ItemStack(Satisforestry.paleberry, 1, 1));
 		}
 		return ret;
+	}
+
+	@Override
+	@SideOnly(Side.CLIENT)
+	public boolean shouldSideBeRendered(IBlockAccess iba, int sx, int sy, int sz, int s) { /*//cull back faces to reduce ram usage from quad draw
+		EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
+		if (ep != null) {
+			ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[s];
+			double dx = ep.posX-sx+dir.offsetX;
+			double dy = ep.posY-sy+dir.offsetY;
+			double dz = ep.posZ-sz+dir.offsetZ;
+			if (dy > 0 && dir == ForgeDirection.DOWN)
+				return false;
+			if (dy < 0 && dir == ForgeDirection.UP)
+				return false;
+			if (dz > 0 && dir == ForgeDirection.NORTH)
+				return false;
+			if (dz < 0 && dir == ForgeDirection.SOUTH)
+				return false;
+			if (dx > 0 && dir == ForgeDirection.WEST)
+				return false;
+			if (dx < 0 && dir == ForgeDirection.EAST)
+				return false;
+		}*/
+		return super.shouldSideBeRendered(iba, sx, sy, sz, s);
 	}
 
 	@Override

@@ -26,6 +26,7 @@ import net.minecraft.potion.Potion;
 import Reika.DragonAPI.Exception.InstallationException;
 import Reika.DragonAPI.Exception.RegistrationException;
 import Reika.DragonAPI.IO.ReikaFileReader;
+import Reika.DragonAPI.Instantiable.Data.KeyedItemStack;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.IO.CustomRecipeList;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
@@ -57,6 +58,7 @@ public class BiomeConfig {
 	private final HashMap<String, OreClusterType> oreEntries = new HashMap();
 	private final HashMap<String, ResourceItem> resourceEntries = new HashMap();
 	private final Collection<DoggoDrop> doggoEntries = new ArrayList();
+	private final HashSet<KeyedItemStack> doggoItems = new HashSet();
 
 	private BiomeConfig() {
 		oreData = new LuaBlockDatabase();
@@ -154,8 +156,8 @@ public class BiomeConfig {
 		drop.addWeightFactor(Checks.NIGHT, true, 2.5);
 		drop.createLuaBlock(drops, doggoData);
 
-		drop = new DoggoDrop(Satisforestry.paleberry, 1, 16, 50);
-		drop.createLuaBlock(drops, doggoData);
+		//drop = new DoggoDrop(Satisforestry.paleberry, 1, 16, 50);
+		//drop.createLuaBlock(drops, doggoData);
 
 		doggoData.addBlock("example", example3);
 	}
@@ -242,6 +244,7 @@ public class BiomeConfig {
 		oreEntries.clear();
 		resourceEntries.clear();
 		doggoEntries.clear();
+		doggoItems.clear();
 
 		definitionCount = 0;
 		entryAttemptsCount = 0;
@@ -491,6 +494,12 @@ public class BiomeConfig {
 				Satisforestry.logger.logError("Could not load item type '"+s+"' for doggo drop '"+type+"'; skipping.");
 				continue;
 			}
+			KeyedItemStack ks = new KeyedItemStack(is).setIgnoreMetadata(false).setIgnoreNBT(false).setSized(false).setSimpleHash(true);
+			if (doggoItems.contains(ks)) {
+				Satisforestry.logger.logError("Doggo drop for item '"+CustomRecipeList.fullID(is)+"' already loaded. Skipping duplicate in '"+type+"'.");
+				continue;
+			}
+			doggoItems.add(ks);
 			int weight = s.getInt("weight");
 			int min = s.getInt("minCount");
 			int max = s.getInt("maxCount");

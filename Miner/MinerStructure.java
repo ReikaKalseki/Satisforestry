@@ -6,20 +6,41 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
+import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray.BlockMatchFailCallback;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 public class MinerStructure {
 
-	public static ForgeDirection getStructureDirection(World world, int x, int y, int z) {
+	public static ForgeDirection getStructureDirection(World world, int x, int y, int z, BlockMatchFailCallback call) {
 		for (int i = 2; i < 6; i++) {
 			ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i];
 			FilledBlockArray arr = getMinerStructure(world, x, y, z, dir);
-			if (arr.matchInWorld())
+			if (arr.matchInWorld()) {
 				return dir;
+			}
+		}
+		if (call != null) {
+			checkForErrors(world, x, y, z, call);
 		}
 		return null;
+	}
+
+	private static void checkForErrors(World world, int x, int y, int z, BlockMatchFailCallback call) {
+		ForgeDirection fewestSide = null;
+		int fewest = Integer.MAX_VALUE;
+		for (int i = 2; i < 6; i++) {
+			ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i];
+			FilledBlockArray arr = getMinerStructure(world, x, y, z, dir);
+			int err = arr.countErrors();
+			if (err < fewest || fewestSide == null) {
+				fewestSide = dir;
+				fewest = err;
+			}
+		}
+		FilledBlockArray arr = getMinerStructure(world, x, y, z, fewestSide);
+		arr.matchInWorld(call);
 	}
 
 	private static void setBlock(FilledBlockArray array, ForgeDirection dir, int x0, int y0, int z0, int dx, int dy, int dz, Block b) {
@@ -28,6 +49,10 @@ public class MinerStructure {
 
 	@SuppressWarnings("incomplete-switch")
 	private static void setBlock(FilledBlockArray array, ForgeDirection dir, int x0, int y0, int z0, int dx, int dy, int dz, Block b, int meta) {
+		if (b == Blocks.air) {
+			if (dx-x0 > 3 && dy-y0 > 5)
+				return;
+		}
 		dx -= x0;
 		dz -= z0;
 		switch(dir) {
@@ -50,6 +75,8 @@ public class MinerStructure {
 		}
 		dx += x0;
 		dz += z0;
+		if (b == Blocks.air)
+			array.setEmpty(dx, dy, dz, false, false);
 		array.setBlock(dx, dy, dz, b, meta);
 	}
 

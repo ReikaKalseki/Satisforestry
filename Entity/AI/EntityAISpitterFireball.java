@@ -11,10 +11,8 @@ import net.minecraft.world.World;
 import Reika.DragonAPI.Auxiliary.Trackers.KeyWatcher;
 import Reika.DragonAPI.Auxiliary.Trackers.KeyWatcher.Key;
 import Reika.DragonAPI.Auxiliary.Trackers.TickScheduler;
-import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent;
 import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent.ScheduledEvent;
-import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitterFireball;
@@ -106,7 +104,7 @@ public class EntityAISpitterFireball extends EntityAIDistanceDependent
 		else if (rangedAttackTime < 0) {
 			rangedAttackTime = maxRangedAttackTime;
 		}*/
-		ReikaJavaLibrary.pConsole(entityHost.getSpitterType()+" "+new DecimalPosition(entityHost)+" ticking "+this);
+		//ReikaJavaLibrary.pConsole(entityHost.getSpitterType()+" "+new DecimalPosition(entityHost)+" ticking "+this);
 	}
 
 	@Override
@@ -118,7 +116,7 @@ public class EntityAISpitterFireball extends EntityAIDistanceDependent
 	}
 
 	protected final void fireFireball() {
-		ReikaJavaLibrary.pConsole("Firing "+this.getClass().getSimpleName()+" d="+Math.sqrt(currentDistSq)+" from "+entityHost.getSpitterType()+" @ "+new DecimalPosition(entityHost));
+		//ReikaJavaLibrary.pConsole("Firing "+this.getClass().getSimpleName()+" d="+Math.sqrt(currentDistSq)+" from "+entityHost.getSpitterType()+" @ "+new DecimalPosition(entityHost));
 		World world = entityHost.worldObj;
 		this.updateTargeting(attackTarget);
 		this.doFireFireball(world, entityHost, attackTarget, fireballSpeed, fireballDamage);

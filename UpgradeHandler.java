@@ -102,7 +102,7 @@ public class UpgradeHandler {
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void addSlugs(InitialClickEvent evt) {
 		//ReikaJavaLibrary.pConsole(evt.modifiers+" @ "+evt.slotID+" with "+evt.player.inventory.getItemStack());
-		if ((evt.modifiers == 1 || evt.modifiers == 6) && (this.isSlug(evt.player.inventory.getItemStack()) || this.isSlug(evt.container.getSlot(evt.slotID).getStack()))) {
+		if (((evt.modifiers == 1 && this.getSlugNBT(evt.player.inventory.getItemStack()) != null) || evt.modifiers == 6) && (this.isSlug(evt.player.inventory.getItemStack()) || this.isSlug(evt.container.getSlot(evt.slotID).getStack()))) {
 			evt.setCanceled(true);
 		}
 		else if (this.addToSlot(evt.inventory, evt.slotID, evt.container, evt.player)) {

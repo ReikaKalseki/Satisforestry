@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.IEntityLivingData;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -257,21 +258,25 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 		//return worldObj.getClosestVulnerablePlayerToEntity(this, 24); //no light limit, 24 range instead of 16
 
 		//The above plus bypass usual hooks and modifiers, plus range 27
+		return getTarget(this, 27, 0.9);
+	}
+
+	/** This bypasses the usual DAPI hooks, including CC peace broker! */
+	static EntityPlayer getTarget(EntityLiving src, double range, double invisFactor) {
 		double minDist = 0;
 		EntityPlayer ret = null;
 
-		for (EntityPlayer ep : ((List<EntityPlayer>)worldObj.playerEntities)) {
+		for (EntityPlayer ep : ((List<EntityPlayer>)src.worldObj.playerEntities)) {
 			if (ep.capabilities.disableDamage || !ep.isEntityAlive())
 				continue;
-			double dd = ep.getDistanceSqToEntity(this);
-			double max = 27;
+			double dd = ep.getDistanceSqToEntity(src);
 
-			if (ep.isInvisible()) {
+			if (invisFactor < 1 && ep.isInvisible()) {
 				double f = Math.max(0.1, ep.getArmorVisibility());
-				max *= 0.9*f;
+				range *= invisFactor*f;
 			}
 
-			if (dd <= max*max && (ret == null || dd < minDist)) {
+			if (dd <= range*range && (ret == null || dd < minDist)) {
 				minDist = dd;
 				ret = ep;
 			}

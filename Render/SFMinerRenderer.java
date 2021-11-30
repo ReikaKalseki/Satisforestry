@@ -88,6 +88,23 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 	private void renderModel(TileNodeHarvester te) {
 		ReikaTextureHelper.bindTexture(Satisforestry.class, "Textures/miner.png");
 		GL11.glPushMatrix();
+		ForgeDirection dir = te.getDirection();
+		switch(dir) {
+			case EAST:
+				break;
+			case NORTH:
+				GL11.glRotated(90, 0, 1, 0);
+				GL11.glTranslated(-3, 0, 4);
+				break;
+			case SOUTH:
+				GL11.glRotated(-90, 0, 1, 0);
+				GL11.glTranslated(-4, 0, -3);
+				break;
+			case WEST:
+				GL11.glRotated(180, 0, 1, 0);
+				GL11.glTranslated(-7, 0, 1);
+				break;
+		}
 		model.drawChassis();
 		GL11.glPushMatrix();
 		GL11.glTranslated(0, -te.getDrillVerticalOffsetScale(0.5, 1.5), 0);

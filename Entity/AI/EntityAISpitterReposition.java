@@ -3,7 +3,6 @@ package Reika.Satisforestry.Entity.AI;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.util.Vec3;
 
-import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.Satisforestry.Entity.EntitySpitter;
 
 public abstract class EntityAISpitterReposition extends EntityAIDistanceDependent {
@@ -90,7 +89,7 @@ public abstract class EntityAISpitterReposition extends EntityAIDistanceDependen
 		else {
 			entity.getNavigator().tryMoveToEntityLiving(attackTarget, entity.getAIMoveSpeed()*3);
 		}
-		ReikaJavaLibrary.pConsole("Repositioning to "+(Double.isFinite(xPosition) ? Vec3.createVectorHelper(xPosition, yPosition, zPosition) : attackTarget));
+		//ReikaJavaLibrary.pConsole("Repositioning to "+(Double.isFinite(xPosition) ? Vec3.createVectorHelper(xPosition, yPosition, zPosition) : attackTarget));
 	}
 
 	@Override
