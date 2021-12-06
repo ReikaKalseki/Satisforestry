@@ -614,11 +614,11 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		}
 
 		protected final void setDefaultSpawn(Class<? extends EntityMob> e, int n) {
-			this.setSpawnParameters(e, n, 8, 6, FOLLOW_RANGE);
+			this.setSpawnParameters(e, n, 8+tier, 6, FOLLOW_RANGE);
 		}
 
 		protected final void setSingleStrongEnemy(Class<? extends EntityMob> c, float boost) {
-			this.setSpawnParameters(c, 1, 12, 2, FOLLOW_RANGE);
+			this.setSpawnParameters(c, 1, 13+tier/2, 2, FOLLOW_RANGE);
 			this.setEnemyBoost(boost);
 		}
 

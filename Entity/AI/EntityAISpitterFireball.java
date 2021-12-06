@@ -14,6 +14,7 @@ import Reika.DragonAPI.Auxiliary.Trackers.TickScheduler;
 import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent;
 import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent.ScheduledEvent;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.Satisforestry.SFAux;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitterFireball;
 import Reika.Satisforestry.Entity.EntitySplittingSpitterFireball;
@@ -24,7 +25,7 @@ public class EntityAISpitterFireball extends EntityAIDistanceDependent
 {
 	private final EntitySpitter entityHost;
 
-	private final int attackCooldown;
+	private final int baseCooldown;
 
 	private final double fireballSpeed;
 	private final float fireballDamage;
@@ -37,7 +38,7 @@ public class EntityAISpitterFireball extends EntityAIDistanceDependent
 	public EntityAISpitterFireball(EntitySpitter e, int maxTime, double mind, double maxd, double fs, float fd) {
 		super(mind, maxd);
 		entityHost = e;
-		attackCooldown = maxTime;
+		baseCooldown = maxTime;
 
 		fireballSpeed = fs;
 		fireballDamage = fd;
@@ -47,13 +48,25 @@ public class EntityAISpitterFireball extends EntityAIDistanceDependent
 
 	@Override
 	public final boolean shouldExecute() {
-		if (entityHost.getAttackTime() < attackCooldown)
+		int cool = this.getCooldown();
+		if (entityHost.getAttackTime() < cool)
 			return false;
 		attackTarget = entityHost.getAttackTarget();
 		if (attackTarget == null)
 			return false;
 		this.fetchDistance(entityHost, attackTarget);
 		return this.isDistanceAppropriate();
+	}
+
+	public final int getCooldown() {
+		int cool = baseCooldown;
+		if (entityHost.riddenByEntity instanceof EntityPlayer) {
+			int slug = SFAux.getSlugHelmetTier((EntityLivingBase)entityHost.riddenByEntity);
+			if (slug > 0) {
+				cool *= 1-0.25*slug;
+			}
+		}
+		return cool;
 	}
 
 	@Override
@@ -115,6 +128,11 @@ public class EntityAISpitterFireball extends EntityAIDistanceDependent
 		}
 	}
 
+	public final void fireAt(EntityLivingBase e) {
+		attackTarget = e;
+		this.fireFireball();
+	}
+
 	protected final void fireFireball() {
 		//ReikaJavaLibrary.pConsole("Firing "+this.getClass().getSimpleName()+" d="+Math.sqrt(currentDistSq)+" from "+entityHost.getSpitterType()+" @ "+new DecimalPosition(entityHost));
 		World world = entityHost.worldObj;
@@ -162,11 +180,17 @@ public class EntityAISpitterFireball extends EntityAIDistanceDependent
 		}
 
 		@Override
-		protected void doFireFireball(World world, EntitySpitter src, EntityLivingBase tgt, double sp, float dmg) {
+		protected void doFireFireball(World world, EntitySpitter src, EntityLivingBase e, double sp, float dmg) {
 			for (int i = 0; i < 18; i++) {
 				TickScheduler.instance.scheduleEvent(new ScheduledTickEvent(new ScheduledEvent() {
 					@Override
 					public void fire() {
+						EntityLivingBase tgt = e;
+						if ((tgt.isDead || tgt.getHealth() <= 0) && !(tgt instanceof EntityPlayer)) {
+							tgt = src.findNearTarget();
+							if (tgt == null)
+								return;
+						}
 						EntityAISpitterClusterFireball.this.updateTargeting(tgt);
 						double vx2 = ReikaRandomHelper.getRandomPlusMinus(targetVelocity.xCoord, 0.3);
 						double vy2 = ReikaRandomHelper.getRandomPlusMinus(targetVelocity.yCoord, 0.15);
@@ -175,6 +199,11 @@ public class EntityAISpitterFireball extends EntityAIDistanceDependent
 						esf.posY = src.posY + src.height / 2.0F + 0.5D;
 						double px = ReikaRandomHelper.getRandomPlusMinus(src.posX, 0.5);
 						double pz = ReikaRandomHelper.getRandomPlusMinus(src.posZ, 0.5);
+						if (src.riddenByEntity != null) {
+							Vec3 vec = src.getLookVec();
+							px += vec.xCoord*1.5;
+							pz += vec.zCoord*1.5;
+						}
 						esf.setLocationAndAngles(px, esf.posY, pz, 0, 0);
 						world.spawnEntityInWorld(esf);
 					}

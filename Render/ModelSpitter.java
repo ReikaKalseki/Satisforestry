@@ -322,6 +322,8 @@ public class ModelSpitter extends ModelBase
 		trf.render(f5);
 		GL11.glPopMatrix();
 
+		//TODO animate head tentacles
+
 		Body.render(f5);
 		Mane.render(f5);
 

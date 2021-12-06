@@ -58,7 +58,7 @@ public class EntitySplittingSpitterFireball extends EntitySpitterFireball {
 			double dy = EntityAISpitterFireball.getYTarget(target, (EntitySpitter)shootingEntity);
 			dy = target.posY+target.height/2-posY;
 			xc = ReikaRandomHelper.getRandomPlusMinus(xc, 2.5);
-			dy = ReikaRandomHelper.getRandomPlusMinus(dy, 1);
+			dy = ReikaRandomHelper.getRandomPlusMinus(dy, 0.5);
 			zc = ReikaRandomHelper.getRandomPlusMinus(zc, 2.5);
 			double dx = xc-posX;
 			double dz = zc-posZ;

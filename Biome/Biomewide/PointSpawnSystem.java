@@ -19,6 +19,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.DamageSource;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.World;
@@ -26,6 +27,7 @@ import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingDropsEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 
+import Reika.CritterPet.API.TamedCritter;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldChunk;
 import Reika.DragonAPI.Instantiable.Data.Immutable.WorldLocation;
 import Reika.DragonAPI.Instantiable.Data.Maps.TileEntityCache;
@@ -87,12 +89,30 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 
 	@SubscribeEvent
 	public void deactivateSpawner(LivingDeathEvent evt) {
-		if (evt.source.getEntity() instanceof EntityPlayer && !ReikaPlayerAPI.isFake((EntityPlayer)evt.source.getEntity()) && evt.entityLiving instanceof EntityLiving) {
+		if (evt.entityLiving instanceof EntityLiving && this.isValidPlayerKill(evt.source, (EntityLiving)evt.entityLiving)) {
 			SpawnPoint p = this.getSpawn((EntityLiving)evt.entityLiving);
 			if (p != null) {
 				this.tagEntityAsKilled((EntityLiving)evt.entityLiving);
 			}
 		}
+	}
+
+	private boolean isValidPlayerKill(DamageSource source, EntityLiving el) {
+		Entity e = source.getEntity();
+		if (e == null || e.worldObj == null)
+			return false;
+		if (e instanceof EntityPlayer && !ReikaPlayerAPI.isFake((EntityPlayer)e))
+			return true;
+		if (e instanceof TamedCritter) {
+			String n = ((TamedCritter)e).getMobOwner();
+			if (n != null) {
+				EntityPlayer ep = e.worldObj.getPlayerEntityByName(n);
+				if (ep == null || ReikaPlayerAPI.isFake(ep))
+					return false;
+				return ep.getDistanceSqToEntity(el) <= 256;
+			}
+		}
+		return false;
 	}
 
 	@SubscribeEvent
@@ -235,6 +255,10 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 	}
 
 	public PointSpawnLocation getNearestSpawnPoint(EntityPlayer ep, double r) {
+		return this.getNearestSpawnPointOfType(ep, r, null);
+	}
+
+	public PointSpawnLocation getNearestSpawnPointOfType(EntityPlayer ep, double r, Class<? extends EntityLiving> c) {
 		if (!Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ)))
 			return null;
 		TileEntityCache<SpawnPoint> map = spawns.get(ep.worldObj.provider.dimensionId);
@@ -243,6 +267,11 @@ public final class PointSpawnSystem implements PinkForestSpawningHandler {
 		double dist = Double.POSITIVE_INFINITY;
 		WorldLocation ret = null;
 		for (WorldLocation loc : map.getAllLocationsNear(new WorldLocation(ep), r)) {
+			SpawnPoint s = this.getSpawnAt(loc);
+			if (s == null)
+				continue;
+			if (c != null && c != s.mobClass)
+				continue;
 			if (ret == null || loc.getDistanceTo(ep) < dist) {
 				dist = loc.getDistanceTo(ep);
 				ret = loc;

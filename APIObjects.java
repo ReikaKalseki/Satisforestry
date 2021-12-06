@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Random;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.EntityLiving;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -27,6 +28,9 @@ import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 import Reika.Satisforestry.Config.ResourceItem;
+import Reika.Satisforestry.Entity.EntityEliteStinger;
+import Reika.Satisforestry.Entity.EntityLizardDoggo;
+import Reika.Satisforestry.Entity.EntitySpitter;
 
 import thaumcraft.api.aspects.Aspect;
 
@@ -55,6 +59,21 @@ public class APIObjects {
 		@Override
 		public Item getPaleberries() {
 			return Satisforestry.paleberry;
+		}
+
+		@Override
+		public Class<? extends EntityLiving> getSpitterClass() {
+			return EntitySpitter.class;
+		}
+
+		@Override
+		public Class<? extends EntityLiving> getStingerClass() {
+			return EntityEliteStinger.class;
+		}
+
+		@Override
+		public Class<? extends EntityLiving> getDoggoClass() {
+			return EntityLizardDoggo.class;
 		}
 
 	}

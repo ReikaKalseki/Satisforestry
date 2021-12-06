@@ -1,5 +1,6 @@
 package Reika.Satisforestry.Entity;
 
+import java.util.List;
 import java.util.Locale;
 
 import net.minecraft.client.Minecraft;
@@ -17,13 +18,18 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.RayTracer;
+import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.ReikaEntityHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.Satisforestry.SFAux;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.API.Spitter;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
@@ -35,7 +41,6 @@ import Reika.Satisforestry.Entity.AI.EntityAISpitterFindTarget;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball.EntityAISpitterClusterFireball;
 import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball.EntityAISpitterSplittingFireball;
-import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.SpitterFireParticle;
 
@@ -83,31 +88,43 @@ public class EntitySpitter extends EntityMob implements Spitter {
 	@Override
 	public void setAttackTarget(EntityLivingBase e) {
 		super.setAttackTarget(e);
+		//force set after event
+		if (this.getSpitterType().isAlpha())
+			attackTarget = e;
 	}
 
 	@Override
 	protected Entity findPlayerToAttack() {
-		double d = this.getEntityAttribute(SharedMonsterAttributes.followRange).getAttributeValue()+0.5;
-		SpitterType type = this.getSpitterType();
-		EntityPlayer ep = type != null && type.isAlpha() ? EntityEliteStinger.getTarget(this, d, 0.7) : worldObj.getClosestVulnerablePlayerToEntity(this, d);
+		double d = this.getSightDistance();
+		EntityPlayer ep = this.getSpitterType().isAlpha() ? EntityEliteStinger.getTarget(this, d, 0.7) : worldObj.getClosestVulnerablePlayerToEntity(this, d);
 		return ep != null && this.canEntityBeSeen(ep) ? ep : null;
+	}
+
+	public final double getSightDistance() {
+		return this.getEntityAttribute(SharedMonsterAttributes.followRange).getAttributeValue()+0.5;
 	}
 
 	@Override
 	protected void applyEntityAttributes() {
 		super.applyEntityAttributes();
 		this.getEntityAttribute(SharedMonsterAttributes.followRange).setBaseValue(40);
-		this.setRunning(false);
-		stepHeight = 1; //automatic step assist
+		this.setRunning(false); //automatic step assist
 	}
 
 	@Override
 	public void onLivingUpdate() {
+		stepHeight = 1;
 		if (!worldObj.isRemote) {
-			this.setRunning(entityToAttack != null);
-			if (entityToAttack != null && entityToAttack.posY > posY+0.5 && rand.nextInt(40) == 0)
+			this.setRunning(entityToAttack != null || riddenByEntity != null);
+			if (entityToAttack != null && riddenByEntity == null && entityToAttack.posY > posY+0.5 && rand.nextInt(40) == 0)
 				this.jump();
 			lastblast++;
+			if (riddenByEntity instanceof EntityPlayer) {
+				int slug = SFAux.getSlugHelmetTier((EntityLivingBase)riddenByEntity);
+				if (slug > 0) {
+					lastblast += slug;
+				}
+			}
 			if (headshake > 250) {
 				rotationYawHead = (float)(rotationYaw+30*Math.sin(this.getHeadshake()/20D));
 				headshake--;
@@ -117,6 +134,38 @@ public class EntitySpitter extends EntityMob implements Spitter {
 			dataWatcher.updateObject(15, (byte)(headshake > 0 ? 1 : 0));
 		}
 		super.onLivingUpdate();
+	}
+
+	public final EntityLivingBase findNearTarget() {
+		AxisAlignedBB box = ReikaAABBHelper.getEntityCenteredAABB(this, this.getSightDistance());
+		List<EntityLivingBase> li = worldObj.selectEntitiesWithinAABB(EntityLivingBase.class, box, ReikaEntityHelper.hostileSelector);
+		EntityLivingBase closest = null;
+		double dist = -1;
+		Vec3 vec0 = Vec3.createVectorHelper(posX, posY+height/2, posZ);
+		for (EntityLivingBase e : li) {
+			if (e.getHealth() <= 0)
+				continue;
+			double ang = -90+Math.toDegrees(Math.atan2(e.posZ-posZ, e.posX-posX));
+			ang = (ang+360)%360;
+			if (riddenByEntity != null) {
+				if (Math.abs(ang-(rotationYaw+360)%360) >= 45) {
+					continue;
+				}
+			}
+			else {
+				rotationYaw = (float)ang;
+				rotationYawHead = rotationYaw;
+			}
+			Vec3 vec = Vec3.createVectorHelper(e.posX, e.posY+e.height/2, e.posZ);
+			if (worldObj.func_147447_a(vec, vec0, false, true, false) != null)
+				continue;
+			double dd = e.getDistanceSqToEntity(this);
+			if (closest == null || dd < dist) {
+				closest = e;
+				dist = dd;
+			}
+		}
+		return closest;
 	}
 
 	@Override
@@ -192,7 +241,7 @@ public class EntitySpitter extends EntityMob implements Spitter {
 
 	@Override
 	public String getCommandSenderName() {
-		return this.getSpitterType() != null ? this.getSpitterType().getName() : SFEntities.SPITTER.entityName;
+		return this.getSpitterType().getName();
 	}
 
 	@Override
@@ -304,6 +353,39 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		tag.setInteger("headshake", headshake);
 	}
 
+	public final void fireFireballAt(EntityLivingBase e) {
+		double d = e.getDistanceSqToEntity(this);
+		EntityAISpitterFireball ai = basicFireball;
+		switch(this.getSpitterType()) {
+			case BASIC:
+				break;
+			case RED:
+				if (d < splittingFireball.minDistSq)
+					ai = basicFireballForAlpha;
+				else
+					ai = splittingFireball;
+				break;
+			case GREEN:
+				if (d < clusterFireball.minDistSq || ReikaMathLibrary.py3d(motionX, motionY, motionZ) >= 0.25)
+					ai = fastFireball;
+				else
+					ai = clusterFireball;
+				break;
+		}
+		if (this.getAttackTime() < ai.getCooldown())
+			return;
+		ai.fireAt(e);
+		//FIXME: can hit the rider
+		this.updateAttackTime();
+	}
+
+	public final void doKnockbackBlast(EntityLivingBase target) {
+		if (this.isBlastReady()) {
+			EntityAISpitterBlast ai = this.getSpitterType().isAlpha() ? knockbackBlastBig : knockbackBlast;
+			ai.trigger(target);
+		}
+	}
+
 	public SpitterType getSpitterType() {
 		return SpitterType.list[dataWatcher.getWatchableObjectByte(13)];
 	}
@@ -322,10 +404,10 @@ public class EntitySpitter extends EntityMob implements Spitter {
 			this.setHealth(this.getMaxHealth());
 
 			if (type.isAlpha()) {
-				this.setSize(0.72F, 2.34F);
+				this.setSize(1.7F, 2.34F);
 			}
 			else {
-				this.setSize(0.6F, 1.8F);
+				this.setSize(1.3F, 1.8F);
 			}
 
 			this.setCombatTask();
@@ -411,7 +493,7 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		GREEN(20, 1F, 4, 0x37E9B2, 0x138855, 0.92),
 		;
 
-		private final int health;
+		public final int health;
 		private final float blastScale;
 		public final int burnDuration;
 		public final int coreColor;
@@ -440,6 +522,11 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		public String getName() {
 			return StatCollector.translateToLocal("spitter.type."+this.name().toLowerCase(Locale.ENGLISH));
 		}
+	}
+
+	@Override
+	public int getTypeIndex() {
+		return this.getSpitterType().ordinal();
 	}
 
 }

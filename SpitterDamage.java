@@ -2,6 +2,7 @@ package Reika.Satisforestry;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.potion.Potion;
 
@@ -27,7 +28,7 @@ public final class SpitterDamage extends CustomStringDamageSource {
 
 	@Override
 	protected String getMessage() {
-		return super.getMessage()+spitter.getSpitterType().getName();
+		return spitter == null || spitter.getSpitterType() == null ? "[ERROR]" : super.getMessage()+spitter.getSpitterType().getName();
 	}
 
 	@Override
@@ -58,6 +59,21 @@ public final class SpitterDamage extends CustomStringDamageSource {
 			else {
 				tgt.setFire(es.getSpitterType().burnDuration);
 				tgt.hurtResistantTime = Math.min(tgt.hurtResistantTime, 5);
+			}
+		}
+		if (spitter && ((EntitySpitter)tgt).getSpitterType().isAlpha() && !es.getSpitterType().isAlpha())
+			amt *= 0.75;
+		if (es.isPotionActive(Potion.damageBoost)) {
+			amt *= 1+0.333*(es.getActivePotionEffect(Potion.damageBoost).getAmplifier()+1);
+		}
+		if (es.riddenByEntity instanceof EntityPlayer) {
+			EntityPlayer ep = (EntityPlayer)es.riddenByEntity;
+			if (ep.isPotionActive(Potion.damageBoost)) {
+				amt *= 1+0.1667*(ep.getActivePotionEffect(Potion.damageBoost).getAmplifier()+1);
+			}
+			int slug = SFAux.getSlugHelmetTier(ep);
+			if (slug > 0) {
+				amt *= 1+Math.pow(2, slug)/8D;
 			}
 		}
 		tgt.attackEntityFrom(dmg, amt);

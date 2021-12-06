@@ -1,8 +1,12 @@
 package Reika.Satisforestry.Entity.AI;
 
+import java.util.List;
+
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.EntityAIBase;
+import net.minecraft.util.AxisAlignedBB;
 
+import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.ReikaEntityHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
@@ -44,6 +48,21 @@ public class EntityAISpitterBlast extends EntityAIBase {
 	@Override
 	public boolean continueExecuting() {
 		return this.shouldExecute();
+	}
+
+	public void trigger(EntityLivingBase e) {
+		if (e == null) {
+			AxisAlignedBB box = ReikaAABBHelper.getEntityCenteredAABB(spitter, spitter.getSpitterType().isAlpha() ? 4 : 2.5);
+			List<EntityLivingBase> li = spitter.worldObj.selectEntitiesWithinAABB(EntityLivingBase.class, box, ReikaEntityHelper.hostileSelector);
+			for (EntityLivingBase e2 : li) {
+				if (e2 != spitter && e2 != spitter.riddenByEntity)
+					this.trigger(e2);
+			}
+		}
+		else {
+			target = e;
+			this.startExecuting();
+		}
 	}
 
 	@Override

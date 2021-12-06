@@ -36,7 +36,7 @@ public class WorldGenRedBamboo {
 					continue;
 
 				if (this.isReplaceable(world, dx, dy, dz) && !Satisforestry.pinkforest.isRoad(world, dx, dz) && SFBlocks.BAMBOO.getBlockInstance().canBlockStay(world, dx, dy, dz)) {
-					int h = ReikaRandomHelper.getRandomBetween(3, 7, rand); //TODO noisemap?
+					int h = ReikaRandomHelper.getRandomBetween(3, 7, rand); //TODO noisemap for heights?
 					for (int d = 0; d < h; d++) {
 						if (this.isReplaceable(world, dx, dy+d, dz)) {
 							world.setBlock(dx, dy+d, dz, SFBlocks.BAMBOO.getBlockInstance(), 15, 2);

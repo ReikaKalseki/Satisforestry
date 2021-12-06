@@ -4,7 +4,9 @@ package Reika.Satisforestry;
 import java.util.Map;
 import java.util.Random;
 
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -19,6 +21,7 @@ import Reika.DragonAPI.ModInteract.ItemHandlers.ThaumItemHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.TinkerBlockHandler;
 import Reika.DragonAPI.ModRegistry.InterfaceCache;
 import Reika.Satisforestry.Biome.BiomePinkForest;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 import cpw.mods.fml.common.IWorldGenerator;
 import thaumcraft.api.nodes.INode;
@@ -64,5 +67,18 @@ public class SFAux {
 		}
 
 	};
+
+	public static int getSlugHelmetTier(EntityLivingBase ep) {
+		ItemStack helm = ep.getEquipmentInSlot(4);
+		if (helm == null)
+			return 0;
+		if (SFBlocks.SLUG.matchWith(helm)) {
+			return helm.getItemDamage()%3+1;
+		}
+		if (helm.stackTagCompound != null && helm.stackTagCompound.hasKey("slugUpgrade")) {
+			return helm.stackTagCompound.getInteger("slugUpgrade");
+		}
+		return 0;
+	}
 
 }

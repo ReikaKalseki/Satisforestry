@@ -233,12 +233,12 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 
 	@Override
 	protected float getTrunkSlugChancePerBlock() {
-		return 0.0008F;
+		return 0.0005F;
 	}
 
 	@Override
 	protected float getTreeTopSlugChance() {
-		return 0.25F/this.getTreeTopSlugAttemptCount();
+		return 0.15F/this.getTreeTopSlugAttemptCount();
 	}
 
 	@Override
@@ -248,7 +248,7 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 
 	@Override
 	protected int getTreeTopSlugAttemptCount() {
-		return 4;
+		return 3;
 	}
 
 	@Override

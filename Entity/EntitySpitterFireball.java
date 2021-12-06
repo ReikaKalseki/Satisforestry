@@ -11,6 +11,8 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.CritterPet.API.TamedCritter;
+import Reika.DragonAPI.Interfaces.Entity.TameHostile;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
@@ -38,6 +40,8 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 		Vec3 vec = e.getLookVec();
 		type = e.getSpitterType();
 		double d = type.isAlpha() ? 0.8 : 0.6;
+		if (e.riddenByEntity != null)
+			d *= 2.5;
 		this.setLocationAndAngles(e.posX+vec.xCoord*d, e.posY+e.getEyeHeight()+vec.yCoord*d, e.posZ+vec.zCoord*d, 0, 0);
 		damageAmount = dmg;
 		double d3 = ReikaMathLibrary.py3d(vx, vy, vz);
@@ -64,7 +68,7 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 	@Override
 	protected final void onImpact(MovingObjectPosition mov) {
 		if (!worldObj.isRemote) {
-			if (shootingEntity != null && mov.entityHit instanceof EntityLivingBase) {
+			if (shootingEntity != null && mov.entityHit instanceof EntityLivingBase && this.shouldHurt((EntityLivingBase)mov.entityHit)) {
 				SpitterDamage.doDamage((EntitySpitter)shootingEntity, this, (EntityLivingBase)mov.entityHit, damageAmount);
 			}
 			SFSounds.SPITTERBALLHIT.playSound(this, 1, 1.2F+rand.nextFloat()*0.5F);
@@ -72,6 +76,18 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 			ReikaPacketHelper.sendDataPacketWithRadius(Satisforestry.packetChannel, SFPackets.SPITTERFIREHIT.ordinal(), this, 32, this.getEntityId(), mov.typeOfHit == MovingObjectType.BLOCK ? 1 : 0, mov.blockX, mov.blockY, mov.blockZ, mov.sideHit, id);
 			this.setDead();
 		}
+	}
+
+	private boolean shouldHurt(EntityLivingBase e) {
+		EntitySpitter spitter = (EntitySpitter)shootingEntity;
+		if (spitter instanceof TamedCritter) {
+			if (e instanceof TameHostile)
+				return false;
+			String n = ((TamedCritter)spitter).getMobOwner();
+			if (n != null && n.equalsIgnoreCase(e.getCommandSenderName()))
+				return false;
+		}
+		return true;
 	}
 
 	@Override

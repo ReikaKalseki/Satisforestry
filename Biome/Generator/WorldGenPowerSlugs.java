@@ -33,9 +33,7 @@ public class WorldGenPowerSlugs {
 	//private static final HashMap<Coordinate, BlockKey> failures = new HashMap();
 
 	public WorldGenPowerSlugs() {
-		noise[0] = new ShuffledGrid(40, 4, 5, true);
-		noise[1] = new ShuffledGrid(40, 5, 8, true);
-		noise[2] = new ShuffledGrid(40, 7, 10, true);
+
 	}
 	/*
 	public static ArrayList<String> getOutcropData() {
@@ -181,6 +179,11 @@ public class WorldGenPowerSlugs {
 	private void initNoise(World world) {
 		if (noise[0] == null || seed != world.getSeed()) {
 			seed = world.getSeed();
+			int size = ReikaWorldHelper.getBiomeSize(world);
+			int ds = size-4;
+			noise[0] = new ShuffledGrid(40, 4, 5+ds/2, true);
+			noise[1] = new ShuffledGrid(40, 5, 8+ds*2/3, true);
+			noise[2] = new ShuffledGrid(40, 7, 10+ds, true);
 			noise[0].calculate(seed);
 			noise[1].calculate(seed);
 			noise[2].calculate(seed);

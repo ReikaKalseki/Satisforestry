@@ -85,6 +85,7 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 		GL11.glPopAttrib();
 	}
 
+	@SuppressWarnings("incomplete-switch")
 	private void renderModel(TileNodeHarvester te) {
 		ReikaTextureHelper.bindTexture(Satisforestry.class, "Textures/miner.png");
 		GL11.glPushMatrix();

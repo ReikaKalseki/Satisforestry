@@ -64,6 +64,8 @@ public class SFAPI {
 
 		public PointSpawnLocation getNearestSpawnPoint(EntityPlayer ep, double r);
 
+		public PointSpawnLocation getNearestSpawnPointOfType(EntityPlayer ep, double r, Class<? extends EntityLiving> c);
+
 	}
 
 	public static interface PinkForestCaveHandler {
@@ -95,6 +97,12 @@ public class SFAPI {
 		public Object getAspect();
 
 		public Item getPaleberries();
+
+		public Class<? extends EntityLiving> getSpitterClass();
+
+		public Class<? extends EntityLiving> getStingerClass();
+
+		public Class<? extends EntityLiving> getDoggoClass();
 
 	}
 
@@ -188,6 +196,26 @@ public class SFAPI {
 		@Override
 		public double getDistanceToCaveCenter(World world, double x, double y, double z) {
 			return 0;
+		}
+
+		@Override
+		public PointSpawnLocation getNearestSpawnPointOfType(EntityPlayer ep, double r, Class<? extends EntityLiving> c) {
+			return null;
+		}
+
+		@Override
+		public Class<? extends EntityLiving> getSpitterClass() {
+			return null;
+		}
+
+		@Override
+		public Class<? extends EntityLiving> getStingerClass() {
+			return null;
+		}
+
+		@Override
+		public Class<? extends EntityLiving> getDoggoClass() {
+			return null;
 		}
 
 	}
