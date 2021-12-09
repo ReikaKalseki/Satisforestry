@@ -115,9 +115,19 @@ public class EntitySpitter extends EntityMob implements Spitter {
 	public void onLivingUpdate() {
 		stepHeight = 1;
 		if (!worldObj.isRemote) {
-			this.setRunning(entityToAttack != null || riddenByEntity != null);
-			if (entityToAttack != null && riddenByEntity == null && entityToAttack.posY > posY+0.5 && rand.nextInt(40) == 0)
+			Entity tgt = entityToAttack;
+			if (tgt == null)
+				tgt = attackTarget;
+			this.setRunning(tgt != null || tgt != null);
+			if (tgt != null && riddenByEntity == null && tgt.posY > posY+0.5 && rand.nextInt(40) == 0)
 				this.jump();
+			if (tgt != null && rand.nextInt(40) == 0) {
+				Vec3 vec1 = Vec3.createVectorHelper(posX, posY, posZ);
+				Vec3 vec2 = Vec3.createVectorHelper(tgt.posX, tgt.posY, tgt.posZ);
+				if (worldObj.func_147447_a(vec1, vec2, false, true, false) != null) {
+					this.getNavigator().tryMoveToEntityLiving(tgt, this.getAIMoveSpeed()*0.8);
+				}
+			}
 			lastblast++;
 			if (riddenByEntity instanceof EntityPlayer) {
 				int slug = SFAux.getSlugHelmetTier((EntityLivingBase)riddenByEntity);

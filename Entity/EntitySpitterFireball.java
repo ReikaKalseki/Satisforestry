@@ -12,6 +12,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.CritterPet.API.TamedCritter;
+import Reika.DragonAPI.Interfaces.Entity.DestroyOnUnload;
 import Reika.DragonAPI.Interfaces.Entity.TameHostile;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
@@ -30,7 +31,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
 
 
-public class EntitySpitterFireball extends EntitySmallFireball implements IEntityAdditionalSpawnData {
+public class EntitySpitterFireball extends EntitySmallFireball implements IEntityAdditionalSpawnData, DestroyOnUnload {
 
 	private SpitterType type;
 	private float damageAmount;
@@ -68,8 +69,10 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 	@Override
 	protected final void onImpact(MovingObjectPosition mov) {
 		if (!worldObj.isRemote) {
-			if (shootingEntity != null && mov.entityHit instanceof EntityLivingBase && this.shouldHurt((EntityLivingBase)mov.entityHit)) {
-				SpitterDamage.doDamage((EntitySpitter)shootingEntity, this, (EntityLivingBase)mov.entityHit, damageAmount);
+			if (shootingEntity != null && mov.entityHit instanceof EntityLivingBase) {
+				float sc = this.shouldHurt((EntityLivingBase)mov.entityHit);
+				if (sc > 0)
+					SpitterDamage.doDamage((EntitySpitter)shootingEntity, this, (EntityLivingBase)mov.entityHit, damageAmount*sc);
 			}
 			SFSounds.SPITTERBALLHIT.playSound(this, 1, 1.2F+rand.nextFloat()*0.5F);
 			int id = mov.entityHit != null ? mov.entityHit.getEntityId() : Integer.MIN_VALUE;
@@ -78,16 +81,16 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 		}
 	}
 
-	private boolean shouldHurt(EntityLivingBase e) {
+	private float shouldHurt(EntityLivingBase e) {
 		EntitySpitter spitter = (EntitySpitter)shootingEntity;
 		if (spitter instanceof TamedCritter) {
 			if (e instanceof TameHostile)
-				return false;
+				return 0;
 			String n = ((TamedCritter)spitter).getMobOwner();
 			if (n != null && n.equalsIgnoreCase(e.getCommandSenderName()))
-				return false;
+				return e == spitter.riddenByEntity ? 0 : 0.2F;
 		}
-		return true;
+		return 1;
 	}
 
 	@Override
@@ -165,6 +168,8 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 		type = SpitterType.list[tag.getInteger("type")];
 		//if (worldObj != null && tag.hasKey("entity"))
 		//	shootingEntity = (EntityLivingBase)worldObj.getEntityByID(tag.getInteger("entity"));
+
+		isDead = tag.getBoolean("dead");
 	}
 
 	@Override
@@ -174,6 +179,8 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 		tag.setInteger("type", type.ordinal());
 		//if (shootingEntity != null)
 		//	tag.setInteger("entity", shootingEntity.getEntityId());
+
+		tag.setBoolean("dead", isDead);
 	}
 
 	@Override
@@ -188,6 +195,11 @@ public class EntitySpitterFireball extends EntitySmallFireball implements IEntit
 
 	public int getRenderColor(int pass) {
 		return pass == 1 ? type.edgeColor : type.coreColor;
+	}
+
+	@Override
+	public void destroy() {
+		this.setDead();
 	}
 
 }

@@ -58,7 +58,7 @@ public final class SpitterDamage extends CustomStringDamageSource {
 			}
 			else {
 				tgt.setFire(es.getSpitterType().burnDuration);
-				tgt.hurtResistantTime = Math.min(tgt.hurtResistantTime, 5);
+				tgt.hurtResistantTime = Math.min(tgt.hurtResistantTime, 2);
 			}
 		}
 		if (spitter && ((EntitySpitter)tgt).getSpitterType().isAlpha() && !es.getSpitterType().isAlpha())
