@@ -36,6 +36,7 @@ import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.ChiselBlockHandler;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
+import Reika.Satisforestry.Biome.Generator.WorldGenCaveFlora;
 import Reika.Satisforestry.Biome.Generator.WorldGenOreCluster;
 import Reika.Satisforestry.Biome.Generator.WorldGenPoisonRocks;
 import Reika.Satisforestry.Biome.Generator.WorldGenPonds;
@@ -50,6 +51,7 @@ import Reika.Satisforestry.Registry.SFBlocks;
 public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 	private final WorldGenRedBamboo redBambooGenerator = new WorldGenRedBamboo();
+	private final WorldGenCaveFlora caveFloraGenerator = new WorldGenCaveFlora();
 	//private final WorldGenPinkRiver riverGenerator = new WorldGenPinkRiver();
 	private final WorldGenPoisonRocks rockGenerator = new WorldGenPoisonRocks(false);
 	private final WorldGenPonds pondGenerator = new WorldGenPonds(false);
@@ -174,6 +176,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 		redBambooGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
 		slugGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
+		caveFloraGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
 		/*
 		if (randomGenerator.nextInt(12) == 0) { //G/Y/P = 75%/20%/5%
 			int tier = 0;

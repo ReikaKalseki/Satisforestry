@@ -43,7 +43,7 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	public boolean isSaplingGrowth = false;
 
 	public PinkTreeGeneratorBase(boolean force, PinkTreeTypes leaf) {
-		super(false);
+		super(force);
 		forceGen = force;
 		type = leaf;
 	}

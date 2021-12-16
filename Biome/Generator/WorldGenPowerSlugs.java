@@ -56,6 +56,8 @@ public class WorldGenPowerSlugs {
 		return li;
 	}
 	 */
+
+	/** Block coords */
 	public int generate(World world, Random rand, int chunkX, int chunkZ) {
 		this.initNoise(world);
 		int flags = 0;
@@ -74,7 +76,7 @@ public class WorldGenPowerSlugs {
 				int cave = -1;
 				boolean outcrop = false;
 				ForgeDirection side = ForgeDirection.DOWN;
-				if (rand.nextInt(3) == 0) {
+				if (rand.nextInt(4) > 0) {
 					ImmutablePair<Coordinate, ForgeDirection> c2 = this.tryFindCaveSpace(world, c.xCoord, c.zCoord, rand, dy);
 					if (c2 != null) {
 						c = c2.left;
@@ -108,7 +110,7 @@ public class WorldGenPowerSlugs {
 								if (!world.getBlock(dx, dy, dz).isAir(world, dx, dy, dz))
 									continue;
 								int dy2 = dy;
-								while (world.getBlock(dx, dy2-1, dz).isAir(world, dx, dy2, dz)) {
+								while (world.getBlock(dx, dy2-1, dz).isAir(world, dx, dy2-1, dz)) {
 									dy2--;
 								}
 								if (rand.nextInt(4) == 0)
@@ -254,9 +256,9 @@ public class WorldGenPowerSlugs {
 			seed = world.getSeed();
 			int size = ReikaWorldHelper.getBiomeSize(world);
 			int ds = size-4;
-			noise[0] = new ShuffledGrid(40, 4, 5+ds/2, true);
-			noise[1] = new ShuffledGrid(40, 5, 8+ds*2/3, true);
-			noise[2] = new ShuffledGrid(40, 7, 10+ds, true);
+			noise[0] = new ShuffledGrid(40, 3, 4+ds/2, true);
+			noise[1] = new ShuffledGrid(40, 5, 7+ds*2/3, true);
+			noise[2] = new ShuffledGrid(40, 7, 9+ds, true);
 			noise[0].calculate(seed);
 			noise[1].calculate(seed);
 			noise[2].calculate(seed);

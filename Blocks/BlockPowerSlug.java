@@ -411,7 +411,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 
 	public static boolean canExistOn(World world, int x, int y, int z) {
 		Block b = world.getBlock(x, y, z);
-		if (b == Blocks.grass || b == Blocks.dirt || b == Blocks.sand || b == Blocks.gravel || b == Blocks.stone)
+		if (b == Blocks.grass || b == Blocks.dirt || b == Blocks.sand || b == Blocks.gravel || b == Blocks.stone || b == Blocks.cobblestone)
 			return true;
 		if (b == SFBlocks.LOG.getBlockInstance() || b == SFBlocks.LEAVES.getBlockInstance())
 			return true;
@@ -586,12 +586,13 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 				}
 			}
 			else {
-				this.doFX(worldObj, xCoord+0.5, yCoord, zCoord+0.5, tier, null);
+				this.doFX(worldObj, xCoord+0.5, yCoord, zCoord+0.5, tier, mounting, null);
 			}
 		}
 
 		@SideOnly(Side.CLIENT)
-		public static void doFX(World world, double x, double y, double z, int tier, Entity follow) {
+		@SuppressWarnings("incomplete-switch")
+		public static void doFX(World world, double x, double y, double z, int tier, ForgeDirection dir, Entity follow) {
 			EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
 			double dist = ep.getDistance(x, y, z);
 			if (dist <= 128 && DragonAPICore.rand.nextInt(4+(int)(dist/32)) == 0) {
@@ -601,22 +602,62 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 				if (DragonAPICore.rand.nextInt(2) == 0) {
 					double px = ReikaRandomHelper.getRandomPlusMinus(x, 0.5);
 					double pz = ReikaRandomHelper.getRandomPlusMinus(z, 0.5);
-					double py = ReikaRandomHelper.getRandomBetween(y, y+0.5);
+					double py = ReikaRandomHelper.getRandomPlusMinus(y, 0.5);
+					switch(dir) {
+						case DOWN:
+							py = ReikaRandomHelper.getRandomBetween(y, y+0.5);
+							break;
+						case UP:
+							py = ReikaRandomHelper.getRandomBetween(y-0.5, y);
+							break;
+						case WEST:
+							px = ReikaRandomHelper.getRandomBetween(x, x+0.5);
+							break;
+						case EAST:
+							px = ReikaRandomHelper.getRandomBetween(x-0.5, x);
+							break;
+						case NORTH:
+							pz = ReikaRandomHelper.getRandomBetween(z, z+0.5);
+							break;
+						case SOUTH:
+							pz = ReikaRandomHelper.getRandomBetween(z-0.5, z);
+							break;
+					}
 					float s = (float)ReikaRandomHelper.getRandomBetween(3.5, 7.5);
 					int l = ReikaRandomHelper.getRandomBetween(30, 80);
-					EntityBlurFX fx = new EntityBlurFX(world, px, py, pz, IconPrefabs.FADE_GENTLE.getIcon()).setColor(c).setScale(s).setLife(l).setAlphaFading();
+					EntityBlurFX fx = new EntityBlurFX(world, px, py+0.5, pz, IconPrefabs.FADE_GENTLE.getIcon()).setColor(c).setScale(s).setLife(l).setAlphaFading();
 					Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 				}
 
 				if (dist <= 64) {
 					double px = ReikaRandomHelper.getRandomPlusMinus(x, 1.5);
 					double pz = ReikaRandomHelper.getRandomPlusMinus(z, 1.5);
-					double py = ReikaRandomHelper.getRandomBetween(y, y+1.5);
+					double py = ReikaRandomHelper.getRandomPlusMinus(y, 1.5);
+					switch(dir) {
+						case DOWN:
+							py = ReikaRandomHelper.getRandomBetween(y, y+1.5);
+							break;
+						case UP:
+							py = ReikaRandomHelper.getRandomBetween(y-1.5, y);
+							break;
+						case WEST:
+							px = ReikaRandomHelper.getRandomBetween(x, x+1.5);
+							break;
+						case EAST:
+							px = ReikaRandomHelper.getRandomBetween(x-1.5, x);
+							break;
+						case NORTH:
+							pz = ReikaRandomHelper.getRandomBetween(z, z+1.5);
+							break;
+						case SOUTH:
+							pz = ReikaRandomHelper.getRandomBetween(z-1.5, z);
+							break;
+					}
 					double v = -0.04;
-					double vx = (px-x)*v;
-					double vy = (py-(y-0.25))*v;
-					double vz = (pz-z)*v;
-					EntitySlugStreak fx = new EntitySlugStreak(world, px, py, pz, vx, vy, vz, IconPrefabs.FADE.getIcon(), follow);
+					double vx = (px-(x+0.25*dir.offsetX))*v;
+					double vy = (py-(y+0.25*dir.offsetY))*v;
+					double vz = (pz-(z+0.25*dir.offsetZ))*v;
+					EntitySlugStreak fx = new EntitySlugStreak(world, px, py+0.5, pz, vx, vy, vz, IconPrefabs.FADE.getIcon(), follow);
 					fx.setColor(c).setScale(0.7F).setLife(20);
 					Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 				}

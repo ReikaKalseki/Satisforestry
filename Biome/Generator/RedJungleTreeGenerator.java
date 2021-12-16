@@ -32,13 +32,17 @@ public class RedJungleTreeGenerator extends PinkTreeGeneratorBase {
 		for (int d = 2; d < 6; d++) {
 			ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[d];
 			int i = 1;
-			while (ReikaWorldHelper.softBlocks(world, x+dir.offsetX, y+i, z+dir.offsetZ)) {
+			int dx = x+dir.offsetX;
+			int dz = z+dir.offsetZ;
+			while (ReikaWorldHelper.softBlocks(world, dx, y+i, dz) || (world.getBlock(dx, y+i, dz) == SFBlocks.LOG.getBlockInstance() && world.getBlockMetadata(dx, y+i, dz)%4 == PinkTreeTypes.JUNGLE.ordinal())) {
+				//ReikaJavaLibrary.pConsole(dir+"@"+i+":"+BlockKey.getAt(world, dx, y+i, dz)+"="+BlockKey.getAt(world, dx, y+i, dz).getLocalized(), dir == ForgeDirection.EAST);
 				if (i >= -3)
-					this.setBlockAndNotifyAdequately(world, x+dir.offsetX, y+i, z+dir.offsetZ, SFBlocks.LOG.getBlockInstance(), 2);
-				else
-					this.setBlockAndNotifyAdequately(world, x+dir.offsetX, y+i, z+dir.offsetZ, Blocks.dirt, 0);
+					this.setBlockAndNotifyAdequately(world, dx, y+i, dz, SFBlocks.LOG.getBlockInstance(), 2);
+				else if (!forceGen)
+					this.setBlockAndNotifyAdequately(world, dx, y+i, dz, Blocks.dirt, 0);
 				i--;
 			}
+			//ReikaJavaLibrary.pConsole(dir+"@"+i+":"+BlockKey.getAt(world, dx, y+i, dz)+"="+BlockKey.getAt(world, dx, y+i, dz).getLocalized());
 		}
 		for (int i = 0; i < h0; i++) {
 			this.setBlockAndNotifyAdequately(world, x, y+i, z, SFBlocks.LOG.getBlockInstance(), 2);
