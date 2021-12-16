@@ -370,9 +370,7 @@ public class UraniumCave {
 				int y = floor.get(c);
 				if (!c.setY(y).isEmpty(world))
 					continue;
-				world.setBlock(c.xCoord, y, c.zCoord, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal(), 2);
-				if (rand.nextInt(4) == 0 && world.getBlock(c.xCoord, y+1, c.zCoord).isAir(world, c.xCoord, y+1, c.zCoord))
-					world.setBlock(c.xCoord, y+1, c.zCoord, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal(), 2);
+				this.generateStalks(world, c.xCoord, y, c.zCoord, rand);
 			}
 		}
 
@@ -419,9 +417,7 @@ public class UraniumCave {
 						case 7:
 						case 8:
 						case 9:
-							c2.setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal());
-							if (rand.nextInt(5) == 0 && c2.offset(0, 1, 0).isEmpty(world))
-								c2.offset(0, 1, 0).setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal());
+							this.generateStalks(world, c2.xCoord, c2.yCoord, c2.zCoord, rand);
 							break;
 					}
 				}
@@ -474,9 +470,7 @@ public class UraniumCave {
 				switch(n) {
 					case 0:
 					case 1:
-						c.setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal());
-						if (rand.nextInt(4) == 0 && c.offset(0, 1, 0).isEmpty(world))
-							c.offset(0, 1, 0).setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal());
+						this.generateStalks(world, c.xCoord, c.yCoord, c.zCoord, rand);
 						break;
 					case 2:
 						c2.setBlock(world, SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal());
@@ -514,12 +508,18 @@ public class UraniumCave {
 		}
 	}
 
+	public void generateStalks(World world, int x, int y, int z, Random rand) {
+		world.setBlock(x, y, z, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal(), 2);
+		if (rand.nextInt(4) == 0 && world.getBlock(x, y+1, z).isAir(world, x, y+1, z))
+			world.setBlock(x, y+1, z, SFBlocks.GRASS.getBlockInstance(), GrassTypes.STALKS.ordinal(), 2);
+	}
+
 	private void generateVine(World world, int x, int y, int z, int l, HashSet<Coordinate> carveSet) {
 		if (!GrassTypes.VINE.canExistAt(world, x, y, z))
 			return;
 		for (int k = 0; k < l; k++) {
 			Coordinate c = new Coordinate(x, y-k, z);
-			if (carveSet.contains(c) && c.isEmpty(world)) {
+			if ((carveSet == null || carveSet.contains(c)) && c.isEmpty(world)) {
 				c.setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.VINE.ordinal());
 			}
 			else {
@@ -533,7 +533,7 @@ public class UraniumCave {
 			return;
 		for (int k = 0; k < h; k++) {
 			Coordinate c = new Coordinate(x, y+k, z);
-			if (carveSet.contains(c) && c.isEmpty(world)) {
+			if ((carveSet == null || carveSet.contains(c)) && c.isEmpty(world)) {
 				c.setBlock(world, SFBlocks.GRASS.getBlockInstance(), GrassTypes.BLUE_MUSHROOM_STALK.ordinal(), 2);
 			}
 			else {
@@ -542,6 +542,14 @@ public class UraniumCave {
 			}
 		}
 		world.setBlock(x, y+h, z, SFBlocks.GRASS.getBlockInstance(), GrassTypes.BLUE_MUSHROOM_TOP.ordinal(), 2);
+	}
+
+	public void generateVine(World world, int x, int y, int z, Random rand) {
+		this.generateVine(world, x, y, z, rand.nextBoolean() ? 3 : 2, null);
+	}
+
+	public void generateMushroom(World world, int x, int y, int z, Random rand) {
+		this.generateMushroom(world, x, y, z, ReikaRandomHelper.getRandomBetween(0, 2, rand), null);
 	}
 
 	private void generateCasing(World world, Random rand, HashSet<Coordinate> carveSet) {

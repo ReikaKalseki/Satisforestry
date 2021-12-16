@@ -76,6 +76,7 @@ public final class SpitterDamage extends CustomStringDamageSource {
 				amt *= 1+Math.pow(2, slug)/8D;
 			}
 		}
+		amt *= es.getDamageScale(tgt);
 		tgt.attackEntityFrom(dmg, amt);
 		if (tgt instanceof EntityPlayerMP)
 			ReikaPacketHelper.sendDataPacket(Satisforestry.packetChannel, SFPackets.MOBDAMAGE.ordinal(), (EntityPlayerMP)tgt, (f != null ? f : es).getEntityId());

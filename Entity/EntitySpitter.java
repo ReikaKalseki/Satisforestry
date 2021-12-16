@@ -539,4 +539,12 @@ public class EntitySpitter extends EntityMob implements Spitter {
 		return this.getSpitterType().ordinal();
 	}
 
+	public float getDamageScale(EntityLivingBase tgt) {
+		return 1;
+	}
+
+	public float getFireRateScale(EntityAISpitterFireball ai) {
+		return 1;
+	}
+
 }

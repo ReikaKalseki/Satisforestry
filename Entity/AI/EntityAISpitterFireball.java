@@ -66,6 +66,7 @@ public class EntityAISpitterFireball extends EntityAIDistanceDependent
 				cool *= 1-0.25*slug;
 			}
 		}
+		cool /= entityHost.getFireRateScale(this);
 		return cool;
 	}
 

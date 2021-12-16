@@ -30,6 +30,7 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.DragonAPICore;
+import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.Data.Maps.CountMap;
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
@@ -40,6 +41,7 @@ import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
+import Reika.DragonAPI.ModInteract.ItemHandlers.ChiselBlockHandler;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
@@ -231,9 +233,15 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 	public static TilePowerSlug generatePowerSlugAt(World world, int x, int y, int z, Random rand, int tier, boolean gas, int reachDifficulty, boolean allowSpawns, int maxSpawnRadius, ForgeDirection dir) {
 		while (dir.offsetY != 0 && y > 0 && y < 256 && ReikaWorldHelper.softBlocks(world, x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ))
 			y--;
-		Block b = world.getBlock(x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ);
-		Block b1 = world.getBlock(x, y, z);
-		if (y < 256 && (b1.isAir(world, x, y, z) || ReikaBlockHelper.isLiquid(b1) || b1 == Blocks.vine) && canExistOn(b)) {
+		if (y < 256 && canReplace(world, x, y, z) && canExistOn(world, x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ)) {
+			Block at = world.getBlock(x, y, z);
+			if (at == SFBlocks.BAMBOO.getBlockInstance()) {
+				int dy = y;
+				while (dy < 256 && world.getBlock(x, dy, z) == at) {
+					world.setBlock(x, dy, z, Blocks.air);
+					dy++;
+				}
+			}
 			world.setBlock(x, y, z, SFBlocks.SLUG.getBlockInstance(), tier, 3);
 			TilePowerSlug te = (TilePowerSlug)world.getTileEntity(x, y, z);
 			if (te == null) {
@@ -395,10 +403,20 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 		return null;
 	}
 
-	private static boolean canExistOn(Block b) {
+	public static boolean canReplace(World world, int x, int y, int z) {
+		Block b = world.getBlock(x, y, z);
+		return b.isAir(world, x, y, z) || ReikaBlockHelper.isLiquid(b) || b == SFBlocks.BAMBOO.getBlockInstance() || b.getMaterial() == Material.vine || b.getMaterial() == Material.plants;
+	}
+
+	public static boolean canExistOn(World world, int x, int y, int z) {
+		Block b = world.getBlock(x, y, z);
 		if (b == Blocks.grass || b == Blocks.dirt || b == Blocks.sand || b == Blocks.gravel || b == Blocks.stone)
 			return true;
-		if (b == SFBlocks.LOG.getBlockInstance() || b == SFBlocks.LEAVES.getBlockInstance() || b == SFBlocks.TERRAIN.getBlockInstance())
+		if (b == SFBlocks.LOG.getBlockInstance() || b == SFBlocks.LEAVES.getBlockInstance())
+			return true;
+		if (b.isReplaceableOreGen(world, x, y, z, Blocks.stone) || b == SFBlocks.TERRAIN.getBlockInstance() || ReikaBlockHelper.isOre(b, world.getBlockMetadata(x, y, z)))
+			return true;
+		if (ModList.CHISEL.isLoaded() && ChiselBlockHandler.isWorldgenBlock(b, world.getBlockMetadata(x, y, z)))
 			return true;
 		return false;
 	}
@@ -576,7 +594,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 			EntityPlayer ep = Minecraft.getMinecraft().thePlayer;
 			double dist = ep.getDistance(xCoord+0.5, yCoord+0.5, zCoord+0.5);
 			if (dist <= 128 && DragonAPICore.rand.nextInt(4+(int)(dist/32)) == 0) {
-				int c = this.getBlockType().colorMultiplier(world, x, y, z);
+				int c = BlockPowerSlug.getColor(tier);
 				if (c == 0xF26030)
 					return;
 				if (DragonAPICore.rand.nextInt(2) == 0) {

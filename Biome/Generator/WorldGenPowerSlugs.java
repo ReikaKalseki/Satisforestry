@@ -1,7 +1,10 @@
 package Reika.Satisforestry.Biome.Generator;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
@@ -11,14 +14,17 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Instantiable.Data.ShuffledGrid;
+import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaChunkHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
+import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Blocks.BlockPowerSlug;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
@@ -64,20 +70,53 @@ public class WorldGenPowerSlugs {
 				int dy = DecoratorPinkForest.getTrueTopAt(world, c.xCoord, c.zCoord)+1;
 				if (dy < 80)
 					continue;
-				if (this.isReplaceable(world, c.xCoord, dy, c.zCoord) && SFBlocks.SLUG.getBlockInstance().canBlockStay(world, c.zCoord, dy, c.zCoord)) {
-					int diff = dy >= 130 ? 1 : 0;
-					if (rand.nextInt(3) == 0) {
-						Coordinate c2 = this.tryGenerateOutcrop(world, c.xCoord, dy, c.zCoord, rand);
-						if (c2 != null) {
-							//successes.add(c2);
-							c = c2;
-							dy = c2.yCoord;
-							diff++;
-						}
+				int diff = dy >= 130 ? 1 : 0;
+				int cave = -1;
+				boolean outcrop = false;
+				ForgeDirection side = ForgeDirection.DOWN;
+				if (rand.nextInt(4) == 0) {
+					ImmutablePair<Coordinate, ForgeDirection> c2 = this.tryFindCaveSpace(world, c.xCoord, c.zCoord, rand, dy);
+					if (c2 != null) {
+						c = c2.left;
+						dy = c.yCoord;
+						cave = this.getHeight(world, c.xCoord, dy, c.zCoord);
+						diff += Math.min(3, 1+cave/16);
+						side = c2.right;
 					}
-					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, i, false, diff, true);
+				}
+				if (cave == -1 && rand.nextInt(3) == 0) {
+					Coordinate c2 = this.tryGenerateOutcrop(world, c.xCoord, dy, c.zCoord, rand);
+					if (c2 != null) {
+						//successes.add(c2);
+						c = c2;
+						dy = c2.yCoord;
+						diff++;
+						outcrop = true;
+					}
+				}
+				if (BlockPowerSlug.canReplace(world, c.xCoord, dy, c.zCoord)) {
+					TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, i, false, diff, true, Integer.MAX_VALUE, side);
 					if (te != null) {
 						flags |= (1 << i);
+						if (cave >= 12) {
+							te.setNoSpawns();
+						}
+						if (cave >= 0) {
+							for (int n = 0; n < 16; n++) {
+								int dx = ReikaRandomHelper.getRandomPlusMinus(c.xCoord, rand.nextInt(3) == 0 ? 10 : 7, rand);
+								int dz = ReikaRandomHelper.getRandomPlusMinus(c.zCoord, rand.nextInt(3) == 0 ? 10 : 7, rand);
+								if (!world.getBlock(dx, dy, dz).isAir(world, dx, dy, dz))
+									continue;
+								int dy2 = dy;
+								while (world.getBlock(dx, dy2-1, dz).isAir(world, dx, dy2, dz)) {
+									dy2--;
+								}
+								if (rand.nextInt(4) == 0)
+									UraniumCave.instance.generateMushroom(world, dx, dy2, dz, rand);
+								else
+									UraniumCave.instance.generateStalks(world, dx, dy2, dz, rand);
+							}
+						}
 						break;
 					}
 				}
@@ -90,6 +129,41 @@ public class WorldGenPowerSlugs {
 		return flags;
 	}
 
+	private int getHeight(World world, int x, int y, int z) {
+		for (int i = 1; i <= y; i++) {
+			int dy = y-i;
+			Block b = world.getBlock(x, dy, z);
+			if (b.getMaterial().blocksMovement() && b.getCollisionBoundingBoxFromPool(world, x, dy, z) != null)
+				return i-1;
+		}
+		return 256;
+	}
+
+	private ImmutablePair<Coordinate, ForgeDirection> tryFindCaveSpace(World world, int x, int z, Random rand, int maxY) {
+		HashMap<Integer, WeightedRandom<ForgeDirection>> coords = new HashMap();
+		for (int y = 12; y <= maxY-5; y++) {
+			Block b = world.getBlock(x, y, z);
+			if (BlockPowerSlug.canReplace(world, x, y, z)) {
+				for (int i = 0; i < 6; i++) {
+					ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i];
+					if (BlockPowerSlug.canExistOn(world, x+dir.offsetX, y+dir.offsetY, z+dir.offsetZ)) {
+						WeightedRandom<ForgeDirection> wr = coords.get(y);
+						if (wr == null) {
+							wr = new WeightedRandom();
+							wr.setRNG(rand);
+							coords.put(y, wr);
+						}
+						wr.addEntry(dir, dir == ForgeDirection.UP ? 30 : (dir == ForgeDirection.DOWN ? 5 : 20));
+					}
+				}
+			}
+		}
+		if (coords.isEmpty())
+			return null;
+		Integer y = ReikaJavaLibrary.getRandomCollectionEntry(rand, coords.keySet());
+		return new ImmutablePair(new Coordinate(x, y.intValue(), z), coords.get(y).getRandomEntry());
+	}
+
 	private Coordinate tryGenerateOutcrop(World world, int x, int y, int z, Random rand) {
 		int h = ReikaRandomHelper.getRandomBetween(4, 7, rand);
 		int lim2 = h/5;
@@ -97,7 +171,7 @@ public class WorldGenPowerSlugs {
 			int r = j <= lim2 ? 2 : 1;
 			for (int i = -r; i < r; i++) {
 				for (int k = -r; k < r; k++) {
-					if (!this.isOverwritable(world, x+i, y+j, z+k)) {
+					if (!this.isOverwritableByOutcrop(world, x+i, y+j, z+k)) {
 						if (j < 4) {/*
 							Coordinate c = new Coordinate(x+i, y+j, z+k);
 							Block b = c.getBlock(world);
@@ -169,7 +243,7 @@ public class WorldGenPowerSlugs {
 		return new Coordinate(x, y+h, z);
 	}
 
-	private boolean isOverwritable(World world, int x, int y, int z) {
+	private boolean isOverwritableByOutcrop(World world, int x, int y, int z) {
 		if (ReikaWorldHelper.softBlocks(world, x, y, z) || DecoratorPinkForest.isTerrain(world, x, y, z))
 			return true;
 		Block b = world.getBlock(x, y, z);
@@ -201,10 +275,6 @@ public class WorldGenPowerSlugs {
 			noise[2].randomFactor = 0.75;
 		}*/
 
-	}
-
-	private boolean isReplaceable(World world, int x, int y, int z) {
-		return ReikaWorldHelper.softBlocks(world, x, y, z);// || world.getBlock(x, y, z).isLeaves(world, x, y, z);
 	}
 
 }
