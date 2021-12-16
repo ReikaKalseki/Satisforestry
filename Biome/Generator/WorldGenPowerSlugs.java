@@ -74,7 +74,7 @@ public class WorldGenPowerSlugs {
 				int cave = -1;
 				boolean outcrop = false;
 				ForgeDirection side = ForgeDirection.DOWN;
-				if (rand.nextInt(4) == 0) {
+				if (rand.nextInt(3) == 0) {
 					ImmutablePair<Coordinate, ForgeDirection> c2 = this.tryFindCaveSpace(world, c.xCoord, c.zCoord, rand, dy);
 					if (c2 != null) {
 						c = c2.left;
@@ -102,9 +102,9 @@ public class WorldGenPowerSlugs {
 							te.setNoSpawns();
 						}
 						if (cave >= 0) {
-							for (int n = 0; n < 16; n++) {
-								int dx = ReikaRandomHelper.getRandomPlusMinus(c.xCoord, rand.nextInt(3) == 0 ? 10 : 7, rand);
-								int dz = ReikaRandomHelper.getRandomPlusMinus(c.zCoord, rand.nextInt(3) == 0 ? 10 : 7, rand);
+							for (int n = 0; n < 32; n++) {
+								int dx = ReikaRandomHelper.getRandomPlusMinus(c.xCoord, rand.nextInt(3) == 0 ? 9 : 5, rand);
+								int dz = ReikaRandomHelper.getRandomPlusMinus(c.zCoord, rand.nextInt(3) == 0 ? 9 : 5, rand);
 								if (!world.getBlock(dx, dy, dz).isAir(world, dx, dy, dz))
 									continue;
 								int dy2 = dy;
@@ -142,7 +142,6 @@ public class WorldGenPowerSlugs {
 	private ImmutablePair<Coordinate, ForgeDirection> tryFindCaveSpace(World world, int x, int z, Random rand, int maxY) {
 		HashMap<Integer, WeightedRandom<ForgeDirection>> coords = new HashMap();
 		for (int y = 12; y <= maxY-5; y++) {
-			Block b = world.getBlock(x, y, z);
 			if (BlockPowerSlug.canReplace(world, x, y, z)) {
 				for (int i = 0; i < 6; i++) {
 					ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i];
