@@ -61,6 +61,8 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 
 	private static final ArrayList<MusicKey>[] melody = new ArrayList[4];
 
+	private long lastSongTime = -1;
+
 	static {
 		melody[0] = new ArrayList();
 		melody[1] = new ArrayList();
@@ -205,6 +207,9 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 		super.onUpdate();
 
 		long tick = worldObj.getTotalWorldTime();
+		if (tick-lastSongTime >= 2000) {
+			songIndex = 0;
+		}
 		if (!worldObj.isRemote && this.isTamed()) {
 			if (foundItem == null && ticksExisted >= 900) {
 				long last = this.ticksSinceLastItem();
@@ -410,13 +415,14 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 					}
 					healTick = 50;
 					this.heal(4);
+					lastSongTime = worldObj.getTotalWorldTime();
 					ArrayList<MusicKey> line = melody[songIndex];
 					int t = 5;
 					for (int i = 0; i < line.size(); i++) {
 						MusicKey m = line.get(i);
 						float f = (float)m.getRatio(MusicKey.G5);
 						TickScheduler.instance.scheduleEvent(new ScheduledTickEvent(new ScheduledSoundEvent(SFSounds.DOGGOSING, this, 1, f)), t);
-						t += i == 0 || (songIndex == 3 && i == 1) ? 6 : 3;
+						t += i == 0 || (songIndex == 3 && i == 1) ? 8 : 4;
 					}
 					songIndex = (songIndex+1)%melody.length;
 					if (!ep.capabilities.isCreativeMode)
