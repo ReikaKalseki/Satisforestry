@@ -5,6 +5,7 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -21,6 +22,7 @@ public class SFAPI {
 	public static PinkForestResourceNodeHandler resourceNodeHandler = new DummyPlaceholder();
 	//public static PinkForestEntityHandler entityHandler = new DummyPlaceholder();
 	public static PinkForestSpawningHandler spawningHandler = new DummyPlaceholder();
+	public static PowerSlugHandler slugHandler = new DummyPlaceholder();
 	public static SFLookups genericLookups = new DummyPlaceholder();
 
 	public static interface PinkForestBiomeHandler {
@@ -104,9 +106,27 @@ public class SFAPI {
 
 		public Class<? extends EntityLiving> getDoggoClass();
 
+		public Class<? extends EntityLiving> getMantaClass();
+
 	}
 
-	private static class DummyPlaceholder implements PinkForestBiomeHandler, PinkForestResourceNodeHandler, PinkForestCaveHandler, PinkTreeHandler, SFLookups, PinkForestSpawningHandler {
+	public static interface PowerSlugHandler {
+
+		/** Returns a stack (size 1) of power slugs of a specific tier (green/blue, yellow, purple = 1,2,3) */
+		public ItemStack getSlug(int tier);
+
+		/** Returns 1-3 of the given slug's tier, or 0 if it is not a slug. */
+		public int getSlugTier(ItemStack is);
+
+		/** Returns 1-3 of the given placed slug's tier, or 0 if it is not a slug. */
+		public int getSlugTier(TileEntity te);
+
+		/** Returns the slug tier currently worn by this entity. 0 if none. <br><b>Use this instead of getSlugTier(ItemStack is), as it handles "delegate" items</b> */
+		public int getSlugHelmetTier(EntityLivingBase e);
+
+	}
+
+	private static class DummyPlaceholder implements PinkForestBiomeHandler, PinkForestResourceNodeHandler, PinkForestCaveHandler, PinkTreeHandler, SFLookups, PinkForestSpawningHandler, PowerSlugHandler {
 
 		@Override
 		public PinkTreeType[] getTypes() {
@@ -216,6 +236,31 @@ public class SFAPI {
 		@Override
 		public Class<? extends EntityLiving> getDoggoClass() {
 			return null;
+		}
+
+		@Override
+		public Class<? extends EntityLiving> getMantaClass() {
+			return null;
+		}
+
+		@Override
+		public ItemStack getSlug(int tier) {
+			return null;
+		}
+
+		@Override
+		public int getSlugTier(ItemStack is) {
+			return 0;
+		}
+
+		@Override
+		public int getSlugTier(TileEntity te) {
+			return 0;
+		}
+
+		@Override
+		public int getSlugHelmetTier(EntityLivingBase e) {
+			return 0;
 		}
 
 	}

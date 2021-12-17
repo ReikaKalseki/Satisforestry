@@ -6,6 +6,7 @@ import java.util.Random;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
@@ -22,15 +23,19 @@ import Reika.Satisforestry.API.SFAPI.PinkForestBiomeHandler;
 import Reika.Satisforestry.API.SFAPI.PinkForestCaveHandler;
 import Reika.Satisforestry.API.SFAPI.PinkForestResourceNodeHandler;
 import Reika.Satisforestry.API.SFAPI.PinkTreeHandler;
+import Reika.Satisforestry.API.SFAPI.PowerSlugHandler;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
+import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 import Reika.Satisforestry.Config.ResourceItem;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
+import Reika.Satisforestry.Entity.EntityFlyingManta;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
 import Reika.Satisforestry.Entity.EntitySpitter;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 import thaumcraft.api.aspects.Aspect;
 
@@ -42,6 +47,31 @@ public class APIObjects {
 		SFAPI.caveHandler = new SFCaveHandler();
 		SFAPI.resourceNodeHandler = new SFNodeHandler();
 		SFAPI.genericLookups = new SFLookups();
+		SFAPI.slugHandler = new SFSlugs();
+	}
+
+	private static class SFSlugs implements PowerSlugHandler {
+
+		@Override
+		public ItemStack getSlug(int tier) {
+			return SFBlocks.SLUG.getStackOfMetadata((tier-1)%3);
+		}
+
+		@Override
+		public int getSlugTier(ItemStack is) {
+			return SFBlocks.SLUG.matchWith(is) ? is.getItemDamage()%3+1 : 0;
+		}
+
+		@Override
+		public int getSlugTier(TileEntity te) {
+			return te instanceof TilePowerSlug ? ((TilePowerSlug)te).getTier()+1 : 0;
+		}
+
+		@Override
+		public int getSlugHelmetTier(EntityLivingBase e) {
+			return SFAux.getSlugHelmetTier(e);
+		}
+
 	}
 
 	private static class SFLookups implements Reika.Satisforestry.API.SFAPI.SFLookups {
@@ -74,6 +104,11 @@ public class APIObjects {
 		@Override
 		public Class<? extends EntityLiving> getDoggoClass() {
 			return EntityLizardDoggo.class;
+		}
+
+		@Override
+		public Class<? extends EntityLiving> getMantaClass() {
+			return EntityFlyingManta.class;
 		}
 
 	}
