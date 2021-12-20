@@ -43,7 +43,6 @@ import net.minecraftforge.oredict.ShapedOreRecipe;
 import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.DragonOptions;
 import Reika.DragonAPI.ModList;
-import Reika.DragonAPI.ASM.DependentMethodStripper.ClassDependent;
 import Reika.DragonAPI.Auxiliary.WorldGenInterceptionRegistry;
 import Reika.DragonAPI.Auxiliary.Trackers.CommandableUpdateChecker;
 import Reika.DragonAPI.Auxiliary.Trackers.FurnaceFuelRegistry;
@@ -78,7 +77,6 @@ import Reika.Satisforestry.Registry.SFOptions;
 import Reika.Satisforestry.Render.ShaderActivation;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
 import cpw.mods.fml.common.Mod.Instance;
@@ -246,8 +244,8 @@ public class Satisforestry extends DragonAPIMod {
 		BiomeManager.removeVillageBiome(pinkforest);
 		BiomeDictionary.registerBiomeType(pinkforest, BiomeDictionary.Type.FOREST, BiomeDictionary.Type.MAGICAL, BiomeDictionary.Type.DENSE, BiomeDictionary.Type.LUSH, BiomeDictionary.Type.MOUNTAIN, BiomeDictionary.Type.WET);
 
-		if (Loader.isModLoaded("climatecontrol"))
-			this.initClimateControl();
+		if (ModList.CLIMATECONTROL.isLoaded())
+			ReikaClimateControl.registerBiome(pinkforest, 3, false, "COOL");
 
 		//pinkriver = new BiomePinkRiver();
 
@@ -260,11 +258,6 @@ public class Satisforestry extends DragonAPIMod {
 		}
 
 		this.finishTiming();
-	}
-
-	@ClassDependent("climateControl.api.BiomeSettings")
-	private void initClimateControl() {
-		ReikaClimateControl.registerBiome(pinkforest, 3, false, "COOL");
 	}
 
 	@SideOnly(Side.CLIENT)
