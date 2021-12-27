@@ -2,6 +2,7 @@ package Reika.Satisforestry.Entity.AI;
 
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.RandomPositionGenerator;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.tileentity.TileEntity;
@@ -17,12 +18,13 @@ public class EntityAIDepositItem extends EntityAIBase {
 	private static final double SPEED = 0.3;
 
 	/** The entity we are attached to */
-	private EntityLizardDoggo doggo;
+	private final EntityLizardDoggo doggo;
+	private final EntityPlayer theOwner;
 	private final int distanceToDetectChest;
 	/** The PathEntity of our entity */
 	private PathEntity entityPath;
 	/** The PathNavigate of our entity */
-	private PathNavigate pathfinder;
+	private final PathNavigate pathfinder;
 	private TileEntityChest closestChest;
 	private boolean wasSitting;
 
@@ -32,6 +34,8 @@ public class EntityAIDepositItem extends EntityAIBase {
 		pathfinder = e.getNavigator();
 
 		this.setMutexBits(255);
+
+		theOwner = (EntityPlayer)e.getOwner();
 	}
 
 	/**
@@ -83,34 +87,54 @@ public class EntityAIDepositItem extends EntityAIBase {
 
 	@Override
 	public void startExecuting() {
-		pathfinder.setPath(entityPath, SPEED);
-		wasSitting = doggo.isSitting();
+		if (this.isTooFarToBother()) {
+			pathfinder.clearPathEntity();
+			entityPath = null;
+		}
+		else {
+			pathfinder.setPath(entityPath, SPEED);
+			wasSitting = doggo.isSitting();
+		}
 	}
 
 	@Override
 	public void resetTask() {
 		closestChest = null;
-		doggo.setSitting(wasSitting);
+		if (wasSitting)
+			doggo.setSitting(true);
+	}
+
+	private boolean isTooFarToBother() {
+		return theOwner == null || doggo.getDistanceSqToEntity(theOwner) >= 1024;
 	}
 
 	@Override
 	public void updateTask() {
-		doggo.setSitting(false);
-		doggo.getNavigator().setSpeed(doggo.hasItem() ? SPEED : SPEED*1.11);
 		Vec3 vec0 = Vec3.createVectorHelper(closestChest.xCoord+0.5, closestChest.yCoord+0.5, closestChest.zCoord+0.5);
-		if (closestChest != null && doggo.hasItem() && doggo.getDistanceSq(vec0.xCoord, vec0.yCoord, vec0.zCoord) <= 2.5) {
+		if (closestChest != null && doggo.hasItem() && (doggo.getDistanceSq(vec0.xCoord, vec0.yCoord, vec0.zCoord) <= 2.5 || this.isTooFarToBother())) {
 			doggo.tryPutItemInChest(closestChest);
+			if (wasSitting)
+				doggo.setSitting(true);
 		}
-		if (!doggo.hasItem()) {
-			Vec3 vec3 = RandomPositionGenerator.findRandomTargetBlockAwayFrom(doggo, 5, 1, vec0);
-
-			if (vec3 != null) {
-				entityPath = pathfinder.getPathToXYZ(vec3.xCoord, vec3.yCoord, vec3.zCoord);
-				if (entityPath != null && !entityPath.isDestinationSame(vec3)) {
-					entityPath = null;
+		else {
+			doggo.setSitting(false);
+			doggo.getNavigator().setSpeed(doggo.hasItem() ? SPEED : SPEED*1.11);
+			if (!doggo.hasItem()) {
+				if (wasSitting) {
+					doggo.setSitting(true);
 				}
-				if (entityPath != null)
-					pathfinder.setPath(entityPath, SPEED*1.11);
+				else {
+					Vec3 vec3 = RandomPositionGenerator.findRandomTargetBlockAwayFrom(doggo, 5, 1, vec0);
+
+					if (vec3 != null) {
+						entityPath = pathfinder.getPathToXYZ(vec3.xCoord, vec3.yCoord, vec3.zCoord);
+						if (entityPath != null && !entityPath.isDestinationSame(vec3)) {
+							entityPath = null;
+						}
+						if (entityPath != null)
+							pathfinder.setPath(entityPath, SPEED*1.11);
+					}
+				}
 			}
 		}
 	}

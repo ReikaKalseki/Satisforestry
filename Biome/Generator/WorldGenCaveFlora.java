@@ -21,7 +21,10 @@ public class WorldGenCaveFlora {
 		for (int i = 0; i < 64; i++) {
 			int dx = x + rand.nextInt(8) - rand.nextInt(8);
 			int dz = z + rand.nextInt(8) - rand.nextInt(8);
-			int dy = ReikaRandomHelper.getRandomBetween(6, DecoratorPinkForest.getTrueTopAt(world, dx, dz)-4, rand);
+			int top = DecoratorPinkForest.getTrueTopAt(world, dx, dz)-4;
+			if (top <= 6)
+				continue;
+			int dy = ReikaRandomHelper.getRandomBetween(6, top, rand);
 
 			if (rand.nextBoolean()) {
 				while (world.getBlock(dx, dy+1, dz).isAir(world, dx, dy+1, dz)) {

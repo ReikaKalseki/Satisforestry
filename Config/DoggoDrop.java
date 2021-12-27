@@ -41,6 +41,8 @@ public class DoggoDrop {
 	public DoggoDrop(ItemStack is, int min, int max, int wt) {
 		if (max > is.getMaxStackSize())
 			throw new IllegalArgumentException("Invalid max-amount ("+max+") for doggo item - more than max stack size ("+is.getMaxStackSize()+")");
+		if (max < min)
+			throw new IllegalArgumentException("Invalid min/max max-amounts for doggo item - max is less than min");
 		item = is;
 		minCount = min;
 		maxCount = max;

@@ -46,6 +46,7 @@ import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.DoggoDrop;
 import Reika.Satisforestry.Entity.AI.EntityAIComeGetPaleberry;
 import Reika.Satisforestry.Entity.AI.EntityAIDepositItem;
+import Reika.Satisforestry.Entity.AI.EntityAIDoggoFollow;
 import Reika.Satisforestry.Entity.AI.EntityAIRunFromPlayer;
 import Reika.Satisforestry.Entity.AI.EntityAISlowlyBackFromPlayer;
 import Reika.Satisforestry.Registry.SFEntities;
@@ -133,9 +134,9 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 		tasks.addTask(3, new EntityAIRunFromPlayer(this, 24, 0.4, 0.7));
 		tasks.addTask(4, new EntityAIComeGetPaleberry(this, 10, 0.28));
 		tasks.addTask(5, new EntityAISlowlyBackFromPlayer(this, 8, 0.2));
-		EntityAIFollowOwner seek = new EntityAIFollowOwner(this, 0.4, 4, 2.5F); //args: speed, dist to start follow, dist to consider "reached them"
+		EntityAIFollowOwner seek = new EntityAIDoggoFollow(this, 0.4, 4, 2.5F); //args: speed, dist to start follow, dist to consider "reached them"
 		tasks.addTask(6, seek);
-		tasks.addTask(5, new EntityAIFollowOwner(this, 0.6, 12, 2.5F));
+		tasks.addTask(5, new EntityAIDoggoFollow(this, 0.6, 12, 2.5F));
 		EntityAIWatchClosest look = new EntityAIWatchClosest(this, EntityPlayer.class, 30);
 		look.setMutexBits(4);
 		tasks.addTask(7, look); //max dist
@@ -159,6 +160,11 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 	@Override
 	public EntityAgeable createChild(EntityAgeable e) {
 		return null;
+	}
+
+	@Override
+	public boolean getLeashed() {
+		return super.getLeashed() || this.hasItem() || this.justDepositedItem() || this.isSitting(); //Stay!
 	}
 
 	@Override
@@ -288,7 +294,7 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 			}
 
 			if (onGround && this.isTamed()) {
-				if (!this.isSneezing() && healTick == 0 && rand.nextInt(300) == 0)
+				if (!this.isSneezing() && healTick == 0 && rand.nextInt(450) == 0)
 					this.sneeze();
 				if (this.isSitting()) {
 
@@ -562,7 +568,7 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 			foundItem = null;
 			needsItemUpdate = true;
 			ReikaPacketHelper.sendEntitySyncPacket(DragonAPIInit.packetChannel, this, 128);
-			itemDeposit = 90;
+			itemDeposit = 120;
 			return true;
 		}
 		return false;

@@ -25,6 +25,7 @@ import net.minecraft.potion.Potion;
 
 import Reika.DragonAPI.Exception.InstallationException;
 import Reika.DragonAPI.Exception.RegistrationException;
+import Reika.DragonAPI.Exception.UserErrorException;
 import Reika.DragonAPI.IO.ReikaFileReader;
 import Reika.DragonAPI.Instantiable.Data.KeyedItemStack;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
@@ -173,7 +174,10 @@ public class BiomeConfig {
 				this.parseConfigs();
 			}
 			catch (Exception e) {
-				throw new RegistrationException(Satisforestry.instance, "Configs could not be loaded! Delete them and try again.", e);
+				if (e instanceof UserErrorException)
+					throw new InstallationException(Satisforestry.instance, "Configs could not be loaded! Delete them and try again.", e);
+				else
+					throw new RegistrationException(Satisforestry.instance, "Configs could not be loaded! Delete them and try again.", e);
 			}
 
 			Satisforestry.logger.log("Configs loaded.");

@@ -104,12 +104,7 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 				rotationPitch = 0;
 				rotationYawHead = rotationYaw;
 				double r = 9*(1F-poisonGasTick/(float)POISON_DURATION);
-				AxisAlignedBB box = ReikaAABBHelper.getEntityCenteredAABB(this, r);
-				List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
-				for (EntityPlayer ep : li) {
-					if (!ep.isPotionActive(Potion.poison) && !RadiationHandler.hasHazmatSuit(ep))
-						ep.addPotionEffect(new PotionEffect(Potion.poison.id, 40, 0));
-				}
+				this.doGasAttack(r);
 				//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.chicken.plop", 0.7F, 0.2F);
 				///ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.magmacube.jump", 0.7F, 2F);
 			}
@@ -118,11 +113,31 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 		if (worldObj.isRemote) {
 			poisonGasTick = dataWatcher.getWatchableObjectInt(20);
 			if (poisonGasTick > 0) {
-				this.doCloudFX();
+				this.doCloudFX(1);
 				rotationPitch = 0;
 				rotationYawHead = rotationYaw;
 			}
 			this.doParticleTrail();
+		}
+	}
+
+	@Override
+	public void onDeath(DamageSource src) {
+		super.onDeath(src);
+
+		if (worldObj.isRemote)
+			this.doCloudFX(80);
+		else
+			this.doGasAttack(12);
+		SFSounds.STINGERGAS.playSound(this);
+	}
+
+	private void doGasAttack(double r) {
+		AxisAlignedBB box = ReikaAABBHelper.getEntityCenteredAABB(this, r);
+		List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
+		for (EntityPlayer ep : li) {
+			if (!ep.isPotionActive(Potion.poison) && !RadiationHandler.hasHazmatSuit(ep))
+				ep.addPotionEffect(new PotionEffect(Potion.poison.id, 40, 0));
 		}
 	}
 
@@ -231,8 +246,8 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 	}
 
 	@SideOnly(Side.CLIENT)
-	public void doCloudFX() {
-		for (int i = 0; i < 1; i++) {
+	public void doCloudFX(int n) {
+		for (int i = 0; i < n; i++) {
 			double dx = ReikaRandomHelper.getRandomPlusMinus(0, 2);
 			double dz = ReikaRandomHelper.getRandomPlusMinus(0, 2);
 			double dy = ReikaRandomHelper.getRandomPlusMinus(0, 0.125);
