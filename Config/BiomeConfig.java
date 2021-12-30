@@ -32,9 +32,12 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.IO.CustomRecipeList;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock.LuaBlockDatabase;
+import Reika.DragonAPI.Interfaces.Registry.OreType;
 import Reika.DragonAPI.Libraries.ReikaEnchantmentHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.Registry.ReikaOreHelper;
+import Reika.DragonAPI.ModRegistry.ModOreList;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
@@ -60,6 +63,7 @@ public class BiomeConfig {
 	private final HashMap<String, ResourceItem> resourceEntries = new HashMap();
 	private final Collection<DoggoDrop> doggoEntries = new ArrayList();
 	private final HashSet<KeyedItemStack> doggoItems = new HashSet();
+	private final HashMap<OreType, Integer> doggoOres = new HashMap();
 
 	private BiomeConfig() {
 		oreData = new LuaBlockDatabase();
@@ -161,6 +165,20 @@ public class BiomeConfig {
 		//drop.createLuaBlock(drops, doggoData);
 
 		doggoData.addBlock("example", example3);
+
+		doggoOres.put(ReikaOreHelper.COAL, 20);
+		doggoOres.put(ReikaOreHelper.IRON, 10);
+		doggoOres.put(ReikaOreHelper.GOLD, 5);
+		doggoOres.put(ReikaOreHelper.DIAMOND, 1);
+		doggoOres.put(ReikaOreHelper.REDSTONE, 10);
+		doggoOres.put(ReikaOreHelper.LAPIS, 3);
+		doggoOres.put(ModOreList.COPPER, 15);
+		doggoOres.put(ModOreList.TIN, 15);
+		doggoOres.put(ModOreList.NICKEL, 5);
+		doggoOres.put(ModOreList.SILVER, 5);
+		doggoOres.put(ModOreList.ALUMINUM, 10);
+		doggoOres.put(ModOreList.LEAD, 10);
+		doggoOres.put(ModOreList.URANIUM, 2);
 	}
 
 	/** Returns the number of entries that loaded! */
@@ -346,11 +364,39 @@ public class BiomeConfig {
 
 	private void addHardcodedEntries() {
 		for (int i = 0; i < 3; i++)
-			doggoEntries.add(new DoggoDrop(SFBlocks.SLUG.getStackOfMetadata(i), 1, 1, 12/ReikaMathLibrary.intpow2(3, i)));
+			doggoEntries.add(new DoggoDrop(SFBlocks.SLUG.getStackOfMetadata(i), 1, 1, 9/ReikaMathLibrary.intpow2(3, i)));
 		doggoEntries.add(new DoggoDrop(Satisforestry.paleberry, 1, 6, 25));
 		doggoEntries.add(new DoggoDrop(Items.stick, 1, 8, 20));
 		doggoEntries.add(new DoggoDrop(Items.rotten_flesh, 1, 12, 15));
-		doggoEntries.add(new DoggoDrop(Satisforestry.sludge, 1, 1, 2));
+		doggoEntries.add(new DoggoDrop(Satisforestry.sludge, 1, 1, 10));
+
+		for (Entry<OreType, Integer> e : doggoOres.entrySet()) {
+			OreType ore = e.getKey();
+			if (ore.existsInGame()) {
+				int amtMax = 1;
+				switch(ore.getRarity()) {
+					case EVERYWHERE:
+						amtMax = 24;
+						break;
+					case COMMON:
+						amtMax = 16;
+						break;
+					case AVERAGE:
+						amtMax = 8;
+						break;
+					case SCATTERED:
+						amtMax = 4;
+						break;
+					case SCARCE:
+						amtMax = 2;
+						break;
+					case RARE:
+						amtMax = 1;
+						break;
+				}
+				doggoEntries.add(new DoggoDrop(ore.getFirstOreBlock(), 1, amtMax, e.getValue()));
+			}
+		}
 	}
 
 	private void parseOreEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {

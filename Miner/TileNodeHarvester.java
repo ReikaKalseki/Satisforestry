@@ -181,8 +181,8 @@ public abstract class TileNodeHarvester extends TileEntityBase implements ChunkL
 			int stepTime = 0;
 			boolean flag = false;
 			TileResourceNode te = this.getResourceNode();
-			if (te != null) {
-				state = MachineState.INACTIVE;
+			state = MachineState.INACTIVE;
+			if (this.hasStructure() && te != null && !this.isShutdown(world, x, y, z)) {
 				if (this.hasEnergy(false)) {
 					flag = true;
 					this.useEnergy(false);
@@ -246,6 +246,20 @@ public abstract class TileNodeHarvester extends TileEntityBase implements ChunkL
 					this.unload();
 			}
 		}
+	}
+
+	private boolean isShutdown(World world, int x, int y, int z) {
+		if (this.hasRedstoneSignal())
+			return true;
+		TileMinerConnection te = this.getInput();
+		if (te != null && te.hasRedstone())
+			return true;
+		te = this.getOutput();
+		if (te != null && te.hasRedstone())
+			return true;
+		if (te != null && world.isBlockIndirectlyGettingPowered(te.xCoord, te.yCoord-1, te.zCoord))
+			return true;
+		return false;
 	}
 
 	@SideOnly(Side.CLIENT)

@@ -272,6 +272,10 @@ public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 			return root;
 		}
 
+		public final boolean hasRedstone() {
+			return worldObj.isBlockIndirectlyGettingPowered(xCoord, yCoord, zCoord);
+		}
+
 	}
 
 	public static class TileMinerConveyorPort extends TileMinerConnection implements ISidedInventory {

@@ -8,7 +8,6 @@ import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.EntityAIFollowOwner;
 import net.minecraft.entity.ai.EntityAILookIdle;
 import net.minecraft.entity.ai.EntityAISwimming;
-import net.minecraft.entity.ai.EntityAIWander;
 import net.minecraft.entity.ai.EntityAIWatchClosest;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.passive.EntityTameable;
@@ -47,6 +46,7 @@ import Reika.Satisforestry.Config.DoggoDrop;
 import Reika.Satisforestry.Entity.AI.EntityAIComeGetPaleberry;
 import Reika.Satisforestry.Entity.AI.EntityAIDepositItem;
 import Reika.Satisforestry.Entity.AI.EntityAIDoggoFollow;
+import Reika.Satisforestry.Entity.AI.EntityAIDoggoWander;
 import Reika.Satisforestry.Entity.AI.EntityAIRunFromPlayer;
 import Reika.Satisforestry.Entity.AI.EntityAISlowlyBackFromPlayer;
 import Reika.Satisforestry.Registry.SFEntities;
@@ -140,7 +140,7 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 		EntityAIWatchClosest look = new EntityAIWatchClosest(this, EntityPlayer.class, 30);
 		look.setMutexBits(4);
 		tasks.addTask(7, look); //max dist
-		tasks.addTask(8, new EntityAIWander(this, 0.5)); //speed
+		tasks.addTask(8, new EntityAIDoggoWander(this, 0.5)); //speed
 		tasks.addTask(9, new EntityAILookIdle(this));
 		//targetTasks.addTask(1, new EntityAIOwnerHurtByTarget(this));
 		//targetTasks.addTask(2, new EntityAIOwnerHurtTarget(this));
@@ -164,7 +164,7 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 
 	@Override
 	public boolean getLeashed() {
-		return super.getLeashed() || this.hasItem() || this.justDepositedItem() || this.isSitting(); //Stay!
+		return super.getLeashed() || this.hasItem() || this.justDepositedItem(false) || this.isSitting(); //Stay!
 	}
 
 	@Override
@@ -559,8 +559,8 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 		return ret;
 	}
 
-	public boolean justDepositedItem() {
-		return itemDeposit > 0;
+	public boolean justDepositedItem(boolean recent) {
+		return itemDeposit > (recent ? 30 : 0);
 	}
 
 	public boolean tryPutItemInChest(IInventory te) {
@@ -568,7 +568,7 @@ public class EntityLizardDoggo extends EntityTameable implements SpawnPointEntit
 			foundItem = null;
 			needsItemUpdate = true;
 			ReikaPacketHelper.sendEntitySyncPacket(DragonAPIInit.packetChannel, this, 128);
-			itemDeposit = 120;
+			itemDeposit = 150;
 			return true;
 		}
 		return false;

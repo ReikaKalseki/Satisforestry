@@ -16,12 +16,12 @@ public class EntityAIDoggoFollow extends EntityAIFollowOwner {
 
 	@Override
 	public boolean shouldExecute() {
-		return super.shouldExecute() && !doggo.justDepositedItem();
+		return super.shouldExecute() && !doggo.justDepositedItem(false);
 	}
 
 	@Override
 	public boolean continueExecuting() {
-		return super.continueExecuting() && !doggo.justDepositedItem();
+		return super.continueExecuting() && !doggo.justDepositedItem(false);
 	}
 
 }

@@ -43,7 +43,7 @@ public class EntityAIDepositItem extends EntityAIBase {
 	 */
 	@Override
 	public boolean shouldExecute() {
-		if (!doggo.isTamed() || (!doggo.hasItem() && !doggo.justDepositedItem())) {
+		if (!doggo.isTamed() || (!doggo.hasItem() && !doggo.justDepositedItem(false))) {
 			return false;
 		}
 
@@ -82,7 +82,7 @@ public class EntityAIDepositItem extends EntityAIBase {
 
 	@Override
 	public boolean continueExecuting() {
-		return !pathfinder.noPath() && closestChest != null && !closestChest.isInvalid() && (doggo.hasItem() || doggo.justDepositedItem()) && entityPath != null;
+		return !pathfinder.noPath() && closestChest != null && !closestChest.isInvalid() && (doggo.hasItem() || doggo.justDepositedItem(true)) && entityPath != null;
 	}
 
 	@Override
