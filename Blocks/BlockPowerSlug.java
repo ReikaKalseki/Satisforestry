@@ -294,8 +294,8 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 						}
 						else {
 							double f = rand.nextDouble();
-							if (f <= 0.1) {
-								boolean stinger = rand.nextInt(5) == 0;
+							if (f <= (reachDifficulty < 0 ? 0.15 : 0.1)) {
+								boolean stinger = rand.nextInt(reachDifficulty < 0 ? 3 : 5) == 0;
 								te.setSingleStrongEnemy(stinger ? EntityEliteStinger.class : EntitySpider.class, stinger ? 1 : 3);
 							}
 							else if (f < 0.3) {
@@ -322,6 +322,8 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 							power = 0;
 						double f = rand.nextDouble();
 						switch(power) {
+							case 6:
+							case 5:
 							case 4:
 								if (f < 0.3) {
 									te.setDefaultSpawn(EntityEliteStinger.class);

@@ -3,6 +3,7 @@ package Reika.Satisforestry.Entity.AI;
 import net.minecraft.entity.ai.EntityAIBase;
 import net.minecraft.entity.ai.RandomPositionGenerator;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.IInventory;
 import net.minecraft.pathfinding.PathEntity;
 import net.minecraft.pathfinding.PathNavigate;
 import net.minecraft.tileentity.TileEntity;
@@ -10,6 +11,8 @@ import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 
+import Reika.ChromatiCraft.API.Interfaces.LootChest;
+import Reika.DragonAPI.ModRegistry.InterfaceCache;
 import Reika.Satisforestry.Entity.EntityLizardDoggo;
 
 
@@ -25,7 +28,7 @@ public class EntityAIDepositItem extends EntityAIBase {
 	private PathEntity entityPath;
 	/** The PathNavigate of our entity */
 	private final PathNavigate pathfinder;
-	private TileEntityChest closestChest;
+	private TileEntity closestChest;
 	private boolean wasSitting;
 
 	public EntityAIDepositItem(EntityLizardDoggo e, int dd) {
@@ -60,19 +63,19 @@ public class EntityAIDepositItem extends EntityAIBase {
 		return entityPath == null ? false : entityPath.isDestinationSame(vec3);
 	}
 
-	private TileEntityChest findChest() {
+	private TileEntity findChest() {
 		int x = MathHelper.floor_double(doggo.posX);
 		int y = MathHelper.floor_double(doggo.posY+doggo.height/4);
 		int z = MathHelper.floor_double(doggo.posZ);
 		int r = distanceToDetectChest;
-		TileEntityChest ret = null;
+		TileEntity ret = null;
 		for (int i = -r; i <= r; i++) {
 			for (int k = -r; k <= r; k++) {
 				for (int j = -1; j <= 1; j++) {
 					TileEntity te = doggo.worldObj.getTileEntity(x+i, y+j, z+k);
-					if (te instanceof TileEntityChest) {
+					if (te instanceof TileEntityChest || te instanceof LootChest || InterfaceCache.MEINTERFACE.instanceOf(te)) {
 						if (ret == null || doggo.getDistanceSq(ret.xCoord+0.5, ret.yCoord+0.5, ret.zCoord+0.5) > doggo.getDistanceSq(te.xCoord+0.5, te.yCoord+0.5, te.zCoord+0.5))
-							ret = (TileEntityChest)te;
+							ret = te;
 					}
 				}
 			}
@@ -112,7 +115,7 @@ public class EntityAIDepositItem extends EntityAIBase {
 	public void updateTask() {
 		Vec3 vec0 = Vec3.createVectorHelper(closestChest.xCoord+0.5, closestChest.yCoord+0.5, closestChest.zCoord+0.5);
 		if (closestChest != null && doggo.hasItem() && (doggo.getDistanceSq(vec0.xCoord, vec0.yCoord, vec0.zCoord) <= 2.5 || this.isTooFarToBother())) {
-			doggo.tryPutItemInChest(closestChest);
+			doggo.tryPutItemInChest((IInventory)closestChest);
 			if (wasSitting)
 				doggo.setSitting(true);
 		}

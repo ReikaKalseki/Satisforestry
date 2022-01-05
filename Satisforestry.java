@@ -408,6 +408,22 @@ public class Satisforestry extends DragonAPIMod {
 				}
 			}
 
+			try {
+				SFBees.register();
+			}
+			catch (IncompatibleClassChangeError e) {
+				e.printStackTrace();
+				logger.logError("Could not add custom bee species. Check your versions; if you are up-to-date with both mods, notify Reika.");
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				logger.logError("Could not add custom bee species. Check your versions; if you are up-to-date with both mods, notify Reika.");
+			}
+			catch (LinkageError e) {
+				e.printStackTrace();
+				logger.logError("Could not add custom bee species. Check your versions; if you are up-to-date with both mods, notify Reika.");
+			}
+
 		}
 
 		this.finishTiming();

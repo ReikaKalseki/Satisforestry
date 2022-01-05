@@ -23,7 +23,7 @@ public class SFCommon {
 	public static int resourceRender;
 	//public static int slugRender;
 
-	protected SoundLoader sounds = new SoundLoader(SFSounds.class);
+	protected static final SoundLoader sounds = new SoundLoader(SFSounds.class);
 
 	/**
 	 * Client side only register stuff...
