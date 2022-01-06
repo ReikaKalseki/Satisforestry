@@ -47,8 +47,10 @@ import Reika.DragonAPI.ModInteract.Bees.BeeSpecies.BeeBranch;
 import Reika.DragonAPI.ModInteract.Bees.BeeSpecies.BeeBreeding;
 import Reika.DragonAPI.ModInteract.Bees.ReikaBeeHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.ForestryHandler;
+import Reika.DragonAPI.ModInteract.ItemHandlers.MagicBeesHandler;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockPowerSlug;
+import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
@@ -66,6 +68,7 @@ import forestry.api.apiculture.IBeeGenome;
 import forestry.api.apiculture.IBeeHousing;
 import forestry.api.core.EnumHumidity;
 import forestry.api.core.EnumTemperature;
+import forestry.api.genetics.AlleleManager;
 import forestry.api.genetics.IAlleleFlowers;
 import forestry.api.genetics.IEffectData;
 import forestry.api.genetics.IFlowerProvider;
@@ -80,7 +83,7 @@ public class SFBees {
 
 	private static final BeeSpecies baseSpecies = new BaseSFBee();
 	private static final BeeSpecies paleberrySpecies = new PaleberryBee();
-	private static final BeeSpecies slugSpecies = new SlugBee(); //effect: can spawn slugs in caves or on trees, but also spawns guard mobs around itself and the slug
+	private static final BeeSpecies slugSpecies = new SlugBee();
 
 	private static ColorBlendList paleberryColor;
 	private static ColorBlendList slugColor;
@@ -96,18 +99,18 @@ public class SFBees {
 			loadColorData();
 		}
 
-		if (Loader.isModLoaded("extrabees")) {
-			paleberrySpecies.addBreeding("extrabees.species.fruit", baseSpecies, 18);
+		if (Loader.isModLoaded("ExtraBees")) {
+			paleberrySpecies.addBreeding((IAlleleBeeSpecies)AlleleManager.alleleRegistry.getAllele("extrabees.species.fruit"), baseSpecies, 18);
 		}
 		else {
 			paleberrySpecies.addBreeding("Unweary", baseSpecies, 15);
 		}
 
 		if (ModList.MAGICBEES.isLoaded()) {
-			slugSpecies.addBreeding("magicbees.speciesDoctoral", baseSpecies, 5);
+			slugSpecies.addBreeding((IAlleleBeeSpecies)AlleleManager.alleleRegistry.getAllele("magicbees.speciesDoctoral"), baseSpecies, 5);
 		}
-		else if (Loader.isModLoaded("extrabees")) {
-			slugSpecies.addBreeding("extrabees.species.unusual", baseSpecies, 4);
+		else if (Loader.isModLoaded("ExtraBees")) {
+			slugSpecies.addBreeding((IAlleleBeeSpecies)AlleleManager.alleleRegistry.getAllele("extrabees.species.unusual"), baseSpecies, 4);
 		}
 		else {
 			slugSpecies.addBreeding("Secluded", baseSpecies, 2);
@@ -118,8 +121,8 @@ public class SFBees {
 	private static void loadColorData() {
 		paleberryColor = new ColorBlendList(18F, 0xFF6672, 0xFF4032, 0xFF668C, 0xFF7266, 0xFF4C4C);
 		List<Integer> li = new ArrayList();
-		for (int i = 0; i < 8; i++)
-			for (int k = 0; k < 3; k++)
+		for (int k = 0; k < 3; k++)
+			for (int i = 0; i < 8; i++)
 				li.add(BlockPowerSlug.getColor(k));
 		slugColor = new ColorBlendList(15F, li);
 	}
@@ -308,6 +311,8 @@ public class SFBees {
 
 			this.addSpecialty(new ItemStack(Satisforestry.paleberry, 1, 1), 10);
 			this.addProduct(ForestryHandler.Combs.HONEY.getItem(), 10);
+			this.addProduct(SFBlocks.GRASS.getStackOfMetadata(GrassTypes.PEACH_FRINGE.ordinal()), 2);
+			this.addSpecialty(SFBlocks.GRASS.getStackOfMetadata(GrassTypes.BLUE_MUSHROOM_TOP.ordinal()), 1);
 		}
 
 		@Override
@@ -352,7 +357,13 @@ public class SFBees {
 		private SlugBee() {
 			super("Sluggy", "bee.powerslug", "Potentia Limax");
 
-			this.addProduct(ForestryHandler.Combs.MOSSY.getItem(), 5); //add furtive comb if present
+			this.addProduct(ForestryHandler.Combs.MOSSY.getItem(), 5);
+			if (ModList.MAGICBEES.isLoaded()) {
+				this.addProduct(MagicBeesHandler.Combs.FURTIVE.getItem(), 5);
+			}
+			this.addSpecialty(SFBlocks.TERRAIN.getStackOfMetadata(TerrainType.OUTCROP.ordinal()), 1);
+			this.addSpecialty(SFBlocks.TERRAIN.getStackOfMetadata(TerrainType.POISONROCK.ordinal()), 1);
+			this.addSpecialty(SFBlocks.TERRAIN.getStackOfMetadata(TerrainType.PONDROCK.ordinal()), 1);
 		}
 
 		@Override
@@ -362,7 +373,7 @@ public class SFBees {
 
 		@Override
 		public int getOutlineColor() {
-			return slugColor != null ? slugColor.getColor(DragonAPICore.getSystemTimeAsInt()/10D) : 0xFFFFFF;
+			return slugColor != null ? slugColor.getColor(DragonAPICore.getSystemTimeAsInt()/15D) : 0xFFFFFF;
 		}
 
 		@Override
@@ -403,6 +414,16 @@ public class SFBees {
 		@Override
 		public EnumHumidity getHumidity() {
 			return EnumHumidity.NORMAL;
+		}
+
+		@Override
+		public boolean hasEffect() {
+			return true;
+		}
+
+		@Override
+		public boolean isSecret() {
+			return true;
 		}
 
 	}
