@@ -16,8 +16,12 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
+import net.minecraft.block.Block;
 import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityList;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.ai.EntityAITasks.EntityAITaskEntry;
 import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.monster.EntitySpider;
@@ -27,6 +31,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChunkCoordinates;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.BiomeDictionary;
@@ -42,8 +47,10 @@ import Reika.DragonAPI.IO.DirectResourceManager;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Rendering.ColorBlendList;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
+import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.ModInteract.Bees.BasicFlowerProvider;
 import Reika.DragonAPI.ModInteract.Bees.BasicGene;
 import Reika.DragonAPI.ModInteract.Bees.BeeAlleleRegistry.Effect;
@@ -73,7 +80,8 @@ import Reika.DragonAPI.ModInteract.Bees.TreeSpecies.NoLocaleDescriptionFruit;
 import Reika.DragonAPI.ModInteract.Bees.TreeSpecies.TreeBranch;
 import Reika.DragonAPI.ModInteract.ItemHandlers.ForestryHandler;
 import Reika.DragonAPI.ModInteract.ItemHandlers.MagicBeesHandler;
-import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGenerator;
+import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeBlockCallback;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
@@ -82,7 +90,10 @@ import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
+import Reika.Satisforestry.Entity.AI.EntityAIButterflyHarvestPaleberries;
+import Reika.Satisforestry.Entity.AI.EntityAIButterflyPollinatePaleberries;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFOptions;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Loader;
@@ -107,7 +118,9 @@ import forestry.api.genetics.IAlleleFlowers;
 import forestry.api.genetics.IEffectData;
 import forestry.api.genetics.IFlowerProvider;
 import forestry.api.genetics.IFruitFamily;
+import forestry.api.lepidopterology.EnumButterflyChromosome;
 import forestry.api.lepidopterology.IAlleleButterflyEffect;
+import forestry.api.lepidopterology.IEntityButterfly;
 import forestry.api.world.ITreeGenData;
 
 public class SFBees {
@@ -129,6 +142,8 @@ public class SFBees {
 	private static final ButterflySpecies basicPinkSpecies = new BasicSFButterfly();
 	private static final ButterflySpecies grassSpriteSpecies = new GrassSpriteButterfly();
 	private static final ButterflySpecies paleberryFlySpecies = new PaleberryButterfly();
+
+	private static final PaleberryBoostEffect paleberryBoost = new PaleberryBoostEffect();
 
 	private static final Reika.DragonAPI.ModInteract.Bees.ButterflyAlleleRegistry.Life blinkLife = Reika.DragonAPI.ModInteract.Bees.ButterflyAlleleRegistry.Life.createNew("sprite", 1, false);
 
@@ -708,7 +723,9 @@ public class SFBees {
 		}
 	}
 
-	private static class PinkTree extends BasicTreeSpecies {
+	private static class PinkTree extends BasicTreeSpecies implements PinkTreeBlockCallback {
+
+		private ITreeGenData treeData;
 
 		protected PinkTree() {
 			super("Pink Birch", "tree.pinkforest", "Rosea Silva", "Reika", treeBranch);
@@ -756,13 +773,12 @@ public class SFBees {
 
 		@Override
 		public String getDescription() {
-			// TODO Auto-generated method stub
-			return "";
+			return "Hot pink and fireproof, there is something very strange about this tree, though it is also very pretty.";
 		}
 
 		@Override
 		public int getIconColour(int renderPass) {
-			return Satisforestry.pinkforest.getBiomeFoliageColor(0, 114, 0);
+			return PinkTreeTypes.TREE.getRenderColor(null, 0, 120, 0);
 		}
 
 		@Override
@@ -806,17 +822,38 @@ public class SFBees {
 		}
 
 		@Override
-		protected BlockKey getLogBlock(ITreeGenome genes, World world, int x, int y, int z, Random rand, ITreeGenData data) {
-			return BlockKey.fromItem(PinkTreeTypes.TREE.getBaseLog());
+		protected BlockKey getLogBlock(ITreeGenome genes, World world, int x, int y, int z, Random rand, ITreeGenData data, ForgeDirection dir) {
+			ItemStack is = PinkTreeTypes.TREE.getBaseLog();
+			is.setItemDamage(ReikaBlockHelper.getColumnBlockMeta(is.getItemDamage(), dir));
+			return BlockKey.fromItem(is);
 		}
 
 		@Override
 		protected boolean generate(World world, int x, int y, int z, Random rand, ITreeGenData data) {
-			world.setBlock(x, y, z, Blocks.air);-
-			PinkTreeGeneratorBase gen = PinkTreeTypes.TREE.constructTreeGenerator();
+			int girth = data.getGirth(world, x, y, z);
+			world.setBlock(x, y, z, Blocks.air);
+			treeData = data;
+			PinkTreeGenerator gen = (PinkTreeGenerator)PinkTreeTypes.TREE.constructTreeGenerator();
+			gen.heightScalar = data.getHeightModifier();
 			gen.allowSlugs = false;
 			gen.isSaplingGrowth = true;
-			return gen.generate(world, rand, x, y, z);
+			gen.blockCallback = this;
+			gen.setTrunkSize(MathHelper.clamp_int(girth, 1, 3));
+			boolean flag = gen.generate(world, rand, x, y, z);
+			treeData = null;
+			return flag;
+		}
+
+		@Override
+		public boolean placeLog(World world, int x, int y, int z, Block b, int meta) {
+			treeData.setLogBlock(world, x, y, z, ReikaBlockHelper.getColumnBlockDirection(meta));
+			return true;
+		}
+
+		@Override
+		public boolean placeLeaf(World world, int x, int y, int z, Block b, int meta) {
+			treeData.setLeaves(world, null, x, y, z);
+			return true;
 		}
 
 	}
@@ -1175,9 +1212,37 @@ public class SFBees {
 		}
 
 		@Override
-		/** Unimplemented */
 		public IAlleleButterflyEffect getEffect() {
-			return super.getEffect();
+			return paleberryBoost;
+		}
+
+	}
+
+	private static class PaleberryBoostEffect extends BasicGene implements IAlleleButterflyEffect {
+
+		public PaleberryBoostEffect() {
+			super("sfbutterfly.paleberryboost", "Paleberry Fertilization", EnumButterflyChromosome.EFFECT);
+		}
+
+		@Override
+		public boolean isCombinable() {
+			return true;
+		}
+
+		@Override
+		public IEffectData validateStorage(IEffectData storedData) {
+			return storedData;
+		}
+
+		@Override
+		public boolean isDominant() {
+			return true;
+		}
+
+		@Override
+		/** This is unimplemented, so it is accomplished with a TickHandler. */
+		public IEffectData doEffect(IEntityButterfly butterfly, IEffectData storedData) {
+			return storedData;
 		}
 
 	}
@@ -1192,6 +1257,50 @@ public class SFBees {
 
 	public static ButterflySpecies getPinkButterfly() {
 		return basicPinkSpecies;
+	}
+
+	public static IAlleleButterflyEffect getPaleberryButterflyEffect() {
+		return paleberryBoost;
+	}
+
+	public static void tickPaleberryButterflyEffect(EntityLivingBase e, IEntityButterfly b) {
+		if (e.ticksExisted%32 == 0) {
+			EntityCreature ec = b.getEntity();
+			boolean flag1 = false;
+			boolean flag2 = false;
+			for (EntityAITaskEntry task : ((List<EntityAITaskEntry>)ec.tasks.taskEntries)) {
+				if (task.action instanceof EntityAIButterflyPollinatePaleberries) {
+					flag1 = true;
+					if (flag2)
+						break;
+				}
+				if (task.action instanceof EntityAIButterflyHarvestPaleberries) {
+					flag2 = true;
+					if (flag1)
+						break;
+				}
+			}
+			if (!flag1) {
+				ec.tasks.addTask(3, new EntityAIButterflyPollinatePaleberries(b));
+			}
+			if (!flag2) {
+				ec.tasks.addTask(2, new EntityAIButterflyHarvestPaleberries(b));
+			}
+		}
+		int x = MathHelper.floor_double(e.posX);
+		int y = MathHelper.floor_double(e.posY-0.5);
+		int z = MathHelper.floor_double(e.posZ);
+		if (EntityAIButterflyPollinatePaleberries.isValidTarget(e.worldObj, x, y, z)) {
+			e.worldObj.setBlockMetadataWithNotify(x, y, z, GrassTypes.PALEBERRY_NEW.ordinal(), 2);
+			ReikaSoundHelper.playBreakSound(e.worldObj, x, y, z, Blocks.leaves, 0.7F, 0.25F);
+			b.changeExhaustion(200);
+			if (SFOptions.PALEBERRYPOLLEN.getState())
+				b.setPollen(null);
+		}
+	}
+
+	public static TreeSpecies getPinkTree() {
+		return treeSpecies;
 	}
 
 }

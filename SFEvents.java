@@ -3,6 +3,8 @@ package Reika.Satisforestry;
 import java.util.Iterator;
 import java.util.List;
 
+import com.google.common.base.Strings;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -22,6 +24,7 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.client.event.EntityViewRenderEvent.FogColors;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.event.entity.EntityJoinWorldEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.LivingSpawnEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -57,6 +60,7 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
+import Reika.DragonAPI.ModInteract.Bees.ReikaBeeHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
@@ -77,6 +81,10 @@ import cpw.mods.fml.common.gameevent.TickEvent.ClientTickEvent;
 import cpw.mods.fml.common.network.FMLNetworkEvent.ClientDisconnectionFromServerEvent;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import forestry.api.lepidopterology.IAlleleButterflyEffect;
+import forestry.api.lepidopterology.IButterfly;
+import forestry.api.lepidopterology.IButterflyGenome;
+import forestry.api.lepidopterology.IEntityButterfly;
 
 public class SFEvents {
 
@@ -91,6 +99,32 @@ public class SFEvents {
 
 	private SFEvents() {
 
+	}
+
+	@SubscribeEvent
+	@ModDependent(ModList.FORESTRY)
+	public void tickPaleberryButterfly(LivingUpdateEvent evt) {
+		if (!evt.entityLiving.worldObj.isRemote && ReikaBeeHelper.isButterfly(evt.entityLiving)) {
+			IEntityButterfly e = (IEntityButterfly)evt.entityLiving;
+			String effect = evt.entityLiving.getEntityData().getString("effect");
+			if (Strings.isNullOrEmpty(effect)) {
+				IButterfly fly = e.getButterfly();
+				if (fly != null) {
+					IButterflyGenome genome = fly.getGenome();
+					if (genome != null) {
+						effect = "none";
+						IAlleleButterflyEffect ia = genome.getEffect();
+						if (ia != null) {
+							effect = ia.getUID();
+						}
+						evt.entityLiving.getEntityData().setString("effect", effect);
+					}
+				}
+			}
+			if (effect.equals(SFBees.getPaleberryButterflyEffect().getUID())) {
+				SFBees.tickPaleberryButterflyEffect(evt.entityLiving, e);
+			}
+		}
 	}
 
 	@SubscribeEvent

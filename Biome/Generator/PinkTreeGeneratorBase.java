@@ -42,6 +42,8 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	public boolean allowSlugs = true;
 	public boolean isSaplingGrowth = false;
 
+	public PinkTreeBlockCallback blockCallback = null;
+
 	public PinkTreeGeneratorBase(boolean force, PinkTreeTypes leaf) {
 		super(force);
 		forceGen = force;
@@ -140,11 +142,23 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 
 	@Override
 	protected void setBlockAndNotifyAdequately(World world, int x, int y, int z, Block b, int meta) {
+		boolean log = b == SFBlocks.LOG.getBlockInstance();
+		boolean leaf = b == SFBlocks.LEAVES.getBlockInstance();
+		if (blockCallback != null) {
+			if (log) {
+				if (blockCallback.placeLog(world, x+globalOffset[0], y+globalOffset[1], z+globalOffset[2], b, meta))
+					return;
+			}
+			if (leaf) {
+				if (blockCallback.placeLeaf(world, x+globalOffset[0], y+globalOffset[1], z+globalOffset[2], b, meta))
+					return;
+			}
+		}
 		super.setBlockAndNotifyAdequately(world, x, y, z, b, meta);
-		if (b == SFBlocks.LOG.getBlockInstance()) {
+		if (log) {
 			logs.put(new Coordinate(x+globalOffset[0], y+globalOffset[1], z+globalOffset[2]), meta);
 		}
-		else if (b == SFBlocks.LEAVES.getBlockInstance()) {
+		else if (leaf) {
 			Coordinate c = new Coordinate(x+globalOffset[0], 0, z+globalOffset[2]);
 			Integer get = leavesTop.get(c);
 			int dy = y+globalOffset[1];
@@ -156,6 +170,14 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	protected abstract float getTrunkSlugChancePerBlock();
 
 	protected abstract float getTreeTopSlugChance();
+
+	public static interface PinkTreeBlockCallback {
+
+		boolean placeLog(World world, int x, int y, int z, Block b, int meta);
+
+		boolean placeLeaf(World world, int x, int y, int z, Block b, int meta);
+
+	}
 
 	public static enum PinkTreeTypes implements PinkTreeType {
 		TREE,
@@ -221,7 +243,6 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 			}
 		}
 
-		@SideOnly(Side.CLIENT)
 		public int getRenderColor(IBlockAccess world, int x, int y, int z) {
 			if (this == PinkTreeTypes.GIANTTREE) {
 				y -= 60; //was 18 then 24 then 50

@@ -27,7 +27,8 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, DecimalConfig, St
 	GLOBALSHADER("Apply Poison Shader In All Biomes", false),
 	MUSIC("Satisfactory OST Folder", ""),
 	BORDERORE("Biome Border Ore Cluster Rate", 1F),
-	BLUEGREEN("Make Green Power Slugs Blue (SF Update 5)", false)
+	BLUEGREEN("Make Green Power Slugs Blue (SF Update 5)", false),
+	PALEBERRYPOLLEN("Paleberry Butterfly Fertilization Requires Pink Birch Pollen", false)
 	;
 
 	private String label;

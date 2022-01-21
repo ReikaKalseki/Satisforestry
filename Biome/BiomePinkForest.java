@@ -180,7 +180,6 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
 	public int getBiomeFoliageColor(int x, int y, int z) { //less intense with Y
 		//https://i.imgur.com/1Lu8tSU.jpg
 		//https://i.imgur.com/bPN7Kqk.jpg
