@@ -21,6 +21,8 @@ public class SFCommon {
 	public static int grassRender;
 	public static int decoRender;
 	public static int resourceRender;
+	public static int frackingRender;
+	public static int frackingAuxRender;
 	//public static int slugRender;
 
 	protected static final SoundLoader sounds = new SoundLoader(SFSounds.class);

@@ -22,6 +22,8 @@ import net.minecraft.enchantment.Enchantment;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 
 import Reika.DragonAPI.Exception.InstallationException;
 import Reika.DragonAPI.Exception.RegistrationException;
@@ -41,9 +43,9 @@ import Reika.DragonAPI.ModRegistry.ModOreList;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
-import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
 import Reika.Satisforestry.Config.DoggoDrop.Checks;
-import Reika.Satisforestry.Config.ResourceItem.EffectTypes;
+import Reika.Satisforestry.Config.NodeResource.EffectTypes;
+import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 
@@ -53,6 +55,7 @@ public class BiomeConfig {
 
 	private LuaBlockDatabase oreData;
 	private LuaBlockDatabase itemData;
+	private LuaBlockDatabase fluidData;
 	private LuaBlockDatabase doggoData;
 
 	private int definitionCount;
@@ -61,6 +64,7 @@ public class BiomeConfig {
 
 	private final HashMap<String, OreClusterType> oreEntries = new HashMap();
 	private final HashMap<String, ResourceItem> resourceEntries = new HashMap();
+	private final HashMap<String, ResourceFluid> fluidEntries = new HashMap();
 	private final Collection<DoggoDrop> doggoEntries = new ArrayList();
 	private final HashSet<KeyedItemStack> doggoItems = new HashSet();
 	private final HashMap<OreType, Integer> doggoOres = new HashMap();
@@ -86,46 +90,46 @@ public class BiomeConfig {
 		oreData.addBlock("example", example);
 
 		itemData = new LuaBlockDatabase();
-		ResourceLuaBlock example2 = new ResourceLuaBlock("example", null, itemData);
+		ResourceItemLuaBlock example2 = new ResourceItemLuaBlock("example", null, itemData);
 		example2.putData("type", "example_resources");
 		example2.putData("spawnWeight", 10);
 		example2.putData("renderColor", "0xffffff");
 		//example2.putData("generate", "true");
-		ResourceLuaBlock levels = new ResourceLuaBlock("purityLevels", example2, itemData);
+		ResourceItemLuaBlock levels = new ResourceItemLuaBlock("purityLevels", example2, itemData);
 		for (Purity p : Purity.list) {
 			levels.putData(p.name(), p == Purity.NORMAL ? 25 : 10);
 		}
-		ResourceLuaBlock items = new ResourceLuaBlock("outputItems", example2, itemData);
-		LuaBlock item = new ResourceLuaBlock("{", items, itemData);
+		ResourceItemLuaBlock items = new ResourceItemLuaBlock("outputItems", example2, itemData);
+		LuaBlock item = new ResourceItemLuaBlock("{", items, itemData);
 		item.putData("key", "minecraft:iron_ingot");
 		item.putData("weight", 10);
 		item.putData("minCount", 1);
 		item.putData("maxCount", 3);
 		item.putData("minimumPurity", Purity.IMPURE.name());
-		item = new ResourceLuaBlock("{", items, itemData);
+		item = new ResourceItemLuaBlock("{", items, itemData);
 		item.putData("key", "minecraft:gold_ingot");
 		item.putData("weight", 6);
 		item.putData("minCount", 1);
 		item.putData("maxCount", 1);
 		item.putData("manualWeightModifier", 0.3);
 		item.putData("manualAmountModifier", 0.5);
-		ResourceLuaBlock scales = new ResourceLuaBlock("weightModifiers", item, itemData);
+		ResourceItemLuaBlock scales = new ResourceItemLuaBlock("weightModifiers", item, itemData);
 		for (Purity p : Purity.list) {
 			scales.putData(p.name(), (p.ordinal()+1)/2F);
 		}
-		scales = new ResourceLuaBlock("amountModifiers", item, itemData);
+		scales = new ResourceItemLuaBlock("amountModifiers", item, itemData);
 		for (Purity p : Purity.list) {
 			scales.putData(p.name(), p == Purity.PURE ? 1F : 0.5F);
 		}
 		item.putData("minimumPurity", Purity.NORMAL.name());
-		ResourceLuaBlock effects = new ResourceLuaBlock("effects", example2, itemData);
-		item = new ResourceLuaBlock("{", effects, itemData);
+		ResourceItemLuaBlock effects = new ResourceItemLuaBlock("effects", example2, itemData);
+		item = new ResourceItemLuaBlock("{", effects, itemData);
 		item.putData("effectType", "damage");
 		item.putData("amount", 0.5F);
 		item.putData("rate", 20);
 		item.setComment("effectType", "type of effect, valid values: "+ReikaJavaLibrary.getEnumNameList(EffectTypes.class));
 		item.setComment("rate", "ticks per hit");
-		item = new ResourceLuaBlock("{", effects, itemData);
+		item = new ResourceItemLuaBlock("{", effects, itemData);
 		item.putData("effectType", "potion");
 		item.putData("potionID", Potion.weakness.id);
 		item.putData("level", 1);
@@ -135,6 +139,55 @@ public class BiomeConfig {
 		effects.setComment(null, "optional, ambient AoE effects around the node");
 		item.setComment("potionID", "weakness");
 		itemData.addBlock("example", example2);
+
+		fluidData = new LuaBlockDatabase();
+		ResourceFluidLuaBlock example2b = new ResourceFluidLuaBlock("example", null, fluidData);
+		example2b.putData("type", "example_fluids");
+		example2b.putData("spawnWeight", 10);
+		example2b.putData("renderColor", "0xffffff");
+		//example2b.putData("generate", "true");
+		ResourceFluidLuaBlock levels2 = new ResourceFluidLuaBlock("purityLevels", example2b, fluidData);
+		for (Purity p : Purity.list) {
+			levels2.putData(p.name(), p == Purity.NORMAL ? 25 : 10);
+		}
+		ResourceFluidLuaBlock fluids = new ResourceFluidLuaBlock("outputFluids", example2b, fluidData);
+		ResourceFluidLuaBlock fluid = new ResourceFluidLuaBlock("{", fluids, fluidData);
+		fluid.putData("key", "water");
+		fluid.putData("weight", 10);
+		fluid.putData("minAmount", 100);
+		fluid.putData("maxAmount", 500);
+		fluid.putData("minimumPurity", Purity.IMPURE.name());
+		fluid = new ResourceFluidLuaBlock("{", fluids, fluidData);
+		fluid.putData("key", "oil");
+		fluid.putData("weight", 6);
+		fluid.putData("minAmount", 10);
+		fluid.putData("maxAmount", 100);
+		ResourceFluidLuaBlock scales2 = new ResourceFluidLuaBlock("weightModifiers", fluid, fluidData);
+		for (Purity p : Purity.list) {
+			scales2.putData(p.name(), (p.ordinal()+1)/2F);
+		}
+		scales2 = new ResourceFluidLuaBlock("amountModifiers", fluid, fluidData);
+		for (Purity p : Purity.list) {
+			scales2.putData(p.name(), p == Purity.PURE ? 1F : 0.5F);
+		}
+		fluid.putData("minimumPurity", Purity.NORMAL.name());
+		ResourceFluidLuaBlock effects2 = new ResourceFluidLuaBlock("effects", example2b, fluidData);
+		fluid = new ResourceFluidLuaBlock("{", effects2, fluidData);
+		fluid.putData("effectType", "damage");
+		fluid.putData("amount", 0.5F);
+		fluid.putData("rate", 20);
+		fluid.setComment("effectType", "type of effect, valid values: "+ReikaJavaLibrary.getEnumNameList(EffectTypes.class));
+		fluid.setComment("rate", "ticks per hit");
+		fluid = new ResourceFluidLuaBlock("{", effects2, fluidData);
+		fluid.putData("effectType", "potion");
+		fluid.putData("potionID", Potion.weakness.id);
+		fluid.putData("level", 1);
+		example2b.setComment("minCount", "min yield per harvest cycle");
+		example2b.setComment("maxCount", "max yield per harvest cycle");
+		levels2.setComment(null, "purity level distribution");
+		effects2.setComment(null, "optional, ambient AoE effects2 around the node");
+		fluid.setComment("potionID", "weakness");
+		fluidData.addBlock("example", example2b);
 
 		doggoData = new LuaBlockDatabase();
 		DoggoLuaBlock example3 = new DoggoLuaBlock("example", null, doggoData);
@@ -496,7 +549,7 @@ public class BiomeConfig {
 				continue;
 			}
 			int weight = s.getInt("weight");
-			float man = s.containsKey("manualModifier") ? (float)s.getDouble("manualModifier") : 1;
+			float man = s.containsKey("manualModifier") ? (float)s.getDouble("manualModifier") : 1; //TODO unimplemented
 			int min = s.getInt("minCount");
 			int max = s.getInt("maxCount");
 			if (max <= 0)
@@ -521,6 +574,68 @@ public class BiomeConfig {
 		}
 
 		resourceEntries.put(type, ore);
+		Satisforestry.logger.log("Registered resource type '"+type+"': "+ore.toString().replaceAll("\\\\n", " "));
+		entryCount++;
+	}
+
+	private void parseFluidEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
+		ArrayList<LuaBlock> fluids = new ArrayList();
+
+		LuaBlock set = b.getChild("outputFluids");
+		if (set == null)
+			throw new IllegalArgumentException("No fluids specified");
+		for (LuaBlock s : set.getChildren()) {
+			fluids.add(s);
+		}
+		if (fluids.isEmpty())
+			throw new IllegalArgumentException("No fluids specified");
+
+		LuaBlock purities = b.getChild("purityLevels");
+		if (purities == null)
+			throw new IllegalArgumentException("No purity levels specified");
+		HashMap<String, Object> map = purities.asHashMap();
+		if (map.isEmpty())
+			throw new IllegalArgumentException("No purity levels specified");
+
+		ResourceFluid ore = new ResourceFluid(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), map);
+		if (b.containsKey("speedFactor"))
+			ore.speedFactor = (float)b.getDouble("speedFactor");
+		if (ore.speedFactor <= 0)
+			throw new IllegalArgumentException("Invalid speed factor");
+
+		for (LuaBlock s : fluids) {
+			entryAttemptsCount++;
+			String sk = s.getString("key");
+			Fluid is = FluidRegistry.getFluid(sk);
+			if (is == null) {
+				Satisforestry.logger.logError("Could not load fluid type '"+sk+"' for resource type '"+type+"' - no fluid found. Skipping.");
+				continue;
+			}
+			int weight = s.getInt("weight");
+			int min = s.getInt("minAmount");
+			int max = s.getInt("maxAmount");
+			if (max <= 0)
+				throw new IllegalArgumentException("Invalid yield amount");
+			if (max < min)
+				throw new IllegalArgumentException("Min amount is greater than max amount");
+			Purity p = Purity.valueOf(s.getString("minimumPurity"));
+			while (p != null) {
+				ore.addItem(p, is, weight, min, max, s);
+				p = p.higher();
+			}
+		}
+
+		if (ore.hasNoItems())
+			throw new IllegalArgumentException("Resource type found no fluids for any of its definitions");
+
+		LuaBlock effects = b.getChild("effects");
+		if (effects != null) {
+			for (LuaBlock lb : effects.getChildren()) {
+				ore.addEffect(lb);
+			}
+		}
+
+		fluidEntries.put(type, ore);
 		Satisforestry.logger.log("Registered resource type '"+type+"': "+ore.toString().replaceAll("\\\\n", " "));
 		entryCount++;
 	}
@@ -619,8 +734,16 @@ public class BiomeConfig {
 		return resourceEntries.values();
 	}
 
+	public Collection<ResourceFluid> getFluidDrops() {
+		return fluidEntries.values();
+	}
+
 	public ResourceItem getResourceByID(String s) {
 		return resourceEntries.get(s);
+	}
+
+	public ResourceFluid getFluidByID(String s) {
+		return fluidEntries.get(s);
 	}
 
 	public Collection<DoggoDrop> getDoggoDrops() {
@@ -651,7 +774,26 @@ public class BiomeConfig {
 			requiredElements.add("spawnWeight");
 
 			requiredElements.add("purityLevels");
+		}
+
+	}
+
+	private static class ResourceItemLuaBlock extends ResourceLuaBlock {
+
+		protected ResourceItemLuaBlock(String n, LuaBlock lb, LuaBlockDatabase db) {
+			super(n, lb, db);
+
 			requiredElements.add("outputItems");
+		}
+
+	}
+
+	private static class ResourceFluidLuaBlock extends ResourceLuaBlock {
+
+		protected ResourceFluidLuaBlock(String n, LuaBlock lb, LuaBlockDatabase db) {
+			super(n, lb, db);
+
+			requiredElements.add("outputFluids");
 		}
 
 	}

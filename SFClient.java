@@ -29,6 +29,8 @@ import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFShaders;
 import Reika.Satisforestry.Render.DecorationRenderer;
+import Reika.Satisforestry.Render.FrackingNodeAuxRenderer;
+import Reika.Satisforestry.Render.FrackingNodeRenderer;
 import Reika.Satisforestry.Render.PinkGrassRenderer;
 import Reika.Satisforestry.Render.PowerSlugItemRenderer;
 import Reika.Satisforestry.Render.PowerSlugRenderer;
@@ -54,6 +56,8 @@ public class SFClient extends SFCommon {
 	private static PinkGrassRenderer grass;
 	private static DecorationRenderer deco;
 	public static ResourceNodeRenderer resource;
+	public static FrackingNodeRenderer fracking;
+	public static FrackingNodeAuxRenderer frackingAux;
 	//public static PowerSlugRenderer slug;
 
 	public static SoundCategory sfCategory;
@@ -88,6 +92,14 @@ public class SFClient extends SFCommon {
 		resourceRender = RenderingRegistry.getNextAvailableRenderId();
 		resource = new ResourceNodeRenderer(resourceRender);
 		RenderingRegistry.registerBlockHandler(resourceRender, resource);
+
+		frackingRender = RenderingRegistry.getNextAvailableRenderId();
+		fracking = new FrackingNodeRenderer(frackingRender);
+		RenderingRegistry.registerBlockHandler(frackingRender, fracking);
+
+		frackingAuxRender = RenderingRegistry.getNextAvailableRenderId();
+		frackingAux = new FrackingNodeAuxRenderer(frackingAuxRender);
+		RenderingRegistry.registerBlockHandler(frackingAuxRender, frackingAux);
 		/*
 		slugRender = RenderingRegistry.getNextAvailableRenderId();
 		slug = new PowerSlugRenderer(slugRender);

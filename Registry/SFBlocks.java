@@ -30,6 +30,8 @@ import Reika.Satisforestry.Blocks.BlockCaveShield;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner;
 import Reika.Satisforestry.Blocks.BlockDecoration;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
+import Reika.Satisforestry.Blocks.BlockFrackingAux;
+import Reika.Satisforestry.Blocks.BlockFrackingNode;
 import Reika.Satisforestry.Blocks.BlockGasEmitter;
 import Reika.Satisforestry.Blocks.BlockMinerMulti;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
@@ -64,6 +66,8 @@ public enum SFBlocks implements BlockEnum {
 	HARVESTER(BlockNodeHarvester.class, ItemBlockNodeHarvester.class),
 	MINERMULTI(BlockMinerMulti.class, ItemBlockMinerMulti.class),
 	SLUG(BlockPowerSlug.class, ItemBlockPowerSlug.class),
+	FRACKNODE(BlockFrackingNode.class, null),
+	FRACKNODEAUX(BlockFrackingAux.class, null),
 	;
 
 	private final Class blockClass;

@@ -24,6 +24,9 @@ import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
 import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
@@ -31,17 +34,17 @@ import Reika.DragonAPI.Libraries.Java.ReikaGLHelper.BlendMode;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
-import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
+import Reika.Satisforestry.Blocks.BlockFrackingNode.TileFrackingNode;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Config.NodeResource.ResourceItemView;
-import Reika.Satisforestry.Config.ResourceItem;
+import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.TemplateRecipeHandler;
 
-public class ResourceNodeHandler extends TemplateRecipeHandler {
+public class FluidNodeHandler extends TemplateRecipeHandler {
 
 	private final Comparator<CachedRecipe> displaySorter = new Comparator<CachedRecipe>() {
 
@@ -66,7 +69,7 @@ public class ResourceNodeHandler extends TemplateRecipeHandler {
 
 	public class ResourceEntry extends CachedRecipe {
 
-		private final ResourceItem item;
+		private final ResourceFluid item;
 		private final Purity purity;
 
 		private final Comparator<PositionedStack> sorter = new Comparator<PositionedStack>() {
@@ -78,7 +81,7 @@ public class ResourceNodeHandler extends TemplateRecipeHandler {
 
 		};
 
-		public ResourceEntry(ResourceItem is, Purity p) {
+		public ResourceEntry(ResourceFluid is, Purity p) {
 			item = is;
 			purity = p;
 		}
@@ -109,7 +112,7 @@ public class ResourceNodeHandler extends TemplateRecipeHandler {
 
 	@Override
 	public String getRecipeName() {
-		return "Resource Node Items";
+		return "Fracking Node Fluids";
 	}
 
 	@Override
@@ -137,14 +140,14 @@ public class ResourceNodeHandler extends TemplateRecipeHandler {
 
 	@Override
 	public void loadTransferRects() {
-		transferRects.add(new RecipeTransferRect(new Rectangle(0, 3, 165, 52), "ResourceItems"));
+		transferRects.add(new RecipeTransferRect(new Rectangle(0, 3, 165, 52), "ResourceFluids"));
 	}
 
 	@Override
 	public void loadCraftingRecipes(String outputId, Object... results) {
-		if (outputId != null && outputId.equals("ResourceItems")) {
+		if (outputId != null && outputId.equals("ResourceFluids")) {
 			try {
-				for (ResourceItem dd : BiomeConfig.instance.getResourceDrops()) {
+				for (ResourceFluid dd : BiomeConfig.instance.getFluidDrops()) {
 					for (Purity p : Purity.list)
 						arecipes.add(new ResourceEntry(dd, p));
 				}
@@ -170,11 +173,14 @@ public class ResourceNodeHandler extends TemplateRecipeHandler {
 	}
 
 	private Collection<ResourceEntry> getEntriesForItem(ItemStack is) {
+		FluidStack fs = FluidContainerRegistry.getFluidForFilledItem(is);
 		ArrayList<ResourceEntry> li = new ArrayList();
+		if (fs == null)
+			return li;
 		try {
-			for (ResourceItem dd : BiomeConfig.instance.getResourceDrops()) {
+			for (ResourceFluid dd : BiomeConfig.instance.getFluidDrops()) {
 				for (Purity p : Purity.list) {
-					if (dd.producesAt(is, p))
+					if (dd.producesAt(fs.getFluid(), p))
 						li.add(new ResourceEntry(dd, p));
 				}
 			}
@@ -206,7 +212,7 @@ public class ResourceNodeHandler extends TemplateRecipeHandler {
 		CachedRecipe r = arecipes.get(recipe);
 		if (r instanceof ResourceEntry) {
 			ResourceEntry re = (ResourceEntry)r;
-			ResourceItem wc = re.item;
+			ResourceFluid wc = re.item;
 			Minecraft mc = Minecraft.getMinecraft();
 			if (renderer == null) {
 				FilledBlockArray arr = new FilledBlockArray(mc.theWorld);
@@ -216,13 +222,13 @@ public class ResourceNodeHandler extends TemplateRecipeHandler {
 							arr.setBlock(i, 0, k, SFBlocks.CAVESHIELD.getBlockInstance(), 0);
 					}
 				}
-				TileResourceNode te = new TileResourceNode();
+				TileFrackingNode te = new TileFrackingNode();
 				NBTTagCompound tag = new NBTTagCompound();
 				te.writeToNBT(tag);
 				tag.setString("resource", wc.id);
 				tag.setInteger("purity", Purity.PURE.ordinal());
 				te.readFromNBT(tag);
-				arr.setTile(0, 0, 0, SFBlocks.RESOURCENODE.getBlockInstance(), 0, te);
+				arr.setTile(0, 0, 0, SFBlocks.FRACKNODE.getBlockInstance(), 0, te);
 				renderer = new StructureRenderer(arr);
 			}
 			renderer.rotate(0, -0.75, 0);
@@ -251,30 +257,17 @@ public class ResourceNodeHandler extends TemplateRecipeHandler {
 			Collections.sort(c, new Comparator<ResourceItemView>() {
 				@Override
 				public int compare(ResourceItemView o1, ResourceItemView o2) {
-					return ReikaItemHelper.comparator.compare(wc.getItem(o1), wc.getItem(o2));
+					return String.CASE_INSENSITIVE_ORDER.compare(wc.getItem(o1).getName(), wc.getItem(o2).getName());
 				}
 			});
 			for (ResourceItemView ri : c) {
-				ItemStack is = wc.getItem(ri);
-				api.drawItemStack(api.itemRenderer, fr, is, 3, 26+dy);
-				String n = is.getDisplayName();
+				Fluid is = wc.getItem(ri);
+				//TODO draw liquid
+				String n = is.getLocalizedName(new FluidStack(is, 100));
 				fr.drawString(n, 26, 28+dy, 0x000000);
 				fr.drawString("Drop Weight: "+ri.weight, 26, 38+dy, 0x000000);
 				String counts = ri.minAmount == ri.maxAmount ? ri.minAmount+"x" : ri.minAmount+"x - "+ri.maxAmount+"x";
-				if (GuiScreen.isShiftKeyDown()) {
-					fr.drawString("Stack Size: "+counts, 26, 48+dy, 0x000000);
-					if (ri.manualWeightScale != 1) {
-						fr.drawString("Manual Weight Factor: "+ri.manualWeightScale, 26, 58+dy, 0x000000);
-						dy += fr.FONT_HEIGHT+2;
-					}
-					if (ri.manualYieldScale != 1) {
-						fr.drawString("Manual Yield Factor: "+ri.manualYieldScale, 26, 58+dy, 0x000000);
-						dy += fr.FONT_HEIGHT+2;
-					}
-				}
-				else {
-					dy -= fr.FONT_HEIGHT+2;
-				}
+				dy -= fr.FONT_HEIGHT+2;
 				api.drawLine(0, 58+dy, 165, 58+dy, 0xffaaaaaa);
 				dy += (fr.FONT_HEIGHT+2)*3;
 			}

@@ -36,8 +36,8 @@ import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerConnection;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerConveyorPort;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerPowerConnection;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerShaftConnection;
-import Reika.Satisforestry.Blocks.BlockResourceNode.Purity;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
+import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFSounds;
 
@@ -164,6 +164,7 @@ public abstract class TileNodeHarvester extends TileEntityBase implements ChunkL
 				}
 			}
 		}
+
 		if (last != spoolState)
 			spoolState.playEntrySound(this, last);
 	}
