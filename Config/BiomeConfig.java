@@ -39,6 +39,8 @@ import Reika.DragonAPI.Libraries.ReikaEnchantmentHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaOreHelper;
+import Reika.DragonAPI.ModInteract.DeepInteract.SensitiveFluidRegistry;
+import Reika.DragonAPI.ModInteract.DeepInteract.SensitiveItemRegistry;
 import Reika.DragonAPI.ModRegistry.ModOreList;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
@@ -548,6 +550,10 @@ public class BiomeConfig {
 				Satisforestry.logger.logError("Could not load item type '"+sk+"' for resource type '"+type+"' - no item found. Skipping.");
 				continue;
 			}
+			if (SensitiveItemRegistry.instance.contains(is)) {
+				Satisforestry.logger.logError("Could not load item type '"+sk+"' for resource type '"+type+"' - is not allowed. Skipping.");
+				continue;
+			}
 			int weight = s.getInt("weight");
 			float man = s.containsKey("manualModifier") ? (float)s.getDouble("manualModifier") : 1; //TODO unimplemented
 			int min = s.getInt("minCount");
@@ -609,6 +615,10 @@ public class BiomeConfig {
 			Fluid is = FluidRegistry.getFluid(sk);
 			if (is == null) {
 				Satisforestry.logger.logError("Could not load fluid type '"+sk+"' for resource type '"+type+"' - no fluid found. Skipping.");
+				continue;
+			}
+			if (SensitiveFluidRegistry.instance.contains(is)) {
+				Satisforestry.logger.logError("Could not load fluid type '"+sk+"' for resource type '"+type+"' - is not allowed. Skipping.");
 				continue;
 			}
 			int weight = s.getInt("weight");
