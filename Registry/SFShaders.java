@@ -58,6 +58,8 @@ public enum SFShaders implements ShaderHook {
 				path = path+id.substring(0, idx)+"/";
 				id = id.substring(idx+1);
 			}
+			if (this == POISONGAS && SFOptions.ALTSHADER.getState())
+				id = id+"_alt";
 			shader = ShaderRegistry.createShader(Satisforestry.instance, id, Satisforestry.class, path, domain);
 			shader.setHook(this);
 		}

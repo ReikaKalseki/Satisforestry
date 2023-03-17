@@ -24,7 +24,7 @@ public enum SFEntities implements EntityEnum {
 	ELITESTINGER(EntityEliteStinger.class, "Elite Stinger", 0x00740E, 0x00BE0E),
 	MANTA(EntityFlyingManta.class, "Giant Flying Manta", 0x0094FF, 0x42AAFF),
 	DOGGO(EntityLizardDoggo.class, "Lizard Doggo", 0x42AAFF, 0xFF6A55),
-	SPITTER(EntitySpitter.class, "Spitter", 0xFFFD5A, 0x9B8B53),
+	SPITTER(EntitySpitter.class, "Plasma Spitter", 0xFFFD5A, 0x9B8B53),
 	SPITTERFIRE(EntitySpitterFireball.class, "Spitter Fireball"),
 	SPITTERSPLITFIRE(EntitySplittingSpitterFireball.class, "Splitting Fireball"),
 	;

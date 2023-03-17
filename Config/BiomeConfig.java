@@ -335,11 +335,17 @@ public class BiomeConfig {
 	private void loadFiles(File parent) {
 		File f1 = ReikaFileReader.getFileByNameAnyExt(parent, "ores");
 		File f2 = ReikaFileReader.getFileByNameAnyExt(parent, "resources");
+		File f4 = ReikaFileReader.getFileByNameAnyExt(parent, "fluids");
 		File f3 = ReikaFileReader.getFileByNameAnyExt(parent, "doggo");
 		if (f2 == null || !f2.exists()) {
 			throw new InstallationException(Satisforestry.instance, "No resource config file found!");
 		}
 		itemData.loadFromFile(f2);
+
+		if (f4 == null || !f4.exists()) {
+			throw new InstallationException(Satisforestry.instance, "No fluid config file found!");
+		}
+		fluidData.loadFromFile(f4);
 
 		if (f1.exists())
 			oreData.loadFromFile(f1);
@@ -392,6 +398,30 @@ public class BiomeConfig {
 		Satisforestry.logger.log("All resource config entries parsed; files contained "+definitionCount+" definitions, for a total of "+entryAttemptsCount+" entries, of which "+entryCount+" loaded.");
 		if (resourceEntries.isEmpty()) {
 			throw new InstallationException(Satisforestry.instance, "No resource entries were loaded; at least one must be defined!");
+		}
+
+		definitionCount = 0;
+		entryAttemptsCount = 0;
+		entryCount = 0;
+
+		root = fluidData.getRootBlock();
+		for (LuaBlock b : root.getChildren()) {
+			try {
+				definitionCount++;
+				String type = b.getString("type");
+				fluidData.addBlock(type, b);
+				this.parseFluidEntry(type, b);
+			}
+			catch (Exception e) {
+				Satisforestry.logger.logError("Could not parse config section "+b.getString("type")+": ");
+				ReikaJavaLibrary.pConsole(b);
+				ReikaJavaLibrary.pConsole("----------------------Cause------------------------");
+				e.printStackTrace();
+			}
+		}
+		Satisforestry.logger.log("All fluid config entries parsed; files contained "+definitionCount+" definitions, for a total of "+entryAttemptsCount+" entries, of which "+entryCount+" loaded.");
+		if (fluidEntries.isEmpty()) {
+			throw new InstallationException(Satisforestry.instance, "No fluid entries were loaded; at least one must be defined!");
 		}
 
 		definitionCount = 0;

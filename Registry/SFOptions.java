@@ -25,6 +25,7 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, DecimalConfig, St
 	//SIMPLEAUTO("Enable Simple Automation for Resource Node", false),
 	CAVEMOBS("Cave Mob Spawn Multiplier", 1),
 	GLOBALSHADER("Apply Poison Shader In All Biomes", false),
+	ALTSHADER("Use Alternate Poison Shader", false),
 	MUSIC("Satisfactory OST Folder", ""),
 	BORDERORE("Biome Border Ore Cluster Rate", 1F),
 	BLUEGREEN("Make Green Power Slugs Blue (SF Update 5)", false),

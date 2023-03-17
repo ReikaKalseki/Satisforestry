@@ -15,12 +15,14 @@ import codechicken.nei.api.IConfigureNEI;
 public class NEISFConfig implements IConfigureNEI {
 
 	private static final ResourceNodeHandler nodes = new ResourceNodeHandler();
+	private static final FluidNodeHandler fluids = new FluidNodeHandler();
 	private static final DoggoDropHandler doggo = new DoggoDropHandler();
 
 	@Override
 	public void loadConfig() {
 		Satisforestry.logger.log("Loading NEI Compatibility!");
 		API.registerRecipeHandler(nodes);
+		API.registerRecipeHandler(fluids);
 		API.registerRecipeHandler(doggo);
 	}
 

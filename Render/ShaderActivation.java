@@ -40,7 +40,7 @@ public class ShaderActivation {
 		boolean biome = Satisforestry.isPinkForest(ep.worldObj, MathHelper.floor_double(ep.posX), MathHelper.floor_double(ep.posZ));
 		if (ep.isPotionActive(Potion.poison) && (SFOptions.GLOBALSHADER.getState() || biome)) {
 			if (ep.posY < 70 && biome) {
-				SFShaders.CAVEGAS.setIntensity(1);
+				SFShaders.CAVEGAS.setIntensity(Math.min(1, SFShaders.CAVEGAS.getIntensity()+0.1F));
 				SFShaders.CAVEGAS.lingerTime = 0;
 				SFShaders.CAVEGAS.rampDownAmount = 0.025F;
 				SFShaders.CAVEGAS.rampDownFactor = 0.925F;

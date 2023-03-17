@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 import org.lwjgl.opengl.GL11;
@@ -22,14 +23,19 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.IIcon;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
+import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
+import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaGLHelper.BlendMode;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
@@ -214,12 +220,16 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 			ResourceEntry re = (ResourceEntry)r;
 			ResourceFluid wc = re.item;
 			Minecraft mc = Minecraft.getMinecraft();
+			if (GuiScreen.isCtrlKeyDown())
+				renderer = null;
 			if (renderer == null) {
+				HashMap<Coordinate, BiomeGenBase> map = new HashMap();
 				FilledBlockArray arr = new FilledBlockArray(mc.theWorld);
-				for (int i = -2; i <= 2; i++) {
-					for (int k = -2; k <= 2; k++) {
-						if (Math.abs(i) != 2 || Math.abs(k) != 2)
-							arr.setBlock(i, 0, k, SFBlocks.CAVESHIELD.getBlockInstance(), 0);
+				for (int i = -5; i <= 5; i++) {
+					for (int k = -5; k <= 5; k++) {
+						map.put(new Coordinate(i, 0, k), Satisforestry.pinkforest);
+						if (Math.abs(i)+Math.abs(k) < 7 && Math.abs(i) < 5 && Math.abs(k) < 5)
+							arr.setBlock(i, 0, k, Blocks.grass, 0);
 					}
 				}
 				TileFrackingNode te = new TileFrackingNode();
@@ -229,17 +239,25 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 				tag.setInteger("purity", Purity.PURE.ordinal());
 				te.readFromNBT(tag);
 				arr.setTile(0, 0, 0, SFBlocks.FRACKNODE.getBlockInstance(), 0, te);
-				renderer = new StructureRenderer(arr);
+				arr.setTile(3, 0, -1, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
+				arr.setTile(3, 0, 1, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
+				arr.setTile(-3, 0, 1, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
+				arr.setTile(-3, 0, -1, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
+				arr.setTile(-1, 0, 3, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
+				arr.setTile(1, 0, 3, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
+				arr.setTile(1, 0, -3, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
+				arr.setTile(-1, 0, -3, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
+				renderer = new StructureRenderer(arr, null, map);
 			}
 			renderer.rotate(0, -0.75, 0);
 			if (!GuiScreen.isShiftKeyDown()) {
 				GuiContainer gc = (GuiContainer)mc.currentScreen;
 				int gsc = ReikaRenderHelper.getGUIScale();
 				GL11.glPushMatrix();
-				double sc = 0.5;
+				double sc = 0.33;
 				//GL11.glTranslated(-23, 55, -100);
 				//GL11.glTranslated(-gc.guiLeft, -gc.guiTop, 0);
-				GL11.glTranslated(-27D, 55D, 0);
+				GL11.glTranslated(10D, 65D, 0);
 				GL11.glScaled(sc, sc, sc);
 				renderer.draw3D(0, 0, ReikaRenderHelper.getPartialTickTime(), true);
 				GL11.glPopMatrix();
@@ -263,6 +281,10 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 			for (ResourceItemView ri : c) {
 				Fluid is = wc.getItem(ri);
 				//TODO draw liquid
+				IIcon ico = is.getIcon();
+				ReikaTextureHelper.bindTerrainTexture();
+				GL11.glColor4f(1, 1, 1, 1);
+				api.drawTexturedModelRectFromIcon(5, 28+dy, ico, 16, 16);
 				String n = is.getLocalizedName(new FluidStack(is, 100));
 				fr.drawString(n, 26, 28+dy, 0x000000);
 				fr.drawString("Drop Weight: "+ri.weight, 26, 38+dy, 0x000000);
