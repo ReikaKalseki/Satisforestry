@@ -75,11 +75,11 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 
 	@Override
 	public void registerBlockIcons(IIconRegister ico) {
-		blockIcon = ico.registerIcon("satisforestry:resourcenode");
+		blockIcon = ico.registerIcon("satisforestry:nodes/resourcenode");
 
-		overlayIcon = ico.registerIcon("satisforestry:resourcenode_overlay");
-		crystalIcon = ico.registerIcon("satisforestry:resourcenode_crystal");
-		itemIcon = ico.registerIcon("satisforestry:resourcenode_item");
+		overlayIcon = ico.registerIcon("satisforestry:nodes/resourcenode_overlay");
+		crystalIcon = ico.registerIcon("satisforestry:nodes/resourcenode_crystal");
+		itemIcon = ico.registerIcon("satisforestry:nodes/resourcenode_item");
 	}
 
 	@Override

@@ -16,9 +16,11 @@ import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 
 import Reika.DragonAPI.Base.ISBRH;
+import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
@@ -97,7 +99,7 @@ public class FrackingNodeRenderer extends ISBRH {
 		rand.setSeed(this.calcSeed(x, y, z));
 		rand.nextBoolean();
 
-		IIcon ico = renderPass == 1 ? BlockFrackingNode.getOverlay() : block.blockIcon;
+		IIcon ico = renderPass == 1 ? BlockFrackingNode.getOverlay(Coordinate.coordHash(x, y, z)%5) : block.blockIcon;
 
 		int n = ReikaRandomHelper.getRandomBetween(5, 9, rand);
 		double minr = 2.25;
@@ -114,6 +116,28 @@ public class FrackingNodeRenderer extends ISBRH {
 		double oo = 0.09375;
 		double f = ReikaRandomHelper.getRandomBetween(0.875, 0.9375, rand);
 		this.renderWedgePie(x, y, z, n, r1, r2, minh, maxh, oo, f, v5, ico);
+
+		if (renderPass == 0) {
+			v5.setColorOpaque_I(0x777777);
+			this.renderWedgePie(x, y, z, n, 0, r2-0.0625, 0, maxh-0.125, 0, 1, v5, block.blockIcon);
+			/*
+			double da = 30;
+			for (int i = 0; i < 360; i += da) {
+				double dx = x+0.5+r2*Math.cos(Math.toRadians(i));
+				double dz = z+0.5+r2*Math.sin(Math.toRadians(i));
+				double dx2 = x+0.5+r2*Math.cos(Math.toRadians(i+da));
+				double dz2 = z+0.5+r2*Math.sin(Math.toRadians(i+da));
+				//this.addVertexAt(v5, x, y+7, z, minh, maxh, r2, ico, x+0.5, z+0.5);
+				//this.addVertexAt(v5, x, y+7, z, minh, maxh, r2, ico, dx2, dz2);
+				//this.addVertexAt(v5, x, y+7, z, minh, maxh, r2, ico, dx, dz);
+				//this.addVertexAt(v5, x, y+7, z, minh, maxh, r2, ico, x+0.5, z+0.5);
+			}
+
+			this.addVertexAt(v5, x, y+3, z, minh, maxh, r2, ico, x, z+1);
+			this.addVertexAt(v5, x, y+3, z, minh, maxh, r2, ico, x+1, z+1);
+			this.addVertexAt(v5, x, y+3, z, minh, maxh, r2, ico, x+1, z);
+			this.addVertexAt(v5, x, y+3, z, minh, maxh, r2, ico, x, z);*/
+		}
 
 		return true;
 	}
@@ -195,11 +219,12 @@ public class FrackingNodeRenderer extends ISBRH {
 		double z2 = z+0.5+dz;
 		double x0 = x+0.5-maxr;
 		double z0 = z+0.5-maxr;
-		double fx = (x2-x0)/(maxr*2);//ReikaMathLibrary.getDecimalPart(x2);
-		double fz = (z2-z0)/(maxr*2);//ReikaMathLibrary.getDecimalPart(z2);
+		double wr = renderPass == 0 ? 5 : maxr*2;
+		double fx = MathHelper.clamp_double((x2-x0)/wr, 0, 1);//ReikaMathLibrary.getDecimalPart(x2);
+		double fz = MathHelper.clamp_double((z2-z0)/wr, 0, 1);//ReikaMathLibrary.getDecimalPart(z2);
 		double dr = ReikaMathLibrary.py3d(dx, 0, dz);
-		double u = ico.getInterpolatedU(fx*16+0.01);
-		double v = ico.getInterpolatedV(fz*16+0.01); //tiny offset is to avoid the selection lying right at the boundary between two px and giving flicker
+		double u = ico.getInterpolatedU(fx*16);
+		double v = ico.getInterpolatedV(fz*16);
 		double dy = maxh <= 0.03 ? y+1 : y+1+ReikaMathLibrary.linterpolate(dr, 0, maxr, maxh, minh);
 		v5.addVertexWithUV(x2, dy, z2, u, v);
 	}

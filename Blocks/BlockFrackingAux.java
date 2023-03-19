@@ -4,7 +4,6 @@ import java.util.List;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
@@ -24,14 +23,11 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 
-import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Instantiable.HybridTank;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
-import Reika.DragonAPI.Instantiable.Effects.EntityLiquidParticleFX;
-import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockFrackingNode.TileFrackingNode;
@@ -59,12 +55,12 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 
 	@Override
 	public TileEntity createNewTileEntity(World world, int meta) {
-		return meta == 0 ? new TileFrackingAux() : null;
+		return new TileFrackingAux();
 	}
 
 	@Override
 	public void registerBlockIcons(IIconRegister ico) {
-		blockIcon = ico.registerIcon("satisforestry:frackingnode");
+		blockIcon = ico.registerIcon("satisforestry:nodes/frackingnode");
 	}
 
 	@Override
@@ -146,46 +142,36 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 
 		private HybridTank tank = new HybridTank("fracking", 10000);
 
+		private boolean isPressurized = false;
+
 		@Override
 		public void updateEntity() {
 			super.updateEntity();
 			TileFrackingNode te = this.getMaster();
-			if (te != null && te.isPressurized()) {
+			boolean flag = te != null && te.isPressurized();
+			if (flag != isPressurized) {
+				this.markDirty();
+				worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+			}
+			isPressurized = flag;
+			if (isPressurized) {
 				ResourceFluid res = te.getResource();
 				if (worldObj.isRemote) {
 					if (worldObj.getBlock(xCoord, yCoord+1, zCoord).isAir(worldObj, xCoord, yCoord+1, zCoord)) {
-						this.fluidFountainParticles(worldObj, xCoord, yCoord, zCoord, res.generateRandomFluid(te.getPurity(), false).getFluid());
+						TileFrackingNode.fluidFountainParticles(worldObj, xCoord, yCoord, zCoord, System.identityHashCode(this), res);
 					}
 				}
 				else {
 					boolean peaceful = worldObj.difficultySetting == EnumDifficulty.PEACEFUL;
 					if (peaceful && !res.worksOnPeaceful())
 						return;
-					tank.addLiquid(res.generateRandomFluid(this.getPurity(), peaceful));
+					tank.addLiquid(res.generateRandomFluid(this.getPurity(), peaceful, te.getPressure()));
 				}
 			}
 		}
 
 		private Purity getPurity() {
 			return Purity.list[this.getBlockMetadata()];
-		}
-
-		@SideOnly(Side.CLIENT)
-		private void fluidFountainParticles(World world, int x, int y, int z, Fluid f) {
-			int n = 1+DragonAPICore.rand.nextInt(8);
-			n *= 0.6+0.4*Math.sin(world.getTotalWorldTime()*0.08143+System.identityHashCode(this)%1000D);
-			for (int i = 0; i < n; i++) {
-				double vx = ReikaRandomHelper.getRandomPlusMinus(0, 0.0625);
-				double vz = ReikaRandomHelper.getRandomPlusMinus(0, 0.0625);
-				double vy = ReikaRandomHelper.getRandomBetween(0.25, 0.5);
-
-				double dx = ReikaRandomHelper.getRandomPlusMinus(x+0.5, 0.125);
-				double dz = ReikaRandomHelper.getRandomPlusMinus(z+0.5, 0.125);
-
-				EntityLiquidParticleFX fx = new EntityLiquidParticleFX(world, dx, y+1.05, dz, vx, vy, vz, f);
-				fx.setGravity((float)ReikaRandomHelper.getRandomBetween(0.05, 0.08));
-				Minecraft.getMinecraft().effectRenderer.addEffect(fx);
-			}
 		}
 
 		@Override
@@ -244,6 +230,7 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 		public void linkTo(Coordinate c) {
 			masterLocation = c;
 			this.markDirty();
+			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 		}
 
 		public TileFrackingNode getMaster() {

@@ -7,6 +7,7 @@ import java.util.Random;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
@@ -21,13 +22,17 @@ import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
+import net.minecraftforge.fluids.Fluid;
 
+import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Instantiable.Effects.EntityLiquidParticleFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
@@ -50,7 +55,7 @@ import vazkii.botania.api.mana.ILaputaImmobile;
 public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock, IWailaDataProvider, IMoveCheck, ILaputaImmobile {
 
 	private static IIcon itemIcon;
-	private static IIcon overlayIcon;
+	private static final IIcon[] overlayIcon = new IIcon[10];
 
 	public BlockFrackingNode(Material mat) {
 		super(mat);
@@ -71,10 +76,11 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 
 	@Override
 	public void registerBlockIcons(IIconRegister ico) {
-		blockIcon = ico.registerIcon("satisforestry:frackingnode");
+		blockIcon = ico.registerIcon("satisforestry:nodes/frackingnode");
 
-		overlayIcon = ico.registerIcon("satisforestry:frackingnode_overlay");
-		itemIcon = ico.registerIcon("satisforestry:frackingnode_item");
+		for (int i = 0; i < 10; i++)
+			overlayIcon[i] = ico.registerIcon("satisforestry:nodes/frackingnode_overlay_"+i);
+		itemIcon = ico.registerIcon("satisforestry:nodes/frackingnode_item");
 	}
 
 	@Override
@@ -98,8 +104,8 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		return itemIcon;
 	}
 
-	public static IIcon getOverlay() {
-		return overlayIcon;
+	public static IIcon getOverlay(int idx) {
+		return overlayIcon[idx];
 	}
 
 	@Override
@@ -196,18 +202,28 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		@Override
 		public void updateEntity() {
 			super.updateEntity();
-			if (!worldObj.isRemote) {
+			if (worldObj.isRemote) {
+				if (worldObj.getBlock(xCoord, yCoord+1, zCoord).isAir(worldObj, xCoord, yCoord+1, zCoord)) {
+					fluidFountainParticles(worldObj, xCoord, yCoord, zCoord, System.identityHashCode(this), resource);
+				}
+			}
+			else {
 				if (resource == null) {
 					this.generate(worldObj.rand);
 					return;
 				}
+				boolean was = this.isPressurized();
 				if (pressure > 0) {
 					pressure = Math.max(0, pressure*0.99F-0.03F);
+				}
+				if (was != this.isPressurized()) {
+					this.markDirty();
+					worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 				}
 				Collection<NodeEffect> c = resource.getEffects();
 				if (c.isEmpty())
 					return;
-				AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this).expand(12, 1, 12);
+				AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this).expand(12, 3, 12).offset(0, 2, 0);
 				List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
 				for (EntityPlayer ep : li) {
 					for (NodeEffect e : c) {
@@ -217,12 +233,44 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 			}
 		}
 
-		public void pressurize() {
-			pressure = Math.min(pressure+0.1F, 1);
+		@SideOnly(Side.CLIENT)
+		public static void fluidFountainParticles(World world, int x, int y, int z, int randSeed, ResourceFluid rf) {
+			Fluid f = rf.generateRandomFluid(Purity.PURE, false, 1).getFluid();
+			int n = 1+DragonAPICore.rand.nextInt(8);
+			double fac = 0.6+0.4*Math.sin(world.getTotalWorldTime()*0.08143+randSeed%1000D);
+			n *= fac;
+			for (int i = 0; i < n; i++) {
+				double vx = ReikaRandomHelper.getRandomPlusMinus(0, 0.03125);
+				double vz = ReikaRandomHelper.getRandomPlusMinus(0, 0.03125);
+				double vy = ReikaRandomHelper.getRandomBetween(0.2, 0.4);
+				if (fac >= 0.75)
+					vy *= 0.25+fac;
+
+				double dx = ReikaRandomHelper.getRandomPlusMinus(x+0.5, 0.125);
+				double dz = ReikaRandomHelper.getRandomPlusMinus(z+0.5, 0.125);
+
+				EntityLiquidParticleFX fx = new EntityLiquidParticleFX(world, dx, y+1.05, dz, vx, vy, vz, f);
+				fx.setGravity((float)ReikaRandomHelper.getRandomBetween(0.3, 0.7));
+				fx.setLife(ReikaRandomHelper.getRandomBetween(20, 60));
+				Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+			}
+		}
+
+		public void pressurize(float overclockFactor) {
+			boolean was = this.isPressurized();
+			pressure = Math.min(pressure+0.1F, overclockFactor);
+			if (was != this.isPressurized()) {
+				this.markDirty();
+				worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+			}
 		}
 
 		public boolean isPressurized() {
 			return pressure >= 0.8F;
+		}
+
+		public float getPressure() {
+			return pressure;
 		}
 
 		@Override
@@ -263,6 +311,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		public void addWaila(List<String> tip) {
 			tip.add(resource.displayName);
 			tip.add(mainPurity.getDisplayName());
+			tip.add("Pressurized: "+(this.isPressurized() ? "Yes" : "No"));
 		}
 
 	}

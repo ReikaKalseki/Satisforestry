@@ -28,9 +28,10 @@ public class ResourceFluid extends NodeResource<Fluid> {
 		return is == obj.item;
 	}
 
-	public FluidStack generateRandomFluid(Purity p, boolean peaceful) {
+	public FluidStack generateRandomFluid(Purity p, boolean peaceful, float pressureFactor) {
 		NodeItem f = this.getRandomItem(Integer.MAX_VALUE, p, false);
-		return new FluidStack(this.getItem(f), f.getAmount(p, Integer.MAX_VALUE, false, peaceful, DragonAPICore.rand));
+		int amt = f.getAmount(p, Integer.MAX_VALUE, false, peaceful, DragonAPICore.rand);
+		return new FluidStack(this.getItem(f), (int)(amt*pressureFactor));
 	}
 
 }
