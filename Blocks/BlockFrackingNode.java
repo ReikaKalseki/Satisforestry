@@ -7,45 +7,36 @@ import java.util.Random;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
-import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.fluids.FluidStack;
 
-import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
-import Reika.DragonAPI.Extras.IconPrefabs;
-import Reika.DragonAPI.Instantiable.HybridTank;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
-import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
-import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.NodeResource.NodeEffect;
-import Reika.Satisforestry.Config.NodeResource.NodeItem;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
-import Reika.Satisforestry.Registry.SFBlocks;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -59,6 +50,7 @@ import vazkii.botania.api.mana.ILaputaImmobile;
 public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock, IWailaDataProvider, IMoveCheck, ILaputaImmobile {
 
 	private static IIcon itemIcon;
+	private static IIcon overlayIcon;
 
 	public BlockFrackingNode(Material mat) {
 		super(mat);
@@ -74,33 +66,15 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 
 	@Override
 	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
-		return SFBlocks.CAVESHIELD.getBlockInstance().getIcon(iba, x, y, z, s);
+		return Blocks.grass.getIcon(iba, x, y, z, s);
 	}
 
 	@Override
 	public void registerBlockIcons(IIconRegister ico) {
 		blockIcon = ico.registerIcon("satisforestry:frackingnode");
 
+		overlayIcon = ico.registerIcon("satisforestry:frackingnode_overlay");
 		itemIcon = ico.registerIcon("satisforestry:frackingnode_item");
-	}
-
-	@Override
-	@SideOnly(Side.CLIENT)
-	public void randomDisplayTick(World world, int x, int y, int z, Random rand) {
-		int n = 5;
-		TileFrackingNode te = (TileFrackingNode)world.getTileEntity(x, y, z);
-		if (te != null) {
-			n = 5-te.getPurity().ordinal()*2;
-		}
-		if (rand.nextInt(n) == 0) {
-			double px = x+0.5+rand.nextGaussian();//ReikaRandomHelper.getRandomBetween(x-1.5, x+2.5);
-			double pz = z+0.5+rand.nextGaussian();//ReikaRandomHelper.getRandomBetween(z-1.5, z+2.5);
-			double py = ReikaRandomHelper.getRandomBetween(y+1.0625, y+1.375);
-			EntityBlurFX fx = new EntityBlurFX(world, px, py, pz, IconPrefabs.FADE.getIcon());
-			fx.setScale((float)ReikaRandomHelper.getRandomBetween(0.6, 1.2)).setLife(ReikaRandomHelper.getRandomBetween(3, 6));
-			fx.setAlphaFading().setRapidExpand().setColor(0xffffff);
-			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
-		}
 	}
 
 	@Override
@@ -122,6 +96,10 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 
 	public static IIcon getItem() {
 		return itemIcon;
+	}
+
+	public static IIcon getOverlay() {
+		return overlayIcon;
 	}
 
 	@Override
@@ -173,7 +151,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		private Purity mainPurity = Purity.NORMAL;
 		private ResourceFluid resource;
 
-		private HybridTank tank = new HybridTank("fracking", 10000);
+		private float pressure = 0;
 
 		public TileFrackingNode() {
 			this.initSpawner(3);
@@ -223,6 +201,9 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 					this.generate(worldObj.rand);
 					return;
 				}
+				if (pressure > 0) {
+					pressure = Math.max(0, pressure*0.99F-0.03F);
+				}
 				Collection<NodeEffect> c = resource.getEffects();
 				if (c.isEmpty())
 					return;
@@ -237,11 +218,11 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		}
 
 		public void pressurize() {
-			boolean peaceful = worldObj.difficultySetting == EnumDifficulty.PEACEFUL;
-			if (peaceful && !resource.worksOnPeaceful())
-				return;
-			NodeItem f = resource.getRandomItem(Integer.MAX_VALUE, mainPurity, false);
-			tank.addLiquid(f.getAmount(mainPurity, Integer.MAX_VALUE, false, peaceful, DragonAPICore.rand), resource.getItem(f));
+			pressure = Math.min(pressure+0.1F, 1);
+		}
+
+		public boolean isPressurized() {
+			return pressure >= 0.8F;
 		}
 
 		@Override
@@ -252,7 +233,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 			if (resource != null)
 				NBT.setString("resource", resource.id);
 
-			tank.writeToNBT(NBT);
+			NBT.setFloat("pressure", pressure);
 		}
 
 		@Override
@@ -263,7 +244,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 			if (NBT.hasKey("resource"))
 				resource = BiomeConfig.instance.getFluidByID(NBT.getString("resource"));
 
-			tank.readFromNBT(NBT);
+			pressure = NBT.getFloat("pressure");
 		}
 
 		public ResourceFluid getResource() {
@@ -282,10 +263,6 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		public void addWaila(List<String> tip) {
 			tip.add(resource.displayName);
 			tip.add(mainPurity.getDisplayName());
-		}
-
-		public FluidStack takeFluid(int maxDrain, boolean doDrain) {
-			return tank.drain(maxDrain, doDrain);
 		}
 
 	}

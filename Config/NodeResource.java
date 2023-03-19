@@ -53,7 +53,13 @@ public abstract class NodeResource<I> {
 		}
 	}
 
+	public int maxItemsPerType() {
+		return Integer.MAX_VALUE;
+	}
+
 	public final void addItem(Purity p, I is, int weight, int min, int max, LuaBlock data) {
+		if (items.size() >= this.maxItemsPerType())
+			throw new IllegalStateException("Max item type limit exceeded when trying to add "+is);
 		WeightedRandom<NodeItem> wr = items.get(p);
 		if (wr == null) {
 			wr = new WeightedRandom();

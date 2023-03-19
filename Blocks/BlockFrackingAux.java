@@ -1,7 +1,6 @@
 package Reika.Satisforestry.Blocks;
 
 import java.util.List;
-import java.util.Random;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
@@ -11,8 +10,12 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.NetworkManager;
+import net.minecraft.network.Packet;
+import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
+import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -21,16 +24,19 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 
+import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
-import Reika.DragonAPI.Extras.IconPrefabs;
+import Reika.DragonAPI.Instantiable.HybridTank;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
-import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
+import Reika.DragonAPI.Instantiable.Effects.EntityLiquidParticleFX;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockFrackingNode.TileFrackingNode;
+import Reika.Satisforestry.Config.NodeResource.Purity;
+import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 import cpw.mods.fml.relauncher.Side;
@@ -57,37 +63,23 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 	}
 
 	@Override
-	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
-		return SFBlocks.CAVESHIELD.getBlockInstance().getIcon(iba, x, y, z, s);
-	}
-
-	@Override
 	public void registerBlockIcons(IIconRegister ico) {
 		blockIcon = ico.registerIcon("satisforestry:frackingnode");
 	}
 
 	@Override
-	@SideOnly(Side.CLIENT)
-	public void randomDisplayTick(World world, int x, int y, int z, Random rand) {
-		int n = 5;
-		TileFrackingNode te = (TileFrackingNode)world.getTileEntity(x, y, z);
-		if (te != null) {
-			n = 5-te.getPurity().ordinal()*2;
-		}
-		if (rand.nextInt(n) == 0) {
-			double px = x+0.5+rand.nextGaussian();//ReikaRandomHelper.getRandomBetween(x-1.5, x+2.5);
-			double pz = z+0.5+rand.nextGaussian();//ReikaRandomHelper.getRandomBetween(z-1.5, z+2.5);
-			double py = ReikaRandomHelper.getRandomBetween(y+1.0625, y+1.375);
-			EntityBlurFX fx = new EntityBlurFX(world, px, py, pz, IconPrefabs.FADE.getIcon());
-			fx.setScale((float)ReikaRandomHelper.getRandomBetween(0.6, 1.2)).setLife(ReikaRandomHelper.getRandomBetween(3, 6));
-			fx.setAlphaFading().setRapidExpand().setColor(0xffffff);
-			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
-		}
+	public IIcon getIcon(int s, int meta) {
+		return SFBlocks.FRACKNODE.getBlockInstance().getIcon(s, meta);
+	}
+
+	@Override
+	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
+		return SFBlocks.FRACKNODE.getBlockInstance().getIcon(iba, x, y, z, s);
 	}
 
 	@Override
 	public int getRenderType() {
-		return Satisforestry.proxy.frackingRender;
+		return Satisforestry.proxy.frackingAuxRender;
 	}
 
 	@Override
@@ -98,7 +90,7 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 	@Override
 	@SideOnly(Side.CLIENT)
 	public boolean canRenderInPass(int pass) {
-		SFClient.fracking.setRenderPass(pass);
+		SFClient.frackingAux.setRenderPass(pass);
 		return pass <= 1;
 	}
 
@@ -131,7 +123,8 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 		if (te instanceof TileFrackingAux) {
 			TileFrackingNode te2 = ((TileFrackingAux)te).getMaster();
 			if (te2 != null) {
-				te2.addWaila(tip);
+				tip.add(te2.getResource().displayName);
+				tip.add(((TileFrackingAux)te).getPurity().getDisplayName());
 			}
 		}
 		return tip;
@@ -151,12 +144,58 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 
 		private Coordinate masterLocation;
 
+		private HybridTank tank = new HybridTank("fracking", 10000);
+
+		@Override
+		public void updateEntity() {
+			super.updateEntity();
+			TileFrackingNode te = this.getMaster();
+			if (te != null && te.isPressurized()) {
+				ResourceFluid res = te.getResource();
+				if (worldObj.isRemote) {
+					if (worldObj.getBlock(xCoord, yCoord+1, zCoord).isAir(worldObj, xCoord, yCoord+1, zCoord)) {
+						this.fluidFountainParticles(worldObj, xCoord, yCoord, zCoord, res.generateRandomFluid(te.getPurity(), false).getFluid());
+					}
+				}
+				else {
+					boolean peaceful = worldObj.difficultySetting == EnumDifficulty.PEACEFUL;
+					if (peaceful && !res.worksOnPeaceful())
+						return;
+					tank.addLiquid(res.generateRandomFluid(this.getPurity(), peaceful));
+				}
+			}
+		}
+
+		private Purity getPurity() {
+			return Purity.list[this.getBlockMetadata()];
+		}
+
+		@SideOnly(Side.CLIENT)
+		private void fluidFountainParticles(World world, int x, int y, int z, Fluid f) {
+			int n = 1+DragonAPICore.rand.nextInt(8);
+			n *= 0.6+0.4*Math.sin(world.getTotalWorldTime()*0.08143+System.identityHashCode(this)%1000D);
+			for (int i = 0; i < n; i++) {
+				double vx = ReikaRandomHelper.getRandomPlusMinus(0, 0.0625);
+				double vz = ReikaRandomHelper.getRandomPlusMinus(0, 0.0625);
+				double vy = ReikaRandomHelper.getRandomBetween(0.25, 0.5);
+
+				double dx = ReikaRandomHelper.getRandomPlusMinus(x+0.5, 0.125);
+				double dz = ReikaRandomHelper.getRandomPlusMinus(z+0.5, 0.125);
+
+				EntityLiquidParticleFX fx = new EntityLiquidParticleFX(world, dx, y+1.05, dz, vx, vy, vz, f);
+				fx.setGravity((float)ReikaRandomHelper.getRandomBetween(0.05, 0.08));
+				Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+			}
+		}
+
 		@Override
 		public void writeToNBT(NBTTagCompound NBT) {
 			super.writeToNBT(NBT);
 
 			if (masterLocation != null)
 				masterLocation.writeToNBT("master", NBT);
+
+			tank.writeToNBT(NBT);
 		}
 
 		@Override
@@ -164,6 +203,8 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 			super.readFromNBT(NBT);
 
 			masterLocation = Coordinate.readFromNBT("master", NBT);
+
+			tank.readFromNBT(NBT);
 		}
 
 		@Override
@@ -172,20 +213,17 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 		}
 
 		@Override
-		public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {/*
+		public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {
 			if (from != ForgeDirection.UP)
 				return null;
-			TileFrackingNode te = this.getMaster();
-			return te != null ? te.takeFluid(resource.amount, doDrain) : null;*/
-			return null;
+			return tank.drain(resource.amount, doDrain);
 		}
 
 		@Override
 		public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
 			if (from != ForgeDirection.UP)
 				return null;
-			TileFrackingNode te = this.getMaster();
-			return te != null ? te.takeFluid(maxDrain, doDrain) : null;
+			return tank.drain(maxDrain, doDrain);
 		}
 
 		@Override
@@ -200,7 +238,7 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 
 		@Override
 		public FluidTankInfo[] getTankInfo(ForgeDirection from) {
-			return new FluidTankInfo[0];
+			return new FluidTankInfo[] {new FluidTankInfo(tank)};
 		}
 
 		public void linkTo(Coordinate c) {
@@ -209,8 +247,22 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 		}
 
 		public TileFrackingNode getMaster() {
-			TileEntity te = masterLocation == null ? masterLocation.getTileEntity(worldObj) : null;
+			TileEntity te = worldObj == null || masterLocation == null ? null : masterLocation.getTileEntity(worldObj);
 			return te instanceof TileFrackingNode ? (TileFrackingNode)te : null;
+		}
+
+		@Override
+		public Packet getDescriptionPacket() {
+			NBTTagCompound NBT = new NBTTagCompound();
+			this.writeToNBT(NBT);
+			S35PacketUpdateTileEntity pack = new S35PacketUpdateTileEntity(xCoord, yCoord, zCoord, 0, NBT);
+			return pack;
+		}
+
+		@Override
+		public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity p)  {
+			this.readFromNBT(p.field_148860_e);
+			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 		}
 
 	}

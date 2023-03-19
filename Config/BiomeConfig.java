@@ -147,32 +147,21 @@ public class BiomeConfig {
 		example2b.putData("type", "example_fluids");
 		example2b.putData("spawnWeight", 10);
 		example2b.putData("renderColor", "0xffffff");
+		example2b.putData("maxSubnodes", 6);
 		//example2b.putData("generate", "true");
 		ResourceFluidLuaBlock levels2 = new ResourceFluidLuaBlock("purityLevels", example2b, fluidData);
 		for (Purity p : Purity.list) {
 			levels2.putData(p.name(), p == Purity.NORMAL ? 25 : 10);
 		}
-		ResourceFluidLuaBlock fluids = new ResourceFluidLuaBlock("outputFluids", example2b, fluidData);
-		ResourceFluidLuaBlock fluid = new ResourceFluidLuaBlock("{", fluids, fluidData);
+		ResourceFluidLuaBlock fluid = new ResourceFluidLuaBlock("outputFluids", example2b, fluidData);
 		fluid.putData("key", "water");
 		fluid.putData("weight", 10);
 		fluid.putData("minAmount", 100);
 		fluid.putData("maxAmount", 500);
-		fluid.putData("minimumPurity", Purity.IMPURE.name());
-		fluid = new ResourceFluidLuaBlock("{", fluids, fluidData);
-		fluid.putData("key", "oil");
-		fluid.putData("weight", 6);
-		fluid.putData("minAmount", 10);
-		fluid.putData("maxAmount", 100);
-		ResourceFluidLuaBlock scales2 = new ResourceFluidLuaBlock("weightModifiers", fluid, fluidData);
+		ResourceFluidLuaBlock scales2 = new ResourceFluidLuaBlock("amountModifiers", fluid, fluidData);
 		for (Purity p : Purity.list) {
-			scales2.putData(p.name(), (p.ordinal()+1)/2F);
+			scales2.putData(p.name(), (p.ordinal()+1)*0.5F);
 		}
-		scales2 = new ResourceFluidLuaBlock("amountModifiers", fluid, fluidData);
-		for (Purity p : Purity.list) {
-			scales2.putData(p.name(), p == Purity.PURE ? 1F : 0.5F);
-		}
-		fluid.putData("minimumPurity", Purity.NORMAL.name());
 		ResourceFluidLuaBlock effects2 = new ResourceFluidLuaBlock("effects", example2b, fluidData);
 		fluid = new ResourceFluidLuaBlock("{", effects2, fluidData);
 		fluid.putData("effectType", "damage");
@@ -617,14 +606,9 @@ public class BiomeConfig {
 	private void parseFluidEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
 		ArrayList<LuaBlock> fluids = new ArrayList();
 
-		LuaBlock set = b.getChild("outputFluids");
-		if (set == null)
-			throw new IllegalArgumentException("No fluids specified");
-		for (LuaBlock s : set.getChildren()) {
-			fluids.add(s);
-		}
-		if (fluids.isEmpty())
-			throw new IllegalArgumentException("No fluids specified");
+		LuaBlock fluid = b.getChild("outputFluids");
+		if (fluid == null)
+			throw new IllegalArgumentException("No fluid specified");
 
 		LuaBlock purities = b.getChild("purityLevels");
 		if (purities == null)
@@ -634,36 +618,22 @@ public class BiomeConfig {
 			throw new IllegalArgumentException("No purity levels specified");
 
 		ResourceFluid ore = new ResourceFluid(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), map);
-		if (b.containsKey("speedFactor"))
-			ore.speedFactor = (float)b.getDouble("speedFactor");
-		if (ore.speedFactor <= 0)
-			throw new IllegalArgumentException("Invalid speed factor");
 
-		for (LuaBlock s : fluids) {
-			entryAttemptsCount++;
-			String sk = s.getString("key");
-			Fluid is = FluidRegistry.getFluid(sk);
-			if (is == null) {
-				Satisforestry.logger.logError("Could not load fluid type '"+sk+"' for resource type '"+type+"' - no fluid found. Skipping.");
-				continue;
-			}
-			if (SensitiveFluidRegistry.instance.contains(is)) {
-				Satisforestry.logger.logError("Could not load fluid type '"+sk+"' for resource type '"+type+"' - is not allowed. Skipping.");
-				continue;
-			}
-			int weight = s.getInt("weight");
-			int min = s.getInt("minAmount");
-			int max = s.getInt("maxAmount");
-			if (max <= 0)
-				throw new IllegalArgumentException("Invalid yield amount");
-			if (max < min)
-				throw new IllegalArgumentException("Min amount is greater than max amount");
-			Purity p = Purity.valueOf(s.getString("minimumPurity"));
-			while (p != null) {
-				ore.addItem(p, is, weight, min, max, s);
-				p = p.higher();
-			}
-		}
+		entryAttemptsCount++;
+		String sk = fluid.getString("key");
+		Fluid is = FluidRegistry.getFluid(sk);
+		if (is == null)
+			throw new IllegalArgumentException("Could not load fluid type '"+sk+"' for resource type '"+type+"' - no fluid found.");
+		if (SensitiveFluidRegistry.instance.contains(is))
+			throw new IllegalArgumentException("Could not load fluid type '"+sk+"' for resource type '"+type+"' - is not allowed.");
+		int min = fluid.getInt("minAmount");
+		int max = fluid.getInt("maxAmount");
+		if (max <= 0)
+			throw new IllegalArgumentException("Invalid yield amount");
+		if (max < min)
+			throw new IllegalArgumentException("Min amount is greater than max amount");
+		for (Purity p : Purity.list)
+			ore.addItem(p, is, 1, min, max, fluid);
 
 		if (ore.hasNoItems())
 			throw new IllegalArgumentException("Resource type found no fluids for any of its definitions");

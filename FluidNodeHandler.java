@@ -40,6 +40,7 @@ import Reika.DragonAPI.Libraries.Java.ReikaGLHelper.BlendMode;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
+import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
 import Reika.Satisforestry.Blocks.BlockFrackingNode.TileFrackingNode;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.NodeResource.Purity;
@@ -239,14 +240,16 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 				tag.setInteger("purity", Purity.PURE.ordinal());
 				te.readFromNBT(tag);
 				arr.setTile(0, 0, 0, SFBlocks.FRACKNODE.getBlockInstance(), 0, te);
-				arr.setTile(3, 0, -1, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
-				arr.setTile(3, 0, 1, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
-				arr.setTile(-3, 0, 1, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
-				arr.setTile(-3, 0, -1, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
-				arr.setTile(-1, 0, 3, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
-				arr.setTile(1, 0, 3, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
-				arr.setTile(1, 0, -3, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
-				arr.setTile(-1, 0, -3, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te);
+
+				for (int i = -3; i <= 3; i += 2) {
+					int k = Math.abs(i) == 3 ? 1 : 3;
+					TileFrackingAux te2 = new TileFrackingAux();
+					te2.linkTo(new Coordinate(te));
+					arr.setTile(i, 0, k, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te2);
+					te2 = new TileFrackingAux();
+					te2.linkTo(new Coordinate(te));
+					arr.setTile(i, 0, -k, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te2);
+				}
 				renderer = new StructureRenderer(arr, null, map);
 			}
 			renderer.rotate(0, -0.75, 0);
@@ -254,10 +257,10 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 				GuiContainer gc = (GuiContainer)mc.currentScreen;
 				int gsc = ReikaRenderHelper.getGUIScale();
 				GL11.glPushMatrix();
-				double sc = 0.33;
+				double sc = 0.5;
 				//GL11.glTranslated(-23, 55, -100);
 				//GL11.glTranslated(-gc.guiLeft, -gc.guiTop, 0);
-				GL11.glTranslated(10D, 65D, 0);
+				GL11.glTranslated(-27D, 40D, 0);
 				GL11.glScaled(sc, sc, sc);
 				renderer.draw3D(0, 0, ReikaRenderHelper.getPartialTickTime(), true);
 				GL11.glPopMatrix();
@@ -280,15 +283,14 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 			});
 			for (ResourceItemView ri : c) {
 				Fluid is = wc.getItem(ri);
-				//TODO draw liquid
 				IIcon ico = is.getIcon();
 				ReikaTextureHelper.bindTerrainTexture();
 				GL11.glColor4f(1, 1, 1, 1);
 				api.drawTexturedModelRectFromIcon(5, 28+dy, ico, 16, 16);
 				String n = is.getLocalizedName(new FluidStack(is, 100));
 				fr.drawString(n, 26, 28+dy, 0x000000);
-				fr.drawString("Drop Weight: "+ri.weight, 26, 38+dy, 0x000000);
-				String counts = ri.minAmount == ri.maxAmount ? ri.minAmount+"x" : ri.minAmount+"x - "+ri.maxAmount+"x";
+				String counts = ri.minAmount == ri.maxAmount ? ri.minAmount+"mB" : ri.minAmount+"mB - "+ri.maxAmount+"mB";
+				fr.drawString(counts, 26, 38+dy, 0x000000);
 				dy -= fr.FONT_HEIGHT+2;
 				api.drawLine(0, 58+dy, 165, 58+dy, 0xffaaaaaa);
 				dy += (fr.FONT_HEIGHT+2)*3;

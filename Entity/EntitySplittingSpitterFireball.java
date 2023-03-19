@@ -10,6 +10,9 @@ import Reika.Satisforestry.Entity.AI.EntityAISpitterFireball;
 import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.SpitterFireParticle;
 
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
 
 public class EntitySplittingSpitterFireball extends EntitySpitterFireball {
 
@@ -27,6 +30,7 @@ public class EntitySplittingSpitterFireball extends EntitySpitterFireball {
 	}
 
 	@Override
+	@SideOnly(Side.CLIENT)
 	public EntityFX spawnLifeParticle(double x, double y, double z) {
 		float s = (float)ReikaRandomHelper.getRandomBetween(1.25, 1.5);
 		int l = ReikaRandomHelper.getRandomBetween(6, 12);

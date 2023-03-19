@@ -9,108 +9,90 @@
  ******************************************************************************/
 package Reika.Satisforestry.Render;
 
-import org.lwjgl.opengl.GL11;
+import java.util.List;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.IIcon;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
 
-import Reika.DragonAPI.Base.ISBRH;
+import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
+import Reika.DragonAPI.Instantiable.Effects.LightningBolt;
+import Reika.DragonAPI.Instantiable.Math.Spline;
+import Reika.DragonAPI.Instantiable.Math.Spline.BasicSplinePoint;
+import Reika.DragonAPI.Instantiable.Math.Spline.SplineType;
 import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
-import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
 import Reika.Satisforestry.Blocks.BlockFrackingNode;
 import Reika.Satisforestry.Blocks.BlockFrackingNode.TileFrackingNode;
 import Reika.Satisforestry.Config.ResourceFluid;
 
 
-public class FrackingNodeAuxRenderer extends ISBRH {
+public class FrackingNodeAuxRenderer extends FrackingNodeRenderer {
 
 	public FrackingNodeAuxRenderer(int id) {
 		super(id);
 	}
 
 	@Override
-	public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
-		Tessellator v5 = Tessellator.instance;
-
-		GL11.glColor4f(1, 1, 1, 1);
-		GL11.glDisable(GL11.GL_LIGHTING);
-
-		GL11.glPushMatrix();
-		GL11.glRotated(45, 0, 1, 0);
-		GL11.glRotated(-30, 1, 0, 0);
-		double s = 1.6;
-		GL11.glScaled(s, s, s);
-		double x = -0.5;
-		double y = -0.5;
-		double z = 0;
-
-		GL11.glTranslated(x, y, z);
-		v5.startDrawingQuads();
-		v5.setColorOpaque_I(0xffffff);
-		v5.setBrightness(240);
-
-		IIcon ico = BlockFrackingNode.getItem();
-		float u = ico.getMinU();
-		float v = ico.getMinV();
-		float du = ico.getMaxU();
-		float dv = ico.getMaxV();
-
-		v5.addVertexWithUV(0, 0, 0, u, dv);
-		v5.addVertexWithUV(1, 0, 0, du, dv);
-		v5.addVertexWithUV(1, 1, 0, du, v);
-		v5.addVertexWithUV(0, 1, 0, u, v);
-
-		v5.draw();
-		GL11.glPopMatrix();
-		GL11.glEnable(GL11.GL_LIGHTING);
-	}
-
-	@Override
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
+		boolean flag = super.renderWorldBlock(world, x, y, z, block, modelId, renderer);
 		Tessellator v5 = Tessellator.instance;
-		TileFrackingNode te = (TileFrackingNode)world.getTileEntity(x, y, z);
-		ResourceFluid ri = te.getResource();
+		TileFrackingAux te = (TileFrackingAux)world.getTileEntity(x, y, z);
+		TileFrackingNode root = te.getMaster();
+		if (root == null)
+			return flag;
+		ResourceFluid ri = root.getResource();
 		int c = ri == null ? 0xffffff : ri.color;
-		if (renderPass == 0 || StructureRenderer.isRenderingTiles()) {
+		if (renderPass == 0 || StructureRenderer.isRenderingTiles())
 			v5.setColorOpaque_I(0xffffff);
-			renderer.renderStandardBlockWithAmbientOcclusion(block, x, y, z, 1, 1, 1);
-		}
-		if (renderPass == 1) {
-			v5.setBrightness(240);
-
-			World w = Minecraft.getMinecraft().theWorld;
-			float l = Math.max(w.getSavedLightValue(EnumSkyBlock.Block, x, y+1, z), w.getSavedLightValue(EnumSkyBlock.Sky, x, y+1, z)*w.getSunBrightnessFactor(0));
-			float a = 1-l/24F;
-			if (a < 1) {
-				c = ReikaColorAPI.mixColors(c, 0xffffff, a*0.5F+0.5F);
-			}
-
-			v5.setColorRGBA_I(c, (int)(a*255));
-		}
+		else
+			v5.setColorOpaque_I(c);
+		v5.setBrightness(block.getMixedBrightnessForBlock(world, x, y+1, z));
 
 		rand.setSeed(this.calcSeed(x, y, z));
 		rand.nextBoolean();
 
-		IIcon ico = renderPass == 1 ? Blocks.diamond_block.blockIcon : block.blockIcon;
+		IIcon ico = renderPass == 1 ? BlockFrackingNode.getOverlay() : root.getBlockType().blockIcon;
 
-		if (renderPass == 1 || StructureRenderer.isRenderingTiles()) {
-			v5.setColorOpaque_I(c);
-			ico = Blocks.brick_block.blockIcon;
+		double x1 = x+0.5;
+		double z1 = z+0.5;
+		double x2 = root.xCoord+0.5;
+		double z2 = root.zCoord+0.5;
+
+		int n = 5;
+		LightningBolt b = new LightningBolt(new DecimalPosition(root), new DecimalPosition(x+0.5, y+0.5, z+0.5), n);
+
+		b.setRandom(rand);
+		b.setVariance(1);
+		b.maximize();
+
+		Spline path = new Spline(SplineType.CENTRIPETAL);
+		for (int i = 0; i <= b.nsteps; i++) {
+			path.addPoint(new BasicSplinePoint(b.getPosition(i)));
+		}
+		List<DecimalPosition> li = path.get((int)(ReikaMathLibrary.py3d(root.xCoord-x, 0, root.zCoord-z)*1), false);
+		for (DecimalPosition d : li) {
+			double dx = ReikaRandomHelper.getRandomPlusMinus(d.xCoord-0.5, 0.125, rand);
+			double dz = ReikaRandomHelper.getRandomPlusMinus(d.zCoord-0.5, 0.125, rand);
+			double ds = ReikaRandomHelper.getRandomBetween(0.9, 1.2, rand);
+			if (renderPass == 0 || StructureRenderer.isRenderingTiles())
+				v5.setColorOpaque_I(0xffffff);
+			else
+				v5.setColorOpaque_I(c);
+			v5.setBrightness(block.getMixedBrightnessForBlock(world, x, y+1, z));
+			this.renderWedgePie(dx, y, dz, 6, 0.03125, 0.5*ds, 0, 0.25*ds, 0, 1, v5, ico);
 		}
 
-		return renderPass == 0;
+		return true;
 	}
 
 	@Override
-	public boolean shouldRender3DInInventory(int modelId) {
-		return true;
+	protected double getRadiusScale() {
+		return 0.67;
 	}
 
 }
