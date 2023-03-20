@@ -38,7 +38,7 @@ public class RenderCullingSystem implements ChunkWorldRenderWatcher {
 					return true;
 			}
 			else {
-				if (wr.posY <= 56)
+				if (wr.posY <= 56 && Satisforestry.isPinkForest(ep.worldObj, wr.posX+8, wr.posZ+8))
 					return true;
 				//check far-dist canopy
 				else if (!GuiScreen.isCtrlKeyDown() && this.shouldCullCanopy(wr, ep)) {

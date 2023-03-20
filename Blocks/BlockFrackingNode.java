@@ -14,7 +14,6 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.monster.EntityMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -42,6 +41,7 @@ import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
@@ -71,7 +71,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 
 	@Override
 	public IIcon getIcon(IBlockAccess iba, int x, int y, int z, int s) {
-		return Blocks.grass.getIcon(iba, x, y, z, s);
+		return SFBlocks.CAVESHIELD.getBlockInstance().blockIcon;
 	}
 
 	@Override
@@ -163,16 +163,6 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 			this.initSpawner(3);
 		}
 
-		public static Purity getRelativePurity(Purity base, Random rand) {
-			float f = rand.nextFloat();
-			if (f <= 0.4)
-				return base;
-			else if (f <= 0.7F)
-				return base.higherOrSelf();
-			else
-				return base.lowerOrSelf();
-		}
-
 		private void initSpawner(int n) {
 			this.setSpawnParameters(EntitySpitter.class, n, 5, 3, 16);
 		}
@@ -187,14 +177,28 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 			return new Coordinate(this).hashCode()%2 == 0 ? SpitterType.GREEN : SpitterType.RED;
 		}
 
-		public void generate(Random rand) {
+		public static ResourceFluid selectResource(Random rand) {
 			if (resourceSet.isEmpty()) {
 				for (ResourceFluid ri : BiomeConfig.instance.getFluidDrops()) {
 					resourceSet.addEntry(ri, ri.spawnWeight);
 				}
 			}
 			resourceSet.setRNG(rand);
-			resource = resourceSet.getRandomEntry();
+			return resourceSet.getRandomEntry();
+		}
+
+		public static Purity getRelativePurity(Purity base, Random rand) {
+			float f = rand.nextFloat();
+			if (f <= 0.4)
+				return base;
+			else if (f <= 0.7F)
+				return base.higherOrSelf();
+			else
+				return base.lowerOrSelf();
+		}
+
+		public void generate(ResourceFluid force, Random rand) {
+			resource = force != null ? force : selectResource(rand);
 			mainPurity = resource.getRandomPurity(rand);
 			this.initSpawner(1+mainPurity.ordinal());
 		}
@@ -209,7 +213,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 			}
 			else {
 				if (resource == null) {
-					this.generate(worldObj.rand);
+					this.generate(null, worldObj.rand);
 					return;
 				}
 				boolean was = this.isPressurized();

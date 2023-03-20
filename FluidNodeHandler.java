@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 
 import org.lwjgl.opengl.GL11;
@@ -23,11 +22,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.inventory.GuiContainer;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IIcon;
-import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -224,13 +221,11 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 			if (GuiScreen.isCtrlKeyDown())
 				renderer = null;
 			if (renderer == null) {
-				HashMap<Coordinate, BiomeGenBase> map = new HashMap();
 				FilledBlockArray arr = new FilledBlockArray(mc.theWorld);
 				for (int i = -5; i <= 5; i++) {
 					for (int k = -5; k <= 5; k++) {
-						map.put(new Coordinate(i, 0, k), Satisforestry.pinkforest);
 						if (Math.abs(i)+Math.abs(k) < 7 && Math.abs(i) < 5 && Math.abs(k) < 5)
-							arr.setBlock(i, 0, k, Blocks.grass, 0);
+							arr.setBlock(i, 0, k, SFBlocks.CAVESHIELD.getBlockInstance());
 					}
 				}
 				TileFrackingNode te = new TileFrackingNode();
@@ -250,7 +245,7 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 					te2.linkTo(new Coordinate(te));
 					arr.setTile(i, 0, -k, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te2);
 				}
-				renderer = new StructureRenderer(arr, null, map);
+				renderer = new StructureRenderer(arr);
 			}
 			renderer.rotate(0, -0.75, 0);
 			if (!GuiScreen.isShiftKeyDown()) {

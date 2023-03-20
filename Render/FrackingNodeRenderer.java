@@ -94,7 +94,10 @@ public class FrackingNodeRenderer extends ISBRH {
 		else {
 			v5.setColorOpaque_I(c);
 		}
-		v5.setBrightness(block.getMixedBrightnessForBlock(world, x, y+1, z));
+		if (renderPass == 1 && ri.glowAtNight)
+			v5.setBrightness(240);
+		else
+			v5.setBrightness(block.getMixedBrightnessForBlock(world, x, y+1, z));
 
 		rand.setSeed(this.calcSeed(x, y, z));
 		rand.nextBoolean();

@@ -9,8 +9,13 @@ import Reika.DragonAPI.DragonAPICore;
 
 public class ResourceFluid extends NodeResource<Fluid> {
 
-	public ResourceFluid(String s, String n, int w, int c, HashMap<String, Object> map) {
+	public final int maxNodes;
+	public final boolean glowAtNight;
+
+	public ResourceFluid(String s, String n, int w, int c, int nodes, boolean glow, HashMap<String, Object> map) {
 		super(s, n, w, c, map);
+		maxNodes = nodes;
+		glowAtNight = glow;
 	}
 
 	@Override

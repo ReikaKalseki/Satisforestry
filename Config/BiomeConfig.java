@@ -146,15 +146,16 @@ public class BiomeConfig {
 		ResourceFluidLuaBlock example2b = new ResourceFluidLuaBlock("example", null, fluidData);
 		example2b.putData("type", "example_fluids");
 		example2b.putData("spawnWeight", 10);
-		example2b.putData("renderColor", "0xffffff");
+		example2b.putData("renderColor", "0xFF8000");
 		example2b.putData("maxSubnodes", 6);
+		example2b.putData("glowAtNight", true);
 		//example2b.putData("generate", "true");
 		ResourceFluidLuaBlock levels2 = new ResourceFluidLuaBlock("purityLevels", example2b, fluidData);
 		for (Purity p : Purity.list) {
 			levels2.putData(p.name(), p == Purity.NORMAL ? 25 : 10);
 		}
 		ResourceFluidLuaBlock fluid = new ResourceFluidLuaBlock("outputFluids", example2b, fluidData);
-		fluid.putData("key", "water");
+		fluid.putData("key", "lava");
 		fluid.putData("weight", 10);
 		fluid.putData("minAmount", 100);
 		fluid.putData("maxAmount", 500);
@@ -165,19 +166,14 @@ public class BiomeConfig {
 		ResourceFluidLuaBlock effects2 = new ResourceFluidLuaBlock("effects", example2b, fluidData);
 		fluid = new ResourceFluidLuaBlock("{", effects2, fluidData);
 		fluid.putData("effectType", "damage");
-		fluid.putData("amount", 0.5F);
+		fluid.putData("amount", 2.5F);
 		fluid.putData("rate", 20);
 		fluid.setComment("effectType", "type of effect, valid values: "+ReikaJavaLibrary.getEnumNameList(EffectTypes.class));
 		fluid.setComment("rate", "ticks per hit");
-		fluid = new ResourceFluidLuaBlock("{", effects2, fluidData);
-		fluid.putData("effectType", "potion");
-		fluid.putData("potionID", Potion.weakness.id);
-		fluid.putData("level", 1);
 		example2b.setComment("minCount", "min yield per harvest cycle");
 		example2b.setComment("maxCount", "max yield per harvest cycle");
 		levels2.setComment(null, "purity level distribution");
 		effects2.setComment(null, "optional, ambient AoE effects2 around the node");
-		fluid.setComment("potionID", "weakness");
 		fluidData.addBlock("example", example2b);
 
 		doggoData = new LuaBlockDatabase();
@@ -280,6 +276,10 @@ public class BiomeConfig {
 		f2.createNewFile();
 		ReikaFileReader.writeLinesToFile(f2, itemData.getBlock("example").writeToStrings(), true);
 
+		File f4 = new File(folder, "fluids.lua");
+		f4.createNewFile();
+		ReikaFileReader.writeLinesToFile(f4, fluidData.getBlock("example").writeToStrings(), true);
+
 		File f3 = new File(folder, "doggo.lua");
 		f3.createNewFile();
 		ReikaFileReader.writeLinesToFile(f3, doggoData.getBlock("example").writeToStrings(), true);
@@ -294,6 +294,8 @@ public class BiomeConfig {
 		li.set(li.size()-1, li.get(li.size()-1)+",");
 		li.addAll(itemData.getBlock("example").writeToStrings());
 		li.set(li.size()-1, li.get(li.size()-1)+",");
+		li.addAll(fluidData.getBlock("example").writeToStrings());
+		li.set(li.size()-1, li.get(li.size()-1)+",");
 		li.addAll(doggoData.getBlock("example").writeToStrings());
 		ReikaFileReader.writeLinesToFile(out, li, true);
 	}
@@ -302,13 +304,16 @@ public class BiomeConfig {
 		LuaBlock example = oreData.getBlock("example");
 		LuaBlock example2 = itemData.getBlock("example");
 		LuaBlock example3 = doggoData.getBlock("example");
+		LuaBlock example4 = fluidData.getBlock("example");
 
 		oreData = new LuaBlockDatabase();
 		itemData = new LuaBlockDatabase();
+		fluidData = new LuaBlockDatabase();
 		doggoData = new LuaBlockDatabase();
 
 		oreEntries.clear();
 		resourceEntries.clear();
+		fluidEntries.clear();
 		doggoEntries.clear();
 		doggoItems.clear();
 
@@ -319,6 +324,7 @@ public class BiomeConfig {
 		oreData.addBlock("example", example);
 		itemData.addBlock("example", example2);
 		doggoData.addBlock("example", example3);
+		fluidData.addBlock("example", example4);
 	}
 
 	private void loadFiles(File parent) {
@@ -617,7 +623,12 @@ public class BiomeConfig {
 		if (map.isEmpty())
 			throw new IllegalArgumentException("No purity levels specified");
 
-		ResourceFluid ore = new ResourceFluid(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), map);
+		int nodes = b.getInt("maxSubnodes");
+		if (nodes < 1)
+			throw new IllegalArgumentException("Too low limit for subnodes");
+		if (nodes > 8)
+			throw new IllegalArgumentException("Too high limit for subnodes");
+		ResourceFluid ore = new ResourceFluid(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), nodes, b.getBoolean("glowAtNight"), map);
 
 		entryAttemptsCount++;
 		String sk = fluid.getString("key");

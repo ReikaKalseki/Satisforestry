@@ -37,6 +37,7 @@ import Reika.DragonAPI.ModInteract.ItemHandlers.ChiselBlockHandler;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Generator.WorldGenCaveFlora;
+import Reika.Satisforestry.Biome.Generator.WorldGenFrackingNode;
 import Reika.Satisforestry.Biome.Generator.WorldGenOreCluster;
 import Reika.Satisforestry.Biome.Generator.WorldGenPoisonRocks;
 import Reika.Satisforestry.Biome.Generator.WorldGenPonds;
@@ -57,6 +58,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 	private final WorldGenPonds pondGenerator = new WorldGenPonds(false);
 	private final WorldGenOreCluster oreGenerator = new WorldGenOreCluster();
 	private final WorldGenPowerSlugs slugGenerator = new WorldGenPowerSlugs();
+	private final WorldGenFrackingNode frackingGenerator = new WorldGenFrackingNode(false);
 
 	//private int riverHeight;
 	//private int glassHeight;
@@ -139,8 +141,10 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 		int top = currentWorld.getTopSolidOrLiquidBlock(x, z);
 
-		if (!pondGenerator.generate(currentWorld, randomGenerator, x, top, z))
-			oreGenerator.generate(currentWorld, randomGenerator, x, top, z);
+		if (!pondGenerator.generate(currentWorld, randomGenerator, x, top, z)) {
+			if (randomGenerator.nextInt(3) == 0 || !frackingGenerator.generate(currentWorld, randomGenerator, x, top, z))
+				oreGenerator.generate(currentWorld, randomGenerator, x, top, z);
+		}
 
 		super.genDecorations(biome);
 
@@ -210,7 +214,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 	public static int getTrueTopAt(World currentWorld, int dx, int dz) {
 		int top = currentWorld.getTopSolidOrLiquidBlock(dx, dz);
 		Block at = currentWorld.getBlock(dx, top, dz);
-		while (top > 0 && (at == Blocks.air || at == Satisforestry.log || at == Satisforestry.leaves || at == SFBlocks.BAMBOO.getBlockInstance() || at.isWood(currentWorld, dx, top, dz) || at.isLeaves(currentWorld, dx, top, dz) || ReikaWorldHelper.softBlocks(currentWorld, dx, top, dz))) {
+		while (top > 0 && (at == Blocks.air || !at.getMaterial().blocksMovement() || at == Satisforestry.log || at == Satisforestry.leaves || at == SFBlocks.BAMBOO.getBlockInstance() || at.isWood(currentWorld, dx, top, dz) || at.isLeaves(currentWorld, dx, top, dz) || ReikaWorldHelper.softBlocks(currentWorld, dx, top, dz))) {
 			top--;
 			at = currentWorld.getBlock(dx, top, dz);
 		}
