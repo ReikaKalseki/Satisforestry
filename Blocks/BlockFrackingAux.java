@@ -229,8 +229,10 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 
 		public void linkTo(Coordinate c) {
 			masterLocation = c;
-			this.markDirty();
-			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+			if (worldObj != null) {
+				this.markDirty();
+				worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+			}
 		}
 
 		public TileFrackingNode getMaster() {

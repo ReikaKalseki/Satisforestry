@@ -11,11 +11,15 @@ public class ResourceFluid extends NodeResource<Fluid> {
 
 	public final int maxNodes;
 	public final boolean glowAtNight;
+	public final Fluid requiredInput;
+	public final int requiredInputAmount;
 
-	public ResourceFluid(String s, String n, int w, int c, int nodes, boolean glow, HashMap<String, Object> map) {
+	public ResourceFluid(String s, String n, int w, int c, int nodes, boolean glow, FluidStack fin, HashMap<String, Object> map) {
 		super(s, n, w, c, map);
 		maxNodes = nodes;
 		glowAtNight = glow;
+		requiredInput = fin == null ? null : fin.getFluid();
+		requiredInputAmount = fin == null ? 0 : fin.amount;
 	}
 
 	@Override
@@ -37,6 +41,20 @@ public class ResourceFluid extends NodeResource<Fluid> {
 		NodeItem f = this.getRandomItem(Integer.MAX_VALUE, p, false);
 		int amt = f.getAmount(p, Integer.MAX_VALUE, false, peaceful, DragonAPICore.rand);
 		return new FluidStack(this.getItem(f), (int)(amt*pressureFactor));
+	}
+
+	@Override
+	protected ResourceItemView getView(NodeItem ni, Purity p) {
+		return new FluidResourceView(ni, p);
+	}
+
+	public class FluidResourceView extends ResourceItemView {
+
+
+		protected FluidResourceView(NodeItem ni, Purity p) {
+			super(ni, p);
+		}
+
 	}
 
 }

@@ -34,6 +34,7 @@ import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
 import Reika.Satisforestry.Config.BiomeConfig;
+import Reika.Satisforestry.Config.NodeResource;
 import Reika.Satisforestry.Config.NodeResource.NodeEffect;
 import Reika.Satisforestry.Config.NodeResource.NodeItem;
 import Reika.Satisforestry.Config.NodeResource.Purity;
@@ -179,15 +180,52 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 		return tag;
 	}
 
-	public static class TileResourceNode extends TileCaveSpawner {
+	public static abstract class ResourceNode<R extends NodeResource> extends TileCaveSpawner {
+
+		protected Purity purity = Purity.NORMAL;
+
+		protected R resource;
+
+		public final Purity getPurity() {
+			return purity;
+		}
+
+		public R getResource() {
+			return resource;
+		}
+
+		@Override
+		public void writeToNBT(NBTTagCompound NBT) {
+			super.writeToNBT(NBT);
+
+			NBT.setInteger("purity", purity.ordinal());
+
+			if (resource != null)
+				NBT.setString("resource", resource.id);
+		}
+
+		@Override
+		public void readFromNBT(NBTTagCompound NBT) {
+			super.readFromNBT(NBT);
+
+			purity = Purity.list[NBT.getInteger("purity")];
+
+			if (NBT.hasKey("resource"))
+				resource = this.getResourceByID(NBT.getString("resource"));
+		}
+
+		protected abstract R getResourceByID(String s);
+
+		public abstract int getHarvestInterval();
+
+	}
+
+	public static class TileResourceNode extends ResourceNode<ResourceItem> {
 
 		private static final int MINING_TIME = 3; //just like in SF
 		private static final int MANUAL_MINING_COOLDOWN = 15;
 
 		private static WeightedRandom<ResourceItem> resourceSet = new WeightedRandom();
-
-		private Purity purity = Purity.NORMAL;
-		private ResourceItem resource;
 
 		private int manualMiningCycle;
 		private long lastClickTick = -1;
@@ -283,10 +321,6 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 			NBT.setInteger("cycle", manualMiningCycle);
 			//NBT.setInteger("timer", autoOutputTimer);
 			NBT.setLong("lastClick", lastClickTick);
-
-			NBT.setInteger("purity", purity.ordinal());
-			if (resource != null)
-				NBT.setString("resource", resource.id);
 		}
 
 		@Override
@@ -296,14 +330,6 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 			manualMiningCycle = NBT.getInteger("cycle");
 			//autoOutputTimer = NBT.getInteger("timer");
 			lastClickTick = NBT.getLong("lastClick");
-
-			purity = Purity.list[NBT.getInteger("purity")];
-			if (NBT.hasKey("resource"))
-				resource = BiomeConfig.instance.getResourceByID(NBT.getString("resource"));
-		}
-
-		public ResourceItem getResource() {
-			return resource;
 		}
 
 		public ItemStack getRandomNodeItem(boolean manual) {
@@ -320,10 +346,7 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 			return ReikaItemHelper.getSizedItemStack(resource.getItem(ri), ri.getAmount(purity, tier, manual, peaceful, DragonAPICore.rand));
 		}
 
-		public Purity getPurity() {
-			return purity;
-		}
-
+		@Override
 		public int getHarvestInterval() {
 			return (int)(purity.getCountdown()/resource.speedFactor);
 		}
@@ -331,6 +354,11 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 		@Override
 		protected boolean isEmptyTimeoutActive(World world) {
 			return false;
+		}
+
+		@Override
+		protected ResourceItem getResourceByID(String s) {
+			return BiomeConfig.instance.getResourceByID(s);
 		}
 
 	}

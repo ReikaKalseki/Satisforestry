@@ -24,6 +24,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.potion.Potion;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
+import net.minecraftforge.fluids.FluidStack;
 
 import Reika.DragonAPI.Exception.InstallationException;
 import Reika.DragonAPI.Exception.RegistrationException;
@@ -168,6 +169,9 @@ public class BiomeConfig {
 		fluid.putData("effectType", "damage");
 		fluid.putData("amount", 2.5F);
 		fluid.putData("rate", 20);
+		fluid = new ResourceFluidLuaBlock("inputFluids", example2b, fluidData);
+		fluid.putData("key", "water");
+		fluid.putData("amount", 100);
 		fluid.setComment("effectType", "type of effect, valid values: "+ReikaJavaLibrary.getEnumNameList(EffectTypes.class));
 		fluid.setComment("rate", "ticks per hit");
 		example2b.setComment("minCount", "min yield per harvest cycle");
@@ -628,7 +632,9 @@ public class BiomeConfig {
 			throw new IllegalArgumentException("Too low limit for subnodes");
 		if (nodes > 8)
 			throw new IllegalArgumentException("Too high limit for subnodes");
-		ResourceFluid ore = new ResourceFluid(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), nodes, b.getBoolean("glowAtNight"), map);
+		LuaBlock in = b.getChild("inputFluids");
+		FluidStack fs = in == null ? null : new FluidStack(FluidRegistry.getFluid(in.getString("key")), in.getInt("amount"));
+		ResourceFluid ore = new ResourceFluid(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), nodes, b.getBoolean("glowAtNight"), fs, map);
 
 		entryAttemptsCount++;
 		String sk = fluid.getString("key");

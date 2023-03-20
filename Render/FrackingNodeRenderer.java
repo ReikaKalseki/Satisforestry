@@ -21,7 +21,6 @@ import net.minecraft.world.IBlockAccess;
 
 import Reika.DragonAPI.Base.ISBRH;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
-import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
@@ -83,18 +82,20 @@ public class FrackingNodeRenderer extends ISBRH {
 		}
 		else if (te instanceof TileFrackingAux) {
 			TileFrackingNode te2 = ((TileFrackingAux)te).getMaster();
+			if (te2 == null)
+				te2 = FrackingNodeAuxRenderer.renderDelegateMaster;
 			if (te2 != null)
 				ri = te2.getResource();
 		}
 		int c = ri == null ? 0xffffff : ri.color;
-		if (renderPass == 0 || StructureRenderer.isRenderingTiles()) {
+		if (renderPass == 0) {
 			v5.setColorOpaque_I(0xffffff);
 			renderer.renderStandardBlockWithAmbientOcclusion(block, x, y, z, 1, 1, 1);
 		}
 		else {
 			v5.setColorOpaque_I(c);
 		}
-		if (renderPass == 1 && ri.glowAtNight)
+		if (renderPass == 1 && ri != null && ri.glowAtNight)
 			v5.setBrightness(240);
 		else
 			v5.setBrightness(block.getMixedBrightnessForBlock(world, x, y+1, z));

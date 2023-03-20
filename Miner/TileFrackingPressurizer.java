@@ -14,10 +14,8 @@ import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Exception.RegistrationException;
-import Reika.DragonAPI.Exception.UnreachableCodeException;
+import Reika.DragonAPI.Instantiable.HybridTank;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
-import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
-import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaEngLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
@@ -27,14 +25,13 @@ import Reika.RotaryCraft.API.ItemFetcher;
 import Reika.RotaryCraft.API.Power.PowerTransferHelper;
 import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockFrackingNode.TileFrackingNode;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerConnection;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerConveyorPort;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerPowerConnection;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerShaftConnection;
-import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 import Reika.Satisforestry.Config.NodeResource.Purity;
+import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Registry.SFBlocks;
-import Reika.Satisforestry.Registry.SFSounds;
 
 import cofh.api.energy.IEnergyReceiver;
 import cpw.mods.fml.relauncher.Side;
@@ -42,202 +39,36 @@ import cpw.mods.fml.relauncher.SideOnly;
 import ic2.api.energy.tile.IEnergySink;
 
 
-public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileResourceNode> {
+public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<TileFrackingNode> {
 
-	private static final double MAX_DRILL_SPEED = 24;
+	private boolean structure;
 
-	private SpoolingStates spoolState = SpoolingStates.IDLE;
-	private int spoolTime;
-
-	private ForgeDirection structureDir = null;
+	private final HybridTank inputFluid = new HybridTank("frackingin", 4000);
 
 	@SideOnly(Side.CLIENT)
-	public double drillSpinAngle;
+	public double thumperPosition1;
+	@SideOnly(Side.CLIENT)
+	public double thumperPosition2;
+	@SideOnly(Side.CLIENT)
+	public double thumperPosition3;
 
-	public static enum SpoolingStates {
-		IDLE(2),
-		LOCKING(20),
-		LOWER1(30),
-		SPINUP(180),
-		LOWER2(50),
-		ACTIVE(5);
-
-		public final int duration;
-
-		private static final SpoolingStates[] list = values();
-
-		private SpoolingStates(int d) {
-			duration = d;
-		}
-
-		public void playEntrySound(TileNodeHarvester te, SpoolingStates last) {
-			switch(this) {
-				case LOWER1:
-					if (last == LOCKING) {
-						SFSounds.DRILLLOCK.playSoundAtBlock(te);
-					}
-					break;
-				case SPINUP:
-					if (last == LOWER1) {
-						SFSounds.DRILLSPINUP.playSoundAtBlock(te);
-					}
-					else if (last == LOWER2) {
-						SFSounds.DRILLSPINDOWN.playSoundAtBlock(te);
-					}
-					break;
-				default:
-					break;
-			}
-		}
-	}
-
-	public TileNodeHarvester() {
+	public TileFrackingPressurizer() {
 		super();
 	}
 
 	@Override
 	public final Block getTileEntityBlockID() {
-		return SFBlocks.HARVESTER.getBlockInstance();
-	}
-
-	private void rampSpool(boolean up) {
-		SpoolingStates last = spoolState;
-		if (up) {
-			spoolTime++;
-			if (spoolTime > spoolState.duration) {
-				if (spoolState == SpoolingStates.ACTIVE) {
-					spoolTime = spoolState.duration;
-				}
-				else {
-					spoolState = SpoolingStates.list[last.ordinal()+1];
-					spoolTime = 0;
-				}
-			}
-		}
-		else {
-			spoolTime--;
-			if (spoolTime < 0) {
-				if (spoolState == SpoolingStates.IDLE) {
-					spoolTime = 0;
-				}
-				else {
-					spoolState = SpoolingStates.list[last.ordinal()-1];
-					spoolTime = spoolState.duration;
-				}
-			}
-		}
-
-		if (last != spoolState)
-			spoolState.playEntrySound(this, last);
+		return SFBlocks.FRACKER.getBlockInstance();
 	}
 
 	@Override
 	public void updateEntity(World world, int x, int y, int z, int meta) {
 		super.updateEntity(world, x, y, z, meta);
-		if (world.isRemote) {
-			drillSpinAngle += this.getDrillSpeed(MAX_DRILL_SPEED);
-		}
-		else {
-			if (spoolState.ordinal() > SpoolingStates.SPINUP.ordinal()) {
-				if (runSoundTick > 0) {
-					runSoundTick--;
-				}
-				else {
-					SFSounds.DRILLRUN.playSoundAtBlock(this);
-					runSoundTick = 56;
-				}
-			}
-			else {
-				runSoundTick = 0;
-			}
-			this.rampSpool(isActiveThisTick);
-		}
 	}
 
 	@Override
-	protected void doOperationCycle(TileResourceNode te) {
-		ItemStack is = te.getRandomNodeItem(false);
-		if (is != null) {
-			if (this.trySpawnItem(is)) {
-				operationTimer = 0;
-				this.useEnergy(true);
-			}
-			else {
-				state = MachineState.WAITING;
-			}
-			//ReikaJavaLibrary.pConsole(world.getTotalWorldTime());
-		}
-	}
-
-	@Override
-	public boolean isShutdown(World world, int x, int y, int z) {
-		if (super.isShutdown(world, x, y, z))
-			return true;
-		TileMinerConnection te = this.getOutput();
-		if (te != null && te.hasRedstone())
-			return true;
-		if (te != null && world.isBlockIndirectlyGettingPowered(te.xCoord, te.yCoord-1, te.zCoord))
-			return true;
-		return false;
-	}
-
-	@SideOnly(Side.CLIENT)
-	public double getDrillVerticalOffsetScale(double phase1L, double phase2L) {
-		switch(spoolState) {
-			case IDLE:
-			case LOCKING:
-				return 0;
-			case LOWER1:
-				return phase1L*spoolTime/spoolState.duration;
-			case SPINUP:
-				return phase1L;
-			case LOWER2:
-				return phase1L+phase2L*spoolTime/spoolState.duration;
-			case ACTIVE:
-				return phase1L+phase2L;
-		}
-		throw new UnreachableCodeException("Spool state was not a defined value");
-	}
-
-	@SideOnly(Side.CLIENT)
-	public double getDrillSpeed(double max) {
-		if (spoolState.ordinal() < SpoolingStates.SPINUP.ordinal()) {
-			return 0;
-		}
-		else if (spoolState.ordinal() == SpoolingStates.SPINUP.ordinal()) {
-			return max*spoolTime/spoolState.duration;
-		}
-		else if (spoolState.ordinal() > SpoolingStates.SPINUP.ordinal()) {
-			return max;
-		}
-		else {
-			throw new IllegalStateException("Spoolstate was neither less, equal, or greater than spinup?!");
-		}
-	}
-
-	@Override
-	protected boolean isReady(TileResourceNode te) {
-		return spoolState == SpoolingStates.ACTIVE && spoolTime == spoolState.duration;
-	}
-
-	@Override
-	public TileResourceNode getResourceNode() {
-		TileEntity te = this.getAdjacentTileEntity(ForgeDirection.DOWN);
-		return te instanceof TileResourceNode ? (TileResourceNode)te : null;
-	}
-
-	private boolean trySpawnItem(ItemStack is) {
-		TileMinerConveyorPort te = this.getOutput();
-		if (te != null) {
-			ItemStack has = te.getStackInSlot(0);
-			int fit = is.stackSize;
-			if (has != null) {
-				fit = ReikaItemHelper.areStacksCombinable(is, has, is.getMaxStackSize()) ? Math.min(has.getMaxStackSize()-has.stackSize, is.stackSize) : 0;
-			}
-			if (fit > 0)
-				return ReikaInventoryHelper.addToIInv(ReikaItemHelper.getSizedItemStack(is, fit), te, true);
-		}
-		return false;
+	protected void doOperationCycle(TileFrackingNode te) {
+		te.pressurize(this.getOverclockingLevel(false));
 	}
 
 	@Override
@@ -246,50 +77,44 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	}
 
 	@Override
-	public final boolean hasStructure() {
-		return structureDir != null;
+	protected boolean isReady(TileFrackingNode te) {
+		ResourceFluid rf = te.getResource();
+		return rf.requiredInput == null || rf.requiredInputAmount <= inputFluid.getLevel() && rf.requiredInput == inputFluid.getActualFluid();
 	}
 
-	public final ForgeDirection getDirection() {
-		return structureDir;
+	@Override
+	public final boolean hasStructure() {
+		return structure;
 	}
 
 	@Override
 	protected final TileMinerPowerConnection getWirePowerConnection() {
 		if (!this.hasStructure())
 			return null;
-		ForgeDirection right = ReikaDirectionHelper.getRightBy90(structureDir);
-		return (TileMinerPowerConnection)worldObj.getTileEntity(xCoord+right.offsetX*2, yCoord+13, zCoord+right.offsetZ*2);
+		return null;
 	}
 
 	@Override
 	protected final TileMinerShaftConnection getShaftPowerConnection() {
-		return this.hasStructure() ? (TileMinerShaftConnection)worldObj.getTileEntity(xCoord-structureDir.offsetX, yCoord+12, zCoord-structureDir.offsetZ) : null;
-	}
-
-	public final TileMinerConveyorPort getOutput() {
-		return this.hasStructure() ? (TileMinerConveyorPort)worldObj.getTileEntity(xCoord+structureDir.offsetX*8, yCoord+1, zCoord+structureDir.offsetZ*8) : null;
+		return this.hasStructure() ? null : null;
 	}
 
 	@Override
 	protected void writeSyncTag(NBTTagCompound NBT) {
 		super.writeSyncTag(NBT);
 
-		NBT.setInteger("structure", structureDir != null ? structureDir.ordinal() : -1);
+		NBT.setBoolean("struct", structure);
 
-		NBT.setInteger("spool", spoolTime);
-		NBT.setInteger("spoolState", spoolState.ordinal());
+		inputFluid.writeToNBT(NBT);
 	}
 
 	@Override
 	protected void readSyncTag(NBTTagCompound NBT) {
 		super.readSyncTag(NBT);
 
-		int struct = NBT.getInteger("structure");
-		structureDir = struct == -1 ? null : dirs[struct];
+		structure = NBT.getBoolean("struct");
 
-		spoolTime = NBT.getInteger("spool");
-		spoolState = SpoolingStates.list[NBT.getInteger("spoolState")];
+		inputFluid.readFromNBT(NBT);
 	}
 
 	@Override
@@ -299,33 +124,25 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 
 	@Override
 	protected void updateStructureState(ForgeDirection flag) {
-		boolean change = (structureDir == null && flag != null) || (structureDir != null && flag == null);
-		if (change)
-			MinerStructure.toggleRSLamps(this, flag != null ? flag : structureDir, flag == null);
-		structureDir = flag;
-	}
-
-	@Override
-	protected void onUpdateInputs(boolean has) {
-		TileMinerConnection te = this.getOutput();
-		if (te != null)
-			te.connectTo(has ? this : null);
+		structure = flag != null;
 	}
 
 	@Override
 	public final AxisAlignedBB getRenderBoundingBox() {
-		if (structureDir == null)
-			return super.getRenderBoundingBox();
 		AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this);
-		box = box.addCoord(structureDir.offsetX*8.25, 13, structureDir.offsetZ*8.25);
-		box = box.addCoord(-structureDir.offsetX*3.5, 0, -structureDir.offsetZ*3.5);
-		box = box.addCoord(structureDir.offsetZ*2, 0, structureDir.offsetX*2);
-		box = box.addCoord(-structureDir.offsetZ*2, 0, -structureDir.offsetX*2);
-		box = box.expand(0.25, 0.25, 0.25);
+		if (this.hasStructure()) {
+			box = box.expand(4, 8, 4).offset(0, 6, 0);
+		}
 		return box;
 	}
 
-	private static abstract class TileNodeHarvesterBasicEnergy extends TileNodeHarvester {
+	@Override
+	public TileFrackingNode getResourceNode() {
+		TileEntity te = this.getAdjacentTileEntity(ForgeDirection.DOWN);
+		return te instanceof TileFrackingNode ? (TileFrackingNode)te : null;
+	}
+
+	private static abstract class TileFrackingPressurizerBasicEnergy extends TileFrackingPressurizer {
 
 		private final long energyPerCycle;
 		protected final long maxEnergy;
@@ -334,7 +151,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 
 		private long energy;
 
-		protected TileNodeHarvesterBasicEnergy(long c, long m, long f, long s) {
+		protected TileFrackingPressurizerBasicEnergy(long c, long m, long f, long s) {
 			super();
 			energyPerCycle = c;
 			maxEnergy = m;
@@ -421,15 +238,15 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 
 	}
 
-	public static class TileNodeHarvesterRF extends TileNodeHarvesterBasicEnergy implements IEnergyReceiver {
+	public static class TileFrackingPressurizerRF extends TileFrackingPressurizerBasicEnergy implements IEnergyReceiver {
 
-		public TileNodeHarvesterRF() {
+		public TileFrackingPressurizerRF() {
 			super(20000, 600000, 2500, 100);
 		}
 
 		@Override
 		protected String getTEName() {
-			return "Resource Node Harvester (RF)";
+			return "Fracking Node Pressurizer (RF)";
 		}
 
 		@Override
@@ -475,15 +292,15 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	}
 
 	@Strippable(value={"ic2.api.energy.tile.IEnergySink"})
-	public static class TileNodeHarvesterEU extends TileNodeHarvesterBasicEnergy implements IEnergySink {
+	public static class TileFrackingPressurizerEU extends TileFrackingPressurizerBasicEnergy implements IEnergySink {
 
-		public TileNodeHarvesterEU() {
+		public TileFrackingPressurizerEU() {
 			super(1536, 6144, 256, 4);
 		}
 
 		@Override
 		protected String getTEName() {
-			return "Resource Node Harvester (EU)";
+			return "Fracking Node Pressurizer (EU)";
 		}
 
 		@Override
@@ -533,11 +350,11 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	}
 
 
-	public static class TileNodeHarvesterRC extends TileNodeHarvester implements ShaftPowerReceiver {
+	public static class TileFrackingPressurizerRC extends TileFrackingPressurizer implements ShaftPowerReceiver {
 
-		private static final int MINPOWER_BASE = 262144;
-		private static final int STANDBY_BASE = 4096;
-		public static final int MINTORQUE = 2048;
+		private static final int MINPOWER_BASE = 524288;
+		private static final int STANDBY_BASE = 16384;
+		public static final int MINTORQUE = 8192;
 
 		private int torque;
 		private int omega;
@@ -612,7 +429,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 
 		@Override
 		protected String getTEName() {
-			return "Resource Node Harvester (Shaft)";
+			return "Fracking Node Pressurizer (Shaft)";
 		}
 
 		@Override
@@ -708,9 +525,9 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	}
 
 	static { //Validate values
-		new TileNodeHarvesterRF();
-		new TileNodeHarvesterEU();
-		new TileNodeHarvesterRC();
+		new TileFrackingPressurizerRF();
+		new TileFrackingPressurizerEU();
+		new TileFrackingPressurizerRC();
 	}
 
 }

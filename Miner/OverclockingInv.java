@@ -9,11 +9,11 @@ import Reika.Satisforestry.Registry.SFBlocks;
 
 public class OverclockingInv extends BasicInventory {
 
-	private final TileNodeHarvester tile;
+	private final TileResourceHarvesterBase tile;
 
 	private int currentOverclock;
 
-	public OverclockingInv(TileNodeHarvester te) {
+	public OverclockingInv(TileResourceHarvesterBase te) {
 		super("Overclock", 3, 1);
 		tile = te;
 		this.onSlotChange(0);

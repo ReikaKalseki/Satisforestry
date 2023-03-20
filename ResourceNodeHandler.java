@@ -230,11 +230,14 @@ public class ResourceNodeHandler extends TemplateRecipeHandler {
 				GuiContainer gc = (GuiContainer)mc.currentScreen;
 				int gsc = ReikaRenderHelper.getGUIScale();
 				GL11.glPushMatrix();
-				double sc = 0.5;
+				double sc = 0.67;
 				//GL11.glTranslated(-23, 55, -100);
 				//GL11.glTranslated(-gc.guiLeft, -gc.guiTop, 0);
-				GL11.glTranslated(-27D, 55D, 0);
+				GL11.glTranslated(-60D, 28D, 0);
 				GL11.glScaled(sc, sc, sc);
+				SFClient.resource.setRenderPass(0);
+				renderer.draw3D(0, 0, ReikaRenderHelper.getPartialTickTime(), true);
+				SFClient.resource.setRenderPass(1);
 				renderer.draw3D(0, 0, ReikaRenderHelper.getPartialTickTime(), true);
 				GL11.glPopMatrix();
 			}

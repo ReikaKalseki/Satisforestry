@@ -29,6 +29,7 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
+import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
@@ -44,11 +45,14 @@ import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Config.NodeResource.ResourceItemView;
 import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Render.FrackingNodeAuxRenderer;
 
 import codechicken.nei.PositionedStack;
 import codechicken.nei.recipe.TemplateRecipeHandler;
 
 public class FluidNodeHandler extends TemplateRecipeHandler {
+
+	private final TileFrackingNode tileDelegate = new TileFrackingNode();
 
 	private final Comparator<CachedRecipe> displaySorter = new Comparator<CachedRecipe>() {
 
@@ -222,28 +226,31 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 				renderer = null;
 			if (renderer == null) {
 				FilledBlockArray arr = new FilledBlockArray(mc.theWorld);
-				for (int i = -5; i <= 5; i++) {
-					for (int k = -5; k <= 5; k++) {
-						if (Math.abs(i)+Math.abs(k) < 7 && Math.abs(i) < 5 && Math.abs(k) < 5)
+				for (int i = -9; i <= 9; i++) {
+					for (int k = -9; k <= 9; k++) {
+						if (Math.abs(i)+Math.abs(k) < 12 && Math.abs(i) < 9 && Math.abs(k) < 9)
 							arr.setBlock(i, 0, k, SFBlocks.CAVESHIELD.getBlockInstance());
 					}
 				}
-				TileFrackingNode te = new TileFrackingNode();
 				NBTTagCompound tag = new NBTTagCompound();
-				te.writeToNBT(tag);
+				tileDelegate.writeToNBT(tag);
 				tag.setString("resource", wc.id);
 				tag.setInteger("purity", Purity.PURE.ordinal());
-				te.readFromNBT(tag);
-				arr.setTile(0, 0, 0, SFBlocks.FRACKNODE.getBlockInstance(), 0, te);
+				tileDelegate.readFromNBT(tag);
+				arr.setTile(0, 0, 0, SFBlocks.FRACKNODE.getBlockInstance(), 0, tileDelegate);
 
-				for (int i = -3; i <= 3; i += 2) {
-					int k = Math.abs(i) == 3 ? 1 : 3;
-					TileFrackingAux te2 = new TileFrackingAux();
-					te2.linkTo(new Coordinate(te));
-					arr.setTile(i, 0, k, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te2);
-					te2 = new TileFrackingAux();
-					te2.linkTo(new Coordinate(te));
-					arr.setTile(i, 0, -k, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te2);
+				for (int i = -6; i <= 6; i += 4) {
+					int k = Math.abs(i) == 6 ? 2 : 6;
+					if (DragonAPICore.rand.nextInt(4) > 0) {
+						TileFrackingAux te2 = new TileFrackingAux();
+						te2.linkTo(new Coordinate(tileDelegate));
+						arr.setTile(i, 0, k, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te2);
+					}
+					if (DragonAPICore.rand.nextInt(4) > 0) {
+						TileFrackingAux te2 = new TileFrackingAux();
+						te2.linkTo(new Coordinate(tileDelegate));
+						arr.setTile(i, 0, -k, SFBlocks.FRACKNODEAUX.getBlockInstance(), 0, te2);
+					}
 				}
 				renderer = new StructureRenderer(arr);
 			}
@@ -252,12 +259,19 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 				GuiContainer gc = (GuiContainer)mc.currentScreen;
 				int gsc = ReikaRenderHelper.getGUIScale();
 				GL11.glPushMatrix();
-				double sc = 0.5;
+				double sc = 0.75;
 				//GL11.glTranslated(-23, 55, -100);
 				//GL11.glTranslated(-gc.guiLeft, -gc.guiTop, 0);
-				GL11.glTranslated(-27D, 40D, 0);
+				GL11.glTranslated(-80D, 5D, 0);
 				GL11.glScaled(sc, sc, sc);
+				FrackingNodeAuxRenderer.renderDelegateMaster = tileDelegate;
+				SFClient.fracking.setRenderPass(0);
+				SFClient.frackingAux.setRenderPass(0);
 				renderer.draw3D(0, 0, ReikaRenderHelper.getPartialTickTime(), true);
+				SFClient.fracking.setRenderPass(1);
+				SFClient.frackingAux.setRenderPass(1);
+				renderer.draw3D(0, 0, ReikaRenderHelper.getPartialTickTime(), true);
+				FrackingNodeAuxRenderer.renderDelegateMaster = null;
 				GL11.glPopMatrix();
 			}
 			BlendMode.DEFAULT.apply();
@@ -269,30 +283,30 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 			api.drawCenteredStringNoShadow(fr, re.purity.getDisplayName()+" Nodes", 82, 15, 0x000000);
 			//fr.drawString("Spawn Weight: "+wc.spawnWeight, 26, 28, 0x000000);
 			int dy = 0;
-			ArrayList<ResourceItemView> c = new ArrayList(wc.getAllItems(re.purity));
-			Collections.sort(c, new Comparator<ResourceItemView>() {
-				@Override
-				public int compare(ResourceItemView o1, ResourceItemView o2) {
-					return String.CASE_INSENSITIVE_ORDER.compare(wc.getItem(o1).getName(), wc.getItem(o2).getName());
-				}
-			});
-			for (ResourceItemView ri : c) {
-				Fluid is = wc.getItem(ri);
-				IIcon ico = is.getIcon();
-				ReikaTextureHelper.bindTerrainTexture();
-				GL11.glColor4f(1, 1, 1, 1);
-				api.drawTexturedModelRectFromIcon(5, 28+dy, ico, 16, 16);
-				String n = is.getLocalizedName(new FluidStack(is, 100));
-				fr.drawString(n, 26, 28+dy, 0x000000);
-				String counts = ri.minAmount == ri.maxAmount ? ri.minAmount+"mB" : ri.minAmount+"mB - "+ri.maxAmount+"mB";
-				fr.drawString(counts, 26, 38+dy, 0x000000);
-				dy -= fr.FONT_HEIGHT+2;
-				api.drawLine(0, 58+dy, 165, 58+dy, 0xffaaaaaa);
-				dy += (fr.FONT_HEIGHT+2)*3;
-			}
+			ResourceItemView ri = wc.getAllItems(re.purity).iterator().next();
+			Fluid is = wc.getItem(ri);
+			IIcon ico = is.getIcon();
+			ReikaTextureHelper.bindTerrainTexture();
+			GL11.glColor4f(1, 1, 1, 1);
+			api.drawTexturedModelRectFromIcon(5, 28+dy, ico, 16, 16);
+			String n = is.getLocalizedName(new FluidStack(is, 100));
+			fr.drawString(n, 26, 28+dy, 0x000000);
+			String counts = ri.minAmount == ri.maxAmount ? ri.minAmount+"mB" : ri.minAmount+"mB - "+ri.maxAmount+"mB";
+			fr.drawString(counts, 26, 38+dy, 0x000000);
+			dy -= fr.FONT_HEIGHT+2;
+			api.drawLine(0, 58+dy, 165, 58+dy, 0xffaaaaaa);
+			dy += (fr.FONT_HEIGHT+2)*3;
 			api.drawLine(0, 58+dy-(fr.FONT_HEIGHT+2)*3, 165, 58+dy-(fr.FONT_HEIGHT+2)*3, 0xff707070);
-			if (!GuiScreen.isShiftKeyDown())
+			if (GuiScreen.isShiftKeyDown()) {
+				if (wc.requiredInput != null) {
+					n = wc.requiredInput.getLocalizedName(new FluidStack(wc.requiredInput, wc.requiredInputAmount));
+					fr.drawString("Required input: "+n+" ("+wc.requiredInputAmount+" mB)", 5, 28+dy, 0x000000);
+					dy += (fr.FONT_HEIGHT+2)*3;
+				}
+			}
+			else {
 				api.drawCenteredStringNoShadow(fr, "Hold LSHIFT for detailed info", 82, dy+28, 0x000000);
+			}
 		}
 	}
 }

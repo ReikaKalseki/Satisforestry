@@ -118,9 +118,13 @@ public abstract class NodeResource<I> {
 	public final Collection<ResourceItemView> getAllItems(Purity p) {
 		Collection<ResourceItemView> ret = new ArrayList();
 		for (NodeItem ni : items.get(p).getValues()) {
-			ret.add(new ResourceItemView(ni, p));
+			ret.add(this.getView(ni, p));
 		}
 		return ret;
+	}
+
+	protected ResourceItemView getView(NodeItem ni, Purity p) {
+		return new ResourceItemView(ni, p);
 	}
 
 	public final boolean produces(I is) {
@@ -193,7 +197,7 @@ public abstract class NodeResource<I> {
 		}
 	}
 
-	public final class ResourceItemView {
+	public class ResourceItemView {
 
 		private final NodeItem item;
 		public final Purity purity;
@@ -205,7 +209,7 @@ public abstract class NodeResource<I> {
 		public final float manualWeightScale;
 		public final float manualYieldScale;
 
-		private ResourceItemView(NodeItem ni, Purity p) {
+		protected ResourceItemView(NodeItem ni, Purity p) {
 			item = ni;
 			purity = p;
 

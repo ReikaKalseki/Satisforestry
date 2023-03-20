@@ -30,6 +30,7 @@ import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Miner.MinerStructure;
 import Reika.Satisforestry.Miner.TileNodeHarvester;
 import Reika.Satisforestry.Miner.TileNodeHarvester.TileNodeHarvesterRC;
+import Reika.Satisforestry.Miner.TileResourceHarvesterBase;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 import cofh.api.energy.IEnergyReceiver;
@@ -221,17 +222,17 @@ public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 		return null;
 	}
 
-	public static abstract class TileMinerConnection extends TileEntity {
+	public static abstract class TileMinerConnection<T extends TileResourceHarvesterBase> extends TileEntity {
 
 		private Coordinate rootLoc;
-		private TileNodeHarvester root;
+		private T root;
 
 		@Override
 		public boolean canUpdate() {
 			return false;
 		}
 
-		public final void connectTo(TileNodeHarvester te) {
+		public final void connectTo(T te) {
 			root = te;
 			rootLoc = te != null ? new Coordinate(te) : null;
 		}
@@ -261,11 +262,11 @@ public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 			}
 		}
 
-		protected final TileNodeHarvester getRoot() {
+		protected final T getRoot() {
 			if (root == null && rootLoc != null && worldObj != null) {
 				TileEntity te = rootLoc.getTileEntity(worldObj);
-				if (te instanceof TileNodeHarvester)
-					root = (TileNodeHarvester)te;
+				if (te instanceof TileResourceHarvesterBase)
+					root = (T)te;
 				else
 					rootLoc = null;
 			}
@@ -278,7 +279,7 @@ public class BlockMinerMulti extends BlockMultiBlock<ForgeDirection> {
 
 	}
 
-	public static class TileMinerConveyorPort extends TileMinerConnection implements ISidedInventory {
+	public static class TileMinerConveyorPort extends TileMinerConnection<TileNodeHarvester> implements ISidedInventory {
 
 		private ItemStack currentSlot;
 

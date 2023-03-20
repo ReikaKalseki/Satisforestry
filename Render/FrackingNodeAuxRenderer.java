@@ -22,7 +22,6 @@ import Reika.DragonAPI.Instantiable.Effects.LightningBolt;
 import Reika.DragonAPI.Instantiable.Math.Spline;
 import Reika.DragonAPI.Instantiable.Math.Spline.BasicSplinePoint;
 import Reika.DragonAPI.Instantiable.Math.Spline.SplineType;
-import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
@@ -32,6 +31,8 @@ import Reika.Satisforestry.Config.ResourceFluid;
 
 
 public class FrackingNodeAuxRenderer extends FrackingNodeRenderer {
+
+	public static TileFrackingNode renderDelegateMaster;
 
 	public FrackingNodeAuxRenderer(int id) {
 		super(id);
@@ -44,14 +45,16 @@ public class FrackingNodeAuxRenderer extends FrackingNodeRenderer {
 		TileFrackingAux te = (TileFrackingAux)world.getTileEntity(x, y, z);
 		TileFrackingNode root = te.getMaster();
 		if (root == null)
+			root = renderDelegateMaster;
+		if (root == null)
 			return flag;
 		ResourceFluid ri = root.getResource();
 		int c = ri == null ? 0xffffff : ri.color;
-		if (renderPass == 0 || StructureRenderer.isRenderingTiles())
+		if (renderPass == 0)
 			v5.setColorOpaque_I(0xffffff);
 		else
 			v5.setColorOpaque_I(c);
-		if (renderPass == 1 && ri.glowAtNight)
+		if (renderPass == 1 && ri != null && ri.glowAtNight)
 			v5.setBrightness(240);
 		else
 			v5.setBrightness(block.getMixedBrightnessForBlock(world, x, y+1, z));
@@ -78,6 +81,8 @@ public class FrackingNodeAuxRenderer extends FrackingNodeRenderer {
 		List<DecimalPosition> li = path.get((int)(ReikaMathLibrary.py3d(root.xCoord-x, 0, root.zCoord-z)*1), false);
 		for (DecimalPosition d : li) {
 			if (d.getDistanceTo(root.xCoord+0.5, d.yCoord, root.zCoord+0.5) <= 2.5)
+				continue;
+			if (d.getDistanceTo(x+0.5, d.yCoord, z+0.5) <= 1.0)
 				continue;
 			double dx = ReikaRandomHelper.getRandomPlusMinus(d.xCoord-0.5, 0.125, rand);
 			double dz = ReikaRandomHelper.getRandomPlusMinus(d.zCoord-0.5, 0.125, rand);

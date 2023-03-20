@@ -12,6 +12,8 @@ package Reika.Satisforestry;
 import java.io.File;
 import java.lang.reflect.Modifier;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.google.common.base.Strings;
@@ -57,6 +59,8 @@ import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaTreeHelper;
 import Reika.DragonAPI.ModInteract.ItemStackRepository;
 import Reika.DragonAPI.ModInteract.ReikaClimateControl;
+import Reika.DragonAPI.ModInteract.ItemHandlers.BCPipeHandler;
+import Reika.DragonAPI.ModInteract.ItemHandlers.BCPipeHandler.Pipes;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler.IC2Stacks;
 import Reika.DragonAPI.ModInteract.RecipeHandlers.ForestryRecipeHelper;
@@ -70,6 +74,7 @@ import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
 import Reika.Satisforestry.Config.BiomeConfig;
+import Reika.Satisforestry.Miner.TileFrackingPressurizer;
 import Reika.Satisforestry.Miner.TileNodeHarvester;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFEntities;
@@ -198,6 +203,14 @@ public class Satisforestry extends DragonAPIMod {
 				GameRegistry.registerTileEntity(in, s);
 			}
 		}
+		cs = TileFrackingPressurizer.class.getClasses();
+		for (int k = 0; k < cs.length; k++) {
+			Class in = cs[k];
+			if (TileEntity.class.isAssignableFrom(in) && (in.getModifiers() & Modifier.ABSTRACT) == 0) {
+				String s = "SF"+in.getSimpleName();
+				GameRegistry.registerTileEntity(in, s);
+			}
+		}
 
 		paleberry = new ItemPaleberry();
 		paleberry.setUnlocalizedName("paleberry");
@@ -289,6 +302,7 @@ public class Satisforestry extends DragonAPIMod {
 		ItemStack drillbit = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.DRILL.ordinal());
 		Object steel = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "steelingot"), Items.iron_ingot);
 		Object gear = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "steelgear"), Blocks.piston);
+		Object impeller = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "impeller"), Blocks.piston);
 		Object shaft = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "shaftitem"), Items.iron_ingot);
 		Object plate = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "basepanel"), Items.iron_ingot);
 		Object panel2 = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "basepanel"), silver);
@@ -310,12 +324,21 @@ public class Satisforestry extends DragonAPIMod {
 		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.POWER.ordinal()), "iri", "iri", "iri", 'r', Items.redstone, 'i', Items.iron_ingot);
 
 		Object rfcoil2 = getItemWithFallback(GameRegistry.findItemStack(ModList.THERMALEXPANSION.modLabel, "powerCoilGold", 1), Items.redstone);
+
 		if (PowerTypes.RF.isLoaded())
 			addWRRecipe(SFBlocks.HARVESTER.getStackOfMetadata(0), "ici", "iri", "idi", 'c', rfcoil2, 'r', redblock, 'i', Items.iron_ingot, 'd', drillbit);
 		if (PowerTypes.EU.isLoaded())
 			addWRRecipe(SFBlocks.HARVESTER.getStackOfMetadata(1), "iei", "aca", "idi", 'a', alloy, 'e', eucoil, 'c', ReikaItemHelper.getAnyMetaStack(IC2Stacks.LAPOTRON.getItem()), 'i', Items.iron_ingot, 'd', drillbit);
 		if (PowerTypes.ROTARYCRAFT.isLoaded())
 			addWRRecipe(SFBlocks.HARVESTER.getStackOfMetadata(2), "bgb", "bGb", "sds", 's', steel, 'b', plate, 'g', gear, 'G', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit4"), 'd', drillbit);
+
+		if (PowerTypes.RF.isLoaded())
+			addWRRecipe(SFBlocks.FRACKER.getStackOfMetadata(0), "ici", "iri", "ipi", 'c', rfcoil2, 'r', redblock, 'i', Items.iron_ingot, 'p', getPipe(false));
+		if (PowerTypes.EU.isLoaded())
+			addWRRecipe(SFBlocks.FRACKER.getStackOfMetadata(1), "iei", "aca", "ipi", 'a', alloy, 'e', eucoil, 'c', ReikaItemHelper.getAnyMetaStack(IC2Stacks.LAPOTRON.getItem()), 'i', Items.iron_ingot, 'p', getPipe(false));
+		if (PowerTypes.ROTARYCRAFT.isLoaded())
+			addWRRecipe(SFBlocks.FRACKER.getStackOfMetadata(2), "bGb", "bgb", "sps", 's', steel, 'b', plate, 'G', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit8"), 'g', impeller, 'p', getPipe(true));
+
 		/*
 		if (ModList.THERMALEXPANSION.isLoaded()) {
 			ItemStack silverCoil = GameRegistry.findItemStack(ModList.THERMALEXPANSION.modLabel, "powerCoilSilver", 1);
@@ -339,6 +362,22 @@ public class Satisforestry extends DragonAPIMod {
 			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem("EnderIO:itemBasicCapacitor:2"), SFBlocks.SLUG.getStackOfMetadata(2));
 		}
 		 */
+	}
+
+	private static Object getPipe(boolean preferRC) {
+		List<Object> li = new ArrayList(Arrays.asList(
+				ReikaItemHelper.lookupItem("ImmersiveEngineering:metalDevice2:5"),
+				BCPipeHandler.getInstance().getPipe(Pipes.pipeFluidsEmerald),
+				ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "pipe"),
+				Items.bucket
+				));
+		if (preferRC) {
+			li.add(0, li.remove(2));
+		}
+		Object o = li.remove(0);
+		while (o == null)
+			o = li.remove(0);
+		return o;
 	}
 
 	private static void addWRRecipe(ItemStack out, Object... in) {

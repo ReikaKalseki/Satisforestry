@@ -9,7 +9,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
 import Reika.DragonAPI.Instantiable.MetadataItemBlock;
-import Reika.Satisforestry.Miner.TileNodeHarvester;
+import Reika.Satisforestry.Miner.TileResourceHarvesterBase;
 
 
 public class ItemBlockNodeHarvester extends MetadataItemBlock {
@@ -20,7 +20,7 @@ public class ItemBlockNodeHarvester extends MetadataItemBlock {
 
 	@Override
 	public void addInformation(ItemStack is, EntityPlayer ep, List li, boolean vb) {
-		TileNodeHarvester te = (TileNodeHarvester)field_150939_a.createTileEntity(ep.worldObj, is.getItemDamage());
+		TileResourceHarvesterBase te = (TileResourceHarvesterBase)field_150939_a.createTileEntity(ep.worldObj, is.getItemDamage());
 		li.add("Requires "+EnumChatFormatting.WHITE+te.getPowerType()+EnumChatFormatting.GRAY+" power.");
 		if (GuiScreen.isShiftKeyDown()) {
 			li.add(String.format("Efficiency: %s%.1f%s", EnumChatFormatting.WHITE.toString(), te.getSpeedFactor()*100, "%"));

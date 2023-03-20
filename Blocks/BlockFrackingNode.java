@@ -34,7 +34,7 @@ import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
+import Reika.Satisforestry.Blocks.BlockResourceNode.ResourceNode;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.NodeResource.NodeEffect;
 import Reika.Satisforestry.Config.NodeResource.Purity;
@@ -150,12 +150,9 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		return tag;
 	}
 
-	public static class TileFrackingNode extends TileCaveSpawner {
+	public static class TileFrackingNode extends ResourceNode<ResourceFluid> {
 
 		private static WeightedRandom<ResourceFluid> resourceSet = new WeightedRandom();
-
-		private Purity mainPurity = Purity.NORMAL;
-		private ResourceFluid resource;
 
 		private float pressure = 0;
 
@@ -199,8 +196,8 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 
 		public void generate(ResourceFluid force, Random rand) {
 			resource = force != null ? force : selectResource(rand);
-			mainPurity = resource.getRandomPurity(rand);
-			this.initSpawner(1+mainPurity.ordinal());
+			purity = resource.getRandomPurity(rand);
+			this.initSpawner(1+purity.ordinal());
 		}
 
 		@Override
@@ -235,6 +232,11 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 					}
 				}
 			}
+		}
+
+		@Override
+		public int getHarvestInterval() {
+			return 0;
 		}
 
 		@SideOnly(Side.CLIENT)
@@ -281,10 +283,6 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		public void writeToNBT(NBTTagCompound NBT) {
 			super.writeToNBT(NBT);
 
-			NBT.setInteger("purity", mainPurity.ordinal());
-			if (resource != null)
-				NBT.setString("resource", resource.id);
-
 			NBT.setFloat("pressure", pressure);
 		}
 
@@ -292,19 +290,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		public void readFromNBT(NBTTagCompound NBT) {
 			super.readFromNBT(NBT);
 
-			mainPurity = Purity.list[NBT.getInteger("purity")];
-			if (NBT.hasKey("resource"))
-				resource = BiomeConfig.instance.getFluidByID(NBT.getString("resource"));
-
 			pressure = NBT.getFloat("pressure");
-		}
-
-		public ResourceFluid getResource() {
-			return resource;
-		}
-
-		public Purity getPurity() {
-			return mainPurity;
 		}
 
 		@Override
@@ -314,8 +300,13 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 
 		public void addWaila(List<String> tip) {
 			tip.add(resource.displayName);
-			tip.add(mainPurity.getDisplayName());
+			tip.add(purity.getDisplayName());
 			tip.add("Pressurized: "+(this.isPressurized() ? "Yes" : "No"));
+		}
+
+		@Override
+		protected ResourceFluid getResourceByID(String s) {
+			return BiomeConfig.instance.getFluidByID(s);
 		}
 
 	}
