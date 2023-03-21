@@ -164,6 +164,9 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 					tank.addLiquid(res.generateRandomFluid(this.getPurity(), peaceful, te.getOverclock()));
 				}
 			}
+			else {
+				tank.empty();
+			}
 		}
 
 		private Purity getPurity() {

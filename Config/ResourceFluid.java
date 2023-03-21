@@ -44,7 +44,7 @@ public class ResourceFluid extends NodeResource<Fluid> {
 	public FluidStack generateRandomFluid(Purity p, boolean peaceful, float overclock) {
 		NodeItem f = this.getRandomItem(Integer.MAX_VALUE, p, false);
 		int amt = f.getAmount(p, Integer.MAX_VALUE, false, peaceful, DragonAPICore.rand);
-		amt *= overclock;
+		amt *= 1+overclock;
 		if (roundBase > 1)
 			amt = ReikaMathLibrary.roundToNearestX(roundBase, amt);
 		return new FluidStack(this.getItem(f), amt);

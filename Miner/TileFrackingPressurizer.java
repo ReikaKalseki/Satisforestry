@@ -17,6 +17,7 @@ import Reika.DragonAPI.Exception.RegistrationException;
 import Reika.DragonAPI.Instantiable.HybridTank;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaEngLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
@@ -47,8 +48,9 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	private final HybridTank inputFluid = new HybridTank("frackingin", 4000);
 
 	public final Thumper thumper1 = new Thumper(0);
-	public final Thumper thumper2 = new Thumper(0.1);
-	public final Thumper thumper3 = new Thumper(0.2);
+	public final Thumper thumper2 = new Thumper(0.0333);
+	public final Thumper thumper3 = new Thumper(0.0667);
+	public final Thumper thumper4 = new Thumper(0.1);
 
 	public TileFrackingPressurizer() {
 		super();
@@ -64,10 +66,10 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 		super.updateEntity(world, x, y, z, meta);
 		if (world.isRemote) {
 			boolean active = this.hasStructure() && this.getState() == MachineState.OPERATING;
-			long tick = this.getTileEntityAge();
-			thumper1.update(tick, active);
-			thumper2.update(tick, active);
-			thumper3.update(tick, active);
+			thumper1.update(active);
+			thumper2.update(active);
+			thumper3.update(active);
+			thumper4.update(active);
 		}
 	}
 
@@ -79,15 +81,24 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 
 		private double position;
 
+		private long tick;
+
 		private ThumperStage stage = ThumperStage.RISING;
 
 		private Thumper(double d) {
 			phaseOffset = d;
 		}
 
-		private void update(long tick, boolean active) {
-			double frac = ((phaseOffset+tick)%CYCLE_TIME)/CYCLE_TIME;
+		private void update(boolean active) {
+			if (!active) {
+				tick = 0;
+				position = Math.max(0, position-0.04);
+				return;
+			}
+			tick++;
+			double frac = (phaseOffset+(tick%CYCLE_TIME)/CYCLE_TIME)%1D;
 			ThumperStage put = this.calcStage(frac);
+			//ReikaJavaLibrary.pConsole(tick+"+"+phaseOffset+">"+frac+">"+put);
 			if (put != stage) {
 				this.setStage(put);
 			}
@@ -96,15 +107,19 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 		private void setStage(ThumperStage put) {
 			stage = put;
 			switch(stage) {
-				case RISING:
-					ReikaSoundHelper.playClientSound(SFSounds.FRACKHISS, TileFrackingPressurizer.this, 1, 1);
+				case RISING: {
+					float p = (float)ReikaRandomHelper.getRandomBetween(0.75, 1.25);
+					ReikaSoundHelper.playClientSound(SFSounds.FRACKHISS, TileFrackingPressurizer.this, 0.8F, p);
 					break;
+				}
 				case PAUSE:
 					break;
 				case DROPPING:
 					break;
 				case RECOVERING:
-					ReikaSoundHelper.playClientSound(SFSounds.FRACKTHUMP, TileFrackingPressurizer.this, 1, 1);
+					float p = (float)ReikaRandomHelper.getRandomBetween(0.95, 1.03);
+					float v = (float)ReikaRandomHelper.getRandomBetween(0.8, 1.5);
+					ReikaSoundHelper.playClientSound(SFSounds.FRACKTHUMP, TileFrackingPressurizer.this, v, p);
 					ReikaRenderHelper.rockScreen(20);
 					break;
 			}

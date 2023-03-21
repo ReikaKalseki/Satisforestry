@@ -87,14 +87,14 @@ public class BlockFrackingPressurizer extends BlockTEBase {
 
 		@Override
 		public void updateEntity(World world, int x, int y, int z, int meta) {
-			if (structure) {
+			if (structure && !world.isRemote) {
 				TileEntity te = worldObj.getTileEntity(x, y+1, z);
 				if (te instanceof IFluidHandler) {
 					IFluidHandler ifl = (IFluidHandler)te;
 					TileFrackingAux node = this.getNode();
 					if (node != null) {
 						FluidStack max = node.drain(1000, false);
-						if (max != null) {
+						if (max != null && max.amount > 0) {
 							int fit = ifl.canFill(ForgeDirection.DOWN, max.getFluid()) ? ifl.fill(ForgeDirection.DOWN, max, false) : 0;
 							if (fit > 0) {
 								FluidStack get = node.drain(fit, true);
@@ -128,7 +128,7 @@ public class BlockFrackingPressurizer extends BlockTEBase {
 			arr.setBlock(x, y, z-1, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.ORANGE.ordinal());
 			arr.setBlock(x, y, z+1, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.ORANGE.ordinal());
 
-			arr.setBlock(x, y+1, z, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.SILVER.ordinal());
+			//arr.setBlock(x, y+1, z, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.SILVER.ordinal());
 			return arr;
 		}
 

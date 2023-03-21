@@ -192,6 +192,8 @@ public enum SFBlocks implements BlockEnum {
 				return tree+" "+block;
 			case HARVESTER:
 				return StatCollector.translateToLocal("sfminer.type."+meta)+" "+this.getBasicName();
+			case FRACKER:
+				return StatCollector.translateToLocal("sffracker.type."+meta)+" "+this.getBasicName();
 			case MINERMULTI:
 				return StatCollector.translateToLocal("multiblock.sfminer."+MinerBlocks.list[meta&7].name().toLowerCase(Locale.ENGLISH));
 			case SLUG:
@@ -214,6 +216,7 @@ public enum SFBlocks implements BlockEnum {
 			case SAPLING:
 			case LOG:
 			case HARVESTER:
+			case FRACKER:
 			case MINERMULTI:
 			case SLUG:
 				return true;
@@ -233,6 +236,8 @@ public enum SFBlocks implements BlockEnum {
 				return GrassTypes.list.length;
 			case HARVESTER:
 				return 3;
+			case FRACKER:
+				return 4;
 			case MINERMULTI:
 				return 8;
 			case SLUG:
