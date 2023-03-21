@@ -16,9 +16,11 @@ import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Exception.RegistrationException;
 import Reika.DragonAPI.Instantiable.HybridTank;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaEngLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.DragonAPI.ModInteract.Power.ReikaEUHelper;
 import Reika.RotaryCraft.API.ItemFetcher;
@@ -32,10 +34,9 @@ import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerShaftConnection;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFSounds;
 
 import cofh.api.energy.IEnergyReceiver;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
 import ic2.api.energy.tile.IEnergySink;
 
 
@@ -45,12 +46,9 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 
 	private final HybridTank inputFluid = new HybridTank("frackingin", 4000);
 
-	@SideOnly(Side.CLIENT)
-	public double thumperPosition1;
-	@SideOnly(Side.CLIENT)
-	public double thumperPosition2;
-	@SideOnly(Side.CLIENT)
-	public double thumperPosition3;
+	public final Thumper thumper1 = new Thumper(0);
+	public final Thumper thumper2 = new Thumper(0.1);
+	public final Thumper thumper3 = new Thumper(0.2);
 
 	public TileFrackingPressurizer() {
 		super();
@@ -64,6 +62,79 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	@Override
 	public void updateEntity(World world, int x, int y, int z, int meta) {
 		super.updateEntity(world, x, y, z, meta);
+		if (world.isRemote) {
+			boolean active = this.hasStructure() && this.getState() == MachineState.OPERATING;
+			long tick = this.getTileEntityAge();
+			thumper1.update(tick, active);
+			thumper2.update(tick, active);
+			thumper3.update(tick, active);
+		}
+	}
+
+	public class Thumper {
+
+		public static final double CYCLE_TIME = 100; //5s
+
+		public final double phaseOffset;
+
+		private double position;
+
+		private ThumperStage stage = ThumperStage.RISING;
+
+		private Thumper(double d) {
+			phaseOffset = d;
+		}
+
+		private void update(long tick, boolean active) {
+			double frac = ((phaseOffset+tick)%CYCLE_TIME)/CYCLE_TIME;
+			ThumperStage put = this.calcStage(frac);
+			if (put != stage) {
+				this.setStage(put);
+			}
+		}
+
+		private void setStage(ThumperStage put) {
+			stage = put;
+			switch(stage) {
+				case RISING:
+					ReikaSoundHelper.playClientSound(SFSounds.FRACKHISS, TileFrackingPressurizer.this, 1, 1);
+					break;
+				case PAUSE:
+					break;
+				case DROPPING:
+					break;
+				case RECOVERING:
+					ReikaSoundHelper.playClientSound(SFSounds.FRACKTHUMP, TileFrackingPressurizer.this, 1, 1);
+					ReikaRenderHelper.rockScreen(20);
+					break;
+			}
+		}
+
+		private ThumperStage calcStage(double frac) {
+			if (frac < 0.6) { //3s
+				return ThumperStage.RISING;
+			}
+			else if (frac < 0.75) { //3.75s
+				return ThumperStage.PAUSE;
+			}
+			else if (frac < 0.8) { //4s
+				return ThumperStage.DROPPING;
+			}
+			else { //remaining 1s
+				return ThumperStage.RECOVERING;
+			}
+		}
+
+		public double getPosition() {
+			return position;
+		}
+	}
+
+	private static enum ThumperStage {
+		RISING,
+		PAUSE,
+		DROPPING,
+		RECOVERING;
 	}
 
 	@Override

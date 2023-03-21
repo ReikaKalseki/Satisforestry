@@ -155,6 +155,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		private static WeightedRandom<ResourceFluid> resourceSet = new WeightedRandom();
 
 		private float pressure = 0;
+		private float overclock = 0;
 
 		public TileFrackingNode() {
 			this.initSpawner(3);
@@ -264,19 +265,20 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 
 		public void pressurize(float overclockFactor) {
 			boolean was = this.isPressurized();
-			pressure = Math.min(pressure+0.1F, overclockFactor);
+			pressure = Math.min(pressure+0.1F, 1);
 			if (was != this.isPressurized()) {
 				this.markDirty();
 				worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
 			}
+			overclock = overclockFactor;
 		}
 
 		public boolean isPressurized() {
 			return pressure >= 0.8F;
 		}
 
-		public float getPressure() {
-			return pressure;
+		public float getOverclock() {
+			return overclock;
 		}
 
 		@Override
@@ -284,6 +286,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 			super.writeToNBT(NBT);
 
 			NBT.setFloat("pressure", pressure);
+			NBT.setFloat("overclock", overclock);
 		}
 
 		@Override
@@ -291,6 +294,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 			super.readFromNBT(NBT);
 
 			pressure = NBT.getFloat("pressure");
+			overclock = NBT.getFloat("overclock");
 		}
 
 		@Override

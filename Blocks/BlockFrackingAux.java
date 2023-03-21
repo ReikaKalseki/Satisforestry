@@ -17,11 +17,7 @@ import net.minecraft.util.IIcon;
 import net.minecraft.world.EnumDifficulty;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
-import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidStack;
-import net.minecraftforge.fluids.FluidTankInfo;
-import net.minecraftforge.fluids.IFluidHandler;
 
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
@@ -136,7 +132,7 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 		return tag;
 	}
 
-	public static class TileFrackingAux extends TileEntity implements IFluidHandler {
+	public static class TileFrackingAux extends TileEntity/* implements IFluidHandler*/ {
 
 		private Coordinate masterLocation;
 
@@ -165,7 +161,7 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 					boolean peaceful = worldObj.difficultySetting == EnumDifficulty.PEACEFUL;
 					if (peaceful && !res.worksOnPeaceful())
 						return;
-					tank.addLiquid(res.generateRandomFluid(this.getPurity(), peaceful, te.getPressure()));
+					tank.addLiquid(res.generateRandomFluid(this.getPurity(), peaceful, te.getOverclock()));
 				}
 			}
 		}
@@ -193,38 +189,12 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 			tank.readFromNBT(NBT);
 		}
 
-		@Override
-		public int fill(ForgeDirection from, FluidStack resource, boolean doFill) {
-			return 0;
-		}
-
-		@Override
-		public FluidStack drain(ForgeDirection from, FluidStack resource, boolean doDrain) {
-			if (from != ForgeDirection.UP)
-				return null;
+		public FluidStack drain(FluidStack resource, boolean doDrain) {
 			return tank.drain(resource.amount, doDrain);
 		}
 
-		@Override
-		public FluidStack drain(ForgeDirection from, int maxDrain, boolean doDrain) {
-			if (from != ForgeDirection.UP)
-				return null;
+		public FluidStack drain(int maxDrain, boolean doDrain) {
 			return tank.drain(maxDrain, doDrain);
-		}
-
-		@Override
-		public boolean canFill(ForgeDirection from, Fluid fluid) {
-			return false;
-		}
-
-		@Override
-		public boolean canDrain(ForgeDirection from, Fluid fluid) {
-			return from == ForgeDirection.UP;
-		}
-
-		@Override
-		public FluidTankInfo[] getTankInfo(ForgeDirection from) {
-			return new FluidTankInfo[] {new FluidTankInfo(tank)};
 		}
 
 		public void linkTo(Coordinate c) {

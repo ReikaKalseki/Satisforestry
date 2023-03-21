@@ -120,7 +120,7 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 
 	@Override
 	public String getRecipeName() {
-		return "Fracking Node Fluids";
+		return "Resource Well Fluids";
 	}
 
 	@Override

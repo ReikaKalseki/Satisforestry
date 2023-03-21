@@ -634,7 +634,7 @@ public class BiomeConfig {
 			throw new IllegalArgumentException("Too high limit for subnodes");
 		LuaBlock in = b.getChild("inputFluids");
 		FluidStack fs = in == null ? null : new FluidStack(FluidRegistry.getFluid(in.getString("key")), in.getInt("amount"));
-		ResourceFluid ore = new ResourceFluid(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), nodes, b.getBoolean("glowAtNight"), fs, map);
+		ResourceFluid ore = new ResourceFluid(type, b.getString("displayName"), b.getInt("spawnWeight"), b.getInt("renderColor"), nodes, b.getBoolean("glowAtNight"), fs, b.getInt("rounding"), map);
 
 		entryAttemptsCount++;
 		String sk = fluid.getString("key");

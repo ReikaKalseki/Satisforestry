@@ -24,6 +24,7 @@ import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitter.SpitterType;
 import Reika.Satisforestry.Entity.EntitySpitterFireball;
+import Reika.Satisforestry.Miner.TileFrackingPressurizer;
 import Reika.Satisforestry.Miner.TileNodeHarvester;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFEntities;
@@ -42,6 +43,8 @@ import Reika.Satisforestry.Render.RenderLizardDoggo;
 import Reika.Satisforestry.Render.RenderSpitter;
 import Reika.Satisforestry.Render.RenderSpitterFire;
 import Reika.Satisforestry.Render.ResourceNodeRenderer;
+import Reika.Satisforestry.Render.SFFrackerItemRenderer;
+import Reika.Satisforestry.Render.SFFrackerRenderer;
 import Reika.Satisforestry.Render.SFMinerItemRenderer;
 import Reika.Satisforestry.Render.SFMinerRenderer;
 import Reika.Satisforestry.Render.SpitterFireParticle;
@@ -114,8 +117,10 @@ public class SFClient extends SFCommon {
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.SPITTERSPLITFIRE.getObjectClass(), RenderSpitterFire.instance);
 
 		ClientRegistry.bindTileEntitySpecialRenderer(TileNodeHarvester.class, new SFMinerRenderer());
+		ClientRegistry.bindTileEntitySpecialRenderer(TileFrackingPressurizer.class, new SFFrackerRenderer());
 		ClientRegistry.bindTileEntitySpecialRenderer(TilePowerSlug.class, new PowerSlugRenderer());
 		MinecraftForgeClient.registerItemRenderer(SFBlocks.HARVESTER.getItem(), new SFMinerItemRenderer());
+		MinecraftForgeClient.registerItemRenderer(SFBlocks.FRACKER.getItem(), new SFFrackerItemRenderer());
 		MinecraftForgeClient.registerItemRenderer(SFBlocks.SLUG.getItem(), new PowerSlugItemRenderer());
 
 		SFShaders.registerAll();
