@@ -77,7 +77,8 @@ public class MinerStructure {
 		dz += z0;
 		if (b == Blocks.air)
 			array.setEmpty(dx, dy, dz, false, false);
-		array.setBlock(dx, dy, dz, b, meta);
+		else
+			array.setBlock(dx, dy, dz, b, meta);
 	}
 
 	public static void toggleRSLamps(TileNodeHarvester te, ForgeDirection dir, boolean set) {

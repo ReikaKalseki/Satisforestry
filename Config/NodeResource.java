@@ -53,6 +53,10 @@ public abstract class NodeResource<I> {
 		}
 	}
 
+	public String getDisplayName() {
+		return displayName;
+	}
+
 	public int maxItemsPerType() {
 		return Integer.MAX_VALUE;
 	}

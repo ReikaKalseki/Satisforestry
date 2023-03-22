@@ -237,7 +237,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 
 		@Override
 		public int getHarvestInterval() {
-			return 0;
+			return 1;
 		}
 
 		@SideOnly(Side.CLIENT)
@@ -311,6 +311,10 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		@Override
 		protected ResourceFluid getResourceByID(String s) {
 			return BiomeConfig.instance.getFluidByID(s);
+		}
+
+		public float getPressure() {
+			return pressure;
 		}
 
 	}

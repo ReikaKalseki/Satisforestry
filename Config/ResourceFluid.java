@@ -17,13 +17,23 @@ public class ResourceFluid extends NodeResource<Fluid> {
 	public final int requiredInputAmount;
 	public final int roundBase;
 
-	public ResourceFluid(String s, String n, int w, int c, int nodes, boolean glow, FluidStack fin, int round, HashMap<String, Object> map) {
-		super(s, n, w, c, map);
+	public ResourceFluid(String s, int w, int c, int nodes, boolean glow, FluidStack fin, int round, HashMap<String, Object> map) {
+		super(s, null, w, c, map);
 		maxNodes = nodes;
 		glowAtNight = glow;
 		requiredInput = fin == null ? null : fin.getFluid();
 		requiredInputAmount = fin == null ? 0 : fin.amount;
 		roundBase = MathHelper.clamp_int(round, 1, 1000);
+	}
+
+	@Override
+	public String getDisplayName() {
+		Fluid f = this.getFluid();
+		return f.getLocalizedName(new FluidStack(f, 1000));
+	}
+
+	public Fluid getFluid() {
+		return this.getItem(this.getRandomItem(Integer.MAX_VALUE, Purity.NORMAL, false));
 	}
 
 	@Override
@@ -47,7 +57,7 @@ public class ResourceFluid extends NodeResource<Fluid> {
 		amt *= 1+overclock;
 		if (roundBase > 1)
 			amt = ReikaMathLibrary.roundToNearestX(roundBase, amt);
-		return new FluidStack(this.getItem(f), amt);
+		return new FluidStack(this.getFluid(), amt);
 	}
 
 	@Override

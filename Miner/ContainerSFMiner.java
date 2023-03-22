@@ -11,10 +11,10 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 
 public class ContainerSFMiner extends CoreContainer {
 
-	private final TileNodeHarvester tile;
+	private final TileResourceHarvesterBase tile;
 
-	public ContainerSFMiner(EntityPlayer player, TileNodeHarvester te) {
-		super(player, te, te.getOutput());
+	public ContainerSFMiner(EntityPlayer player, TileResourceHarvesterBase te) {
+		super(player, te, te instanceof TileNodeHarvester ? ((TileNodeHarvester)te).getOutput() : null);
 		tile = te;
 
 		this.addSlotNoClick(0, 80, 55);

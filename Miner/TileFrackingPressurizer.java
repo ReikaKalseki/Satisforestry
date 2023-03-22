@@ -9,6 +9,8 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidStack;
 
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
@@ -28,10 +30,11 @@ import Reika.RotaryCraft.API.ItemFetcher;
 import Reika.RotaryCraft.API.Power.PowerTransferHelper;
 import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockFrackerMulti.TileFrackerFluidPort;
 import Reika.Satisforestry.Blocks.BlockFrackingNode.TileFrackingNode;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerConnection;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerPowerConnection;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerShaftConnection;
+import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileMinerConnection;
+import Reika.Satisforestry.Blocks.BlockSFMultiBase.TilePowerConnection;
+import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileShaftConnection;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Registry.SFBlocks;
@@ -41,7 +44,7 @@ import cofh.api.energy.IEnergyReceiver;
 import ic2.api.energy.tile.IEnergySink;
 
 
-public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<TileFrackingNode> {
+public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<TileFrackingNode, Boolean> {
 
 	private boolean structure;
 
@@ -174,15 +177,33 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	}
 
 	@Override
-	protected final TileMinerPowerConnection getWirePowerConnection() {
-		if (!this.hasStructure())
-			return null;
-		return null;
+	protected final TilePowerConnection getWirePowerConnection() {
+		return this.hasStructure() ? (TilePowerConnection)worldObj.getTileEntity(xCoord-2, yCoord+11, zCoord-2) : null;
 	}
 
 	@Override
-	protected final TileMinerShaftConnection getShaftPowerConnection() {
-		return this.hasStructure() ? null : null;
+	protected final TileShaftConnection getShaftPowerConnection() {
+		return this.hasStructure() ? (TileShaftConnection)worldObj.getTileEntity(xCoord+1, yCoord+9, zCoord+1) : null;
+	}
+
+	protected final TileFrackerFluidPort[] getInputs() {
+		if (!this.hasStructure())
+			return null;
+		return new TileFrackerFluidPort[] {
+				(TileFrackerFluidPort)worldObj.getTileEntity(xCoord+2, yCoord+1, zCoord),
+				(TileFrackerFluidPort)worldObj.getTileEntity(xCoord-2, yCoord+1, zCoord),
+				(TileFrackerFluidPort)worldObj.getTileEntity(xCoord, yCoord+1, zCoord+2),
+				(TileFrackerFluidPort)worldObj.getTileEntity(xCoord, yCoord+1, zCoord-2),
+		};
+	}
+
+	@Override
+	protected void onUpdateInputs(boolean has) {
+		TileFrackerFluidPort[] arr = this.getInputs();
+		if (arr != null) {
+			for (TileFrackerFluidPort te : arr)
+				te.connectTo(has ? this : null);
+		}
 	}
 
 	@Override
@@ -209,15 +230,20 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	}
 
 	@Override
-	protected void updateStructureState(ForgeDirection flag) {
-		structure = flag != null;
+	protected void updateStructureState(Boolean flag) {
+		boolean put = flag != null && flag.booleanValue();
+		if (put != structure)
+			FrackerStructure.toggleRSLamps(this, put);
+		structure = put;
+		if (!structure)
+			inputFluid.empty();
 	}
 
 	@Override
 	public final AxisAlignedBB getRenderBoundingBox() {
 		AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this);
 		if (this.hasStructure()) {
-			box = box.expand(4, 8, 4).offset(0, 6, 0);
+			box = box.expand(5, 8, 5).offset(0, 6, 0);
 		}
 		return box;
 	}
@@ -226,6 +252,23 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	public TileFrackingNode getResourceNode() {
 		TileEntity te = this.getAdjacentTileEntity(ForgeDirection.DOWN);
 		return te instanceof TileFrackingNode ? (TileFrackingNode)te : null;
+	}
+
+	@Override
+	public final int getMineProgressScaled(int px) {
+		return px;
+	}
+
+	public final boolean canAccept(Fluid f) {
+		TileFrackingNode te = this.getResourceNode();
+		if (te == null)
+			return false;
+		ResourceFluid rf = te.getResource();
+		return f != null && f == rf.requiredInput;
+	}
+
+	public final int addFrackingFluid(FluidStack resource, boolean doFill) {
+		return this.canAccept(resource.getFluid()) ? inputFluid.fill(resource, doFill) : 0;
 	}
 
 	private static abstract class TileFrackingPressurizerBasicEnergy extends TileFrackingPressurizer {
@@ -327,7 +370,7 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	public static class TileFrackingPressurizerRF extends TileFrackingPressurizerBasicEnergy implements IEnergyReceiver {
 
 		public TileFrackingPressurizerRF() {
-			super(20000, 600000, 2500, 100);
+			super(40000, 600000, 6000, 300);
 		}
 
 		@Override
@@ -381,7 +424,7 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	public static class TileFrackingPressurizerEU extends TileFrackingPressurizerBasicEnergy implements IEnergySink {
 
 		public TileFrackingPressurizerEU() {
-			super(1536, 6144, 256, 4);
+			super(2048, 6144, 512, 8);
 		}
 
 		@Override

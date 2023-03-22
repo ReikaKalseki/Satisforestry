@@ -27,11 +27,11 @@ import Reika.RotaryCraft.API.ItemFetcher;
 import Reika.RotaryCraft.API.Power.PowerTransferHelper;
 import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerConnection;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerConveyorPort;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerPowerConnection;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerShaftConnection;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
+import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileMinerConnection;
+import Reika.Satisforestry.Blocks.BlockSFMultiBase.TilePowerConnection;
+import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileShaftConnection;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFSounds;
@@ -42,7 +42,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import ic2.api.energy.tile.IEnergySink;
 
 
-public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileResourceNode> {
+public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileResourceNode, ForgeDirection> {
 
 	private static final double MAX_DRILL_SPEED = 24;
 
@@ -255,16 +255,16 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	}
 
 	@Override
-	protected final TileMinerPowerConnection getWirePowerConnection() {
+	protected final TilePowerConnection getWirePowerConnection() {
 		if (!this.hasStructure())
 			return null;
 		ForgeDirection right = ReikaDirectionHelper.getRightBy90(structureDir);
-		return (TileMinerPowerConnection)worldObj.getTileEntity(xCoord+right.offsetX*2, yCoord+13, zCoord+right.offsetZ*2);
+		return (TilePowerConnection)worldObj.getTileEntity(xCoord+right.offsetX*2, yCoord+13, zCoord+right.offsetZ*2);
 	}
 
 	@Override
-	protected final TileMinerShaftConnection getShaftPowerConnection() {
-		return this.hasStructure() ? (TileMinerShaftConnection)worldObj.getTileEntity(xCoord-structureDir.offsetX, yCoord+12, zCoord-structureDir.offsetZ) : null;
+	protected final TileShaftConnection getShaftPowerConnection() {
+		return this.hasStructure() ? (TileShaftConnection)worldObj.getTileEntity(xCoord-structureDir.offsetX, yCoord+12, zCoord-structureDir.offsetZ) : null;
 	}
 
 	public final TileMinerConveyorPort getOutput() {

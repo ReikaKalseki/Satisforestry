@@ -7,21 +7,20 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
-import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.Auxiliary.ChunkManager;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Interfaces.TileEntity.ChunkLoadingTile;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerConnection;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerPowerConnection;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.TileMinerShaftConnection;
 import Reika.Satisforestry.Blocks.BlockResourceNode.ResourceNode;
+import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileMinerConnection;
+import Reika.Satisforestry.Blocks.BlockSFMultiBase.TilePowerConnection;
+import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileShaftConnection;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
 
 
-public abstract class TileResourceHarvesterBase<N extends ResourceNode> extends TileEntityBase implements ChunkLoadingTile {
+public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> extends TileEntityBase implements ChunkLoadingTile {
 
 	private int tier = 0;
 	protected int activityTimer = 0;
@@ -145,7 +144,7 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode> extends 
 
 	public abstract boolean hasStructure();
 
-	public final int getMineProgressScaled(int px) {
+	public int getMineProgressScaled(int px) {
 		return (int)(px*progressFactor);
 	}
 
@@ -167,9 +166,9 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode> extends 
 
 	public abstract TileMinerConnection getInput();
 
-	protected abstract TileMinerPowerConnection getWirePowerConnection();
+	protected abstract TilePowerConnection getWirePowerConnection();
 
-	protected abstract TileMinerShaftConnection getShaftPowerConnection();
+	protected abstract TileShaftConnection getShaftPowerConnection();
 
 	public final void breakBlock() {
 		this.updateInputs(false);
@@ -232,14 +231,14 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode> extends 
 		return pass <= 1;
 	}
 
-	public final void setHasStructure(ForgeDirection flag) {
+	public final void setHasStructure(S flag) {
 		//ReikaJavaLibrary.pConsole(flag);
 		this.updateStructureState(flag);
 		this.syncAllData(false);
 		this.updateInputs(flag != null);
 	}
 
-	protected void updateStructureState(ForgeDirection flag) {
+	protected void updateStructureState(S flag) {
 
 	}
 
@@ -257,7 +256,7 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode> extends 
 
 	}
 
-	protected abstract N getResourceNode();
+	public abstract N getResourceNode();
 
 	public abstract ArrayList getMessages(World world, int x, int y, int z, int side);
 

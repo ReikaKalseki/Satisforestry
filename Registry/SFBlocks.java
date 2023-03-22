@@ -30,6 +30,8 @@ import Reika.Satisforestry.Blocks.BlockCaveShield;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner;
 import Reika.Satisforestry.Blocks.BlockDecoration;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
+import Reika.Satisforestry.Blocks.BlockFrackerMulti;
+import Reika.Satisforestry.Blocks.BlockFrackerMulti.FrackerBlocks;
 import Reika.Satisforestry.Blocks.BlockFrackingAux;
 import Reika.Satisforestry.Blocks.BlockFrackingNode;
 import Reika.Satisforestry.Blocks.BlockFrackingPressurizer;
@@ -70,7 +72,7 @@ public enum SFBlocks implements BlockEnum {
 	FRACKNODE(BlockFrackingNode.class, null),
 	FRACKNODEAUX(BlockFrackingAux.class, null),
 	FRACKER(BlockFrackingPressurizer.class, ItemBlockNodeHarvester.class),
-	//FRACKERMULTI(BlockFrackerMulti.class, ItemBlockMinerMulti.class),
+	FRACKERMULTI(BlockFrackerMulti.class, ItemBlockMinerMulti.class),
 	;
 
 	private final Class blockClass;
@@ -196,6 +198,8 @@ public enum SFBlocks implements BlockEnum {
 				return StatCollector.translateToLocal("sffracker.type."+meta)+" "+this.getBasicName();
 			case MINERMULTI:
 				return StatCollector.translateToLocal("multiblock.sfminer."+MinerBlocks.list[meta&7].name().toLowerCase(Locale.ENGLISH));
+			case FRACKERMULTI:
+				return StatCollector.translateToLocal("multiblock.sffracker."+FrackerBlocks.list[meta&7].name().toLowerCase(Locale.ENGLISH));
 			case SLUG:
 				String type = String.valueOf(meta%3);
 				if ((meta&3) == 0 && SFOptions.BLUEGREEN.getState())
@@ -218,6 +222,7 @@ public enum SFBlocks implements BlockEnum {
 			case HARVESTER:
 			case FRACKER:
 			case MINERMULTI:
+			case FRACKERMULTI:
 			case SLUG:
 				return true;
 			default:
@@ -239,6 +244,7 @@ public enum SFBlocks implements BlockEnum {
 			case FRACKER:
 				return 4;
 			case MINERMULTI:
+			case FRACKERMULTI:
 				return 8;
 			case SLUG:
 				return 6;

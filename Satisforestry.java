@@ -14,6 +14,7 @@ import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 import com.google.common.base.Strings;
@@ -70,6 +71,7 @@ import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.CaveNightvisionHandler;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
+import Reika.Satisforestry.Blocks.BlockFrackerMulti.FrackerBlocks;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
@@ -181,6 +183,7 @@ public class Satisforestry extends DragonAPIMod {
 		log = (BlockPinkLog)SFBlocks.LOG.getBlockInstance();
 		leaves = (BlockPinkLeaves)SFBlocks.LEAVES.getBlockInstance();
 
+		HashSet<Class> registered = new HashSet();
 		for (int i = 0; i < SFBlocks.blockList.length; i++) {
 			SFBlocks b = SFBlocks.blockList[i];
 			Class c = b.getObjectClass();
@@ -188,9 +191,12 @@ public class Satisforestry extends DragonAPIMod {
 			if (cs != null) {
 				for (int k = 0; k < cs.length; k++) {
 					Class in = cs[k];
+					if (registered.contains(in))
+						continue;
 					if (TileEntity.class.isAssignableFrom(in) && (in.getModifiers() & Modifier.ABSTRACT) == 0) {
 						String s = "SF"+in.getSimpleName();
 						GameRegistry.registerTileEntity(in, s);
+						registered.add(in);
 					}
 				}
 			}
@@ -198,17 +204,23 @@ public class Satisforestry extends DragonAPIMod {
 		Class[] cs = TileNodeHarvester.class.getClasses();
 		for (int k = 0; k < cs.length; k++) {
 			Class in = cs[k];
+			if (registered.contains(in))
+				continue;
 			if (TileEntity.class.isAssignableFrom(in) && (in.getModifiers() & Modifier.ABSTRACT) == 0) {
 				String s = "SF"+in.getSimpleName();
 				GameRegistry.registerTileEntity(in, s);
+				registered.add(in);
 			}
 		}
 		cs = TileFrackingPressurizer.class.getClasses();
 		for (int k = 0; k < cs.length; k++) {
 			Class in = cs[k];
+			if (registered.contains(in))
+				continue;
 			if (TileEntity.class.isAssignableFrom(in) && (in.getModifiers() & Modifier.ABSTRACT) == 0) {
 				String s = "SF"+in.getSimpleName();
 				GameRegistry.registerTileEntity(in, s);
+				registered.add(in);
 			}
 		}
 
@@ -339,29 +351,18 @@ public class Satisforestry extends DragonAPIMod {
 		if (PowerTypes.ROTARYCRAFT.isLoaded())
 			addWRRecipe(SFBlocks.FRACKER.getStackOfMetadata(2), "bGb", "bgb", "sps", 's', steel, 'b', plate, 'G', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit8"), 'g', impeller, 'p', getPipe(true));
 
-		/*
-		if (ModList.THERMALEXPANSION.isLoaded()) {
-			ItemStack silverCoil = GameRegistry.findItemStack(ModList.THERMALEXPANSION.modLabel, "powerCoilSilver", 1);
-			GameRegistry.addRecipe(ReikaItemHelper.lookupItem("ThermalExpansion:augment:128"), "rcr", "rsr", 'r', Items.redstone, 'c', silverCoil, 's', SFBlocks.SLUG.getStackOfMetadata(0));
-			GameRegistry.addRecipe(ReikaItemHelper.lookupItem("ThermalExpansion:augment:129"), "rcr", "rsr", 'r', Items.redstone, 'c', silverCoil, 's', SFBlocks.SLUG.getStackOfMetadata(1));
-			GameRegistry.addRecipe(ReikaItemHelper.lookupItem("ThermalExpansion:augment:130"), "rcr", "rsr", 'r', Items.redstone, 'c', silverCoil, 's', SFBlocks.SLUG.getStackOfMetadata(2));
+		dark = SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.DARK.ordinal());
+		silver = SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.SILVER.ordinal());
+		ItemStack housing = SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.ORANGE.ordinal());
+		addRecipe(housing, "oio", "ibi", "oio", 'b', steel, 'o', orange, 'i', Items.iron_ingot);
+		addRecipe(dark, "sis", "ibi", "sis", 'b', Blocks.iron_bars, 's', steel, 'i', Items.iron_ingot);
+		addRecipe(silver, "bib", "iii", "bib", 'b', Blocks.iron_bars, 'i', Items.iron_ingot);
+		addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.GRAY.ordinal()), "i i", "sss", "i i", 's', steel, 'i', Items.iron_ingot);
+		addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.TUBE.ordinal()), "sps", "sps", "sps", 'p', getPipe(false), 's', steel);
+		addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.FLUIDIN.ordinal()), "ioi", "ppp", "ioi", 'o', housing, 'p', getPipe(false), 'i', Items.iron_ingot);
+		addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.HUB.ordinal()), "iGi", "dgd", "ihi", 'G', gear, 'g', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit4"), 'h', shaft, 'd', dark, 'i', plate);
+		addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.POWER.ordinal()), "iri", "srs", "iri", 's', steel, 'r', Items.redstone, 'i', Items.iron_ingot);
 
-			GameRegistry.addRecipe(ReikaItemHelper.lookupItem("ThermalExpansion:augment:80"), "rcr", "rsr", 'r', Items.redstone, 'c', rfcoil2, 's', SFBlocks.SLUG.getStackOfMetadata(0));
-			GameRegistry.addRecipe(ReikaItemHelper.lookupItem("ThermalExpansion:augment:81"), "rcr", "rsr", 'r', Items.redstone, 'c', rfcoil2, 's', SFBlocks.SLUG.getStackOfMetadata(1));
-			GameRegistry.addRecipe(ReikaItemHelper.lookupItem("ThermalExpansion:augment:82"), "rcr", "rsr", 'r', Items.redstone, 'c', rfcoil2, 's', SFBlocks.SLUG.getStackOfMetadata(2));
-		}
-		if (ModList.IC2.isLoaded()) {
-			ItemStack is = IC2Handler.IC2Stacks.OVERCLOCK.getItem();
-			GameRegistry.addShapelessRecipe(is.copy(), SFBlocks.SLUG.getStackOfMetadata(0));
-			GameRegistry.addShapelessRecipe(ReikaItemHelper.getSizedItemStack(is, 2), SFBlocks.SLUG.getStackOfMetadata(1));
-			GameRegistry.addShapelessRecipe(ReikaItemHelper.getSizedItemStack(is, 5), SFBlocks.SLUG.getStackOfMetadata(2));
-		}
-		if (ModList.ENDERIO.isLoaded()) {
-			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem("EnderIO:itemBasicCapacitor:0"), SFBlocks.SLUG.getStackOfMetadata(0));
-			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem("EnderIO:itemBasicCapacitor:1"), SFBlocks.SLUG.getStackOfMetadata(1));
-			GameRegistry.addShapelessRecipe(ReikaItemHelper.lookupItem("EnderIO:itemBasicCapacitor:2"), SFBlocks.SLUG.getStackOfMetadata(2));
-		}
-		 */
 	}
 
 	private static Object getPipe(boolean preferRC) {
