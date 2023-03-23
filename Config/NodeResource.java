@@ -32,7 +32,7 @@ import Reika.Satisforestry.API.NodeEffectCallback;
 public abstract class NodeResource<I> {
 
 	public final String id;
-	public final String displayName;
+	protected final String displayName;
 	public final int color;
 	public final int spawnWeight;
 
@@ -303,6 +303,18 @@ public abstract class NodeResource<I> {
 		@Override
 		public final double getWeight() {
 			return weight;
+		}
+
+		public final int[] getAmountRange(Purity p, int tier, boolean manual, boolean peaceful) {
+			float sc0 = 1;
+			if (peaceful)
+				sc0 *= peacefulYieldScale;
+			if (manual)
+				sc0 *= manualAmountFactor;
+			Float sc = purityYields.get(p);
+			if (sc != null)
+				sc0 *= sc.floatValue();
+			return new int[] {(int)Math.max(1, this.minAmount*sc0), (int)Math.max(1, this.maxAmount*sc0)};
 		}
 
 		public final int getAmount(Purity p, int tier, boolean manual, boolean peaceful, Random rand) {

@@ -19,9 +19,10 @@ import net.minecraftforge.fluids.IFluidHandler;
 import Reika.DragonAPI.Base.BlockTEBase;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
+import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockFrackerMulti.FrackerBlocks;
 import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Miner.TileFrackingPressurizer.TileFrackingPressurizerEU;
 import Reika.Satisforestry.Miner.TileFrackingPressurizer.TileFrackingPressurizerRC;
 import Reika.Satisforestry.Miner.TileFrackingPressurizer.TileFrackingPressurizerRF;
@@ -83,6 +84,8 @@ public class BlockFrackingPressurizer extends BlockTEBase {
 
 	public static class TileFrackingExtractor extends TileEntityBase implements IFluidHandler {
 
+		private boolean isAccessingStructure;
+
 		private boolean structure;
 
 		@Override
@@ -108,7 +111,23 @@ public class BlockFrackingPressurizer extends BlockTEBase {
 
 		@Override
 		protected void onAdjacentBlockUpdate() {
-			structure = this.getStructure().matchInWorld();
+			if (isAccessingStructure)
+				return;
+			isAccessingStructure = true;
+			boolean flag = this.getStructure().matchInWorld();
+			if (flag != structure) {
+				structure = flag;
+				this.updateStructureBlocks(flag);
+			}
+			isAccessingStructure = false;
+		}
+
+		private void updateStructureBlocks(boolean flag) {
+			for (Coordinate c : this.getStructure().keySet()) {
+				int meta = c.getBlockMetadata(worldObj);
+				int put = flag ? meta+8 : meta%8;
+				c.setBlockMetadata(worldObj, put);
+			}
 		}
 
 		public FilledBlockArray getStructure() {
@@ -117,33 +136,42 @@ public class BlockFrackingPressurizer extends BlockTEBase {
 
 		public static FilledBlockArray getStructure(World world, int x, int y, int z) {
 			FilledBlockArray arr = new FilledBlockArray(world);
-			arr.setBlock(x, y-1, z, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.DARK.ordinal());
-			arr.setBlock(x-1, y-1, z, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.DARK.ordinal());
-			arr.setBlock(x+1, y-1, z, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.DARK.ordinal());
-			arr.setBlock(x, y-1, z-1, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.DARK.ordinal());
-			arr.setBlock(x, y-1, z+1, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.DARK.ordinal());
+			arr.setBlock(x, y-1, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.TUBE.ordinal());
 
-			arr.setBlock(x-1, y, z, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.ORANGE.ordinal());
-			arr.setBlock(x+1, y, z, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.ORANGE.ordinal());
-			arr.setBlock(x, y, z-1, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.ORANGE.ordinal());
-			arr.setBlock(x, y, z+1, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.ORANGE.ordinal());
+			arr.setBlock(x-1, y-1, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
+			arr.setBlock(x+1, y-1, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
+			arr.setBlock(x, y-1, z-1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
+			arr.setBlock(x, y-1, z+1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
+
+			arr.setBlock(x-1, y, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
+			arr.setBlock(x+1, y, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
+			arr.setBlock(x, y, z-1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
+			arr.setBlock(x, y, z+1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
+
+			for (Coordinate c : arr.keySet()) {
+				arr.addBlock(c.xCoord, c.yCoord, c.zCoord, arr.getBlockAt(c.xCoord, c.yCoord, c.zCoord), arr.getMetaAt(c.xCoord, c.yCoord, c.zCoord)+8);
+			}
 
 			//arr.setBlock(x, y+1, z, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.SILVER.ordinal());
 			return arr;
 		}
 
 		@Override
-		public void writeToNBT(NBTTagCompound NBT) {
-			super.writeToNBT(NBT);
+		protected void writeSyncTag(NBTTagCompound NBT) {
+			super.writeSyncTag(NBT);
 
 			NBT.setBoolean("struct", structure);
 		}
 
 		@Override
-		public void readFromNBT(NBTTagCompound NBT) {
-			super.readFromNBT(NBT);
+		protected void readSyncTag(NBTTagCompound NBT) {
+			super.readSyncTag(NBT);
 
 			structure = NBT.getBoolean("struct");
+		}
+
+		public boolean hasStructure() {
+			return structure;
 		}
 
 		private TileFrackingAux getNode() {

@@ -14,7 +14,10 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
 import Reika.Satisforestry.Miner.ContainerSFMiner;
+import Reika.Satisforestry.Miner.GuiSFFracker;
 import Reika.Satisforestry.Miner.GuiSFMiner;
+import Reika.Satisforestry.Miner.TileFrackingPressurizer;
+import Reika.Satisforestry.Miner.TileNodeHarvester;
 import Reika.Satisforestry.Miner.TileResourceHarvesterBase;
 
 import cpw.mods.fml.common.network.IGuiHandler;
@@ -33,8 +36,11 @@ public class SFGuiHandler implements IGuiHandler {
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
 		TileEntity te = world.getTileEntity(x, y, z);
-		if (te instanceof TileResourceHarvesterBase) {
-			return new GuiSFMiner(player, (TileResourceHarvesterBase)te);
+		if (te instanceof TileNodeHarvester) {
+			return new GuiSFMiner(player, (TileNodeHarvester)te);
+		}
+		if (te instanceof TileFrackingPressurizer) {
+			return new GuiSFFracker(player, (TileFrackingPressurizer)te);
 		}
 		return null;
 	}

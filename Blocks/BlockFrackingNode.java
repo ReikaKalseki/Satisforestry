@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Random;
 
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.Minecraft;
@@ -34,6 +35,7 @@ import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
 import Reika.Satisforestry.Blocks.BlockResourceNode.ResourceNode;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.NodeResource.NodeEffect;
@@ -303,7 +305,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		}
 
 		public void addWaila(List<String> tip) {
-			tip.add(resource.displayName);
+			tip.add(resource.getDisplayName());
 			tip.add(purity.getDisplayName());
 			tip.add("Pressurized: "+(this.isPressurized() ? "Yes" : "No"));
 		}
@@ -315,6 +317,22 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 
 		public float getPressure() {
 			return pressure;
+		}
+
+		public Collection<TileFrackingAux> getSatelliteNodes() {
+			ArrayList<TileFrackingAux> li = new ArrayList();
+			int r = 16;
+			for (int i = -r; i <= r; i++) {
+				for (int k = -r; k <= r; k++) {
+					Block b = worldObj.getBlock(xCoord+i, yCoord, zCoord+k);
+					if (b == SFBlocks.FRACKNODEAUX.getBlockInstance()) {
+						TileFrackingAux te = (TileFrackingAux)worldObj.getTileEntity(xCoord+i, yCoord, zCoord+k);
+						if (te.getMaster() == this)
+							li.add(te);
+					}
+				}
+			}
+			return li;
 		}
 
 	}

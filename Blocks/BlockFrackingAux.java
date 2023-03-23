@@ -27,6 +27,7 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockFrackingNode.TileFrackingNode;
+import Reika.Satisforestry.Blocks.BlockFrackingPressurizer.TileFrackingExtractor;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Registry.SFBlocks;
@@ -115,7 +116,7 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 		if (te instanceof TileFrackingAux) {
 			TileFrackingNode te2 = ((TileFrackingAux)te).getMaster();
 			if (te2 != null) {
-				tip.add(te2.getResource().displayName);
+				tip.add(te2.getResource().getDisplayName());
 				tip.add(((TileFrackingAux)te).getPurity().getDisplayName());
 			}
 		}
@@ -169,7 +170,7 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 			}
 		}
 
-		private Purity getPurity() {
+		public Purity getPurity() {
 			return Purity.list[this.getBlockMetadata()];
 		}
 
@@ -225,6 +226,11 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 		public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity p)  {
 			this.readFromNBT(p.field_148860_e);
 			worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+		}
+
+		public boolean hasExtractor() {
+			TileEntity te = worldObj.getTileEntity(xCoord, yCoord+2, zCoord);
+			return te instanceof TileFrackingExtractor && ((TileFrackingExtractor)te).hasStructure();
 		}
 
 	}

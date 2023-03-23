@@ -164,7 +164,7 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 	public final List<String> getWailaBody(ItemStack is, List<String> tip, IWailaDataAccessor acc, IWailaConfigHandler config) {
 		TileEntity te = acc.getTileEntity();
 		if (te instanceof TileResourceNode) {
-			tip.add(((TileResourceNode)te).resource.displayName);
+			tip.add(((TileResourceNode)te).resource.getDisplayName());
 			tip.add(((TileResourceNode)te).purity.getDisplayName());
 		}
 		return tip;

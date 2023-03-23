@@ -77,10 +77,11 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 			if (this.hasStructure() && te != null && !this.isShutdown(world, x, y, z)) {
 				if (this.hasEnergy(false)) {
 					isActiveThisTick = true;
-					this.useEnergy(false);
+					boolean work = false;
 					if (this.isReady(te)) {
 						stepTime = (int)(te.getHarvestInterval()/this.getNetSpeedFactor(false));
 						if (this.hasEnergy(true)) {
+							work = true;
 							state = MachineState.OPERATING;
 							if (operationTimer < stepTime)
 								operationTimer++;
@@ -103,11 +104,12 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 					else {
 						operationTimer = 0;
 					}
+					this.useEnergy(work);
 				}
 			}
 			if (te == null || !this.isReady(te))
 				operationTimer = 0;
-			progressFactor = stepTime <= 0 ? 0 : operationTimer/(float)stepTime;
+			progressFactor = this.computeProgressFactor(stepTime);
 			powerBar = this.getOperationEnergyFraction();
 			if (activityTimer > 0) {
 				activityTimer--;
@@ -115,6 +117,10 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 					this.unload();
 			}
 		}
+	}
+
+	protected float computeProgressFactor(int stepTime) {
+		return stepTime <= 0 ? 0 : operationTimer/(float)stepTime;
 	}
 
 	protected abstract void doOperationCycle(N te);
@@ -144,7 +150,7 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 
 	public abstract boolean hasStructure();
 
-	public int getMineProgressScaled(int px) {
+	public final int getMineProgressScaled(int px) {
 		return (int)(px*progressFactor);
 	}
 

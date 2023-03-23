@@ -279,7 +279,7 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 			api.drawLine(0, 3, 165, 3, 0xff707070);
 			api.drawLine(0, 25, 165, 25, 0xffaaaaaa);
 			FontRenderer fr = mc.fontRenderer;
-			api.drawCenteredStringNoShadow(fr, wc.displayName, 82, 5, 0x000000);
+			api.drawCenteredStringNoShadow(fr, wc.getDisplayName(), 82, 5, 0x000000);
 			api.drawCenteredStringNoShadow(fr, re.purity.getDisplayName()+" Nodes", 82, 15, 0x000000);
 			//fr.drawString("Spawn Weight: "+wc.spawnWeight, 26, 28, 0x000000);
 			int dy = 0;

@@ -193,9 +193,10 @@ public enum SFBlocks implements BlockEnum {
 				String block = StatCollector.translateToLocal("pinkforest.tree."+this.name().toLowerCase(Locale.ENGLISH));
 				return tree+" "+block;
 			case HARVESTER:
-				return StatCollector.translateToLocal("sfminer.type."+meta)+" "+this.getBasicName();
 			case FRACKER:
-				return StatCollector.translateToLocal("sffracker.type."+meta)+" "+this.getBasicName();
+				if (this == FRACKER && meta == 3)
+					return StatCollector.translateToLocal("sffracker.aux");
+				return StatCollector.translateToLocal("sfmachine.type."+meta)+" "+this.getBasicName();
 			case MINERMULTI:
 				return StatCollector.translateToLocal("multiblock.sfminer."+MinerBlocks.list[meta&7].name().toLowerCase(Locale.ENGLISH));
 			case FRACKERMULTI:

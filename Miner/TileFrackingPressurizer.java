@@ -255,8 +255,9 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	}
 
 	@Override
-	public final int getMineProgressScaled(int px) {
-		return px;
+	protected float computeProgressFactor(int stepTime) {
+		TileFrackingNode te = this.getResourceNode();
+		return te == null ? 0 : te.getPressure();
 	}
 
 	public final boolean canAccept(Fluid f) {

@@ -36,6 +36,11 @@ public class ResourceFluid extends NodeResource<Fluid> {
 		return this.getItem(this.getRandomItem(Integer.MAX_VALUE, Purity.NORMAL, false));
 	}
 
+	public int[] getBaseMinMax(Purity p, boolean peaceful) {
+		NodeItem f = this.getRandomItem(Integer.MAX_VALUE, p, false);
+		return f.getAmountRange(p, Integer.MAX_VALUE, false, peaceful);
+	}
+
 	@Override
 	public int maxItemsPerType() {
 		return Purity.list.length;

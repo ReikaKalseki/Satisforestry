@@ -19,6 +19,7 @@ import Reika.DragonAPI.Instantiable.Event.Client.ChunkWorldRenderEvent;
 import Reika.DragonAPI.Instantiable.Rendering.ParticleEngine;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
+import Reika.Satisforestry.Blocks.BlockFrackingPressurizer.TileFrackingExtractor;
 import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
 import Reika.Satisforestry.Entity.EntityEliteStinger;
 import Reika.Satisforestry.Entity.EntitySpitter;
@@ -43,6 +44,7 @@ import Reika.Satisforestry.Render.RenderLizardDoggo;
 import Reika.Satisforestry.Render.RenderSpitter;
 import Reika.Satisforestry.Render.RenderSpitterFire;
 import Reika.Satisforestry.Render.ResourceNodeRenderer;
+import Reika.Satisforestry.Render.SFFrackerAuxRenderer;
 import Reika.Satisforestry.Render.SFFrackerItemRenderer;
 import Reika.Satisforestry.Render.SFFrackerRenderer;
 import Reika.Satisforestry.Render.SFMinerItemRenderer;
@@ -118,6 +120,7 @@ public class SFClient extends SFCommon {
 
 		ClientRegistry.bindTileEntitySpecialRenderer(TileNodeHarvester.class, new SFMinerRenderer());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileFrackingPressurizer.class, new SFFrackerRenderer());
+		ClientRegistry.bindTileEntitySpecialRenderer(TileFrackingExtractor.class, new SFFrackerAuxRenderer());
 		ClientRegistry.bindTileEntitySpecialRenderer(TilePowerSlug.class, new PowerSlugRenderer());
 		MinecraftForgeClient.registerItemRenderer(SFBlocks.HARVESTER.getItem(), new SFMinerItemRenderer());
 		MinecraftForgeClient.registerItemRenderer(SFBlocks.FRACKER.getItem(), new SFFrackerItemRenderer());
