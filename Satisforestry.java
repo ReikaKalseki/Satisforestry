@@ -12,10 +12,7 @@ package Reika.Satisforestry;
 import java.io.File;
 import java.lang.reflect.Modifier;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 
 import com.google.common.base.Strings;
 
@@ -25,7 +22,6 @@ import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
@@ -41,7 +37,6 @@ import net.minecraftforge.common.BiomeManager.BiomeType;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
-import net.minecraftforge.oredict.ShapedOreRecipe;
 
 import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.DragonOptions;
@@ -58,21 +53,12 @@ import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaTreeHelper;
-import Reika.DragonAPI.ModInteract.ItemStackRepository;
 import Reika.DragonAPI.ModInteract.ReikaClimateControl;
-import Reika.DragonAPI.ModInteract.ItemHandlers.BCPipeHandler;
-import Reika.DragonAPI.ModInteract.ItemHandlers.BCPipeHandler.Pipes;
-import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
-import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler.IC2Stacks;
 import Reika.DragonAPI.ModInteract.RecipeHandlers.ForestryRecipeHelper;
-import Reika.DragonAPI.ModRegistry.PowerTypes;
-import Reika.RotaryCraft.API.RecipeInterface;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.CaveNightvisionHandler;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
-import Reika.Satisforestry.Blocks.BlockFrackerMulti.FrackerBlocks;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
 import Reika.Satisforestry.Config.BiomeConfig;
@@ -309,101 +295,7 @@ public class Satisforestry extends DragonAPIMod {
 		OreDictionary.registerOre("treeLeaves", SFBlocks.LEAVES.getAnyMetaStack());
 		OreDictionary.registerOre("treeSapling", SFBlocks.SAPLING.getAnyMetaStack());
 
-		ItemStack dark = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.DARK.ordinal());
-		ItemStack silver = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.SILVER.ordinal());
-		ItemStack drillbit = SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.DRILL.ordinal());
-		Object steel = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "steelingot"), Items.iron_ingot);
-		Object gear = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "steelgear"), Blocks.piston);
-		Object impeller = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "impeller"), Blocks.piston);
-		Object shaft = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "shaftitem"), Items.iron_ingot);
-		Object plate = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "basepanel"), Items.iron_ingot);
-		Object panel2 = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "basepanel"), silver);
-		Object drill = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "drill"), Items.diamond);
-		Object rfcoil = getItemWithFallback(GameRegistry.findItemStack(ModList.THERMALEXPANSION.modLabel, "powerCoilElectrum", 1), Items.redstone);
-		Object redblock = getItemWithFallback(ReikaItemHelper.lookupItem("ThermalExpansion:Frame:7"), Blocks.redstone_block);
-		Object eucoil = getItemWithFallback(IC2Handler.IC2Stacks.ENERGIUM.getItem(), Items.redstone);
-		ItemStack alloy = (ItemStack)getItemWithFallback(IC2Handler.IC2Stacks.ADVANCEDALLOY.getItem(), new ItemStack(Items.iron_ingot));
-		Object alloy2 = getItemWithFallback(ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "springtungsten"), alloy);
-		List<ItemStack> bronze = OreDictionary.getOres("ingotBronze");
-		Object orange = getItemWithFallback(bronze.isEmpty() ? null : "ingotBronze", ReikaItemHelper.orangeDye);
-		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.ORANGE.ordinal()), "ioi", "ibi", "ioi", 'b', Blocks.iron_bars, 'o', orange, 'i', Items.iron_ingot);
-		addRecipe(dark, "isi", "sbs", "isi", 'b', Blocks.iron_bars, 's', steel, 'i', Items.iron_ingot);
-		addRecipe(silver, "bib", "ibi", "bib", 'b', Blocks.iron_bars, 'i', Items.iron_ingot);
-		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.GRAY.ordinal()), "i i", " s ", "i i", 's', steel, 'i', Items.iron_ingot);
-		addRecipe(drillbit, "aDa", "dBd", "iRi", 'a', alloy2, 'R', drill, 'D', dark, 'B', Blocks.obsidian, 'd', Items.diamond, 'i', Items.iron_ingot);
-		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.CONVEYOR.ordinal()), "ihi", "pcp", "ihi", 'h', Blocks.hopper, 'c', Blocks.chest, 'p', panel2, 'i', silver);
-		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.HUB.ordinal()), "ihi", "dgd", "ihi", 'g', gear, 'h', shaft, 'd', dark, 'i', plate);
-		addRecipe(SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.POWER.ordinal()), "iri", "iri", "iri", 'r', Items.redstone, 'i', Items.iron_ingot);
-
-		Object rfcoil2 = getItemWithFallback(GameRegistry.findItemStack(ModList.THERMALEXPANSION.modLabel, "powerCoilGold", 1), Items.redstone);
-
-		if (PowerTypes.RF.isLoaded())
-			addWRRecipe(SFBlocks.HARVESTER.getStackOfMetadata(0), "ici", "iri", "idi", 'c', rfcoil2, 'r', redblock, 'i', Items.iron_ingot, 'd', drillbit);
-		if (PowerTypes.EU.isLoaded())
-			addWRRecipe(SFBlocks.HARVESTER.getStackOfMetadata(1), "iei", "aca", "idi", 'a', alloy, 'e', eucoil, 'c', ReikaItemHelper.getAnyMetaStack(IC2Stacks.LAPOTRON.getItem()), 'i', Items.iron_ingot, 'd', drillbit);
-		if (PowerTypes.ROTARYCRAFT.isLoaded())
-			addWRRecipe(SFBlocks.HARVESTER.getStackOfMetadata(2), "bgb", "bGb", "sds", 's', steel, 'b', plate, 'g', gear, 'G', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit4"), 'd', drillbit);
-
-		if (PowerTypes.RF.isLoaded())
-			addWRRecipe(SFBlocks.FRACKER.getStackOfMetadata(0), "ici", "iri", "ipi", 'c', rfcoil2, 'r', redblock, 'i', Items.iron_ingot, 'p', getPipe(false));
-		if (PowerTypes.EU.isLoaded())
-			addWRRecipe(SFBlocks.FRACKER.getStackOfMetadata(1), "iei", "aca", "ipi", 'a', alloy, 'e', eucoil, 'c', ReikaItemHelper.getAnyMetaStack(IC2Stacks.LAPOTRON.getItem()), 'i', Items.iron_ingot, 'p', getPipe(false));
-		if (PowerTypes.ROTARYCRAFT.isLoaded())
-			addWRRecipe(SFBlocks.FRACKER.getStackOfMetadata(2), "bGb", "bgb", "sps", 's', steel, 'b', plate, 'G', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit8"), 'g', impeller, 'p', getPipe(true));
-
-		dark = SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.DARK.ordinal());
-		silver = SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.SILVER.ordinal());
-		ItemStack housing = SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.ORANGE.ordinal());
-		addRecipe(housing, "oio", "ibi", "oio", 'b', steel, 'o', orange, 'i', Items.iron_ingot);
-		addRecipe(dark, "sis", "ibi", "sis", 'b', Blocks.iron_bars, 's', steel, 'i', Items.iron_ingot);
-		addRecipe(silver, "bib", "iii", "bib", 'b', Blocks.iron_bars, 'i', Items.iron_ingot);
-		addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.GRAY.ordinal()), "i i", "sss", "i i", 's', steel, 'i', Items.iron_ingot);
-		addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.TUBE.ordinal()), "sps", "sps", "sps", 'p', getPipe(false), 's', steel);
-		addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.FLUIDIN.ordinal()), "ioi", "ppp", "ioi", 'o', housing, 'p', getPipe(false), 'i', Items.iron_ingot);
-		addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.HUB.ordinal()), "iGi", "dgd", "ihi", 'G', gear, 'g', ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "gearunit4"), 'h', shaft, 'd', dark, 'i', plate);
-		addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.POWER.ordinal()), "iri", "srs", "iri", 's', steel, 'r', Items.redstone, 'i', Items.iron_ingot);
-
-	}
-
-	private static Object getPipe(boolean preferRC) {
-		List<Object> li = new ArrayList(Arrays.asList(
-				ReikaItemHelper.lookupItem("ImmersiveEngineering:metalDevice2:5"),
-				BCPipeHandler.getInstance().getPipe(Pipes.pipeFluidsEmerald),
-				ItemStackRepository.instance.getItem(ModList.ROTARYCRAFT, "pipe"),
-				Items.bucket
-				));
-		if (preferRC) {
-			li.add(0, li.remove(2));
-		}
-		Object o = li.remove(0);
-		while (o == null)
-			o = li.remove(0);
-		return o;
-	}
-
-	private static void addWRRecipe(ItemStack out, Object... in) {
-		if (ModList.ROTARYCRAFT.isLoaded()) {
-			RecipeInterface.worktable.addAPIRecipe(new ShapedOreRecipe(out, in));
-		}
-		else {
-			addRecipe(out, in);
-		}
-	}
-
-	private static void addRecipe(ItemStack out, Object... in) {
-		GameRegistry.addRecipe(new ShapedOreRecipe(out, in));
-	}
-
-	private static Object getItemWithFallback(Object item, Block back) {
-		return getItemWithFallback(item, new ItemStack(back));
-	}
-
-	private static Object getItemWithFallback(Object item, Item back) {
-		return getItemWithFallback(item, new ItemStack(back));
-	}
-
-	private static Object getItemWithFallback(Object item, ItemStack back) {
-		return item != null ? item : back;
+		SFMachineRecipes.instance.addRecipes();
 	}
 
 	@Override

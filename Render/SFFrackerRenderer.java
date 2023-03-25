@@ -30,44 +30,49 @@ public class SFFrackerRenderer extends TileEntityRenderBase {
 		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
 		GL11.glPushMatrix();
 		GL11.glTranslated(par2, par4, par6);
-		//GL11.glTranslated(4, 0, 0);
-		if (this.doRenderModel(te)) {
-			if (MinecraftForgeClient.getRenderPass() == 0) {
-				this.renderModel(te);
-			}
-			GL11.glPopMatrix();
-			if (MinecraftForgeClient.getRenderPass() == 1) {
-				GL11.glPushMatrix();
-				Tessellator.instance.setBrightness(240);
-				Tessellator.instance.setColorOpaque_I(0xffffff);
-				ReikaRenderHelper.disableEntityLighting();
-				ReikaRenderHelper.disableLighting();
-				GL11.glColor4f(1, 1, 1, 1);
-				GL11.glEnable(GL11.GL_BLEND);
-				BlendMode.DEFAULT.apply();
-				AxisAlignedBB box = te.getRenderBoundingBox();
-				ReikaAABBHelper.renderAABB(box, par2, par4, par6, te.xCoord, te.yCoord, te.zCoord, 255, 64, 64, 32, true);
-				GL11.glDepthMask(false);
-				GL11.glTranslated(par2, par4, par6);
-				double s = 0.2;
-				GL11.glTranslated(0.5, 7.5, 0.5);
-				//GL11.glRotated(180-RenderManager.instance.playerViewY, 0, 1, 0);
-				//GL11.glRotated(-RenderManager.instance.playerViewX/2D, 1, 0, 0);
-				GL11.glScaled(-s, -s, s);
-				for (int i = 0; i < 4; i++) {
+		if (te.isInWorld()) {
+			//GL11.glTranslated(4, 0, 0);
+			if (this.doRenderModel(te)) {
+				if (MinecraftForgeClient.getRenderPass() == 0) {
+					this.renderModel(te);
+				}
+				GL11.glPopMatrix();
+				if (MinecraftForgeClient.getRenderPass() == 1) {
 					GL11.glPushMatrix();
-					GL11.glRotated(i*90, 0, 1, 0);
-					GL11.glTranslated(0, 0, -5.5/s);
-					GL11.glRotated(-30, 0, 0, 1);
-					ReikaGuiAPI.instance.drawCenteredStringNoShadow(this.getFontRenderer(), "Incomplete", 0, 0, 0xffffff);
+					Tessellator.instance.setBrightness(240);
+					Tessellator.instance.setColorOpaque_I(0xffffff);
+					ReikaRenderHelper.disableEntityLighting();
+					ReikaRenderHelper.disableLighting();
+					GL11.glColor4f(1, 1, 1, 1);
+					GL11.glEnable(GL11.GL_BLEND);
+					BlendMode.DEFAULT.apply();
+					AxisAlignedBB box = te.getRenderBoundingBox();
+					ReikaAABBHelper.renderAABB(box, par2, par4, par6, te.xCoord, te.yCoord, te.zCoord, 255, 64, 64, 32, true);
+					GL11.glDepthMask(false);
+					GL11.glTranslated(par2, par4, par6);
+					double s = 0.2;
+					GL11.glTranslated(0.5, 7.5, 0.5);
+					//GL11.glRotated(180-RenderManager.instance.playerViewY, 0, 1, 0);
+					//GL11.glRotated(-RenderManager.instance.playerViewX/2D, 1, 0, 0);
+					GL11.glScaled(-s, -s, s);
+					for (int i = 0; i < 4; i++) {
+						GL11.glPushMatrix();
+						GL11.glRotated(i*90, 0, 1, 0);
+						GL11.glTranslated(0, 0, -5.5/s);
+						GL11.glRotated(-30, 0, 0, 1);
+						ReikaGuiAPI.instance.drawCenteredStringNoShadow(this.getFontRenderer(), "Incomplete", 0, 0, 0xffffff);
+						GL11.glPopMatrix();
+					}
+
 					GL11.glPopMatrix();
 				}
-
+			}
+			else {
 				GL11.glPopMatrix();
 			}
 		}
 		else {
-
+			render
 			GL11.glPopMatrix();
 		}
 		GL11.glPopAttrib();

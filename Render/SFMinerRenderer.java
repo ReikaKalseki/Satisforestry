@@ -31,55 +31,60 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
 		GL11.glPushMatrix();
 		GL11.glTranslated(par2, par4, par6);
-		GL11.glTranslated(4, 0, 0);
-		GL11.glRotated(180, 0, 1, 0);
-		if (this.doRenderModel(te)) {
-			if (MinecraftForgeClient.getRenderPass() == 0) {
-				this.renderModel(te);
+		if (te.isInWorld()) {
+			GL11.glTranslated(4, 0, 0);
+			GL11.glRotated(180, 0, 1, 0);
+			if (this.doRenderModel(te)) {
+				if (MinecraftForgeClient.getRenderPass() == 0) {
+					this.renderModel(te);
+				}
+				GL11.glPopMatrix();
+				if (MinecraftForgeClient.getRenderPass() == 1) {
+					GL11.glPushMatrix();
+					ReikaRenderHelper.disableEntityLighting();
+					ReikaRenderHelper.disableLighting();
+					GL11.glEnable(GL11.GL_BLEND);
+					BlendMode.DEFAULT.apply();
+					AxisAlignedBB box = te.getRenderBoundingBox();
+					ReikaAABBHelper.renderAABB(box, par2, par4, par6, te.xCoord, te.yCoord, te.zCoord, 255, 64, 64, 32, true);
+
+					ForgeDirection dir = te.getDirection();
+
+					GL11.glDepthMask(false);
+					GL11.glTranslated(par2, par4, par6);
+					double a = 0.5+dir.offsetX*1.5;
+					double b = 6.5;
+					double c = 0.5+dir.offsetZ*1.5;
+					double s = 0.25;
+					if (dir.offsetX == 0) {
+						a += 2.5;
+					}
+					else {
+						c += 2.5;
+					}
+					GL11.glTranslated(a, b, c);
+					//GL11.glRotated(180-RenderManager.instance.playerViewY, 0, 1, 0);
+					//GL11.glRotated(-RenderManager.instance.playerViewX/2D, 1, 0, 0);
+					GL11.glRotated(30, dir.offsetX == 0 ? 1 : 0, 0, dir.offsetZ == 0 ? 1 : 0);
+					if (dir.offsetX != 0)
+						GL11.glScaled(s, -s, 1);
+					else
+						GL11.glScaled(1, -s, s);
+					ReikaGuiAPI.instance.drawCenteredStringNoShadow(this.getFontRenderer(), "Incomplete", 0, 0, 0xffffff);
+					GL11.glRotated(180, 0, 1, 0);
+					GL11.glTranslated(dir.offsetZ*5-dir.offsetX*3, 0, dir.offsetX*5-dir.offsetZ*3);
+					GL11.glRotated(-60, dir.offsetX == 0 ? 1 : 0, 0, dir.offsetZ == 0 ? 1 : 0);
+					ReikaGuiAPI.instance.drawCenteredStringNoShadow(this.getFontRenderer(), "Incomplete", 0, 0, 0xffffff);
+
+					GL11.glPopMatrix();
+				}
 			}
-			GL11.glPopMatrix();
-			if (MinecraftForgeClient.getRenderPass() == 1) {
-				GL11.glPushMatrix();
-				ReikaRenderHelper.disableEntityLighting();
-				ReikaRenderHelper.disableLighting();
-				GL11.glEnable(GL11.GL_BLEND);
-				BlendMode.DEFAULT.apply();
-				AxisAlignedBB box = te.getRenderBoundingBox();
-				ReikaAABBHelper.renderAABB(box, par2, par4, par6, te.xCoord, te.yCoord, te.zCoord, 255, 64, 64, 32, true);
-
-				ForgeDirection dir = te.getDirection();
-
-				GL11.glDepthMask(false);
-				GL11.glTranslated(par2, par4, par6);
-				double a = 0.5+dir.offsetX*1.5;
-				double b = 6.5;
-				double c = 0.5+dir.offsetZ*1.5;
-				double s = 0.25;
-				if (dir.offsetX == 0) {
-					a += 2.5;
-				}
-				else {
-					c += 2.5;
-				}
-				GL11.glTranslated(a, b, c);
-				//GL11.glRotated(180-RenderManager.instance.playerViewY, 0, 1, 0);
-				//GL11.glRotated(-RenderManager.instance.playerViewX/2D, 1, 0, 0);
-				GL11.glRotated(30, dir.offsetX == 0 ? 1 : 0, 0, dir.offsetZ == 0 ? 1 : 0);
-				if (dir.offsetX != 0)
-					GL11.glScaled(s, -s, 1);
-				else
-					GL11.glScaled(1, -s, s);
-				ReikaGuiAPI.instance.drawCenteredStringNoShadow(this.getFontRenderer(), "Incomplete", 0, 0, 0xffffff);
-				GL11.glRotated(180, 0, 1, 0);
-				GL11.glTranslated(dir.offsetZ*5-dir.offsetX*3, 0, dir.offsetX*5-dir.offsetZ*3);
-				GL11.glRotated(-60, dir.offsetX == 0 ? 1 : 0, 0, dir.offsetZ == 0 ? 1 : 0);
-				ReikaGuiAPI.instance.drawCenteredStringNoShadow(this.getFontRenderer(), "Incomplete", 0, 0, 0xffffff);
-
+			else {
 				GL11.glPopMatrix();
 			}
 		}
 		else {
-
+			render
 			GL11.glPopMatrix();
 		}
 		GL11.glPopAttrib();
