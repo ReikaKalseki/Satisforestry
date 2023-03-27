@@ -21,6 +21,7 @@ import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.potion.Potion;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -46,6 +47,7 @@ import Reika.DragonAPI.ModRegistry.ModOreList;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
+import Reika.Satisforestry.Config.AlternateRecipe.PowerRequirement;
 import Reika.Satisforestry.Config.DoggoDrop.Checks;
 import Reika.Satisforestry.Config.NodeResource.EffectTypes;
 import Reika.Satisforestry.Config.NodeResource.Purity;
@@ -60,6 +62,7 @@ public class BiomeConfig {
 	private LuaBlockDatabase itemData;
 	private LuaBlockDatabase fluidData;
 	private LuaBlockDatabase doggoData;
+	private LuaBlockDatabase recipeData;
 
 	private int definitionCount;
 	private int entryAttemptsCount;
@@ -68,147 +71,187 @@ public class BiomeConfig {
 	private final HashMap<String, OreClusterType> oreEntries = new HashMap();
 	private final HashMap<String, ResourceItem> resourceEntries = new HashMap();
 	private final HashMap<String, ResourceFluid> fluidEntries = new HashMap();
+	private final HashMap<String, AlternateRecipe> recipeEntries = new HashMap();
 	private final Collection<DoggoDrop> doggoEntries = new ArrayList();
 	private final HashSet<KeyedItemStack> doggoItems = new HashSet();
 	private final HashMap<OreType, Integer> doggoOres = new HashMap();
 
 	private BiomeConfig() {
-		oreData = new LuaBlockDatabase();
-		OreLuaBlock example = new OreLuaBlock("example", null, oreData);
-		example.putData("type", "example_ores");
-		example.putData("block", "minecraft:iron_ore");
-		//example.putData("generate", "true");
-		OreLuaBlock ores = new OreLuaBlock("blocks", example, oreData);
-		OreLuaBlock spawns = new OreLuaBlock("spawnLocations", example, oreData);
-		for (OreSpawnLocation s : OreSpawnLocation.values()) {
-			OreLuaBlock sec = new OreLuaBlock(s.name(), spawns, oreData);
-			sec.putData("sizeScale", 1F);
-			sec.putData("maxSize", 4);
-			sec.putData("spawnWeight", 10);
-			sec.setComment("maxSize", "max cluster radius");
+		{
+			oreData = new LuaBlockDatabase();
+			OreLuaBlock example = new OreLuaBlock("example", null, oreData);
+			example.putData("type", "example_ores");
+			example.putData("block", "minecraft:iron_ore");
+			//example.putData("generate", "true");
+			OreLuaBlock ores = new OreLuaBlock("blocks", example, oreData);
+			OreLuaBlock spawns = new OreLuaBlock("spawnLocations", example, oreData);
+			for (OreSpawnLocation s : OreSpawnLocation.values()) {
+				OreLuaBlock sec = new OreLuaBlock(s.name(), spawns, oreData);
+				sec.putData("sizeScale", 1F);
+				sec.putData("maxSize", 4);
+				sec.putData("spawnWeight", 10);
+				sec.setComment("maxSize", "max cluster radius");
+			}
+			example.setComment("block", "single block type, mutually exclusive with 'blocks'");
+			example.setComment("blocks", "optional, multiple block shorthand; mutually exclusive with 'block'");
+			spawns.setComment(null, "where this type can spawn, valid locations: "+ReikaJavaLibrary.getEnumNameList(OreSpawnLocation.class));
+			oreData.addBlock("example", example);
 		}
-		example.setComment("block", "single block type, mutually exclusive with 'blocks'");
-		example.setComment("blocks", "optional, multiple block shorthand; mutually exclusive with 'block'");
-		spawns.setComment(null, "where this type can spawn, valid locations: "+ReikaJavaLibrary.getEnumNameList(OreSpawnLocation.class));
-		oreData.addBlock("example", example);
 
-		itemData = new LuaBlockDatabase();
-		ResourceItemLuaBlock example2 = new ResourceItemLuaBlock("example", null, itemData);
-		example2.putData("type", "example_resources");
-		example2.putData("spawnWeight", 10);
-		example2.putData("renderColor", "0xffffff");
-		//example2.putData("generate", "true");
-		ResourceItemLuaBlock levels = new ResourceItemLuaBlock("purityLevels", example2, itemData);
-		for (Purity p : Purity.list) {
-			levels.putData(p.name(), p == Purity.NORMAL ? 25 : 10);
+		{
+			itemData = new LuaBlockDatabase();
+			ResourceItemLuaBlock example2 = new ResourceItemLuaBlock("example", null, itemData);
+			example2.putData("type", "example_resources");
+			example2.putData("spawnWeight", 10);
+			example2.putData("renderColor", "0xffffff");
+			//example2.putData("generate", "true");
+			ResourceItemLuaBlock levels = new ResourceItemLuaBlock("purityLevels", example2, itemData);
+			for (Purity p : Purity.list) {
+				levels.putData(p.name(), p == Purity.NORMAL ? 25 : 10);
+			}
+			ResourceItemLuaBlock items = new ResourceItemLuaBlock("outputItems", example2, itemData);
+			LuaBlock item = new ResourceItemLuaBlock("{", items, itemData);
+			item.putData("key", "minecraft:iron_ingot");
+			item.putData("weight", 10);
+			item.putData("minCount", 1);
+			item.putData("maxCount", 3);
+			item.putData("minimumPurity", Purity.IMPURE.name());
+			item = new ResourceItemLuaBlock("{", items, itemData);
+			item.putData("key", "minecraft:gold_ingot");
+			item.putData("weight", 6);
+			item.putData("minCount", 1);
+			item.putData("maxCount", 1);
+			item.putData("manualWeightModifier", 0.3);
+			item.putData("manualAmountModifier", 0.5);
+			ResourceItemLuaBlock scales = new ResourceItemLuaBlock("weightModifiers", item, itemData);
+			for (Purity p : Purity.list) {
+				scales.putData(p.name(), (p.ordinal()+1)/2F);
+			}
+			scales = new ResourceItemLuaBlock("amountModifiers", item, itemData);
+			for (Purity p : Purity.list) {
+				scales.putData(p.name(), p == Purity.PURE ? 1F : 0.5F);
+			}
+			item.putData("minimumPurity", Purity.NORMAL.name());
+			ResourceItemLuaBlock effects = new ResourceItemLuaBlock("effects", example2, itemData);
+			item = new ResourceItemLuaBlock("{", effects, itemData);
+			item.putData("effectType", "damage");
+			item.putData("amount", 0.5F);
+			item.putData("rate", 20);
+			item.setComment("effectType", "type of effect, valid values: "+ReikaJavaLibrary.getEnumNameList(EffectTypes.class));
+			item.setComment("rate", "ticks per hit");
+			item = new ResourceItemLuaBlock("{", effects, itemData);
+			item.putData("effectType", "potion");
+			item.putData("potionID", Potion.weakness.id);
+			item.putData("level", 1);
+			example2.setComment("minCount", "min yield per harvest cycle");
+			example2.setComment("maxCount", "max yield per harvest cycle");
+			levels.setComment(null, "purity level distribution");
+			effects.setComment(null, "optional, ambient AoE effects around the node");
+			item.setComment("potionID", "weakness");
+			itemData.addBlock("example", example2);
 		}
-		ResourceItemLuaBlock items = new ResourceItemLuaBlock("outputItems", example2, itemData);
-		LuaBlock item = new ResourceItemLuaBlock("{", items, itemData);
-		item.putData("key", "minecraft:iron_ingot");
-		item.putData("weight", 10);
-		item.putData("minCount", 1);
-		item.putData("maxCount", 3);
-		item.putData("minimumPurity", Purity.IMPURE.name());
-		item = new ResourceItemLuaBlock("{", items, itemData);
-		item.putData("key", "minecraft:gold_ingot");
-		item.putData("weight", 6);
-		item.putData("minCount", 1);
-		item.putData("maxCount", 1);
-		item.putData("manualWeightModifier", 0.3);
-		item.putData("manualAmountModifier", 0.5);
-		ResourceItemLuaBlock scales = new ResourceItemLuaBlock("weightModifiers", item, itemData);
-		for (Purity p : Purity.list) {
-			scales.putData(p.name(), (p.ordinal()+1)/2F);
+
+		{
+			fluidData = new LuaBlockDatabase();
+			ResourceFluidLuaBlock example2b = new ResourceFluidLuaBlock("example", null, fluidData);
+			example2b.putData("type", "example_fluids");
+			example2b.putData("spawnWeight", 10);
+			example2b.putData("renderColor", "0xFF8000");
+			example2b.putData("maxSubnodes", 6);
+			example2b.putData("glowAtNight", true);
+			//example2b.putData("generate", "true");
+			ResourceFluidLuaBlock levels2 = new ResourceFluidLuaBlock("purityLevels", example2b, fluidData);
+			for (Purity p : Purity.list) {
+				levels2.putData(p.name(), p == Purity.NORMAL ? 25 : 10);
+			}
+			ResourceFluidLuaBlock fluid = new ResourceFluidLuaBlock("outputFluids", example2b, fluidData);
+			fluid.putData("key", "lava");
+			fluid.putData("weight", 10);
+			fluid.putData("minAmount", 100);
+			fluid.putData("maxAmount", 500);
+			ResourceFluidLuaBlock scales2 = new ResourceFluidLuaBlock("amountModifiers", fluid, fluidData);
+			for (Purity p : Purity.list) {
+				scales2.putData(p.name(), (p.ordinal()+1)*0.5F);
+			}
+			ResourceFluidLuaBlock effects2 = new ResourceFluidLuaBlock("effects", example2b, fluidData);
+			fluid = new ResourceFluidLuaBlock("{", effects2, fluidData);
+			fluid.putData("effectType", "damage");
+			fluid.putData("amount", 2.5F);
+			fluid.putData("rate", 20);
+			fluid = new ResourceFluidLuaBlock("inputFluids", example2b, fluidData);
+			fluid.putData("key", "water");
+			fluid.putData("amount", 100);
+			fluid.setComment("effectType", "type of effect, valid values: "+ReikaJavaLibrary.getEnumNameList(EffectTypes.class));
+			fluid.setComment("rate", "ticks per hit");
+			example2b.setComment("minCount", "min yield per harvest cycle");
+			example2b.setComment("maxCount", "max yield per harvest cycle");
+			levels2.setComment(null, "purity level distribution");
+			effects2.setComment(null, "optional, ambient AoE effects2 around the node");
+			fluidData.addBlock("example", example2b);
 		}
-		scales = new ResourceItemLuaBlock("amountModifiers", item, itemData);
-		for (Purity p : Purity.list) {
-			scales.putData(p.name(), p == Purity.PURE ? 1F : 0.5F);
+
+		{
+			doggoData = new LuaBlockDatabase();
+			DoggoLuaBlock example3 = new DoggoLuaBlock("example", null, doggoData);
+			example3.putData("type", "example_doggo");
+			//example3.putData("generate", "true");
+			DoggoLuaBlock drops = new DoggoLuaBlock("findableItems", example3, doggoData);
+
+			DoggoDrop drop = new DoggoDrop(Items.diamond, 1, 1, 2);
+			drop.addWeightFactor(Checks.MAXY, 16, 2);
+			drop.addWeightFactor(Checks.MAXY, 24, 1.5);
+			drop.addWeightFactor(Checks.MAXY, 40, 1.2);
+			drop.addCondition(Checks.HEALTH, 0.75F);
+			drop.addCondition(Checks.SKY, false);
+			drop.createLuaBlock(drops, doggoData);
+
+			drop = new DoggoDrop(Items.slime_ball, 1, 2, 15);
+			drop.addCondition(Checks.BIOME, 6);
+			drop.addCondition(Checks.PEACEFUL, false);
+			drop.createLuaBlock(drops, doggoData);
+
+			ItemStack is = new ItemStack(Items.bone);
+			ReikaEnchantmentHelper.applyEnchantment(is, Enchantment.baneOfArthropods, 2);
+			drop = new DoggoDrop(is, 1, 4, 10);
+			drop.addWeightFactor(Checks.NIGHT, true, 2.5);
+			drop.createLuaBlock(drops, doggoData);
+
+			//drop = new DoggoDrop(Satisforestry.paleberry, 1, 16, 50);
+			//drop.createLuaBlock(drops, doggoData);
+
+			doggoData.addBlock("example", example3);
 		}
-		item.putData("minimumPurity", Purity.NORMAL.name());
-		ResourceItemLuaBlock effects = new ResourceItemLuaBlock("effects", example2, itemData);
-		item = new ResourceItemLuaBlock("{", effects, itemData);
-		item.putData("effectType", "damage");
-		item.putData("amount", 0.5F);
-		item.putData("rate", 20);
-		item.setComment("effectType", "type of effect, valid values: "+ReikaJavaLibrary.getEnumNameList(EffectTypes.class));
-		item.setComment("rate", "ticks per hit");
-		item = new ResourceItemLuaBlock("{", effects, itemData);
-		item.putData("effectType", "potion");
-		item.putData("potionID", Potion.weakness.id);
-		item.putData("level", 1);
-		example2.setComment("minCount", "min yield per harvest cycle");
-		example2.setComment("maxCount", "max yield per harvest cycle");
-		levels.setComment(null, "purity level distribution");
-		effects.setComment(null, "optional, ambient AoE effects around the node");
-		item.setComment("potionID", "weakness");
-		itemData.addBlock("example", example2);
 
-		fluidData = new LuaBlockDatabase();
-		ResourceFluidLuaBlock example2b = new ResourceFluidLuaBlock("example", null, fluidData);
-		example2b.putData("type", "example_fluids");
-		example2b.putData("spawnWeight", 10);
-		example2b.putData("renderColor", "0xFF8000");
-		example2b.putData("maxSubnodes", 6);
-		example2b.putData("glowAtNight", true);
-		//example2b.putData("generate", "true");
-		ResourceFluidLuaBlock levels2 = new ResourceFluidLuaBlock("purityLevels", example2b, fluidData);
-		for (Purity p : Purity.list) {
-			levels2.putData(p.name(), p == Purity.NORMAL ? 25 : 10);
+		{
+			recipeData = new LuaBlockDatabase();
+			AltRecipeLuaBlock example3 = new AltRecipeLuaBlock("example", null, recipeData);
+			example3.putData("type", "example_alt_recipe");
+			example3.putData("spawnWeight", 40);
+			//example3.putData("generate", "true");
+			AltRecipeLuaBlock recipe = new AltRecipeLuaBlock("recipe", example3, recipeData);
+			recipe.putData("shaped", true);
+			recipe.putData("input_top", "null, minecraft:book, null");
+			recipe.putData("input_middle", "minecraft:gold_ingot, minecraft:iron_block, minecraft:gold_ingot");
+			recipe.putData("input_bottom", "null, minecraft:book, null");
+			AltRecipeLuaBlock out = new AltRecipeLuaBlock("output", recipe, recipeData);
+			out.putData("item", "minecraft:iron_pickaxe");
+			AltRecipeLuaBlock nbt = new AltRecipeLuaBlock("nbt", out, recipeData);
+			AltRecipeLuaBlock ench = new AltRecipeLuaBlock("ench", nbt, recipeData);
+			AltRecipeLuaBlock ench2 = new AltRecipeLuaBlock("{", ench, recipeData);
+			ench2.putData("id", 35);
+			ench2.putData("lvl", 3);
+
+			AltRecipeLuaBlock pwr = new AltRecipeLuaBlock("requiredPower", example3, recipeData);
+			pwr.putData("format", "RF");
+			pwr.putData("amount", 6000);
+			pwr.putData("time", 30);
+			pwr.putData("timeUnit", "seconds");
+
+			AltRecipeLuaBlock req = new AltRecipeLuaBlock("requiredItem", example3, recipeData);
+			req.putData("item", "minecraft:redstone*18");
+
+			recipeData.addBlock("example", example3);
 		}
-		ResourceFluidLuaBlock fluid = new ResourceFluidLuaBlock("outputFluids", example2b, fluidData);
-		fluid.putData("key", "lava");
-		fluid.putData("weight", 10);
-		fluid.putData("minAmount", 100);
-		fluid.putData("maxAmount", 500);
-		ResourceFluidLuaBlock scales2 = new ResourceFluidLuaBlock("amountModifiers", fluid, fluidData);
-		for (Purity p : Purity.list) {
-			scales2.putData(p.name(), (p.ordinal()+1)*0.5F);
-		}
-		ResourceFluidLuaBlock effects2 = new ResourceFluidLuaBlock("effects", example2b, fluidData);
-		fluid = new ResourceFluidLuaBlock("{", effects2, fluidData);
-		fluid.putData("effectType", "damage");
-		fluid.putData("amount", 2.5F);
-		fluid.putData("rate", 20);
-		fluid = new ResourceFluidLuaBlock("inputFluids", example2b, fluidData);
-		fluid.putData("key", "water");
-		fluid.putData("amount", 100);
-		fluid.setComment("effectType", "type of effect, valid values: "+ReikaJavaLibrary.getEnumNameList(EffectTypes.class));
-		fluid.setComment("rate", "ticks per hit");
-		example2b.setComment("minCount", "min yield per harvest cycle");
-		example2b.setComment("maxCount", "max yield per harvest cycle");
-		levels2.setComment(null, "purity level distribution");
-		effects2.setComment(null, "optional, ambient AoE effects2 around the node");
-		fluidData.addBlock("example", example2b);
-
-		doggoData = new LuaBlockDatabase();
-		DoggoLuaBlock example3 = new DoggoLuaBlock("example", null, doggoData);
-		example3.putData("type", "example_doggo");
-		//example3.putData("generate", "true");
-		DoggoLuaBlock drops = new DoggoLuaBlock("findableItems", example3, doggoData);
-
-		DoggoDrop drop = new DoggoDrop(Items.diamond, 1, 1, 2);
-		drop.addWeightFactor(Checks.MAXY, 16, 2);
-		drop.addWeightFactor(Checks.MAXY, 24, 1.5);
-		drop.addWeightFactor(Checks.MAXY, 40, 1.2);
-		drop.addCondition(Checks.HEALTH, 0.75F);
-		drop.addCondition(Checks.SKY, false);
-		drop.createLuaBlock(drops, doggoData);
-
-		drop = new DoggoDrop(Items.slime_ball, 1, 2, 15);
-		drop.addCondition(Checks.BIOME, 6);
-		drop.addCondition(Checks.PEACEFUL, false);
-		drop.createLuaBlock(drops, doggoData);
-
-		ItemStack is = new ItemStack(Items.bone);
-		ReikaEnchantmentHelper.applyEnchantment(is, Enchantment.baneOfArthropods, 2);
-		drop = new DoggoDrop(is, 1, 4, 10);
-		drop.addWeightFactor(Checks.NIGHT, true, 2.5);
-		drop.createLuaBlock(drops, doggoData);
-
-		//drop = new DoggoDrop(Satisforestry.paleberry, 1, 16, 50);
-		//drop.createLuaBlock(drops, doggoData);
-
-		doggoData.addBlock("example", example3);
 
 		doggoOres.put(ReikaOreHelper.COAL, 20);
 		doggoOres.put(ReikaOreHelper.IRON, 10);
@@ -287,6 +330,10 @@ public class BiomeConfig {
 		File f3 = new File(folder, "doggo.lua");
 		f3.createNewFile();
 		ReikaFileReader.writeLinesToFile(f3, doggoData.getBlock("example").writeToStrings(), true);
+
+		File f5 = new File(folder, "recipes.lua");
+		f5.createNewFile();
+		ReikaFileReader.writeLinesToFile(f5, recipeData.getBlock("example").writeToStrings(), true);
 	}
 
 	private void createExampleFile(File f) throws IOException {
@@ -294,6 +341,7 @@ public class BiomeConfig {
 		if (out.exists())
 			out.delete();
 		out.createNewFile();
+
 		ArrayList<String> li = oreData.getBlock("example").writeToStrings();
 		li.set(li.size()-1, li.get(li.size()-1)+",");
 		li.addAll(itemData.getBlock("example").writeToStrings());
@@ -301,6 +349,9 @@ public class BiomeConfig {
 		li.addAll(fluidData.getBlock("example").writeToStrings());
 		li.set(li.size()-1, li.get(li.size()-1)+",");
 		li.addAll(doggoData.getBlock("example").writeToStrings());
+		li.set(li.size()-1, li.get(li.size()-1)+",");
+		li.addAll(recipeData.getBlock("example").writeToStrings());
+
 		ReikaFileReader.writeLinesToFile(out, li, true);
 	}
 
@@ -309,17 +360,20 @@ public class BiomeConfig {
 		LuaBlock example2 = itemData.getBlock("example");
 		LuaBlock example3 = doggoData.getBlock("example");
 		LuaBlock example4 = fluidData.getBlock("example");
+		LuaBlock example5 = recipeData.getBlock("example");
 
 		oreData = new LuaBlockDatabase();
 		itemData = new LuaBlockDatabase();
 		fluidData = new LuaBlockDatabase();
 		doggoData = new LuaBlockDatabase();
+		recipeData = new LuaBlockDatabase();
 
 		oreEntries.clear();
 		resourceEntries.clear();
 		fluidEntries.clear();
 		doggoEntries.clear();
 		doggoItems.clear();
+		recipeEntries.clear();
 
 		definitionCount = 0;
 		entryAttemptsCount = 0;
@@ -329,6 +383,7 @@ public class BiomeConfig {
 		itemData.addBlock("example", example2);
 		doggoData.addBlock("example", example3);
 		fluidData.addBlock("example", example4);
+		recipeData.addBlock("example", example5);
 	}
 
 	private void loadFiles(File parent) {
@@ -336,6 +391,7 @@ public class BiomeConfig {
 		File f2 = ReikaFileReader.getFileByNameAnyExt(parent, "resources");
 		File f4 = ReikaFileReader.getFileByNameAnyExt(parent, "fluids");
 		File f3 = ReikaFileReader.getFileByNameAnyExt(parent, "doggo");
+		File f5 = ReikaFileReader.getFileByNameAnyExt(parent, "recipes");
 		if (f2 == null || !f2.exists()) {
 			throw new InstallationException(Satisforestry.instance, "No resource config file found!");
 		}
@@ -354,7 +410,12 @@ public class BiomeConfig {
 		if (f3.exists())
 			doggoData.loadFromFile(f3);
 		else
-			Satisforestry.logger.log("No doggo config file found; doggos will not find items.");
+			Satisforestry.logger.log("No doggo config file found; the only items doggos will find will be the ones hardcoded to Satisforestry.");
+
+		if (f5.exists())
+			recipeData.loadFromFile(f5);
+		else
+			Satisforestry.logger.log("No custom recipe config file found; your only alternate recipes will be the ones hardcoded to Satisforestry.");
 	}
 
 	private void parseConfigs() {
@@ -443,6 +504,27 @@ public class BiomeConfig {
 			}
 		}
 		Satisforestry.logger.log("All doggo-item config entries parsed; files contained "+definitionCount+" definitions, for a total of "+entryAttemptsCount+" entries, of which "+entryCount+" loaded.");
+
+		definitionCount = 0;
+		entryAttemptsCount = 0;
+		entryCount = 0;
+
+		root = recipeData.getRootBlock();
+		for (LuaBlock b : root.getChildren()) {
+			try {
+				definitionCount++;
+				String type = b.getString("type");
+				recipeData.addBlock(type, b);
+				this.parseAltRecipeEntry(type, b);
+			}
+			catch (Exception e) {
+				Satisforestry.logger.logError("Could not parse config section "+b.getString("type")+": ");
+				ReikaJavaLibrary.pConsole(b);
+				ReikaJavaLibrary.pConsole("----------------------Cause------------------------");
+				e.printStackTrace();
+			}
+		}
+		Satisforestry.logger.log("All alternate recipe config entries parsed; files contained "+definitionCount+" definitions, for a total of "+entryAttemptsCount+" entries, of which "+entryCount+" loaded.");
 		this.addHardcodedEntries();
 	}
 
@@ -481,6 +563,12 @@ public class BiomeConfig {
 				doggoEntries.add(new DoggoDrop(ore.getFirstOreBlock(), 1, amtMax, e.getValue()));
 			}
 		}
+
+		//this.addAlternateRecipe("Compacted Coal", 50, ReikaRecipeHelper.getShapelessRecipeFor(out, null));
+	}
+
+	public void addAlternateRecipe(String id, int wt, IRecipe rec, ItemStack need, PowerRequirement pwr) {
+		recipeEntries.put(id, new AlternateRecipe(id, wt, rec, need, pwr));
 	}
 
 	private void parseOreEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
@@ -716,6 +804,15 @@ public class BiomeConfig {
 		}
 	}
 
+	private void parseAltRecipeEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
+		entryAttemptsCount++;
+		AlternateRecipe rec = new AlternateRecipe(type, b.getInt("spawnWeight"), b.getChild("recipe"), b.getChild("requiredItem"), b.getChild("requiredPower"));
+		rec.displayName = b.getString("displayName");
+		recipeEntries.put(rec.id, rec);
+		Satisforestry.logger.log("Registered alternate recipe '"+type+"': "+rec.toString().replaceAll("\\\\n", " "));
+		entryCount++;
+	}
+
 	private Collection<BlockKey> parseBlocks(LuaBlock b) {
 		Collection<BlockKey> blocks = new HashSet();
 		Block block = Block.getBlockFromName(b.getString("block"));
@@ -757,6 +854,10 @@ public class BiomeConfig {
 		return oreEntries.values();
 	}
 
+	public Collection<AlternateRecipe> getAlternateRecipes() {
+		return recipeEntries.values();
+	}
+
 	public Collection<ResourceItem> getResourceDrops() {
 		return resourceEntries.values();
 	}
@@ -771,6 +872,10 @@ public class BiomeConfig {
 
 	public ResourceFluid getFluidByID(String s) {
 		return fluidEntries.get(s);
+	}
+
+	public AlternateRecipe getAltRecipeByID(String s) {
+		return recipeEntries.get(s);
 	}
 
 	public Collection<DoggoDrop> getDoggoDrops() {
@@ -835,6 +940,18 @@ public class BiomeConfig {
 			requiredElements.add("spawnWeight");
 
 			requiredElements.add("findableItems");
+		}
+
+	}
+
+	static class AltRecipeLuaBlock extends LuaBlock {
+
+		protected AltRecipeLuaBlock(String n, LuaBlock lb, LuaBlockDatabase db) {
+			super(n, lb, db);
+
+			requiredElements.add("name");
+			requiredElements.add("spawnWeight");
+			requiredElements.add("recipe");
 		}
 
 	}

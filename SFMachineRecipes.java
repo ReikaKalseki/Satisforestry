@@ -67,7 +67,7 @@ public class SFMachineRecipes {
 		this.addRecipe(core, "sps", "pCp", "sps", 'p', this.getPlate(true), 's', steelIngot, 'C', this.getFrame(false));
 		ItemStack tube = SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.TUBE.ordinal());
 		ItemStack housing = SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.ORANGE.ordinal());
-		this.addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.ORANGE.ordinal()), 2, "obo", "ofo", "obo", 'b', core, 'o', orange, 'f', this.getFrame(false));
+		this.addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.ORANGE.ordinal(), 2), "obo", "ofo", "obo", 'b', core, 'o', orange, 'f', this.getFrame(false));
 		this.addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.SILVER.ordinal()), "sos", "obo", "sos", 'b', core, 'o', this.getPlate(false), 's', silver);
 		this.addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.DARK.ordinal()), "sss", "pCp", "sss", 'C', core, 'p', this.getPlate(true), 's', steelIngot);
 		this.addRecipe(SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.HUB.ordinal()), "sGs", "pCp", "sGs", 'G', gear, 'C', core, 'p', this.getPlate(false), 's', steelIngot);

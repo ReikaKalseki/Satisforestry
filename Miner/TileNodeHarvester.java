@@ -183,6 +183,8 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 
 	@SideOnly(Side.CLIENT)
 	public double getDrillVerticalOffsetScale(double phase1L, double phase2L) {
+		if (!this.isInWorld())
+			return 0;
 		switch(spoolState) {
 			case IDLE:
 			case LOCKING:
@@ -251,6 +253,8 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	}
 
 	public final ForgeDirection getDirection() {
+		if (!this.isInWorld())
+			return ForgeDirection.WEST;
 		return structureDir;
 	}
 

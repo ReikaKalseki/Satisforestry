@@ -72,7 +72,9 @@ public class SFFrackerRenderer extends TileEntityRenderBase {
 			}
 		}
 		else {
-			render
+			GL11.glTranslated(-0.6, -0.6, 0);
+			GL11.glScaled(0.1, 0.1, 0.1);
+			this.renderModel(te);
 			GL11.glPopMatrix();
 		}
 		GL11.glPopAttrib();
@@ -83,27 +85,29 @@ public class SFFrackerRenderer extends TileEntityRenderBase {
 		ReikaTextureHelper.bindTexture(Satisforestry.class, "Textures/fracker.png");
 		GL11.glPushMatrix();
 		//model.drawChassis();
-		GL11.glPushMatrix();
-		GL11.glTranslated(0, -te.thumper1.getPosition(), 0);
-		//model.drawThumper1();
-		GL11.glTranslated(0, te.thumper1.getPosition()-te.thumper2.getPosition(), 0);
-		//model.drawThumper2();
-		GL11.glTranslated(0, te.thumper2.getPosition()-te.thumper3.getPosition(), 0);
-		//model.drawThumper3();
-		GL11.glTranslated(0, te.thumper3.getPosition()-te.thumper4.getPosition(), 0);
-		//model.drawThumper4();
-		GL11.glTranslated(0, te.thumper4.getPosition(), 0);
-		GL11.glPopMatrix();
-		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-		ReikaRenderHelper.disableLighting();
-		ReikaRenderHelper.disableEntityLighting();
-		int c = te.getState().color;
-		if (te.getOverclockingStep(true) > 0) {
-			float f = 0.5F+(float)(0.5*Math.sin(te.getTicksExisted()*0.004));
-			c = ReikaColorAPI.mixColors(c, 0xffffff, f);
+		if (te.isInWorld()) {
+			GL11.glPushMatrix();
+			GL11.glTranslated(0, -te.thumper1.getPosition(), 0);
+			//model.drawThumper1();
+			GL11.glTranslated(0, te.thumper1.getPosition()-te.thumper2.getPosition(), 0);
+			//model.drawThumper2();
+			GL11.glTranslated(0, te.thumper2.getPosition()-te.thumper3.getPosition(), 0);
+			//model.drawThumper3();
+			GL11.glTranslated(0, te.thumper3.getPosition()-te.thumper4.getPosition(), 0);
+			//model.drawThumper4();
+			GL11.glTranslated(0, te.thumper4.getPosition(), 0);
+			GL11.glPopMatrix();
+			GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+			ReikaRenderHelper.disableLighting();
+			ReikaRenderHelper.disableEntityLighting();
+			int c = te.getState().color;
+			if (te.getOverclockingStep(true) > 0) {
+				float f = 0.5F+(float)(0.5*Math.sin(te.getTicksExisted()*0.004));
+				c = ReikaColorAPI.mixColors(c, 0xffffff, f);
+			}
+			//model.drawLightbar(c);
+			GL11.glPopAttrib();
 		}
-		//model.drawLightbar(c);
-		GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
 

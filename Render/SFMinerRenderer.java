@@ -84,7 +84,9 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 			}
 		}
 		else {
-			render
+			GL11.glTranslated(-0.6, -0.6, 0);
+			GL11.glScaled(0.1, 0.1, 0.1);
+			this.renderModel(te);
 			GL11.glPopMatrix();
 		}
 		GL11.glPopAttrib();
@@ -117,16 +119,18 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 		GL11.glRotated(te.drillSpinAngle, 0, 1, 0);
 		model.drawDrill();
 		GL11.glPopMatrix();
-		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
-		ReikaRenderHelper.disableLighting();
-		ReikaRenderHelper.disableEntityLighting();
-		int c = te.getState().color;
-		if (te.getOverclockingStep(true) > 0) {
-			float f = 0.5F+(float)(0.5*Math.sin(te.getTicksExisted()*0.004));
-			c = ReikaColorAPI.mixColors(c, 0xffffff, f);
+		if (te.isInWorld()) {
+			GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+			ReikaRenderHelper.disableLighting();
+			ReikaRenderHelper.disableEntityLighting();
+			int c = te.getState().color;
+			if (te.getOverclockingStep(true) > 0) {
+				float f = 0.5F+(float)(0.5*Math.sin(te.getTicksExisted()*0.004));
+				c = ReikaColorAPI.mixColors(c, 0xffffff, f);
+			}
+			model.drawLightbar(c);
+			GL11.glPopAttrib();
 		}
-		model.drawLightbar(c);
-		GL11.glPopAttrib();
 		GL11.glPopMatrix();
 	}
 

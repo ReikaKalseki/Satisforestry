@@ -28,6 +28,7 @@ import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockCaveShield;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner;
+import Reika.Satisforestry.Blocks.BlockCrashSite;
 import Reika.Satisforestry.Blocks.BlockDecoration;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
 import Reika.Satisforestry.Blocks.BlockFrackerMulti;
@@ -73,6 +74,7 @@ public enum SFBlocks implements BlockEnum {
 	FRACKNODEAUX(BlockFrackingAux.class, null),
 	FRACKER(BlockFrackingPressurizer.class, ItemBlockNodeHarvester.class),
 	FRACKERMULTI(BlockFrackerMulti.class, ItemBlockMinerMulti.class),
+	CRASHSITE(BlockCrashSite.class, MetadataItemBlock.class),
 	;
 
 	private final Class blockClass;
@@ -124,6 +126,9 @@ public enum SFBlocks implements BlockEnum {
 				return Material.wood;
 			case HARVESTER:
 			case MINERMULTI:
+			case FRACKER:
+			case FRACKERMULTI:
+			case CRASHSITE:
 				return Material.iron;
 			case SLUG:
 				return Satisforestry.slugMaterial;
@@ -249,6 +254,8 @@ public enum SFBlocks implements BlockEnum {
 				return 8;
 			case SLUG:
 				return 6;
+			case CRASHSITE:
+				return 4;
 			default:
 				return 1;
 		}
@@ -274,7 +281,11 @@ public enum SFBlocks implements BlockEnum {
 
 	@Override
 	public ItemStack getStackOfMetadata(int meta) {
-		return new ItemStack(this.getBlockInstance(), 1, meta);
+		return this.getStackOfMetadata(meta, 1);
+	}
+
+	public ItemStack getStackOfMetadata(int meta, int amt) {
+		return new ItemStack(this.getBlockInstance(), amt, meta);
 	}
 
 	public boolean matchWith(ItemStack is) {

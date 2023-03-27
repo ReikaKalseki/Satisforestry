@@ -13,6 +13,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
+import Reika.Satisforestry.Blocks.BlockCrashSite.TileCrashSite;
 import Reika.Satisforestry.Miner.ContainerSFMiner;
 import Reika.Satisforestry.Miner.GuiSFFracker;
 import Reika.Satisforestry.Miner.GuiSFMiner;
@@ -30,6 +31,9 @@ public class SFGuiHandler implements IGuiHandler {
 		if (te instanceof TileResourceHarvesterBase) {
 			return new ContainerSFMiner(player, (TileResourceHarvesterBase)te);
 		}
+		else if (te instanceof TileCrashSite) {
+			return new ContainerCrashSite(player, (TileCrashSite)te);
+		}
 		return null;
 	}
 
@@ -39,8 +43,11 @@ public class SFGuiHandler implements IGuiHandler {
 		if (te instanceof TileNodeHarvester) {
 			return new GuiSFMiner(player, (TileNodeHarvester)te);
 		}
-		if (te instanceof TileFrackingPressurizer) {
+		else if (te instanceof TileFrackingPressurizer) {
 			return new GuiSFFracker(player, (TileFrackingPressurizer)te);
+		}
+		else if (te instanceof TileCrashSite) {
+			return new GuiCrashSite(player, (TileCrashSite)te);
 		}
 		return null;
 	}

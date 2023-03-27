@@ -27,6 +27,7 @@ import Reika.DragonAPI.Interfaces.PacketHandler;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper.DataPacket;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper.PacketObj;
+import Reika.Satisforestry.Blocks.BlockCrashSite.TileCrashSite;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitterFireball;
 
@@ -184,6 +185,11 @@ public class SFPacketHandler implements PacketHandler {
 						}
 					}
 					break;
+				case CRASHUNLOCK:
+					if (!world.isRemote) {
+						((TileCrashSite)world.getTileEntity(x, y, z)).tryOpen(ep);
+					}
+					break;
 			}
 		}
 		catch (NullPointerException e) {
@@ -198,6 +204,7 @@ public class SFPacketHandler implements PacketHandler {
 		MOBDAMAGE(1),
 		SPITTERFIREHIT(7),
 		SPITTERBLAST(1),
+		CRASHUNLOCK(0),
 		;
 
 		public final int numInts;
