@@ -17,6 +17,7 @@ public class NEISFConfig implements IConfigureNEI {
 	private static final ResourceNodeHandler nodes = new ResourceNodeHandler();
 	private static final FluidNodeHandler fluids = new FluidNodeHandler();
 	private static final DoggoDropHandler doggo = new DoggoDropHandler();
+	private static final AlternateRecipeNEIHandler alts = new AlternateRecipeNEIHandler();
 
 	@Override
 	public void loadConfig() {
@@ -24,6 +25,7 @@ public class NEISFConfig implements IConfigureNEI {
 		API.registerRecipeHandler(nodes);
 		API.registerRecipeHandler(fluids);
 		API.registerRecipeHandler(doggo);
+		API.registerRecipeHandler(alts);
 	}
 
 	@Override

@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.MovingObjectPosition.MovingObjectType;
@@ -187,7 +188,13 @@ public class SFPacketHandler implements PacketHandler {
 					break;
 				case CRASHUNLOCK:
 					if (!world.isRemote) {
-						((TileCrashSite)world.getTileEntity(x, y, z)).tryOpen(ep);
+						boolean ret = ((TileCrashSite)world.getTileEntity(x, y, z)).tryOpen(ep);
+						ReikaPacketHelper.sendDataPacket(Satisforestry.packetChannel, SFPackets.CRASHUNLOCKRETURN.ordinal(), (EntityPlayerMP)ep, ret ? 1 : 0);
+					}
+					break;
+				case CRASHUNLOCKRETURN:
+					if (world.isRemote) {
+						TileCrashSite.reactToLockGuiStatus(data[0] > 0);
 					}
 					break;
 			}
@@ -205,6 +212,7 @@ public class SFPacketHandler implements PacketHandler {
 		SPITTERFIREHIT(7),
 		SPITTERBLAST(1),
 		CRASHUNLOCK(0),
+		CRASHUNLOCKRETURN(1),
 		;
 
 		public final int numInts;

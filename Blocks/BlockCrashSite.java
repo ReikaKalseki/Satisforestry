@@ -1,9 +1,11 @@
 package Reika.Satisforestry.Blocks;
 
 import java.util.List;
+import java.util.Random;
 
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
@@ -23,19 +25,23 @@ import net.minecraftforge.common.util.ForgeDirection;
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
+import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.StructuredBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Interfaces.TileEntity.InertIInv;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
+import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.ModRegistry.PowerTypes;
 import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Config.AlternateRecipe;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFSounds;
 
 import cofh.api.energy.IEnergyReceiver;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import framesapi.IMoveCheck;
 import ic2.api.energy.tile.IEnergySink;
 import mcp.mobius.waila.api.IWailaConfigHandler;
@@ -64,11 +70,10 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 			case 0:
 				return blockIcon;
 			case 1:
-				return SFBlocks.MINERMULTI.getBlockInstance().getIcon(0, MinerBlocks.ORANGE.ordinal());
 			case 2:
-				return SFBlocks.MINERMULTI.getBlockInstance().getIcon(0, MinerBlocks.DARK.ordinal());
 			case 3:
-				return SFBlocks.MINERMULTI.getBlockInstance().getIcon(0, MinerBlocks.SILVER.ordinal());
+			case 4:
+				return SFBlocks.MINERMULTI.getBlockInstance().getIcon(0, meta-1);
 			default:
 				return Blocks.bedrock.blockIcon;
 		}
@@ -152,6 +157,8 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 	@Strippable(value={"ic2.api.energy.tile.IEnergySink"})
 	public static class TileCrashSite extends TileEntity implements InertIInv, IEnergyReceiver, IEnergySink, ShaftPowerReceiver {
 
+		private static WeightedRandom<AlternateRecipe> recipeSet = new WeightedRandom();
+
 		private AlternateRecipe recipe;
 
 		private ItemStack currentItem;
@@ -167,8 +174,14 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 
 		public float progressFactor;
 
-		public void setRecipe(AlternateRecipe rec) {
-			recipe = rec;
+		public void generate(Random rand) {
+			if (recipeSet.isEmpty()) {
+				for (AlternateRecipe ri : BiomeConfig.instance.getAlternateRecipes()) {
+					recipeSet.addEntry(ri, ri.spawnWeight);
+				}
+			}
+			recipeSet.setRNG(rand);
+			recipe = recipeSet.getRandomEntry();
 		}
 
 		public void addWaila(List<String> tip) {
@@ -202,7 +215,7 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 		public boolean tryOpen(EntityPlayer ep) {
 			if (isOpened)
 				return false;
-			if (this.isRequirementMet()) {
+			if (this.isRequirementMet() && !recipe.playerHas(ep)) {
 				recipe.giveToPlayer(ep);
 				currentItem = null;
 				isOpened = true;
@@ -282,8 +295,11 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 		}
 
 		public final void setInventorySlotContents(int par1, ItemStack is) {
-			if (par1 == 0)
+			if (par1 == 0) {
 				currentItem = is;
+				if (worldObj != null)
+					worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+			}
 		}
 
 		public boolean isUseableByPlayer(EntityPlayer var1) {
@@ -434,6 +450,14 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 		@Override
 		public int getMaxEnergyStored(ForgeDirection from) {
 			return Integer.MAX_VALUE;
+		}
+
+		@SideOnly(Side.CLIENT)
+		public static void reactToLockGuiStatus(boolean success) {
+			if (success)
+				ReikaSoundHelper.playClientSound(SFSounds.CRASHOPEN, Minecraft.getMinecraft().thePlayer, 1, 1);
+			else
+				ReikaSoundHelper.playClientSound(SFSounds.CRASHFAIL, Minecraft.getMinecraft().thePlayer, 1, 1);
 		}
 
 	}

@@ -91,6 +91,10 @@ public class AlternateRecipe {
 		return id+" = "+recipe.getRecipeOutput();
 	}
 
+	public ItemStack getOutput() {
+		return recipe.getRecipeOutput().copy();
+	}
+
 	public static class PowerRequirement {
 
 		public final PowerTypes type;

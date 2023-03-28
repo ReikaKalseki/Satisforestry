@@ -37,6 +37,7 @@ import Reika.DragonAPI.ModInteract.ItemHandlers.ChiselBlockHandler;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Generator.WorldGenCaveFlora;
+import Reika.Satisforestry.Biome.Generator.WorldGenCrashSite;
 import Reika.Satisforestry.Biome.Generator.WorldGenFrackingNode;
 import Reika.Satisforestry.Biome.Generator.WorldGenOreCluster;
 import Reika.Satisforestry.Biome.Generator.WorldGenPoisonRocks;
@@ -59,6 +60,7 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 	private final WorldGenOreCluster oreGenerator = new WorldGenOreCluster();
 	private final WorldGenPowerSlugs slugGenerator = new WorldGenPowerSlugs();
 	private final WorldGenFrackingNode frackingGenerator = new WorldGenFrackingNode(false);
+	private final WorldGenCrashSite crashGenerator = new WorldGenCrashSite(false);
 
 	//private int riverHeight;
 	//private int glassHeight;
@@ -142,8 +144,9 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		int top = currentWorld.getTopSolidOrLiquidBlock(x, z);
 
 		if (!pondGenerator.generate(currentWorld, randomGenerator, x, top, z)) {
-			if (randomGenerator.nextInt(3) == 0 || !frackingGenerator.generate(currentWorld, randomGenerator, x, top, z))
-				oreGenerator.generate(currentWorld, randomGenerator, x, top, z);
+			if (randomGenerator.nextInt(5) > 0 || !crashGenerator.generate(currentWorld, randomGenerator, x, top, z))
+				if (randomGenerator.nextInt(3) == 0 || !frackingGenerator.generate(currentWorld, randomGenerator, x, top, z))
+					oreGenerator.generate(currentWorld, randomGenerator, x, top, z);
 		}
 
 		super.genDecorations(biome);

@@ -255,7 +255,7 @@ public enum SFBlocks implements BlockEnum {
 			case SLUG:
 				return 6;
 			case CRASHSITE:
-				return 4;
+				return 5;
 			default:
 				return 1;
 		}

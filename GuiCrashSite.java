@@ -8,19 +8,26 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 
-import Reika.DragonAPI.Instantiable.GUI.ImagedGuiButton;
+import Reika.DragonAPI.Instantiable.GUI.CustomSoundGuiButton.CustomSoundGui;
+import Reika.DragonAPI.Instantiable.GUI.CustomSoundGuiButton.CustomSoundImagedGuiButton;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
+import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
 import Reika.Satisforestry.SFPacketHandler.SFPackets;
 import Reika.Satisforestry.Blocks.BlockCrashSite.TileCrashSite;
 import Reika.Satisforestry.Config.AlternateRecipe;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFSounds;
 
-public class GuiCrashSite extends GuiContainer {
+public class GuiCrashSite extends GuiContainer implements CustomSoundGui {
 
 	protected final TileCrashSite tile;
 	protected final EntityPlayer player;
+
+	private static final String TEXTURE = "/Reika/Satisforestry/Textures/crashgui.png";
+
+	private long ticksUntilPacket = -1;
 
 	public GuiCrashSite(EntityPlayer ep, TileCrashSite te) {
 		super(new ContainerCrashSite(ep, te));
@@ -37,14 +44,14 @@ public class GuiCrashSite extends GuiContainer {
 
 		int j = (width - xSize) / 2;
 		int k = (height - ySize) / 2;
-		buttonList.add(new ImagedGuiButton(0, j+139, k+48, 16, 16, 139, 48, "/Reika/Satisforestry/Textures/crashgui.png", Satisforestry.class));
+		buttonList.add(new CrashSiteButton(0, j+139, k+47, 16, 16, 182, 220));
 	}
 
 	@Override
 	protected void actionPerformed(GuiButton b) {
 		super.actionPerformed(b);
 
-		ReikaPacketHelper.sendPacketToServer(Satisforestry.packetChannel, SFPackets.CRASHUNLOCK.ordinal(), tile);
+		ticksUntilPacket = 6;
 	}
 
 	@Override
@@ -61,6 +68,12 @@ public class GuiCrashSite extends GuiContainer {
 			int my = api.getMouseRealY();
 			api.drawTooltipAt(fontRendererObj, String.format("%d/%d", grin.getLevel(), grin.MAXLUBE), mx-j, my-k);
 		}*/
+
+		if (ticksUntilPacket > 0) {
+			ticksUntilPacket--;
+			if (ticksUntilPacket == 0)
+				ReikaPacketHelper.sendPacketToServer(Satisforestry.packetChannel, SFPackets.CRASHUNLOCK.ordinal(), tile);
+		}
 	}
 
 	@Override
@@ -69,7 +82,7 @@ public class GuiCrashSite extends GuiContainer {
 		int k = (height - ySize) / 2;
 
 		GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-		ReikaTextureHelper.bindTexture(Satisforestry.class, "/Reika/Satisforestry/Textures/crashgui.png");
+		ReikaTextureHelper.bindTexture(Satisforestry.class, TEXTURE);
 		this.drawTexturedModalRect(j, k, 0, 0, xSize, ySize);
 
 		AlternateRecipe r = tile.getRecipe();
@@ -123,10 +136,45 @@ public class GuiCrashSite extends GuiContainer {
 			ItemStack is = r.getRequiredItem();
 			if (is != null)
 				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Requires "+is.stackSize+" "+is.getDisplayName(), (j+53)*2, (k+38)*2, 0x646464);
-			String s = tile.isRequirementMet() ? "Press Button To Unlock" : "Requirements Not Met";
+			boolean met = tile.isRequirementMet();
+			String s = met ? "Press Button To Unlock" : "Requirements Not Met";
+			((CrashSiteButton)buttonList.get(0)).enabled = met;
 			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, s, (j+53)*2, (k+53)*2, 0x646464);
 			GL11.glPopMatrix();
 		}
+	}
+
+	private class CrashSiteButton extends CustomSoundImagedGuiButton {
+
+		public CrashSiteButton(int par1, int par2, int par3, int par4, int par5, int par7, int par8) {
+			super(par1, par2, par3, par4, par5, par7, par8, TEXTURE, Satisforestry.class, GuiCrashSite.this);
+		}
+
+		@Override
+		protected void getHoveredTextureCoordinates() {
+			v += 17;
+		}
+
+		@Override
+		protected void modifyTextureUV() {
+			if (this.isClicked())
+				u += 19;
+		}
+
+		@Override
+		protected void onFailedClick() {
+			ReikaSoundHelper.playClientSound(SFSounds.CRASHFAIL, player, 1, 1);
+		}
+	}
+
+	@Override
+	public void playButtonSound(GuiButton b) {
+		//silence
+	}
+
+	@Override
+	public void playHoverSound(GuiButton b) {
+
 	}
 
 }

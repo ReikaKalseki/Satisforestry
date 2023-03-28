@@ -128,9 +128,4 @@ public class WorldGenFrackingNode extends WorldGenerator {
 		Block b = world.getBlock(x, y, z);
 		return b == Blocks.grass || b == Blocks.dirt || b == Blocks.sand || b == Blocks.stone || (b == SFBlocks.TERRAIN.getBlockInstance() && world.getBlockMetadata(x, y, z) == TerrainType.OUTCROP.ordinal());
 	}
-
-	private void placeBlock(World world, int x, int y, int z) {
-		world.setBlock(x, y, z, SFBlocks.TERRAIN.getBlockInstance(), TerrainType.POISONROCK.ordinal(), 3);
-		//world.setBlock(x, y, z, Blocks.stone);
-	}
 }
