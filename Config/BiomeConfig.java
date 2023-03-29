@@ -577,16 +577,16 @@ public class BiomeConfig {
 		String sulf = ModOreList.SULFUR.getProductOreDictName();
 		if (ReikaItemHelper.oreItemExists(sulf)) {
 			Object coal = ReikaItemHelper.oreItemExists("dustCoal") ? "dustCoal" : Items.coal;
-			ItemStack in = ReikaItemHelper.lookupItem(SFOptions.COMPACTCOALITEM.getString());
+			ItemStack in = CustomRecipeList.parseItemString(SFOptions.COMPACTCOALITEM.getString(), null, true);
 			String pwr = SFOptions.COMPACTCOALPOWER.getString();
 			String[] parts = pwr.split(";");
-			ItemStack out = new ItemStack(Satisforestry.compactedCoal, 2, 1);
+			ItemStack out = new ItemStack(Satisforestry.compactedCoal, 2, 0);
 			if (parts.length != 3 || Strings.isNullOrEmpty(parts[0])) {
-				this.addAlternateRecipe(COMPACTED_COAL_ID, 50, new ShapelessOreRecipe(out, coal, coal, sulf, sulf), in, null, 0, 0);
+				this.addAlternateRecipe(COMPACTED_COAL_ID, null, 50, new ShapelessOreRecipe(out, coal, coal, sulf, sulf), in, null, 0, 0);
 			}
 			else {
 				try {
-					this.addAlternateRecipe(COMPACTED_COAL_ID, 50, new ShapelessOreRecipe(out, coal, coal, sulf, sulf), in, parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]));
+					this.addAlternateRecipe(COMPACTED_COAL_ID, null, 50, new ShapelessOreRecipe(out, coal, coal, sulf, sulf), in, parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]));
 				}
 				catch (Exception e) {
 					throw new InstallationException(Satisforestry.instance, "Invalid compacted coal alternate recipe parameters specified", e);
@@ -595,7 +595,8 @@ public class BiomeConfig {
 		}
 
 		if (Satisforestry.turbofuel != null) { //the recipe will not be craftable without another mod to add it from their side
-			ItemStack in = ReikaItemHelper.lookupItem(SFOptions.TURBOFUELITEM.getString());
+			String s = SFOptions.TURBOFUELITEM.getString();
+			ItemStack in = Strings.isNullOrEmpty(s) ? null : ReikaItemHelper.lookupItem(s);
 			IRecipe dummy = new UncraftableAltRecipe() {
 				@Override
 				public boolean matches(InventoryCrafting is, World world) {
@@ -617,11 +618,11 @@ public class BiomeConfig {
 			String pwr = SFOptions.TURBOFUELPOWER.getString();
 			String[] parts = pwr.split(";");
 			if (parts.length != 3 || Strings.isNullOrEmpty(parts[0])) {
-				this.addAlternateRecipe(TURBOFUEL_ID, 25, dummy, in, null, 0, 0);
+				this.addAlternateRecipe(TURBOFUEL_ID, "Turbofuel", 25, dummy, in, null, 0, 0);
 			}
 			else {
 				try {
-					this.addAlternateRecipe(TURBOFUEL_ID, 25, dummy, in, parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]));
+					this.addAlternateRecipe(TURBOFUEL_ID, "Turbofuel", 25, dummy, in, parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]));
 				}
 				catch (Exception e) {
 					throw new InstallationException(Satisforestry.instance, "Invalid compacted coal alternate recipe parameters specified", e);
@@ -630,10 +631,13 @@ public class BiomeConfig {
 		}
 	}
 
-	public AlternateRecipe addAlternateRecipe(String id, int wt, IRecipe rec, ItemStack need, String powerType, long powerAmount, long ticksFor) {
+	public AlternateRecipe addAlternateRecipe(String id, String disp, int wt, IRecipe rec, ItemStack need, String powerType, long powerAmount, long ticksFor) {
 		if (recipeEntries.containsKey(id))
 			throw new IllegalArgumentException("Recipe ID '"+id+"' is already in use: "+recipeEntries.get(id));
 		AlternateRecipe alt = new AlternateRecipe(id, wt, rec, need, powerType, powerAmount, ticksFor);
+		alt.displayName = disp;
+		if (Strings.isNullOrEmpty(disp) && rec.getRecipeOutput() == null)
+			throw new IllegalArgumentException("You cannot add a no-item-output recipe without setting a display name!");
 		recipeEntries.put(id, alt);
 		return alt;
 	}

@@ -25,9 +25,12 @@ import net.minecraftforge.common.util.ForgeDirection;
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
+import Reika.DragonAPI.Auxiliary.Trackers.TickScheduler;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.StructuredBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent;
+import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent.ScheduledEvent;
 import Reika.DragonAPI.Interfaces.TileEntity.InertIInv;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
@@ -221,7 +224,16 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 				isOpened = true;
 				this.markDirty();
 				worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
-				ep.closeScreen();
+				TickScheduler.instance.scheduleEvent(new ScheduledTickEvent(new ScheduledEvent() {
+					@Override
+					public void fire() {
+						ep.closeScreen();
+					}
+					@Override
+					public boolean runOnSide(Side s) {
+						return s == Side.SERVER;
+					}
+				}), 7);
 				return true;
 			}
 			else {

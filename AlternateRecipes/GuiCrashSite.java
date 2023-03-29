@@ -28,8 +28,6 @@ public class GuiCrashSite extends GuiContainer implements CustomSoundGui {
 
 	private static final String TEXTURE = "/Reika/Satisforestry/Textures/crashgui.png";
 
-	private long ticksUntilPacket = -1;
-
 	public GuiCrashSite(EntityPlayer ep, TileCrashSite te) {
 		super(new ContainerCrashSite(ep, te));
 		tile = te;
@@ -52,7 +50,7 @@ public class GuiCrashSite extends GuiContainer implements CustomSoundGui {
 	protected void actionPerformed(GuiButton b) {
 		super.actionPerformed(b);
 
-		ticksUntilPacket = 6;
+		ReikaPacketHelper.sendPacketToServer(Satisforestry.packetChannel, SFPackets.CRASHUNLOCK.ordinal(), tile);
 	}
 
 	@Override
@@ -69,12 +67,6 @@ public class GuiCrashSite extends GuiContainer implements CustomSoundGui {
 			int my = api.getMouseRealY();
 			api.drawTooltipAt(fontRendererObj, String.format("%d/%d", grin.getLevel(), grin.MAXLUBE), mx-j, my-k);
 		}*/
-
-		if (ticksUntilPacket > 0) {
-			ticksUntilPacket--;
-			if (ticksUntilPacket == 0)
-				ReikaPacketHelper.sendPacketToServer(Satisforestry.packetChannel, SFPackets.CRASHUNLOCK.ordinal(), tile);
-		}
 	}
 
 	@Override
@@ -142,6 +134,9 @@ public class GuiCrashSite extends GuiContainer implements CustomSoundGui {
 			((CrashSiteButton)buttonList.get(0)).enabled = met;
 			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, s, (j+53)*2, (k+53)*2, 0x646464);
 			GL11.glPopMatrix();
+		}
+		else {
+			((CrashSiteButton)buttonList.get(0)).enabled = false;
 		}
 	}
 

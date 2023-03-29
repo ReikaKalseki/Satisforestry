@@ -151,11 +151,12 @@ public class SFAPI {
 		/** Creates a new alternate recipe with the given ID, spawn weight, crafting recipe, and (optionally) either or both the
 		items and/or power input to the crash site required to be able to activate it and unlock the recipe for that player.
 		For those familiar, this is analogous to the mechanic on Satisfactory drop pods.
+		<br><br>Display name may be null to delegate to the item output display name, <b>if and only if that is non-null</b>.
 		<br><br><b>The recipe must be non-null</b>, but if you want to make the alternate recipe not a "vanilla-style" crafting recipe
 		(such that the alternate recipe acts primarily as a progress flag for your own code to check, eg in a custom machine's recipe system), then supply
 		an {@link IRecipe} of a class implementing the {@link UncraftableAltRecipe} interface. Do note that this will break the native NEI handling, and you
 		will need to handle it yourself in your own NEI handlers. Remember to display the unlock requirements; see the native NEI handling for reference. */
-		public AltRecipe addAltRecipe(String id, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor);
+		public AltRecipe addAltRecipe(String id, String displayName, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor);
 
 	}
 
@@ -307,7 +308,7 @@ public class SFAPI {
 		}
 
 		@Override
-		public AltRecipe addAltRecipe(String id, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor) {
+		public AltRecipe addAltRecipe(String id, String displayName, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor) {
 			return null;
 		}
 

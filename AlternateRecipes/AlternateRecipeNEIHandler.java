@@ -20,6 +20,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
@@ -62,16 +63,16 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 
 	@Override
 	public String getGuiTexture() {
-		return "unknown.png";
+		return "textures/gui/container/crafting_table.png";
 	}
 
 	@Override
 	public void drawBackground(int recipe)
 	{
 		GL11.glColor4f(1, 1, 1, 1);
-		//ReikaTextureHelper.bindTexture(RotaryCraft.class, this.getGuiTexture());
+		Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation(this.getGuiTexture()));
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
-		ReikaGuiAPI.instance.drawTexturedModalRectWithDepth(0, 1, 5, 11, 166, 70, ReikaGuiAPI.NEI_DEPTH);
+		ReikaGuiAPI.instance.drawTexturedModalRectWithDepth(0, 0, 5, 11, 166, 70, ReikaGuiAPI.NEI_DEPTH);
 	}
 
 	@Override
@@ -93,7 +94,8 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 		if (outputId != null && outputId.equals("altrecipes")) {
 			try {
 				for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
-					arecipes.add(new AltRecipe(dd));
+					if (dd.isCraftable())
+						arecipes.add(new AltRecipe(dd));
 				}
 			}
 			catch (Exception e) {
@@ -108,7 +110,8 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 		if (inputId != null && inputId.equals("altrecipes")) {
 			try {
 				for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
-					arecipes.add(new AltRecipe(dd));
+					if (dd.isCraftable())
+						arecipes.add(new AltRecipe(dd));
 				}
 			}
 			catch (Exception e) {
@@ -128,7 +131,7 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 		ArrayList<AltRecipe> li = new ArrayList();
 		try {
 			for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
-				if (ReikaItemHelper.matchStacks(dd.getRecipeOutput(), is))
+				if (dd.isCraftable() && ReikaItemHelper.matchStacks(dd.getRecipeOutput(), is))
 					li.add(new AltRecipe(dd));
 			}
 		}
@@ -142,7 +145,7 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 	public void loadUsageRecipes(ItemStack ingredient) {
 		super.loadUsageRecipes(ingredient);
 		for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
-			if (dd.usesItem(ingredient))
+			if (dd.isCraftable() && dd.usesItem(ingredient))
 				arecipes.add(new AltRecipe(dd));
 		}
 	}
@@ -163,12 +166,15 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 		if (a instanceof AltRecipe) {
 			AlternateRecipe r = ((AltRecipe)a).recipe;
 			FontRenderer fontRendererObj = Minecraft.getMinecraft().fontRenderer;
-			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, r.getDisplayName(), 53, 23, 0xFA9549);
+			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, r.getDisplayName(), 83, 63, 0xFA9549);
+			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Requires unlock in a crash site", 83, 80, 0x646464);
+			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "provided with the following:", 83, 92, 0x646464);
 			if (r.unlockPower != null)
-				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Requires "+r.unlockPower.getDisplayString(), 53, 32, 0x646464);
+				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Power: "+r.unlockPower.getDisplayString(), 83, 104, 0x646464);
 			ItemStack is = r.getRequiredItem();
 			if (is != null)
-				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Requires "+is.stackSize+" "+is.getDisplayName(), 53, 38, 0x646464);
+				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Items: "+is.stackSize+" "+is.getDisplayName(), 83, 116, 0x646464);
+			ReikaGuiAPI.instance.drawLine(4, 75, 162, 75, 0x646464);
 		}
 	}
 }

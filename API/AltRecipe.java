@@ -6,6 +6,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.world.World;
 
+import Reika.Satisforestry.API.SFAPI.AltRecipeHandler;
+
 /** Implemented by alternate recipes. This extends {@link IRecipe} and acts as a read-only view onto the internal recipe. */
 public interface AltRecipe extends IRecipe {
 
@@ -22,6 +24,9 @@ public interface AltRecipe extends IRecipe {
 
 	/** A recipe helper function, useful in NEI. */
 	public boolean usesItem(ItemStack ingredient);
+
+	/** Whether this recipe is craftable as a normal crafting recipe. False for flag-only recipes (see {@link AltRecipeHandler.addAltRecipe} and {@link UncraftableAltRecipe}) */
+	public boolean isCraftable();
 
 	public static interface UncraftableAltRecipe extends IRecipe {
 

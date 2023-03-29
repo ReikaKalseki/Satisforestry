@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import com.google.common.base.Strings;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.inventory.ICrafting;
@@ -96,7 +97,7 @@ public class AlternateRecipe implements AltRecipe {
 
 	private void addRecipe() {
 		Satisforestry.logger.log("Registering alternate recipe "+this);
-		GameRegistry.addRecipe(recipe);
+		GameRegistry.addRecipe(this);
 	}
 
 	public ItemStack getRequiredItem() {
@@ -104,7 +105,7 @@ public class AlternateRecipe implements AltRecipe {
 	}
 
 	public boolean matchesItem(ItemStack is) {
-		return unlockItem == null || (is != null && ItemStack.areItemStacksEqual(is, unlockItem));
+		return ItemStack.areItemStacksEqual(is, unlockItem);
 	}
 
 	public String getDisplayName() {
@@ -127,7 +128,7 @@ public class AlternateRecipe implements AltRecipe {
 		if (ep == null && world instanceof WorldServer) {
 			ep = ReikaPlayerAPI.getFakePlayerByNameAndUUID((WorldServer)world, "AltRecipe Backup", id);
 		}
-		return ep != null && AlternateRecipeManager.instance.getPlayerRecipeData(ep).contains(this.id);
+		return ep != null && AlternateRecipeManager.instance.getPlayerRecipeData(ep).contains(this);
 	}
 
 	@Override
@@ -137,18 +138,34 @@ public class AlternateRecipe implements AltRecipe {
 
 	@Override
 	public ItemStack getRecipeOutput() {
-		return recipe.getRecipeOutput().copy();
+		return this.isCraftable() ? recipe.getRecipeOutput().copy() : null;
 	}
 
 	@Override
 	public boolean matches(InventoryCrafting ic, World world) {
-		if (recipe instanceof UncraftableAltRecipe)
+		if (!this.isCraftable())
 			return false;
-		List<ICrafting> li = ic.eventHandler.crafters;
-		if (li.size() > 1 || (!(li.get(0) instanceof EntityPlayer)) || !this.playerHas(world, ((EntityPlayer)li.get(0)).getUniqueID())) {
+		EntityPlayer ep = this.getPlayer(world, ic);
+		if (ep == null || !this.playerHas(world, ep.getUniqueID())) {
 			return false;
 		}
 		return recipe.matches(ic, world);
+	}
+
+	private EntityPlayer getPlayer(World world, InventoryCrafting ic) {
+		if (world.isRemote) {
+			return this.getClientPlayer();
+		}
+		List<ICrafting> li = ic.eventHandler.crafters;
+		if (li.size() != 1 || (!(li.get(0) instanceof EntityPlayer))) {
+			return null;
+		}
+		return (EntityPlayer)li.get(0);
+	}
+
+	@SideOnly(Side.CLIENT)
+	private EntityPlayer getClientPlayer() {
+		return Minecraft.getMinecraft().thePlayer;
 	}
 
 	@Override
@@ -168,6 +185,15 @@ public class AlternateRecipe implements AltRecipe {
 	@Override
 	public String getRequiredPowerDesc() {
 		return unlockPower == null ? null : unlockPower.getDisplayString();
+	}
+
+	@Override
+	public String getID() {
+		return id;
+	}
+
+	public boolean isCraftable() {
+		return !(recipe instanceof UncraftableAltRecipe);
 	}
 
 	@SideOnly(Side.CLIENT)
@@ -221,11 +247,6 @@ public class AlternateRecipe implements AltRecipe {
 			return RotaryAux.formatPower(pwr);
 		}
 
-	}
-
-	@Override
-	public String getID() {
-		return id;
 	}
 
 }

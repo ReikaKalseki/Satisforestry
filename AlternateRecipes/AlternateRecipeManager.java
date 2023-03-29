@@ -122,8 +122,8 @@ public class AlternateRecipeManager implements AltRecipeHandler {
 	}
 
 	@Override
-	public AltRecipe addAltRecipe(String id, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor) {
-		return BiomeConfig.instance.addAlternateRecipe(id, spawnWeight, recipe, requiredUnlock, unlockPowerType, powerAmount, ticksFor);
+	public AltRecipe addAltRecipe(String id, String displayName, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor) {
+		return BiomeConfig.instance.addAlternateRecipe(id, displayName, spawnWeight, recipe, requiredUnlock, unlockPowerType, powerAmount, ticksFor);
 	}
 
 	@Override

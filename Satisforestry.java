@@ -275,7 +275,6 @@ public class Satisforestry extends DragonAPIMod {
 
 		//pinkriver = new BiomePinkRiver();
 
-		FurnaceFuelRegistry.instance.registerItem(new ItemStack(compactedCoal), FurnaceFuelRegistry.instance.getBurnTime(new ItemStack(Items.coal))*4);
 		Fluid f = FluidRegistry.getFluid("fuel");
 		if (f != null) {
 			turbofuel = new Fluid("turbofuel").setDensity((int)Math.min(f.getDensity()*1.1, 800)).setViscosity(f.getViscosity());
@@ -303,6 +302,8 @@ public class Satisforestry extends DragonAPIMod {
 	}
 
 	private void addRecipes() {
+		FurnaceFuelRegistry.instance.registerItem(new ItemStack(compactedCoal), TileEntityFurnace.getItemBurnTime(new ItemStack(Items.coal))*4);
+
 		float xp =  FurnaceRecipes.smelting().func_151398_b(ReikaItemHelper.charcoal);
 		for (PinkTreeTypes type : PinkTreeTypes.list) {
 			ItemStack log = type.getBaseLog();
