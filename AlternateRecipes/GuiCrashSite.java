@@ -1,4 +1,4 @@
-package Reika.Satisforestry;
+package Reika.Satisforestry.AlternateRecipes;
 
 import org.lwjgl.opengl.GL11;
 
@@ -15,6 +15,7 @@ import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
 import Reika.Satisforestry.SFPacketHandler.SFPackets;
+import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCrashSite.TileCrashSite;
 import Reika.Satisforestry.Config.AlternateRecipe;
 import Reika.Satisforestry.Registry.SFBlocks;

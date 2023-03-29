@@ -13,9 +13,10 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
-import Reika.Satisforestry.CrashSiteStructure;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.AlternateRecipes.CrashSiteStructure;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
+import Reika.Satisforestry.Blocks.BlockCrashSite.TileCrashSite;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Registry.SFBlocks;
 
@@ -68,7 +69,8 @@ public class WorldGenCrashSite extends WorldGenerator {
 		arr.place();
 		for (Coordinate c : arr.keySet())
 			c.setY(y0-2).setBlock(world, Blocks.dirt);
-		set recipe
+		TileCrashSite te = (TileCrashSite)world.getTileEntity(x, y, z);
+		te.generate(rand);
 		return true;
 	}
 

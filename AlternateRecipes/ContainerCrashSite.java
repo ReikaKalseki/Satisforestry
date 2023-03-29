@@ -1,4 +1,4 @@
-package Reika.Satisforestry;
+package Reika.Satisforestry.AlternateRecipes;
 
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.ICrafting;

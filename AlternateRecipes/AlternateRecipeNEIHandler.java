@@ -7,7 +7,7 @@
  * Distribution of the software in any form is only allowed with
  * explicit, prior permission from the owner.
  ******************************************************************************/
-package Reika.Satisforestry;
+package Reika.Satisforestry.AlternateRecipes;
 
 import java.awt.Rectangle;
 import java.util.ArrayList;
@@ -16,6 +16,8 @@ import java.util.List;
 
 import org.lwjgl.opengl.GL11;
 
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.item.ItemStack;
 
@@ -32,19 +34,23 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 	public class AltRecipe extends CachedRecipe {
 
 		private final AlternateRecipe recipe;
+		private final CachedRecipe neiDelegate;
 
 		public AltRecipe(AlternateRecipe is) {
 			recipe = is;
+			neiDelegate = is.createNEIDelegate();
 		}
 
 		@Override
 		public PositionedStack getResult() {
-			return new PositionedStack(recipe.getOutput(), 5, 10);
+			return neiDelegate == null ? new PositionedStack(recipe.getRecipeOutput(), 119, 24) : neiDelegate.getResult();
 		}
 
 		@Override
 		public List<PositionedStack> getIngredients() {
 			ArrayList<PositionedStack> li = new ArrayList();
+			if (neiDelegate != null)
+				li.addAll(neiDelegate.getIngredients());
 			return li;
 		}
 	}
@@ -79,7 +85,7 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 
 	@Override
 	public void loadTransferRects() {
-		transferRects.add(new RecipeTransferRect(new Rectangle(0, 3, 165, 52), "altrecipes"));
+		transferRects.add(new RecipeTransferRect(new Rectangle(84, 23, 24, 18), "altrecipes", new Object[0]));
 	}
 
 	@Override
@@ -99,6 +105,16 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 
 	@Override
 	public void loadUsageRecipes(String inputId, Object... ingredients) {
+		if (inputId != null && inputId.equals("altrecipes")) {
+			try {
+				for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
+					arecipes.add(new AltRecipe(dd));
+				}
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 		super.loadUsageRecipes(inputId, ingredients);
 	}
 
@@ -112,7 +128,7 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 		ArrayList<AltRecipe> li = new ArrayList();
 		try {
 			for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
-				if (ReikaItemHelper.matchStacks(dd.getOutput(), is))
+				if (ReikaItemHelper.matchStacks(dd.getRecipeOutput(), is))
 					li.add(new AltRecipe(dd));
 			}
 		}
@@ -125,6 +141,10 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 	@Override
 	public void loadUsageRecipes(ItemStack ingredient) {
 		super.loadUsageRecipes(ingredient);
+		for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
+			if (dd.usesItem(ingredient))
+				arecipes.add(new AltRecipe(dd));
+		}
 	}
 
 	@Override
@@ -138,11 +158,17 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 	}
 
 	@Override
-	public void drawExtras(int recipe)
-	{
-		CachedRecipe r = arecipes.get(recipe);
-		if (r instanceof AltRecipe) {
-
+	public void drawExtras(int recipe) {
+		CachedRecipe a = arecipes.get(recipe);
+		if (a instanceof AltRecipe) {
+			AlternateRecipe r = ((AltRecipe)a).recipe;
+			FontRenderer fontRendererObj = Minecraft.getMinecraft().fontRenderer;
+			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, r.getDisplayName(), 53, 23, 0xFA9549);
+			if (r.unlockPower != null)
+				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Requires "+r.unlockPower.getDisplayString(), 53, 32, 0x646464);
+			ItemStack is = r.getRequiredItem();
+			if (is != null)
+				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Requires "+is.stackSize+" "+is.getDisplayName(), 53, 38, 0x646464);
 		}
 	}
 }

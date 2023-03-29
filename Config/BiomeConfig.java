@@ -17,15 +17,20 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+import com.google.common.base.Strings;
+
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.init.Items;
+import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.potion.Potion;
+import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.oredict.ShapelessOreRecipe;
 
 import Reika.DragonAPI.Exception.InstallationException;
 import Reika.DragonAPI.Exception.RegistrationException;
@@ -40,23 +45,28 @@ import Reika.DragonAPI.Interfaces.Registry.OreType;
 import Reika.DragonAPI.Libraries.ReikaEnchantmentHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaOreHelper;
 import Reika.DragonAPI.ModInteract.DeepInteract.SensitiveFluidRegistry;
 import Reika.DragonAPI.ModInteract.DeepInteract.SensitiveItemRegistry;
 import Reika.DragonAPI.ModRegistry.ModOreList;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.API.AltRecipe.UncraftableAltRecipe;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
-import Reika.Satisforestry.Config.AlternateRecipe.PowerRequirement;
 import Reika.Satisforestry.Config.DoggoDrop.Checks;
 import Reika.Satisforestry.Config.NodeResource.EffectTypes;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFOptions;
 
 
 public class BiomeConfig {
 
 	public static final BiomeConfig instance = new BiomeConfig();
+
+	public static final String COMPACTED_COAL_ID = "Compacted Coal";
+	public static final String TURBOFUEL_ID = "Turbofuel";
 
 	private LuaBlockDatabase oreData;
 	private LuaBlockDatabase itemData;
@@ -564,11 +574,68 @@ public class BiomeConfig {
 			}
 		}
 
-		//this.addAlternateRecipe("Compacted Coal", 50, ReikaRecipeHelper.getShapelessRecipeFor(out, null));
+		String sulf = ModOreList.SULFUR.getProductOreDictName();
+		if (ReikaItemHelper.oreItemExists(sulf)) {
+			Object coal = ReikaItemHelper.oreItemExists("dustCoal") ? "dustCoal" : Items.coal;
+			ItemStack in = ReikaItemHelper.lookupItem(SFOptions.COMPACTCOALITEM.getString());
+			String pwr = SFOptions.COMPACTCOALPOWER.getString();
+			String[] parts = pwr.split(";");
+			ItemStack out = new ItemStack(Satisforestry.compactedCoal, 2, 1);
+			if (parts.length != 3 || Strings.isNullOrEmpty(parts[0])) {
+				this.addAlternateRecipe(COMPACTED_COAL_ID, 50, new ShapelessOreRecipe(out, coal, coal, sulf, sulf), in, null, 0, 0);
+			}
+			else {
+				try {
+					this.addAlternateRecipe(COMPACTED_COAL_ID, 50, new ShapelessOreRecipe(out, coal, coal, sulf, sulf), in, parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]));
+				}
+				catch (Exception e) {
+					throw new InstallationException(Satisforestry.instance, "Invalid compacted coal alternate recipe parameters specified", e);
+				}
+			}
+		}
+
+		if (Satisforestry.turbofuel != null) { //the recipe will not be craftable without another mod to add it from their side
+			ItemStack in = ReikaItemHelper.lookupItem(SFOptions.TURBOFUELITEM.getString());
+			IRecipe dummy = new UncraftableAltRecipe() {
+				@Override
+				public boolean matches(InventoryCrafting is, World world) {
+					return false;
+				}
+				@Override
+				public ItemStack getCraftingResult(InventoryCrafting ic) {
+					return this.getRecipeOutput();
+				}
+				@Override
+				public int getRecipeSize() {
+					return 0;
+				}
+				@Override
+				public ItemStack getRecipeOutput() {
+					return null;
+				}
+			};
+			String pwr = SFOptions.TURBOFUELPOWER.getString();
+			String[] parts = pwr.split(";");
+			if (parts.length != 3 || Strings.isNullOrEmpty(parts[0])) {
+				this.addAlternateRecipe(TURBOFUEL_ID, 25, dummy, in, null, 0, 0);
+			}
+			else {
+				try {
+					this.addAlternateRecipe(TURBOFUEL_ID, 25, dummy, in, parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]));
+				}
+				catch (Exception e) {
+					throw new InstallationException(Satisforestry.instance, "Invalid compacted coal alternate recipe parameters specified", e);
+				}
+			}
+		}
 	}
 
-	public void addAlternateRecipe(String id, int wt, IRecipe rec, ItemStack need, PowerRequirement pwr) {
-		recipeEntries.put(id, new AlternateRecipe(id, wt, rec, need, pwr));
+	public AlternateRecipe addAlternateRecipe(String id, int wt, IRecipe rec, ItemStack need, String powerType, long powerAmount, long ticksFor) {
+		if (recipeEntries.containsKey(id))
+			throw new IllegalArgumentException("Recipe ID '"+id+"' is already in use: "+recipeEntries.get(id));
+		AlternateRecipe alt = new AlternateRecipe(id, wt, rec, need, powerType, powerAmount, ticksFor);
+		recipeEntries.put(id, alt);
+		return alt;
 	}
 
 	private void parseOreEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
@@ -806,6 +873,8 @@ public class BiomeConfig {
 
 	private void parseAltRecipeEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
 		entryAttemptsCount++;
+		if (recipeEntries.containsKey(type))
+			throw new IllegalArgumentException("Recipe ID '"+type+"' is already in use: "+recipeEntries.get(type));
 		AlternateRecipe rec = new AlternateRecipe(type, b.getInt("spawnWeight"), b.getChild("recipe"), b.getChild("requiredItem"), b.getChild("requiredPower"));
 		rec.displayName = b.getString("displayName");
 		recipeEntries.put(rec.id, rec);

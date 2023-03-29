@@ -13,6 +13,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
 
+import Reika.Satisforestry.AlternateRecipes.ContainerCrashSite;
+import Reika.Satisforestry.AlternateRecipes.GuiCrashSite;
 import Reika.Satisforestry.Blocks.BlockCrashSite.TileCrashSite;
 import Reika.Satisforestry.Miner.ContainerSFMiner;
 import Reika.Satisforestry.Miner.GuiSFFracker;

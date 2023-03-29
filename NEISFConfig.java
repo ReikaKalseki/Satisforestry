@@ -9,6 +9,8 @@
  ******************************************************************************/
 package Reika.Satisforestry;
 
+import Reika.Satisforestry.AlternateRecipes.AlternateRecipeNEIHandler;
+
 import codechicken.nei.api.API;
 import codechicken.nei.api.IConfigureNEI;
 

@@ -13,6 +13,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.fluids.Fluid;
 
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
@@ -24,6 +25,7 @@ import Reika.Satisforestry.API.SFAPI.PinkForestCaveHandler;
 import Reika.Satisforestry.API.SFAPI.PinkForestResourceNodeHandler;
 import Reika.Satisforestry.API.SFAPI.PinkTreeHandler;
 import Reika.Satisforestry.API.SFAPI.PowerSlugHandler;
+import Reika.Satisforestry.AlternateRecipes.AlternateRecipeManager;
 import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave;
@@ -48,6 +50,7 @@ public class APIObjects {
 		SFAPI.resourceNodeHandler = new SFNodeHandler();
 		SFAPI.genericLookups = new SFLookups();
 		SFAPI.slugHandler = new SFSlugs();
+		SFAPI.altRecipeHandler = AlternateRecipeManager.instance;
 	}
 
 	private static class SFSlugs implements PowerSlugHandler {
@@ -109,6 +112,16 @@ public class APIObjects {
 		@Override
 		public Class<? extends EntityLiving> getMantaClass() {
 			return EntityFlyingManta.class;
+		}
+
+		@Override
+		public Item getCompactedCoal() {
+			return Satisforestry.compactedCoal;
+		}
+
+		@Override
+		public Fluid getTurbofuel() {
+			return Satisforestry.turbofuel;
 		}
 
 	}

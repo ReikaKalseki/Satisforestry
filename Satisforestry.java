@@ -22,6 +22,7 @@ import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.FurnaceRecipes;
@@ -35,6 +36,8 @@ import net.minecraftforge.common.BiomeManager;
 import net.minecraftforge.common.BiomeManager.BiomeEntry;
 import net.minecraftforge.common.BiomeManager.BiomeType;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.fluids.Fluid;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.oredict.OreDictionary;
 
@@ -54,6 +57,7 @@ import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaTreeHelper;
 import Reika.DragonAPI.ModInteract.ReikaClimateControl;
+import Reika.DragonAPI.ModInteract.Power.ReikaBuildCraftHelper;
 import Reika.DragonAPI.ModInteract.RecipeHandlers.ForestryRecipeHelper;
 import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.CaveNightvisionHandler;
@@ -69,6 +73,8 @@ import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFOptions;
 import Reika.Satisforestry.Render.ShaderActivation;
 
+import blusunrize.immersiveengineering.api.energy.DieselHandler;
+import buildcraft.energy.fuels.FuelManager;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.Mod.EventHandler;
@@ -86,6 +92,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 import forestry.api.recipes.IFermenterRecipe;
 import forestry.api.recipes.ISqueezerRecipe;
 import forestry.api.recipes.RecipeManagers;
+import ic2.api.recipe.ISemiFluidFuelManager.BurnProperty;
+import ic2.api.recipe.Recipes;
 import vazkii.botania.api.BotaniaAPI;
 import vazkii.botania.api.recipe.RecipeManaInfusion;
 
@@ -137,6 +145,9 @@ public class Satisforestry extends DragonAPIMod {
 
 	public static ItemFood paleberry;
 	public static ItemFood sludge;
+	public static Item compactedCoal;
+
+	public static Fluid turbofuel;
 
 	public static CreativeTabs tabCreative = new SatisforestryTab("Satisforestry");
 
@@ -218,6 +229,10 @@ public class Satisforestry extends DragonAPIMod {
 		sludge.setUnlocalizedName("doggosludge");
 		GameRegistry.registerItem(sludge, "doggosludge");
 
+		compactedCoal = new ItemCompactedCoal();
+		compactedCoal.setUnlocalizedName("compactedcoal");
+		GameRegistry.registerItem(compactedCoal, "compactedcoal");
+
 		this.basicSetup(evt);
 		FMLCommonHandler.instance().bus().register(this);
 		this.finishTiming();
@@ -259,6 +274,14 @@ public class Satisforestry extends DragonAPIMod {
 			ReikaClimateControl.registerBiome(pinkforest, 3, false, "COOL");
 
 		//pinkriver = new BiomePinkRiver();
+
+		FurnaceFuelRegistry.instance.registerItem(new ItemStack(compactedCoal), FurnaceFuelRegistry.instance.getBurnTime(new ItemStack(Items.coal))*4);
+		Fluid f = FluidRegistry.getFluid("fuel");
+		if (f != null) {
+			turbofuel = new Fluid("turbofuel").setDensity((int)Math.min(f.getDensity()*1.1, 800)).setViscosity(f.getViscosity());
+			FluidRegistry.registerFluid(turbofuel);
+
+		}
 
 		ReikaRegistryHelper.registerModEntities(instance, SFEntities.entityList);
 
@@ -306,6 +329,25 @@ public class Satisforestry extends DragonAPIMod {
 		this.addRecipes();
 
 		BiomeConfig.instance.loadConfigs();
+
+		if (turbofuel != null) {//generates same power as fuel, but lasts 2.5x as long
+			Fluid ref = FluidRegistry.getFluid("fuel");
+			if (ModList.BCENERGY.isLoaded()) {
+				FuelManager.INSTANCE.addFuel(turbofuel, ReikaBuildCraftHelper.getFuelRFPerTick(), ReikaBuildCraftHelper.getFuelBucketDuration()*5/2);
+			}
+			if (ModList.IC2.isLoaded() && !Recipes.semiFluidGenerator.getBurnProperties().isEmpty()) {
+				BurnProperty prop = Recipes.semiFluidGenerator.getBurnProperties().get(ref.getName());
+				if (prop != null) {
+					Recipes.semiFluidGenerator.addFluid(turbofuel.getName(), prop.amount*2/5, prop.power);
+				}
+			}
+			if (ModList.IMMERSIVEENG.isLoaded()) {
+				DieselHandler.registerFuel(turbofuel, DieselHandler.getBurnTime(ref)*5/2);
+			}
+			if (ModList.RAILCRAFT.isLoaded()) {
+				mods.railcraft.api.fuel.FuelManager.addBoilerFuel(turbofuel, mods.railcraft.api.fuel.FuelManager.getBoilerFuelValue(ref)*5/2);
+			}
+		}
 
 		//((BlockPowerSlug)SFBlocks.SLUG.getBlockInstance()).updateStepSounds();
 

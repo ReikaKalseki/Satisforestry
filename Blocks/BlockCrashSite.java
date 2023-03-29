@@ -212,10 +212,10 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 			}
 		}
 
-		public boolean tryOpen(EntityPlayer ep) {
+		public boolean tryOpen(EntityPlayerMP ep) {
 			if (isOpened)
 				return false;
-			if (this.isRequirementMet() && !recipe.playerHas(ep)) {
+			if (this.isRequirementMet() && !recipe.playerHas(ep.worldObj, ep.getUniqueID())) {
 				recipe.giveToPlayer(ep);
 				currentItem = null;
 				isOpened = true;

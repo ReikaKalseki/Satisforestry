@@ -29,7 +29,11 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, DecimalConfig, St
 	MUSIC("Satisfactory OST Folder", ""),
 	BORDERORE("Biome Border Ore Cluster Rate", 1F),
 	BLUEGREEN("Make Green Power Slugs Blue (SF Update 5)", false),
-	PALEBERRYPOLLEN("Paleberry Butterfly Fertilization Requires Pink Birch Pollen", false)
+	PALEBERRYPOLLEN("Paleberry Butterfly Fertilization Requires Pink Birch Pollen", false),
+	COMPACTCOALITEM("Compacted Coal Unlock Required Item (Empty for None)", "minecraft:coal*64"),
+	COMPACTCOALPOWER("Compacted Coal Unlock Required Power (power type;amount pertick;ticks to maintain)", "RF;300;600"),
+	TURBOFUELITEM("Turbofuel Unlock Required Item (Empty for None)", ""),
+	TURBOFUELPOWER("Turbofuel Unlock Required Power (power type;amount pertick;ticks to maintain)", "RF;2400;600"),
 	;
 
 	private String label;

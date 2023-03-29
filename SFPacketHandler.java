@@ -188,7 +188,7 @@ public class SFPacketHandler implements PacketHandler {
 					break;
 				case CRASHUNLOCK:
 					if (!world.isRemote) {
-						boolean ret = ((TileCrashSite)world.getTileEntity(x, y, z)).tryOpen(ep);
+						boolean ret = ((TileCrashSite)world.getTileEntity(x, y, z)).tryOpen((EntityPlayerMP)ep);
 						ReikaPacketHelper.sendDataPacket(Satisforestry.packetChannel, SFPackets.CRASHUNLOCKRETURN.ordinal(), (EntityPlayerMP)ep, ret ? 1 : 0);
 					}
 					break;

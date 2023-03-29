@@ -1,24 +1,45 @@
 package Reika.Satisforestry.Config;
 
+import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import com.google.common.base.Strings;
 
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.inventory.ICrafting;
 import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
+import net.minecraft.item.crafting.ShapedRecipes;
+import net.minecraft.item.crafting.ShapelessRecipes;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
+import net.minecraftforge.oredict.ShapedOreRecipe;
+import net.minecraftforge.oredict.ShapelessOreRecipe;
 
 import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Instantiable.IO.CustomRecipeList;
 import Reika.DragonAPI.Instantiable.IO.LuaBlock;
+import Reika.DragonAPI.Libraries.ReikaPlayerAPI;
+import Reika.DragonAPI.Libraries.ReikaRecipeHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaTimeHelper;
 import Reika.DragonAPI.ModRegistry.PowerTypes;
 import Reika.RotaryCraft.Auxiliary.RotaryAux;
+import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.API.AltRecipe;
+import Reika.Satisforestry.AlternateRecipes.AlternateRecipeManager;
 
-public class AlternateRecipe {
+import codechicken.nei.recipe.ShapedRecipeHandler;
+import codechicken.nei.recipe.ShapelessRecipeHandler;
+import codechicken.nei.recipe.TemplateRecipeHandler.CachedRecipe;
+import cpw.mods.fml.common.registry.GameRegistry;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
+
+public class AlternateRecipe implements AltRecipe {
 
 	public final String id;
 	public String displayName;
@@ -28,12 +49,22 @@ public class AlternateRecipe {
 	public final PowerRequirement unlockPower;
 	private final ItemStack unlockItem;
 
-	public AlternateRecipe(String id, double wt, IRecipe recipe, ItemStack needItem, PowerRequirement power) {
+	public AlternateRecipe(String id, double wt, IRecipe recipe, ItemStack needItem, String powerType, long powerAmount, long ticksFor) {
 		this.id = id;
 		spawnWeight = wt;
 		this.recipe = recipe;
 		unlockItem = needItem;
-		unlockPower = power;
+		if (Strings.isNullOrEmpty(powerType)) {
+			unlockPower = null;
+		}
+		else {
+			PowerTypes type = PowerTypes.valueOf(powerType.toUpperCase(Locale.ENGLISH));
+			if (type != PowerTypes.RF && type != PowerTypes.EU && type != PowerTypes.ROTARYCRAFT)
+				throw new IllegalArgumentException("Unsupported power type "+type);
+			unlockPower = new PowerRequirement(type, powerAmount, ticksFor);
+		}
+
+		this.addRecipe();
 	}
 
 	public AlternateRecipe(String id, double wt, LuaBlock recipe, LuaBlock needItem, LuaBlock power) {
@@ -59,6 +90,13 @@ public class AlternateRecipe {
 		}
 
 		unlockItem = needItem == null ? null : CustomRecipeList.parseItemString(needItem.getString("item"), needItem.getChild("nbt"), true);
+
+		this.addRecipe();
+	}
+
+	private void addRecipe() {
+		Satisforestry.logger.log("Registering alternate recipe "+this);
+		GameRegistry.addRecipe(recipe);
 	}
 
 	public ItemStack getRequiredItem() {
@@ -69,21 +107,27 @@ public class AlternateRecipe {
 		return unlockItem == null || (is != null && ItemStack.areItemStacksEqual(is, unlockItem));
 	}
 
-	public boolean matchesRecipe(InventoryCrafting con, World world) {
-		return recipe.matches(con, world);
-	}
-
 	public String getDisplayName() {
 		return Strings.isNullOrEmpty(displayName) ? recipe.getRecipeOutput().getDisplayName() : displayName;
 	}
 
-	public void giveToPlayer(EntityPlayer ep) {
-		//TODO
+	public boolean giveToPlayer(EntityPlayerMP ep) {
+		if (ep == null || ReikaPlayerAPI.isFake(ep)) {
+			Satisforestry.logger.logError("Tried to give alt recipe '"+this+"' to null or fake player???");
+			return false;
+		}
+		if (this.playerHas(ep.worldObj, ep.getUniqueID()))
+			return false;
+		AlternateRecipeManager.instance.setRecipeStatus(ep, this, true);
+		return true;
 	}
 
-	public boolean playerHas(EntityPlayer ep) {
-		//TODO
-		return false;
+	public boolean playerHas(World world, UUID id) {
+		EntityPlayer ep = world.func_152378_a(id);
+		if (ep == null && world instanceof WorldServer) {
+			ep = ReikaPlayerAPI.getFakePlayerByNameAndUUID((WorldServer)world, "AltRecipe Backup", id);
+		}
+		return ep != null && AlternateRecipeManager.instance.getPlayerRecipeData(ep).contains(this.id);
 	}
 
 	@Override
@@ -91,8 +135,61 @@ public class AlternateRecipe {
 		return id+" = "+recipe.getRecipeOutput();
 	}
 
-	public ItemStack getOutput() {
+	@Override
+	public ItemStack getRecipeOutput() {
 		return recipe.getRecipeOutput().copy();
+	}
+
+	@Override
+	public boolean matches(InventoryCrafting ic, World world) {
+		if (recipe instanceof UncraftableAltRecipe)
+			return false;
+		List<ICrafting> li = ic.eventHandler.crafters;
+		if (li.size() > 1 || (!(li.get(0) instanceof EntityPlayer)) || !this.playerHas(world, ((EntityPlayer)li.get(0)).getUniqueID())) {
+			return false;
+		}
+		return recipe.matches(ic, world);
+	}
+
+	@Override
+	public ItemStack getCraftingResult(InventoryCrafting ic) {
+		return recipe.getCraftingResult(ic);
+	}
+
+	@Override
+	public int getRecipeSize() {
+		return recipe.getRecipeSize();
+	}
+
+	public boolean usesItem(ItemStack ingredient) {
+		return ReikaRecipeHelper.recipeContains(recipe, ingredient);
+	}
+
+	@Override
+	public String getRequiredPowerDesc() {
+		return unlockPower == null ? null : unlockPower.getDisplayString();
+	}
+
+	@SideOnly(Side.CLIENT)
+	public CachedRecipe createNEIDelegate() {
+		if (recipe instanceof ShapedRecipes) {
+			ShapedRecipeHandler sr = new ShapedRecipeHandler();
+			return sr.new CachedShapedRecipe((ShapedRecipes)recipe);
+		}
+		else if (recipe instanceof ShapelessRecipes) {
+			ShapelessRecipes sr = (ShapelessRecipes)recipe;
+			ShapelessRecipeHandler srh = new ShapelessRecipeHandler();
+			return srh.new CachedShapelessRecipe(sr.recipeItems, sr.getRecipeOutput()); //ew
+		}
+		else if (recipe instanceof ShapedOreRecipe) {
+			return new ShapedRecipeHandler().forgeShapedRecipe((ShapedOreRecipe)recipe);
+		}
+		else if (recipe instanceof ShapelessOreRecipe) {
+			return new ShapelessRecipeHandler().forgeShapelessRecipe((ShapelessOreRecipe)recipe);
+		}
+		else {
+			return null;
+		}
 	}
 
 	public static class PowerRequirement {
@@ -124,6 +221,11 @@ public class AlternateRecipe {
 			return RotaryAux.formatPower(pwr);
 		}
 
+	}
+
+	@Override
+	public String getID() {
+		return id;
 	}
 
 }

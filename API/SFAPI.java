@@ -1,7 +1,9 @@
 package Reika.Satisforestry.API;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLiving;
@@ -9,10 +11,14 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.fluids.Fluid;
+
+import Reika.Satisforestry.API.AltRecipe.UncraftableAltRecipe;
 
 public class SFAPI {
 
@@ -23,6 +29,7 @@ public class SFAPI {
 	//public static PinkForestEntityHandler entityHandler = new DummyPlaceholder();
 	public static PinkForestSpawningHandler spawningHandler = new DummyPlaceholder();
 	public static PowerSlugHandler slugHandler = new DummyPlaceholder();
+	public static AltRecipeHandler altRecipeHandler = new DummyPlaceholder();
 	public static SFLookups genericLookups = new DummyPlaceholder();
 
 	public static interface PinkForestBiomeHandler {
@@ -100,6 +107,11 @@ public class SFAPI {
 
 		public Item getPaleberries();
 
+		public Item getCompactedCoal();
+
+		/** Will be null if a "fuel" fluid does not exist */
+		public Fluid getTurbofuel();
+
 		public Class<? extends EntityLiving> getSpitterClass();
 
 		public Class<? extends EntityLiving> getStingerClass();
@@ -126,7 +138,28 @@ public class SFAPI {
 
 	}
 
-	private static class DummyPlaceholder implements PinkForestBiomeHandler, PinkForestResourceNodeHandler, PinkForestCaveHandler, PinkTreeHandler, SFLookups, PinkForestSpawningHandler, PowerSlugHandler {
+	public static interface AltRecipeHandler {
+
+		public AltRecipe getRecipeByID(String id);
+
+		/** The full set of recipe IDs.<br><b>Note that these are populated very late</b>, in {@link FMLServerAboutToStart}! */
+		public Set<String> getRecipeIDs();
+
+		public String getCompactedCoalID();
+		public String getTurbofuelID();
+
+		/** Creates a new alternate recipe with the given ID, spawn weight, crafting recipe, and (optionally) either or both the
+		items and/or power input to the crash site required to be able to activate it and unlock the recipe for that player.
+		For those familiar, this is analogous to the mechanic on Satisfactory drop pods.
+		<br><br><b>The recipe must be non-null</b>, but if you want to make the alternate recipe not a "vanilla-style" crafting recipe
+		(such that the alternate recipe acts primarily as a progress flag for your own code to check, eg in a custom machine's recipe system), then supply
+		an {@link IRecipe} of a class implementing the {@link UncraftableAltRecipe} interface. Do note that this will break the native NEI handling, and you
+		will need to handle it yourself in your own NEI handlers. Remember to display the unlock requirements; see the native NEI handling for reference. */
+		public AltRecipe addAltRecipe(String id, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor);
+
+	}
+
+	private static class DummyPlaceholder implements PinkForestBiomeHandler, PinkForestResourceNodeHandler, PinkForestCaveHandler, PinkTreeHandler, SFLookups, PinkForestSpawningHandler, PowerSlugHandler, AltRecipeHandler {
 
 		@Override
 		public PinkTreeType[] getTypes() {
@@ -261,6 +294,41 @@ public class SFAPI {
 		@Override
 		public int getSlugHelmetTier(EntityLivingBase e) {
 			return 0;
+		}
+
+		@Override
+		public AltRecipe getRecipeByID(String id) {
+			return null;
+		}
+
+		@Override
+		public Set<String> getRecipeIDs() {
+			return new HashSet();
+		}
+
+		@Override
+		public AltRecipe addAltRecipe(String id, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor) {
+			return null;
+		}
+
+		@Override
+		public Item getCompactedCoal() {
+			return null;
+		}
+
+		@Override
+		public Fluid getTurbofuel() {
+			return null;
+		}
+
+		@Override
+		public String getCompactedCoalID() {
+			return null;
+		}
+
+		@Override
+		public String getTurbofuelID() {
+			return null;
 		}
 
 	}

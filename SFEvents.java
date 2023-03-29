@@ -273,6 +273,10 @@ public class SFEvents {
 
 			flameParticle = event.map.registerIcon("Satisforestry:spitterfire");
 			SpitterFireParticle.setFireIcon(flameParticle, event.map.registerIcon("Satisforestry:spitterfire_green"));
+
+			if (Satisforestry.turbofuel != null) {
+				Satisforestry.turbofuel.setIcons(event.map.registerIcon("Satisforestry:turbofuel"));
+			}
 		}
 	}
 
