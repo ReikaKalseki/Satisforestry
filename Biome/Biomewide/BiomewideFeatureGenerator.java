@@ -21,6 +21,7 @@ import Reika.Satisforestry.Biome.Biomewide.MantaGenerator.MantaPath;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CachedCave;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CachedTunnel;
 import Reika.Satisforestry.Biome.Biomewide.UraniumCave.CentralCave;
+import Reika.Satisforestry.Biome.Generator.WorldGenCrashSite;
 import Reika.Satisforestry.Entity.EntityFlyingManta;
 
 public class BiomewideFeatureGenerator {
@@ -82,10 +83,7 @@ public class BiomewideFeatureGenerator {
 	}
 
 	public boolean isInCave(World world, double x, double y, double z) {
-		if (!world.isRemote && !initialized.contains(world.provider.dimensionId)) {
-			initialized.add(world.provider.dimensionId);
-			PinkForestPersistentData.initNetworkData(world);
-		}
+		this.initializeWorldData(world);
 		for (Entry<WorldLocation, CachedCave> e : caveNetworks.entrySet()) {
 			if (e.getKey().dimensionID == world.provider.dimensionId) {
 				CachedCave cv = e.getValue();
@@ -98,10 +96,7 @@ public class BiomewideFeatureGenerator {
 	}
 
 	public double getDistanceToCaveCenter(World world, double x, double y, double z) {
-		if (!world.isRemote && !initialized.contains(world.provider.dimensionId)) {
-			initialized.add(world.provider.dimensionId);
-			PinkForestPersistentData.initNetworkData(world);
-		}
+		this.initializeWorldData(world);
 		double min = Double.POSITIVE_INFINITY;
 		for (Entry<WorldLocation, CachedCave> e : caveNetworks.entrySet()) {
 			if (e.getKey().dimensionID == world.provider.dimensionId) {
@@ -114,11 +109,15 @@ public class BiomewideFeatureGenerator {
 		return min;
 	}
 
-	public MantaPath getPathAround(World world, WorldLocation loc) {
+	public void initializeWorldData(World world) {
 		if (!world.isRemote && !initialized.contains(world.provider.dimensionId)) {
 			initialized.add(world.provider.dimensionId);
 			PinkForestPersistentData.initNetworkData(world);
 		}
+	}
+
+	public MantaPath getPathAround(World world, WorldLocation loc) {
+		this.initializeWorldData(world);
 		return mantaPaths.get(loc);
 	}
 
@@ -159,6 +158,9 @@ public class BiomewideFeatureGenerator {
 		if (li.tagCount() > 0) {
 			PointSpawnSystem.instance.loadLegacyDoggoSpawns(li);
 		}
+
+		WorldGenCrashSite.clearCache();
+		WorldGenCrashSite.loadSavedPoints(NBT.getCompoundTag("crashSites"));
 	}
 
 	public void writeToNBT(NBTTagCompound NBT) {
@@ -192,5 +194,9 @@ public class BiomewideFeatureGenerator {
 		li = new NBTTagList();
 		PointSpawnSystem.instance.saveSpawnPoints(li);
 		NBT.setTag("spawnPoints", li);
+
+		NBTTagCompound tag = new NBTTagCompound();
+		WorldGenCrashSite.savePoints(tag);
+		NBT.setTag("crashSites", tag);
 	}
 }

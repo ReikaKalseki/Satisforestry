@@ -144,8 +144,8 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		int top = currentWorld.getTopSolidOrLiquidBlock(x, z);
 
 		if (!pondGenerator.generate(currentWorld, randomGenerator, x, top, z)) {
-			if (randomGenerator.nextInt(10) > 0 || !crashGenerator.generate(currentWorld, randomGenerator, x, top, z))
-				if (randomGenerator.nextInt(3) == 0 || !frackingGenerator.generate(currentWorld, randomGenerator, x, top, z))
+			if (!crashGenerator.generate(currentWorld, randomGenerator, x, top, z)) //was randomGenerator.nextInt(16) > 0 ||
+				if (!frackingGenerator.generate(currentWorld, randomGenerator, x, top, z))
 					oreGenerator.generate(currentWorld, randomGenerator, x, top, z);
 		}
 

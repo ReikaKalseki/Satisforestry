@@ -12,6 +12,7 @@ import Reika.Satisforestry.API.SFAPI.AltRecipeHandler;
 public interface AltRecipe extends IRecipe {
 
 	public String getID();
+	public String getDisplayName();
 
 	/** Whether the recipe has been unlocked by a given player. */
 	public boolean playerHas(World world, UUID ep);

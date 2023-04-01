@@ -162,21 +162,8 @@ public class WorldGenUraniumCave extends WorldGenerator {
 			double dd = ReikaMathLibrary.py3d(endX-center.xCoord, 0, endZ-center.zCoord);
 			int n = (int)Math.max(4, dd/16);
 			LightningBolt b = new LightningBolt(new DecimalPosition(center.xCoord, center.yCoord, center.zCoord), new DecimalPosition(end), n);
-			b.setRandom(rand);
-			//b.variance = 10;//15;
-			b.setVariance(10, 8, 10);
-			b.maximize();
-			Spline path = new Spline(SplineType.CENTRIPETAL);
-
-			for (int i = 0; i <= b.nsteps; i++) {
-				DecimalPosition pos = b.getPosition(i);
-				if (i <= 1) {
-					pos = new DecimalPosition(pos.xCoord, center.yCoord, pos.zCoord);
-				}
-				path.addPoint(new BasicSplinePoint(pos));
-			}
-
-			List<DecimalPosition> li = path.get(16, false);
+			b.setRandom(rand).setVariance(10, 8, 10).maximize();
+			List<DecimalPosition> li = b.spline(SplineType.CENTRIPETAL, 16);
 			for (int i = 0; i < li.size(); i++) {
 				DecimalPosition p = li.get(i);
 				int px = MathHelper.floor_double(p.xCoord);

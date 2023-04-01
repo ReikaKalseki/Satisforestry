@@ -19,8 +19,6 @@ import net.minecraft.world.IBlockAccess;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Effects.LightningBolt;
-import Reika.DragonAPI.Instantiable.Math.Spline;
-import Reika.DragonAPI.Instantiable.Math.Spline.BasicSplinePoint;
 import Reika.DragonAPI.Instantiable.Math.Spline.SplineType;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
@@ -69,16 +67,9 @@ public class FrackingNodeAuxRenderer extends FrackingNodeRenderer {
 
 		int n = 5;
 		LightningBolt b = new LightningBolt(new DecimalPosition(root), new DecimalPosition(x+0.5, y+0.5, z+0.5), n);
+		b.setRandom(rand).setVariance(1).maximize();
 
-		b.setRandom(rand);
-		b.setVariance(1);
-		b.maximize();
-
-		Spline path = new Spline(SplineType.CENTRIPETAL);
-		for (int i = 0; i <= b.nsteps; i++) {
-			path.addPoint(new BasicSplinePoint(b.getPosition(i)));
-		}
-		List<DecimalPosition> li = path.get((int)(ReikaMathLibrary.py3d(root.xCoord-x, 0, root.zCoord-z)*1), false);
+		List<DecimalPosition> li = b.spline(SplineType.CENTRIPETAL, (int)(ReikaMathLibrary.py3d(root.xCoord-x, 0, root.zCoord-z)*1));
 		for (DecimalPosition d : li) {
 			if (d.getDistanceTo(root.xCoord+0.5, d.yCoord, root.zCoord+0.5) <= 2.5)
 				continue;

@@ -42,7 +42,7 @@ public class WorldGenFrackingNode extends WorldGenerator {
 	}
 
 	private boolean tryPlace(World world, int x, int z, Random rand) {
-		int a = 9;
+		int a = 11;
 		int minY = 999;
 		int maxY = 0;
 		for (int i = -a; i <= a; i++) {
@@ -55,7 +55,7 @@ public class WorldGenFrackingNode extends WorldGenerator {
 				if (!this.isValidGroundBlock(world, dx, y, dz))
 					return false;
 				if (Math.abs(a) <= 4) {
-					for (int h = 1; h <= 8; h++) {
+					for (int h = 1; h <= 9; h++) {
 						int dy = y+h;
 						if (!this.isValidAirBlock(world, dx, dy, dz))
 							return false;
@@ -63,7 +63,7 @@ public class WorldGenFrackingNode extends WorldGenerator {
 				}
 			}
 		}
-		if (maxY-minY > 2)
+		if (maxY-minY > 2 || minY < 90)
 			return false;
 		ResourceFluid rf = TileFrackingNode.selectResource(rand);
 		HashSet<Coordinate> nodes = new HashSet();
@@ -84,7 +84,7 @@ public class WorldGenFrackingNode extends WorldGenerator {
 		if (nodes.size() < 4)
 			return false;
 		int y = Math.max(minY, (maxY+minY)/2-1);
-		this.clearArea(world, x, y, z, 4);
+		this.clearArea(world, x, y, z, 4, null);
 		world.setBlock(x, y, z, SFBlocks.FRACKNODE.getBlockInstance(), 0, 2);
 		TileFrackingNode te = (TileFrackingNode)world.getTileEntity(x, y, z);
 		Coordinate root = new Coordinate(te);
@@ -92,8 +92,8 @@ public class WorldGenFrackingNode extends WorldGenerator {
 		Purity p = te.getPurity();
 		for (Coordinate c : nodes) {
 			c = c.setY(y);
-			this.clearArea(world, c.xCoord, y, c.zCoord, 2.5);
-			this.clearArea(world, (c.xCoord+x)/2, y, (c.zCoord+z)/2, 2);
+			this.clearArea(world, c.xCoord, y, c.zCoord, 2.5, root);
+			this.clearArea(world, (c.xCoord+x)/2, y, (c.zCoord+z)/2, 2, root);
 			Purity p2 = TileFrackingNode.getRelativePurity(p, rand);
 			c.setBlock(world, SFBlocks.FRACKNODEAUX.getBlockInstance(), p2.ordinal(), 2);
 			TileFrackingAux te2 = (TileFrackingAux)c.getTileEntity(world);
@@ -102,15 +102,20 @@ public class WorldGenFrackingNode extends WorldGenerator {
 		return true;
 	}
 
-	private void clearArea(World world, int x, int y, int z, double r) {
+	private void clearArea(World world, int x, int y, int z, double r, Coordinate root) {
 		for (int i = -(int)r; i <= r; i++) {
 			for (int k = -(int)r; k <= r; k++) {
-				if (i*i+k*k <= r*r+0.5) {
+				if (i*i+k*k <= r*r+0.5 && (root == null || x != root.xCoord || z != root.zCoord)) {
 					for (int dy = y-2; dy <= y; dy++) {
 						world.setBlock(x+i, dy, z+k, y == dy ? SFBlocks.CAVESHIELD.getBlockInstance() : Blocks.dirt, 0, 2);
 					}
 					for (int dy = y+1; dy <= y+4; dy++) {
 						world.setBlock(x+i, dy, z+k, Blocks.air, 0, 2);
+					}
+					for (int dy = y+5; dy <= y+9; dy++) {
+						Block b = world.getBlock(x+i, dy, z+k);
+						if (b == SFBlocks.BAMBOO.getBlockInstance() || b.isLeaves(world, x+i, dy, z+k) || b.isWood(world, x+i, dy, z+k))
+							world.setBlock(x+i, dy, z+k, Blocks.air, 0, 2);
 					}
 				}
 			}

@@ -176,18 +176,20 @@ public class BlockTerrain extends Block {
 	@Override
 	public void breakBlock(World world, int x, int y, int z, Block old, int oldmeta) {
 		super.breakBlock(world, x, y, z, old, oldmeta);
-		for (int i = 0; i < 6; i++) {
-			ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i];
-			int dx = x+dir.offsetX;
-			int dy = y+dir.offsetY;
-			int dz = z+dir.offsetZ;
-			Block b = world.getBlock(dx, dy, dz);
-			if ((b == SFBlocks.CAVESHIELD.getBlockInstance() && world.getBlockMetadata(dx, dy, dz) == 0) || b == SFBlocks.SPAWNER.getBlockInstance()) {
-				if (world.isRemote)
-					ReikaRenderHelper.spawnDropParticles(world, dx, dy, dz, b, 0);
-				else
-					world.setBlock(dx, dy, dz, this, TerrainType.CRACKS.ordinal(), 3);
-				ReikaSoundHelper.playBreakSound(world, dx, dy, dz, Blocks.stone);
+		if (y <= 96) { //not on the surface
+			for (int i = 0; i < 6; i++) {
+				ForgeDirection dir = ForgeDirection.VALID_DIRECTIONS[i];
+				int dx = x+dir.offsetX;
+				int dy = y+dir.offsetY;
+				int dz = z+dir.offsetZ;
+				Block b = world.getBlock(dx, dy, dz);
+				if ((b == SFBlocks.CAVESHIELD.getBlockInstance() && world.getBlockMetadata(dx, dy, dz) == 0) || b == SFBlocks.SPAWNER.getBlockInstance()) {
+					if (world.isRemote)
+						ReikaRenderHelper.spawnDropParticles(world, dx, dy, dz, b, 0);
+					else
+						world.setBlock(dx, dy, dz, this, TerrainType.CRACKS.ordinal(), 3);
+					ReikaSoundHelper.playBreakSound(world, dx, dy, dz, Blocks.stone);
+				}
 			}
 		}
 	}

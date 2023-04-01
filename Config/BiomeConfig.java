@@ -574,6 +574,7 @@ public class BiomeConfig {
 			}
 		}
 
+		//if (ModOreList.SULFUR.existsInGame()) {
 		String sulf = ModOreList.SULFUR.getProductOreDictName();
 		if (ReikaItemHelper.oreItemExists(sulf)) {
 			Object coal = ReikaItemHelper.oreItemExists("dustCoal") ? "dustCoal" : Items.coal;
@@ -593,6 +594,7 @@ public class BiomeConfig {
 				}
 			}
 		}
+		//}
 
 		if (Satisforestry.turbofuel != null) { //the recipe will not be craftable without another mod to add it from their side
 			String s = SFOptions.TURBOFUELITEM.getString();

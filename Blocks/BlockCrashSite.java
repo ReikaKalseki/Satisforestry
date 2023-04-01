@@ -1,5 +1,7 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -177,7 +179,7 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 
 		public float progressFactor;
 
-		public void generate(Random rand) {
+		public AlternateRecipe generate(Random rand, Collection<AlternateRecipe> avoid) {
 			if (recipeSet.isEmpty()) {
 				for (AlternateRecipe ri : BiomeConfig.instance.getAlternateRecipes()) {
 					recipeSet.addEntry(ri, ri.spawnWeight);
@@ -185,11 +187,27 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 			}
 			recipeSet.setRNG(rand);
 			recipe = recipeSet.getRandomEntry();
+			if (avoid != null && !avoid.isEmpty()) {
+				HashSet<AlternateRecipe> available = new HashSet(recipeSet.getValues());
+				available.removeAll(avoid);
+				if (!available.isEmpty()) {
+					while (!available.contains(recipe))
+						recipe = recipeSet.getRandomEntry();
+				}
+			}
+			return recipe;
 		}
 
 		public void addWaila(List<String> tip) {
-			if (recipe != null)
-				tip.add("Stores "+recipe.getDisplayName());
+			if (recipe != null) {
+				tip.add("Unlocks "+recipe.getDisplayName());
+				ItemStack in = recipe.getRequiredItem();
+				if (in != null)
+					tip.add("Requires "+in.stackSize+" "+in.getDisplayName());
+				String pwr = recipe.getRequiredPowerDesc();
+				if (pwr != null)
+					tip.add("Requires "+pwr);
+			}
 		}
 
 		@Override

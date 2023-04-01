@@ -18,8 +18,6 @@ import net.minecraftforge.common.util.ForgeDirection;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Data.Immutable.DecimalPosition;
 import Reika.DragonAPI.Instantiable.Effects.LightningBolt;
-import Reika.DragonAPI.Instantiable.Math.Spline;
-import Reika.DragonAPI.Instantiable.Math.Spline.BasicSplinePoint;
 import Reika.DragonAPI.Instantiable.Math.Spline.SplineType;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper.CubeDirections;
@@ -132,20 +130,11 @@ public class WorldGenPinkRiver extends WorldGenerator {
 			int n = Math.max(4, edgeDistance/24);
 			LightningBolt b = new LightningBolt(new DecimalPosition(lake.lakeCenter), new DecimalPosition(endpoint), n);
 
-			b.setRandom(rand);
-
-			b.setVariance(6);
+			b.setRandom(rand).setVariance(6);
 			//b.velocity = b.variance*0.75;
 			//b.update();
 			b.maximize();
-
-			Spline path = new Spline(SplineType.CENTRIPETAL);
-
-			for (int i = 0; i <= b.nsteps; i++) {
-				path.addPoint(new BasicSplinePoint(b.getPosition(i)));
-			}
-
-			List<DecimalPosition> li = path.get(16, false);
+			List<DecimalPosition> li = b.spline(SplineType.CENTRIPETAL, 16);
 			riverY = MathHelper.floor_double(li.get(0).yCoord);//lake.lakeCenter.yCoord;
 			int lastDrop = 0;
 			for (int i = 0; i < li.size(); i++) {
