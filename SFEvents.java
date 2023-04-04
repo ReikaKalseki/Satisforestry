@@ -49,8 +49,8 @@ import Reika.DragonAPI.Instantiable.Event.LightLevelForSpawnEvent;
 import Reika.DragonAPI.Instantiable.Event.SlotEvent.AddToSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.SlotEvent.RemoveFromSlotEvent;
 import Reika.DragonAPI.Instantiable.Event.SnowOrIceOnGenEvent;
+import Reika.DragonAPI.Instantiable.Event.Client.BlockIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.GrassIconEvent;
-import Reika.DragonAPI.Instantiable.Event.Client.LiquidBlockIconEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.SinglePlayerLogoutEvent;
 import Reika.DragonAPI.Instantiable.Event.Client.WaterColorEvent;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
@@ -253,8 +253,8 @@ public class SFEvents {
 
 	@SubscribeEvent
 	@SideOnly(Side.CLIENT)
-	public void retextureWater(LiquidBlockIconEvent evt) {
-		if (Satisforestry.isPinkForest(evt.getBiome())) {
+	public void retextureWater(BlockIconEvent evt) {
+		if (evt.access != null && Satisforestry.isPinkForest(evt.getBiome())) {
 			if (evt.originalIcon == FluidRegistry.WATER.getFlowingIcon())
 				evt.icon = biomeWaterIconFlow;
 			else if (evt.originalIcon == FluidRegistry.WATER.getStillIcon())

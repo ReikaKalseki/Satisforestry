@@ -37,6 +37,11 @@ public class BlockNodeHarvester extends BlockTEBase {
 	}
 
 	@Override
+	public int damageDropped(int meta) {
+		return meta;
+	}
+
+	@Override
 	public TileEntity createTileEntity(World world, int meta) {
 		switch(meta) {
 			case 0:
