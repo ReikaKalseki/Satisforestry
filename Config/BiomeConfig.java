@@ -52,6 +52,7 @@ import Reika.DragonAPI.ModInteract.DeepInteract.SensitiveItemRegistry;
 import Reika.DragonAPI.ModRegistry.ModOreList;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.API.AltRecipe.UncraftableAltRecipe;
+import Reika.Satisforestry.AlternateRecipes.AlternateRecipeManager;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
 import Reika.Satisforestry.Config.DoggoDrop.Checks;
@@ -176,7 +177,6 @@ public class BiomeConfig {
 			}
 			ResourceFluidLuaBlock fluid = new ResourceFluidLuaBlock("outputFluids", example2b, fluidData);
 			fluid.putData("key", "lava");
-			fluid.putData("weight", 10);
 			fluid.putData("minAmount", 100);
 			fluid.putData("maxAmount", 500);
 			ResourceFluidLuaBlock scales2 = new ResourceFluidLuaBlock("amountModifiers", fluid, fluidData);
@@ -284,8 +284,8 @@ public class BiomeConfig {
 		Satisforestry.logger.log("Loading configs.");
 		File f = this.getSaveFolder(); //parent dir
 		if (f.exists()) {
-			this.loadFiles(f);
 			try {
+				this.loadFiles(f);
 				this.parseConfigs();
 			}
 			catch (Exception e) {
@@ -396,33 +396,39 @@ public class BiomeConfig {
 		recipeData.addBlock("example", example5);
 	}
 
-	private void loadFiles(File parent) {
+	private void loadFiles(File parent) throws IOException {
 		File f1 = ReikaFileReader.getFileByNameAnyExt(parent, "ores");
 		File f2 = ReikaFileReader.getFileByNameAnyExt(parent, "resources");
 		File f4 = ReikaFileReader.getFileByNameAnyExt(parent, "fluids");
 		File f3 = ReikaFileReader.getFileByNameAnyExt(parent, "doggo");
 		File f5 = ReikaFileReader.getFileByNameAnyExt(parent, "recipes");
 		if (f2 == null || !f2.exists()) {
-			throw new InstallationException(Satisforestry.instance, "No resource config file found!");
+			Satisforestry.logger.logError("No resource config file found! Generating default!");
+			f2 = new File(parent, "resources.lua");
+			f2.createNewFile();
+			ReikaFileReader.writeLinesToFile(f2, itemData.getBlock("example").writeToStrings(), true);
 		}
 		itemData.loadFromFile(f2);
 
 		if (f4 == null || !f4.exists()) {
-			throw new InstallationException(Satisforestry.instance, "No fluid config file found!");
+			Satisforestry.logger.logError("No fluid config file found! Generating default!");
+			f4 = new File(parent, "fluids.lua");
+			f4.createNewFile();
+			ReikaFileReader.writeLinesToFile(f4, fluidData.getBlock("example").writeToStrings(), true);
 		}
 		fluidData.loadFromFile(f4);
 
-		if (f1.exists())
+		if (f1 != null && f1.exists())
 			oreData.loadFromFile(f1);
 		else
 			Satisforestry.logger.log("No ore config file found; no ore clusters will generate.");
 
-		if (f3.exists())
+		if (f3 != null && f3.exists())
 			doggoData.loadFromFile(f3);
 		else
 			Satisforestry.logger.log("No doggo config file found; the only items doggos will find will be the ones hardcoded to Satisforestry.");
 
-		if (f5.exists())
+		if (f5 != null && f5.exists())
 			recipeData.loadFromFile(f5);
 		else
 			Satisforestry.logger.log("No custom recipe config file found; your only alternate recipes will be the ones hardcoded to Satisforestry.");
@@ -536,6 +542,7 @@ public class BiomeConfig {
 		}
 		Satisforestry.logger.log("All alternate recipe config entries parsed; files contained "+definitionCount+" definitions, for a total of "+entryAttemptsCount+" entries, of which "+entryCount+" loaded.");
 		this.addHardcodedEntries();
+		AlternateRecipeManager.instance.refreshAPIAlternates();
 	}
 
 	private void addHardcodedEntries() {
@@ -642,6 +649,10 @@ public class BiomeConfig {
 			throw new IllegalArgumentException("You cannot add a no-item-output recipe without setting a display name!");
 		recipeEntries.put(id, alt);
 		return alt;
+	}
+
+	public void readdAlternateRecipe(AlternateRecipe ar) {
+		recipeEntries.put(ar.id, ar);
 	}
 
 	private void parseOreEntry(String type, LuaBlock b) throws NumberFormatException, IllegalArgumentException, IllegalStateException {
@@ -882,7 +893,7 @@ public class BiomeConfig {
 		if (recipeEntries.containsKey(type))
 			throw new IllegalArgumentException("Recipe ID '"+type+"' is already in use: "+recipeEntries.get(type));
 		AlternateRecipe rec = new AlternateRecipe(type, b.getInt("spawnWeight"), b.getChild("recipe"), b.getChild("requiredItem"), b.getChild("requiredPower"));
-		rec.displayName = b.getString("displayName");
+		rec.displayName = b.containsKey("displayName") ? b.getString("displayName") : null;
 		recipeEntries.put(rec.id, rec);
 		Satisforestry.logger.log("Registered alternate recipe '"+type+"': "+rec.toString().replaceAll("\\\\n", " "));
 		entryCount++;

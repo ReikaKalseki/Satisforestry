@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.lwjgl.opengl.GL11;
 
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
@@ -27,6 +28,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidContainerRegistry;
+import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import Reika.DragonAPI.DragonAPICore;
@@ -182,6 +184,14 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 
 	private Collection<ResourceEntry> getEntriesForItem(ItemStack is) {
 		FluidStack fs = FluidContainerRegistry.getFluidForFilledItem(is);
+		if (fs == null) {
+			Block b = Block.getBlockFromItem(is.getItem());
+			if (b != null) {
+				Fluid f = FluidRegistry.lookupFluidForBlock(b);
+				if (f != null)
+					fs = new FluidStack(f, 1000);
+			}
+		}
 		ArrayList<ResourceEntry> li = new ArrayList();
 		if (fs == null)
 			return li;
@@ -224,6 +234,11 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 			Minecraft mc = Minecraft.getMinecraft();
 			if (GuiScreen.isCtrlKeyDown())
 				renderer = null;
+			NBTTagCompound tag = new NBTTagCompound();
+			tileDelegate.writeToNBT(tag);
+			tag.setString("resource", wc.id);
+			tag.setInteger("purity", re.purity.ordinal());
+			tileDelegate.readFromNBT(tag);
 			if (renderer == null) {
 				FilledBlockArray arr = new FilledBlockArray(mc.theWorld);
 				for (int i = -9; i <= 9; i++) {
@@ -232,11 +247,6 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 							arr.setBlock(i, 0, k, SFBlocks.CAVESHIELD.getBlockInstance());
 					}
 				}
-				NBTTagCompound tag = new NBTTagCompound();
-				tileDelegate.writeToNBT(tag);
-				tag.setString("resource", wc.id);
-				tag.setInteger("purity", Purity.PURE.ordinal());
-				tileDelegate.readFromNBT(tag);
 				arr.setTile(0, 0, 0, SFBlocks.FRACKNODE.getBlockInstance(), 0, tileDelegate);
 
 				for (int i = -6; i <= 6; i += 4) {
@@ -300,8 +310,9 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 			if (GuiScreen.isShiftKeyDown()) {
 				if (wc.requiredInput != null) {
 					n = wc.requiredInput.getLocalizedName(new FluidStack(wc.requiredInput, wc.requiredInputAmount));
-					fr.drawString("Required input: "+n+" ("+wc.requiredInputAmount+" mB)", 5, 28+dy, 0x000000);
-					dy += (fr.FONT_HEIGHT+2)*3;
+					fr.drawString("Required input: ", 5, 28+dy, 0x000000);
+					fr.drawString(n+" ("+wc.requiredInputAmount+" mB)", 5, 28+dy+fr.FONT_HEIGHT, 0x000000);
+					dy += (fr.FONT_HEIGHT+2)*4;
 				}
 			}
 			else {

@@ -79,8 +79,8 @@ public class FrackingNodeAuxRenderer extends FrackingNodeRenderer {
 			double dz = ReikaRandomHelper.getRandomPlusMinus(d.zCoord-0.5, 0.125, rand);
 			double ds = ReikaRandomHelper.getRandomBetween(0.9, 1.2, rand);
 			int idx = renderPass == 0 ? 0 : (int)((Double.doubleToRawLongBits(dx)^Double.doubleToRawLongBits(dz))%5);
-			IIcon ico = renderPass == 0 ? block.blockIcon : BlockFrackingNode.getOverlay(idx+5);
-			this.renderWedgePie(dx, y, dz, 6, 0.03125, 0.5*ds, 0, 0.25*ds, 0, 1, v5, ico);
+			IIcon ico = renderPass == 0 ? block.blockIcon : BlockFrackingNode.getOverlay(((idx%5+5)%5)+5);
+			this.renderWedgePie(dx, y+renderPass*0.005, dz, 6, 0.03125, 0.5*ds, 0, 0.25*ds, 0, 1, v5, ico);
 		}
 
 		return true;

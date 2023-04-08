@@ -153,6 +153,8 @@ public class AlternateRecipe implements AltRecipe {
 	}
 
 	private EntityPlayer getPlayer(World world, InventoryCrafting ic) {
+		if (world == null)
+			return null;
 		if (world.isRemote) {
 			return this.getClientPlayer();
 		}

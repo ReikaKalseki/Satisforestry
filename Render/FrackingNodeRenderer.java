@@ -20,7 +20,6 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.world.IBlockAccess;
 
 import Reika.DragonAPI.Base.ISBRH;
-import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
@@ -103,7 +102,8 @@ public class FrackingNodeRenderer extends ISBRH {
 		rand.setSeed(this.calcSeed(x, y, z));
 		rand.nextBoolean();
 
-		IIcon ico = renderPass == 1 ? BlockFrackingNode.getOverlay(Coordinate.coordHash(x, y, z)%5) : block.blockIcon;
+		int val = rand.nextInt(5); //do not inline because it needs to be called either renderPass for the rands to align
+		IIcon ico = renderPass == 1 ? BlockFrackingNode.getOverlay(val) : block.blockIcon;
 
 		int n = ReikaRandomHelper.getRandomBetween(5, 9, rand);
 		double minr = 2.25;
@@ -119,7 +119,7 @@ public class FrackingNodeRenderer extends ISBRH {
 		minh *= dr*dr;
 		double oo = 0.09375;
 		double f = ReikaRandomHelper.getRandomBetween(0.875, 0.9375, rand);
-		this.renderWedgePie(x, y, z, n, r1, r2, minh, maxh, oo, f, v5, ico);
+		this.renderWedgePie(x, y+renderPass*0.005, z, n, r1, r2, minh, maxh, oo, f, v5, ico);
 
 		if (renderPass == 0) {
 			v5.setColorOpaque_I(0x777777);

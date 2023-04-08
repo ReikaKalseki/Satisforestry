@@ -33,6 +33,7 @@ import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Effects.EntityLiquidParticleFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.RotaryCraft.API.Interfaces.EnvironmentalHeatSource;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
@@ -54,7 +55,7 @@ import mcp.mobius.waila.api.IWailaDataProvider;
 import vazkii.botania.api.mana.ILaputaImmobile;
 
 @Strippable(value = {"mcp.mobius.waila.api.IWailaDataProvider", "framesapi.IMoveCheck", "vazkii.botania.api.mana.ILaputaImmobile"})
-public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock, IWailaDataProvider, IMoveCheck, ILaputaImmobile {
+public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock, IWailaDataProvider, IMoveCheck, ILaputaImmobile, EnvironmentalHeatSource {
 
 	private static IIcon itemIcon;
 	private static final IIcon[] overlayIcon = new IIcon[10];
@@ -118,6 +119,32 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 	@Override
 	public boolean canMove(World world, int x, int y, int z) {
 		return false;
+	}
+
+	@Override
+	public SourceType getSourceType(IBlockAccess iba, int x, int y, int z) {
+		TileEntity te = iba.getTileEntity(x, y, z);
+		if (te instanceof TileFrackingNode) {
+			TileFrackingNode tf = (TileFrackingNode)te;
+			Fluid f = tf.resource.getFluid();
+			int temp = f.getTemperature();
+			if (temp >= SourceType.LAVA.approxTemperature)
+				return SourceType.LAVA;
+			else if (temp >= SourceType.FIRE.approxTemperature)
+				return SourceType.FIRE;
+			else if (temp <= SourceType.CRYO.approxTemperature)
+				return SourceType.CRYO;
+			else if (temp <= SourceType.ICY.approxTemperature)
+				return SourceType.ICY;
+			else if (temp <= SourceType.WATER.approxTemperature)
+				return SourceType.WATER;
+		}
+		return SourceType.AMBIENT;
+	}
+
+	@Override
+	public boolean isActive(IBlockAccess iba, int x, int y, int z) {
+		return iba.getTileEntity(x, y, z) instanceof TileFrackingNode;
 	}
 
 	@Override

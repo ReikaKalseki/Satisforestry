@@ -3,6 +3,7 @@ package Reika.Satisforestry.AlternateRecipes;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -30,6 +31,8 @@ public class AlternateRecipeManager implements AltRecipeHandler {
 	public static final String MAIN_NBT_TAG = "Satisforestry_Recipes";
 
 	public static final AlternateRecipeManager instance = new AlternateRecipeManager();
+
+	private final HashMap<String, AlternateRecipe> apiAlternates = new HashMap();
 
 	private AlternateRecipeManager() {
 
@@ -123,7 +126,15 @@ public class AlternateRecipeManager implements AltRecipeHandler {
 
 	@Override
 	public AltRecipe addAltRecipe(String id, String displayName, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor) {
-		return BiomeConfig.instance.addAlternateRecipe(id, displayName, spawnWeight, recipe, requiredUnlock, unlockPowerType, powerAmount, ticksFor);
+		AlternateRecipe added = BiomeConfig.instance.addAlternateRecipe(id, displayName, spawnWeight, recipe, requiredUnlock, unlockPowerType, powerAmount, ticksFor);
+		apiAlternates.put(added.id, added);
+		return added;
+	}
+
+	public void refreshAPIAlternates() {
+		for (AlternateRecipe ar : apiAlternates.values()) {
+			BiomeConfig.instance.readdAlternateRecipe(ar);
+		}
 	}
 
 	@Override
