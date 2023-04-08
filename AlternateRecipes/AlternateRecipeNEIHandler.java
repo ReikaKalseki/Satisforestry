@@ -16,14 +16,17 @@ import java.util.List;
 
 import org.lwjgl.opengl.GL11;
 
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
-import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
+import Reika.Satisforestry.API.AltRecipe.UncraftableAltRecipeWithNEI;
 import Reika.Satisforestry.Config.AlternateRecipe;
 import Reika.Satisforestry.Config.BiomeConfig;
 
@@ -44,14 +47,33 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 
 		@Override
 		public PositionedStack getResult() {
-			return neiDelegate == null ? new PositionedStack(recipe.getRecipeOutput(), 119, 24) : neiDelegate.getResult();
+			if (neiDelegate != null)
+				return neiDelegate.getResult();
+			UncraftableAltRecipeWithNEI rec = recipe.getSpecialNEIDisplay();
+			return new PositionedStack(rec == null ? recipe.getRecipeOutput() : rec.getRecipeOutput(), 119, 24);
 		}
 
 		@Override
 		public List<PositionedStack> getIngredients() {
 			ArrayList<PositionedStack> li = new ArrayList();
-			if (neiDelegate != null)
+			if (neiDelegate != null) {
 				li.addAll(neiDelegate.getIngredients());
+			}
+			else if (recipe.isUncraftableWithNEI()) {
+				UncraftableAltRecipeWithNEI rec = recipe.getSpecialNEIDisplay();
+				Object[] in = rec.getDisplayInputs();
+				for (int i = 0; i < Math.min(in.length, 9); i++) {
+					if (in[i] != null) {
+						int x = (i%3)*18;
+						int y = (i/3)*18;
+						if (in[i] instanceof Block)
+							in[i] = new ItemStack((Block)in[i]);
+						if (in[i] instanceof Item)
+							in[i] = new ItemStack((Item)in[i]);
+						li.add(new PositionedStack(in[i], x+25, y+6));
+					}
+				}
+			}
 			return li;
 		}
 	}
@@ -94,7 +116,7 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 		if (outputId != null && outputId.equals("altrecipes")) {
 			try {
 				for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
-					if (dd.isCraftable())
+					if (dd.useNEIHandler())
 						arecipes.add(new AltRecipe(dd));
 				}
 			}
@@ -110,7 +132,7 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 		if (inputId != null && inputId.equals("altrecipes")) {
 			try {
 				for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
-					if (dd.isCraftable())
+					if (dd.useNEIHandler())
 						arecipes.add(new AltRecipe(dd));
 				}
 			}
@@ -131,7 +153,7 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 		ArrayList<AltRecipe> li = new ArrayList();
 		try {
 			for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
-				if (dd.isCraftable() && ReikaItemHelper.matchStacks(dd.getRecipeOutput(), is))
+				if (dd.useNEIHandler() && dd.crafts(is))
 					li.add(new AltRecipe(dd));
 			}
 		}
@@ -145,7 +167,7 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 	public void loadUsageRecipes(ItemStack ingredient) {
 		super.loadUsageRecipes(ingredient);
 		for (AlternateRecipe dd : BiomeConfig.instance.getAlternateRecipes()) {
-			if (dd.isCraftable() && dd.usesItem(ingredient))
+			if (dd.useNEIHandler() && dd.usesItem(ingredient))
 				arecipes.add(new AltRecipe(dd));
 		}
 	}
@@ -165,8 +187,15 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 		CachedRecipe a = arecipes.get(recipe);
 		if (a instanceof AltRecipe) {
 			AlternateRecipe r = ((AltRecipe)a).recipe;
+			String n = r.getDisplayName();
+			UncraftableAltRecipeWithNEI sp = r.getSpecialNEIDisplay();
+			if (sp != null)
+				n = n+" ("+sp.getDescription()+")";
 			FontRenderer fontRendererObj = Minecraft.getMinecraft().fontRenderer;
-			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, r.getDisplayName(), 83, 63, 0xFA9549);
+			double sc = ReikaMathLibrary.roundToNearestFraction(Math.min(1, 160D/fontRendererObj.getStringWidth(n)), 0.25);
+			GL11.glScaled(sc, sc, sc);
+			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, n, (int)(83/sc), (int)(63.75/sc), 0xFA9549);
+			GL11.glScaled(1D/sc, 1D/sc, 1D/sc);
 			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Requires unlock in a crash site", 83, 80, 0x646464);
 			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "provided with the following:", 83, 92, 0x646464);
 			if (r.unlockPower != null)

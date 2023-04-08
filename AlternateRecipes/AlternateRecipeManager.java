@@ -126,6 +126,8 @@ public class AlternateRecipeManager implements AltRecipeHandler {
 
 	@Override
 	public AltRecipe addAltRecipe(String id, String displayName, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor) {
+		if (recipe == null)
+			throw new IllegalArgumentException("Could not accept alt recipe '"+id+"': Recipe may not be null");
 		AlternateRecipe added = BiomeConfig.instance.addAlternateRecipe(id, displayName, spawnWeight, recipe, requiredUnlock, unlockPowerType, powerAmount, ticksFor);
 		apiAlternates.put(added.id, added);
 		return added;

@@ -22,11 +22,9 @@ import com.google.common.base.Strings;
 import net.minecraft.block.Block;
 import net.minecraft.enchantment.Enchantment;
 import net.minecraft.init.Items;
-import net.minecraft.inventory.InventoryCrafting;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.IRecipe;
 import net.minecraft.potion.Potion;
-import net.minecraft.world.World;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
@@ -51,7 +49,7 @@ import Reika.DragonAPI.ModInteract.DeepInteract.SensitiveFluidRegistry;
 import Reika.DragonAPI.ModInteract.DeepInteract.SensitiveItemRegistry;
 import Reika.DragonAPI.ModRegistry.ModOreList;
 import Reika.Satisforestry.Satisforestry;
-import Reika.Satisforestry.API.AltRecipe.UncraftableAltRecipe;
+import Reika.Satisforestry.API.AltRecipe;
 import Reika.Satisforestry.AlternateRecipes.AlternateRecipeManager;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreClusterType;
 import Reika.Satisforestry.Biome.DecoratorPinkForest.OreSpawnLocation;
@@ -606,32 +604,14 @@ public class BiomeConfig {
 		if (Satisforestry.turbofuel != null) { //the recipe will not be craftable without another mod to add it from their side
 			String s = SFOptions.TURBOFUELITEM.getString();
 			ItemStack in = Strings.isNullOrEmpty(s) ? null : ReikaItemHelper.lookupItem(s);
-			IRecipe dummy = new UncraftableAltRecipe() {
-				@Override
-				public boolean matches(InventoryCrafting is, World world) {
-					return false;
-				}
-				@Override
-				public ItemStack getCraftingResult(InventoryCrafting ic) {
-					return this.getRecipeOutput();
-				}
-				@Override
-				public int getRecipeSize() {
-					return 0;
-				}
-				@Override
-				public ItemStack getRecipeOutput() {
-					return null;
-				}
-			};
 			String pwr = SFOptions.TURBOFUELPOWER.getString();
 			String[] parts = pwr.split(";");
 			if (parts.length != 3 || Strings.isNullOrEmpty(parts[0])) {
-				this.addAlternateRecipe(TURBOFUEL_ID, "Turbofuel", 25, dummy, in, null, 0, 0);
+				this.addAlternateRecipe(TURBOFUEL_ID, "Turbofuel", 25, AltRecipe.defaultDummyRecipe, in, null, 0, 0);
 			}
 			else {
 				try {
-					this.addAlternateRecipe(TURBOFUEL_ID, "Turbofuel", 25, dummy, in, parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]));
+					this.addAlternateRecipe(TURBOFUEL_ID, "Turbofuel", 25, AltRecipe.defaultDummyRecipe, in, parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]));
 				}
 				catch (Exception e) {
 					throw new InstallationException(Satisforestry.instance, "Invalid compacted coal alternate recipe parameters specified", e);

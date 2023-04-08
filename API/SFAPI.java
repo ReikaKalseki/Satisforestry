@@ -19,6 +19,7 @@ import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.fluids.Fluid;
 
 import Reika.Satisforestry.API.AltRecipe.UncraftableAltRecipe;
+import Reika.Satisforestry.API.AltRecipe.UncraftableAltRecipeWithNEI;
 
 public class SFAPI {
 
@@ -154,7 +155,8 @@ public class SFAPI {
 		<br><br>Display name may be null to delegate to the item output display name, <b>if and only if that is non-null</b>.
 		<br><br><b>The recipe must be non-null</b>, but if you want to make the alternate recipe not a "vanilla-style" crafting recipe
 		(such that the alternate recipe acts primarily as a progress flag for your own code to check, eg in a custom machine's recipe system), then supply
-		an {@link IRecipe} of a class implementing the {@link UncraftableAltRecipe} interface. Do note that this will break the native NEI handling, and you
+		an {@link IRecipe} of a class implementing the {@link UncraftableAltRecipe} interface. Do note that unless you use the
+		{@link UncraftableAltRecipeWithNEI} subclass, this will disable the native NEI handling, and you
 		will need to handle it yourself in your own NEI handlers. Remember to display the unlock requirements; see the native NEI handling for reference. */
 		public AltRecipe addAltRecipe(String id, String displayName, int spawnWeight, IRecipe recipe, ItemStack requiredUnlock, String unlockPowerType, long powerAmount, long ticksFor);
 

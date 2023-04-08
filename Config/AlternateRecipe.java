@@ -27,6 +27,7 @@ import Reika.DragonAPI.Instantiable.IO.LuaBlock;
 import Reika.DragonAPI.Libraries.ReikaPlayerAPI;
 import Reika.DragonAPI.Libraries.ReikaRecipeHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaTimeHelper;
+import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.ModRegistry.PowerTypes;
 import Reika.RotaryCraft.Auxiliary.RotaryAux;
 import Reika.Satisforestry.Satisforestry;
@@ -181,7 +182,11 @@ public class AlternateRecipe implements AltRecipe {
 	}
 
 	public boolean usesItem(ItemStack ingredient) {
-		return ReikaRecipeHelper.recipeContains(recipe, ingredient);
+		return this.isUncraftableWithNEI() ? ((UncraftableAltRecipeWithNEI)recipe).usesItem(ingredient) : ReikaRecipeHelper.recipeContains(recipe, ingredient);
+	}
+
+	public boolean crafts(ItemStack is) {
+		return this.isUncraftableWithNEI() ? ((UncraftableAltRecipeWithNEI)recipe).crafts(is) : ReikaItemHelper.matchStacks(this.getRecipeOutput(), is);
 	}
 
 	@Override
@@ -196,6 +201,18 @@ public class AlternateRecipe implements AltRecipe {
 
 	public boolean isCraftable() {
 		return !(recipe instanceof UncraftableAltRecipe);
+	}
+
+	public boolean useNEIHandler() {
+		return this.isUncraftableWithNEI() || !(recipe instanceof UncraftableAltRecipe);
+	}
+
+	public boolean isUncraftableWithNEI() {
+		return recipe instanceof UncraftableAltRecipeWithNEI;
+	}
+
+	public UncraftableAltRecipeWithNEI getSpecialNEIDisplay() {
+		return this.isUncraftableWithNEI() ? (UncraftableAltRecipeWithNEI)recipe : null;
 	}
 
 	@SideOnly(Side.CLIENT)
