@@ -24,7 +24,6 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 
-import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
 import Reika.Satisforestry.API.AltRecipe.UncraftableAltRecipeWithNEI;
 import Reika.Satisforestry.Config.AlternateRecipe;
@@ -187,22 +186,24 @@ public class AlternateRecipeNEIHandler extends TemplateRecipeHandler {
 		CachedRecipe a = arecipes.get(recipe);
 		if (a instanceof AltRecipe) {
 			AlternateRecipe r = ((AltRecipe)a).recipe;
-			String n = r.getDisplayName();
+			FontRenderer fr = Minecraft.getMinecraft().fontRenderer;
 			UncraftableAltRecipeWithNEI sp = r.getSpecialNEIDisplay();
-			if (sp != null)
-				n = n+" ("+sp.getDescription()+")";
-			FontRenderer fontRendererObj = Minecraft.getMinecraft().fontRenderer;
-			double sc = ReikaMathLibrary.roundToNearestFraction(Math.min(1, 160D/fontRendererObj.getStringWidth(n)), 0.25);
-			GL11.glScaled(sc, sc, sc);
-			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, n, (int)(83/sc), (int)(63.75/sc), 0xFA9549);
-			GL11.glScaled(1D/sc, 1D/sc, 1D/sc);
-			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Requires unlock in a crash site", 83, 80, 0x646464);
-			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "provided with the following:", 83, 92, 0x646464);
+			if (sp != null) {
+				GL11.glScaled(0.5, 0.5, 0.5);
+				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fr, r.getDisplayName(), 166, 123, 0xFA9549);
+				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fr, sp.getDescription(), 166, 123+fr.FONT_HEIGHT+4, 0xFA9549);
+				GL11.glScaled(2, 2, 2);
+			}
+			else {
+				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fr, r.getDisplayName(), 83, 63, 0xFA9549);
+			}
+			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fr, "Requires unlock in a crash site", 83, 80, 0x646464);
+			ReikaGuiAPI.instance.drawCenteredStringNoShadow(fr, "provided with the following:", 83, 92, 0x646464);
 			if (r.unlockPower != null)
-				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Power: "+r.unlockPower.getDisplayString(), 83, 104, 0x646464);
+				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fr, "Power: "+r.unlockPower.getDisplayString(), 83, 104, 0x646464);
 			ItemStack is = r.getRequiredItem();
 			if (is != null)
-				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fontRendererObj, "Items: "+is.stackSize+" "+is.getDisplayName(), 83, 116, 0x646464);
+				ReikaGuiAPI.instance.drawCenteredStringNoShadow(fr, "Items: "+is.stackSize+" "+is.getDisplayName(), 83, 116, 0x646464);
 			ReikaGuiAPI.instance.drawLine(4, 75, 162, 75, 0x646464);
 		}
 	}
