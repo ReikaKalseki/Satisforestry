@@ -318,13 +318,16 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 
 	@Override
 	public final AxisAlignedBB getRenderBoundingBox() {
-		if (structureDir == null)
+		ForgeDirection dir = structureDir;
+		if (forceRenderer)
+			dir = ForgeDirection.EAST;
+		if (dir == null)
 			return super.getRenderBoundingBox();
 		AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this);
-		box = box.addCoord(structureDir.offsetX*8.25, 13, structureDir.offsetZ*8.25);
-		box = box.addCoord(-structureDir.offsetX*3.5, 0, -structureDir.offsetZ*3.5);
-		box = box.addCoord(structureDir.offsetZ*2, 0, structureDir.offsetX*2);
-		box = box.addCoord(-structureDir.offsetZ*2, 0, -structureDir.offsetX*2);
+		box = box.addCoord(dir.offsetX*8.25, 13, dir.offsetZ*8.25);
+		box = box.addCoord(-dir.offsetX*3.5, 0, -dir.offsetZ*3.5);
+		box = box.addCoord(dir.offsetZ*2, 0, dir.offsetX*2);
+		box = box.addCoord(-dir.offsetZ*2, 0, -dir.offsetX*2);
 		box = box.expand(0.25, 0.25, 0.25);
 		return box;
 	}

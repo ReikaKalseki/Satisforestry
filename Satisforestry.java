@@ -146,6 +146,7 @@ public class Satisforestry extends DragonAPIMod {
 	public static ItemFood paleberry;
 	public static ItemFood sludge;
 	public static Item compactedCoal;
+	public static Item multiblockPage;
 
 	public static Fluid turbofuel;
 
@@ -232,6 +233,10 @@ public class Satisforestry extends DragonAPIMod {
 		compactedCoal = new ItemCompactedCoal();
 		compactedCoal.setUnlocalizedName("compactedcoal");
 		GameRegistry.registerItem(compactedCoal, "compactedcoal");
+
+		multiblockPage = new ItemMultiblockDisplay();
+		multiblockPage.setUnlocalizedName("multiblockpage");
+		GameRegistry.registerItem(multiblockPage, "multiblockpage");
 
 		this.basicSetup(evt);
 		FMLCommonHandler.instance().bus().register(this);

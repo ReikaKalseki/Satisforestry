@@ -18,6 +18,7 @@ import Reika.Satisforestry.Entity.EntityLizardDoggo;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitterFireball;
 import Reika.Satisforestry.Entity.EntitySplittingSpitterFireball;
+import Reika.Satisforestry.Entity.EntityStingerPoison;
 
 public enum SFEntities implements EntityEnum {
 
@@ -27,6 +28,7 @@ public enum SFEntities implements EntityEnum {
 	SPITTER(EntitySpitter.class, "Plasma Spitter", 0xFFFD5A, 0x9B8B53),
 	SPITTERFIRE(EntitySpitterFireball.class, "Spitter Fireball"),
 	SPITTERSPLITFIRE(EntitySplittingSpitterFireball.class, "Splitting Fireball"),
+	STINGERPOISON(EntityStingerPoison.class, "Poison Cloud"),
 	;
 
 	public final String entityName;

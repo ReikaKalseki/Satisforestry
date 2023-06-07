@@ -242,7 +242,7 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	@Override
 	public final AxisAlignedBB getRenderBoundingBox() {
 		AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this);
-		if (this.hasStructure()) {
+		if (this.hasStructure() || forceRenderer) {
 			box = box.expand(5, 8, 5).offset(0, 6, 0);
 		}
 		return box;
@@ -371,7 +371,7 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	public static class TileFrackingPressurizerRF extends TileFrackingPressurizerBasicEnergy implements IEnergyReceiver {
 
 		public TileFrackingPressurizerRF() {
-			super(40000, 600000, 6000, 300);
+			super(12000, 600000, 16000, 300);
 		}
 
 		@Override
@@ -425,7 +425,7 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	public static class TileFrackingPressurizerEU extends TileFrackingPressurizerBasicEnergy implements IEnergySink {
 
 		public TileFrackingPressurizerEU() {
-			super(2048, 6144, 512, 8);
+			super(2048, 6144, 3072, 8);
 		}
 
 		@Override

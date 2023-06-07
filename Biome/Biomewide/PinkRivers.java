@@ -504,7 +504,7 @@ return li.get(0);
 
 		private double highestY = -1;
 
-		private final PropagationCondition propagation = new PropagationCondition() {
+		private final PropagationCondition propagationCondition = new PropagationCondition() {
 
 			@Override
 			public boolean isValidLocation(World world, int x, int y, int z, Coordinate from) {
@@ -512,7 +512,7 @@ return li.get(0);
 			}
 
 		};
-		private final TerminationCondition terminate = new TerminationCondition() {
+		private static final TerminationCondition terminate = new TerminationCondition() {
 
 			@Override
 			public boolean isValidTerminus(World world, int x, int y, int z) {
@@ -522,11 +522,13 @@ return li.get(0);
 		};
 
 		public SandFinder(int x, int y, int z) {
-			super(x, y, z);
+			super(x, y, z, null, terminate);
+			propagation = propagationCondition;
 		}
 
-		private void complete(World world) {
-			this.complete(world, propagation, terminate );
+		@Override
+		public void complete(World world) {
+			this.complete(world);
 		}
 
 		@Override

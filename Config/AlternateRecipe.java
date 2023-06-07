@@ -120,7 +120,7 @@ public class AlternateRecipe implements AltRecipe {
 		}
 		if (this.playerHas(ep.worldObj, ep.getUniqueID()))
 			return false;
-		AlternateRecipeManager.instance.setRecipeStatus(ep, this, true);
+		AlternateRecipeManager.instance.setRecipeStatus(ep, this, true, true);
 		return true;
 	}
 
@@ -144,6 +144,8 @@ public class AlternateRecipe implements AltRecipe {
 
 	@Override
 	public boolean matches(InventoryCrafting ic, World world) {
+		if (ic == null || world == null)
+			return false;
 		if (!this.isCraftable())
 			return false;
 		EntityPlayer ep = this.getPlayer(world, ic);
@@ -154,7 +156,7 @@ public class AlternateRecipe implements AltRecipe {
 	}
 
 	private EntityPlayer getPlayer(World world, InventoryCrafting ic) {
-		if (world == null)
+		if (world == null || ic.eventHandler == null)
 			return null;
 		if (world.isRemote) {
 			return this.getClientPlayer();

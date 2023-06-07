@@ -16,10 +16,17 @@ import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
+import net.minecraft.util.EnumChatFormatting;
 
+import Reika.DragonAPI.Auxiliary.Trackers.TickScheduler;
+import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent;
+import Reika.DragonAPI.Instantiable.Event.ScheduledTickEvent.ScheduledStringPacket;
+import Reika.DragonAPI.Instantiable.IO.PacketTarget;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper;
 import Reika.DragonAPI.Libraries.ReikaNBTHelper.NBTTypes;
 import Reika.DragonAPI.Libraries.ReikaPlayerAPI;
+import Reika.DragonAPI.Libraries.IO.ReikaChatHelper;
+import Reika.Satisforestry.SFPacketHandler.SFPackets;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.API.AltRecipe;
 import Reika.Satisforestry.API.SFAPI.AltRecipeHandler;
@@ -38,7 +45,11 @@ public class AlternateRecipeManager implements AltRecipeHandler {
 
 	}
 
-	public void setRecipeStatus(EntityPlayerMP ep, AlternateRecipe s, boolean set) {
+	public void setRecipeStatus(EntityPlayerMP ep, AlternateRecipe s, boolean set, boolean notify) {
+		if (set && notify) {
+			ReikaChatHelper.sendChatToAllOnServer(EnumChatFormatting.GOLD+ep.getCommandSenderName()+EnumChatFormatting.RESET+" just unlocked "+EnumChatFormatting.LIGHT_PURPLE+s.getDisplayName());
+			TickScheduler.instance.scheduleEvent(new ScheduledTickEvent(new ScheduledStringPacket(Satisforestry.packetChannel, SFPackets.ALTRECIPEUNLOCK.ordinal(), new PacketTarget.PlayerTarget(ep), s.getID())), 15);
+		}
 		NBTTagList li = this.getNBTList(ep);
 		NBTBase tag = new NBTTagString(s.id);
 		boolean flag = false;
@@ -135,7 +146,7 @@ public class AlternateRecipeManager implements AltRecipeHandler {
 
 	public void refreshAPIAlternates() {
 		for (AlternateRecipe ar : apiAlternates.values()) {
-			BiomeConfig.instance.readdAlternateRecipe(ar);
+			BiomeConfig.instance.readAlternateRecipe(ar);
 		}
 	}
 

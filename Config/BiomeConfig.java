@@ -631,7 +631,7 @@ public class BiomeConfig {
 		return alt;
 	}
 
-	public void readdAlternateRecipe(AlternateRecipe ar) {
+	public void readAlternateRecipe(AlternateRecipe ar) {
 		recipeEntries.put(ar.id, ar);
 	}
 

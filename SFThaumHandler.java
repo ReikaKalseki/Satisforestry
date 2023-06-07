@@ -3,8 +3,10 @@ package Reika.Satisforestry;
 import net.minecraft.util.ResourceLocation;
 
 import Reika.DragonAPI.ModInteract.DeepInteract.ReikaThaumHelper;
+import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
 import Reika.Satisforestry.Blocks.BlockDecoration.DecorationType;
+import Reika.Satisforestry.Blocks.BlockFrackerMulti.FrackerBlocks;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Blocks.BlockPinkGrass.GrassTypes;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
@@ -18,7 +20,7 @@ import thaumcraft.api.aspects.Aspect;
 
 public class SFThaumHandler {
 
-	public static final Aspect FICSIT = new Aspect("praestantia", 0xFA9549, new Aspect[]{Aspect.ELDRITCH, Aspect.MECHANISM}, new ResourceLocation("satisforestry", "textures/aspects/ficsit.png"), 1);
+	public static final Aspect FICSIT = new Aspect("praestantia", 0xFA9549, new Aspect[]{Aspect.GREED, Aspect.MECHANISM}, new ResourceLocation("satisforestry", "textures/aspects/ficsit.png"), 1);
 
 	public static void load() {
 		//ThaumcraftApi.addCrucibleRecipe("SFLOGUNPACK", unpacked, PinkTreeTypes.JUNGLE.getBaseLog(), new AspectList().add(Aspect.EXCHANGE, 2));
@@ -57,7 +59,9 @@ public class SFThaumHandler {
 
 		ReikaThaumHelper.addAspectsToBlock(SFBlocks.CAVESHIELD.getBlockInstance(), Aspect.DARKNESS, 8, Aspect.ARMOR, 8, Aspect.VOID, 4, Aspect.EARTH, 6, Aspect.MINE, 3);
 		ReikaThaumHelper.addAspectsToBlock(SFBlocks.GASEMITTER.getBlockInstance(), Aspect.POISON, 8, Aspect.TRAP, 6, Aspect.AURA, 4);
-		ReikaThaumHelper.addAspectsToBlock(SFBlocks.RESOURCENODE.getBlockInstance(), Aspect.GREED, 20, Aspect.MINE, 15, Aspect.HARVEST, 8, FICSIT, 2);
+		ReikaThaumHelper.addAspectsToBlock(SFBlocks.RESOURCENODE.getBlockInstance(), Aspect.GREED, 20, Aspect.MINE, 15, Aspect.HARVEST, 8);
+		ReikaThaumHelper.addAspectsToBlock(SFBlocks.FRACKNODEAUX.getBlockInstance(), Aspect.GREED, 20, Aspect.MINE, 5);
+		ReikaThaumHelper.addAspectsToBlock(SFBlocks.FRACKNODEAUX.getBlockInstance(), Aspect.MINE, 15, Aspect.HARVEST, 8);
 		ReikaThaumHelper.addAspectsToBlock(SFBlocks.SPAWNER.getBlockInstance(), Aspect.DARKNESS, 8, Aspect.ARMOR, 8, Aspect.BEAST, 12);
 
 		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.ORANGE.ordinal(), Aspect.MECHANISM, 2, Aspect.METAL, 3, FICSIT, 10);
@@ -69,11 +73,27 @@ public class SFThaumHandler {
 		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.HUB.ordinal(), Aspect.MECHANISM, 5, Aspect.METAL, 3, Aspect.MINE, 5, FICSIT, 10, Aspect.MOTION, 5);
 		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.POWER.ordinal(), Aspect.MECHANISM, 5, Aspect.METAL, 3, Aspect.MINE, 5, FICSIT, 10, Aspect.ENERGY, 5);
 
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal(), Aspect.MECHANISM, 2, Aspect.METAL, 3, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal(), Aspect.MECHANISM, 2, Aspect.METAL, 3, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.SILVER.ordinal(), Aspect.MECHANISM, 2, Aspect.METAL, 3, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.GRAY.ordinal(), Aspect.MECHANISM, 3, Aspect.METAL, 3, Aspect.MINE, 2, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.TUBE.ordinal(), Aspect.MECHANISM, 5, Aspect.METAL, 3, Aspect.MOTION, 5, FICSIT, 10);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.FLUIDIN.ordinal(), Aspect.MECHANISM, 5, Aspect.METAL, 3, FICSIT, 10, Aspect.GREED, 1);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.HUB.ordinal(), Aspect.MECHANISM, 5, Aspect.METAL, 3, Aspect.MINE, 5, FICSIT, 10, Aspect.MOTION, 5);
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.POWER.ordinal(), Aspect.MECHANISM, 5, Aspect.METAL, 3, Aspect.MINE, 5, FICSIT, 10, Aspect.ENERGY, 5);
+
+		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.CRASHSITE.getBlockInstance(), 0, Aspect.MECHANISM, 5, Aspect.METAL, 3, FICSIT, 10, Aspect.CRAFT, 5);
+		for (int i = 1; i <= 4; i++)
+			ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.CRASHSITE.getBlockInstance(), i, Aspect.METAL, FICSIT, 5);
+
+
 		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.TERRAIN.getBlockInstance(), TerrainType.POISONROCK.ordinal(), Aspect.EARTH, 3, Aspect.POISON, 1);
 		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.TERRAIN.getBlockInstance(), TerrainType.PONDROCK.ordinal(), Aspect.EARTH, 3, Aspect.WATER, 2);
 		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.DECORATION.getBlockInstance(), DecorationType.TENDRILS.ordinal(), Aspect.EARTH, 4, Aspect.TRAP, 2);
 		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALACTITE.ordinal(), Aspect.EARTH, 3, Aspect.DARKNESS, 1);
 		ReikaThaumHelper.addAspectsToBlockMeta(SFBlocks.DECORATION.getBlockInstance(), DecorationType.STALAGMITE.ordinal(), Aspect.EARTH, 3, Aspect.DARKNESS, 1);
+
+		DecoratorPinkForest.loadAspects();
 	}
 
 }

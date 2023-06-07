@@ -41,14 +41,14 @@ public class WorldGenCrashSite extends WorldGenerator {
 		boolean biome = Satisforestry.isPinkForest(world, x, z);
 		if (biome) {
 			BiomewideFeatureGenerator.instance.initializeWorldData(world);
-			if (!generatedCrashes.getAllLocationsNear(new WorldLocation(world, x, y, z), 128).isEmpty())
+			if (!generatedCrashes.getAllLocationsNear(new WorldLocation(world, x, y, z), 64).isEmpty())
 				return false;
 		}
 		if (!forceGen && !biome)
 			return false;
 		//int dy = DecoratorPinkForest.getTrueTopAt(world, dx, dz);
 
-		for (int i = 0; i < 6; i++) {
+		for (int i = 0; i < 18; i++) {
 			int dx = ReikaRandomHelper.getRandomPlusMinus(x, 5, rand);
 			int dz = ReikaRandomHelper.getRandomPlusMinus(z, 5, rand);
 			if (this.tryPlace(world, dx, dz, rand, biome))
@@ -60,7 +60,7 @@ public class WorldGenCrashSite extends WorldGenerator {
 	private boolean tryPlace(World world, int x, int z, Random rand, boolean inBiome) {
 		int minY = 999;
 		int maxY = 0;
-		ForgeDirection dir = rand.nextInt(6) == 0 ? ForgeDirection.UP : ReikaDirectionHelper.getRandomDirection(false, rand);
+		ForgeDirection dir = rand.nextInt(15) == 0 ? ForgeDirection.UP : ReikaDirectionHelper.getRandomDirection(false, rand);
 		int a = dir.offsetY == 0 ? 6 : 2;
 		int n = dir.offsetY == 0 ? 3 : 8;
 		for (int i = -a; i <= a; i++) {
@@ -79,7 +79,7 @@ public class WorldGenCrashSite extends WorldGenerator {
 				}
 			}
 		}
-		if (maxY-minY > 3 || minY < 90)
+		if (maxY-minY > 4 || minY < 90)
 			return false;
 		int y0 = (minY+maxY)/2;
 		int y = dir.offsetY == 0 ? y0+2 : y0+7;

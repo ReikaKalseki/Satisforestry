@@ -38,6 +38,8 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 
 	protected boolean isActiveThisTick;
 
+	public boolean forceRenderer;
+
 	public static enum MachineState {
 		INACTIVE(0xFF6060),
 		OPERATING(0x99FF32),

@@ -16,6 +16,7 @@ import net.minecraftforge.client.MinecraftForgeClient;
 
 import Reika.DragonAPI.Extras.ThrottleableEffectRenderer;
 import Reika.DragonAPI.Instantiable.Event.Client.ChunkWorldRenderEvent;
+import Reika.DragonAPI.Instantiable.Rendering.NullEntityRender;
 import Reika.DragonAPI.Instantiable.Rendering.ParticleEngine;
 import Reika.DragonAPI.Libraries.ReikaRegistryHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
@@ -117,6 +118,8 @@ public class SFClient extends SFCommon {
 
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.SPITTERFIRE.getObjectClass(), RenderSpitterFire.instance);
 		RenderingRegistry.registerEntityRenderingHandler(SFEntities.SPITTERSPLITFIRE.getObjectClass(), RenderSpitterFire.instance);
+
+		RenderingRegistry.registerEntityRenderingHandler(SFEntities.STINGERPOISON.getObjectClass(), NullEntityRender.instance);
 
 		ClientRegistry.bindTileEntitySpecialRenderer(TileNodeHarvester.class, new SFMinerRenderer());
 		ClientRegistry.bindTileEntitySpecialRenderer(TileFrackingPressurizer.class, new SFFrackerRenderer());

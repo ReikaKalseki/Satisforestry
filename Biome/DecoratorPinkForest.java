@@ -18,12 +18,14 @@ import java.util.Set;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.init.Blocks;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.Vec3;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 
 import Reika.DragonAPI.ModList;
+import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
@@ -34,6 +36,8 @@ import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.World.ReikaBlockHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.ChiselBlockHandler;
+import Reika.DragonAPI.ModInteract.ItemHandlers.ThaumItemHelper;
+import Reika.Satisforestry.SFThaumHandler;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Biome.Biomewide.BiomewideFeatureGenerator;
 import Reika.Satisforestry.Biome.Generator.WorldGenCaveFlora;
@@ -49,6 +53,12 @@ import Reika.Satisforestry.Blocks.BlockPowerSlug.TilePowerSlug;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
 import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Registry.SFBlocks;
+
+import thaumcraft.api.aspects.Aspect;
+import thaumcraft.api.aspects.AspectList;
+import thaumcraft.api.nodes.INode;
+import thaumcraft.api.nodes.NodeModifier;
+import thaumcraft.api.nodes.NodeType;
 
 public class DecoratorPinkForest extends StackableBiomeDecorator {
 
@@ -70,8 +80,23 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 
 	private final HashMap<Coordinate, BiomeFootprint> biomeColumns = new HashMap();
 
+	@ModDependent(ModList.THAUMCRAFT)
+	private static WeightedRandom<Aspect> aspectTable;
+
 	public DecoratorPinkForest() {
 		super();
+	}
+
+	@ModDependent(ModList.THAUMCRAFT)
+	public static void loadAspects() {
+		aspectTable = new WeightedRandom();
+		aspectTable.addEntry(Aspect.BEAST, 30);
+		aspectTable.addEntry(Aspect.GREED, 20);
+		aspectTable.addEntry(Aspect.LIFE, 10);
+		aspectTable.addEntry(Aspect.MINE, 20);
+		aspectTable.addEntry(Aspect.TREE, 50);
+		aspectTable.addEntry(Aspect.POISON, 20);
+		aspectTable.addEntry(SFThaumHandler.FICSIT, 50);
 	}
 
 	@Override
@@ -184,6 +209,53 @@ public class DecoratorPinkForest extends StackableBiomeDecorator {
 		redBambooGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
 		slugGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
 		caveFloraGenerator.generate(currentWorld, randomGenerator, chunk_X, chunk_Z);
+
+		if (ModList.THAUMCRAFT.isLoaded()) {
+			if (randomGenerator.nextInt(12) == 0) {
+				int dx = chunk_X + randomGenerator.nextInt(16) + 8;
+				int dz = chunk_Z + randomGenerator.nextInt(16) + 8;
+				int y = DecoratorPinkForest.getTrueTopAt(currentWorld, dx, dz)+1+randomGenerator.nextInt(3);
+				if (currentWorld.isAirBlock(dx, y, dz)) {
+					currentWorld.setBlock(dx, y, dz, ThaumItemHelper.BlockEntry.NODE.getBlock(), 0, 0);
+					TileEntity te = currentWorld.getTileEntity(dx, y, dz);
+					if (te != null && te instanceof INode) {
+						NodeType nt = randomGenerator.nextInt(6) == 0 ? NodeType.UNSTABLE : NodeType.NORMAL;
+						NodeModifier nm = NodeModifier.PALE;
+						switch(randomGenerator.nextInt(15)) {
+							case 0:
+							case 1:
+							case 2:
+								nm = NodeModifier.FADING;
+								break;
+							case 3:
+							case 4:
+							case 5:
+							case 6:
+							case 7:
+							case 8:
+								nm = NodeModifier.BRIGHT;
+								break;
+						}
+						AspectList al = new AspectList();
+						ArrayList<Aspect> li = new ArrayList(Aspect.getPrimalAspects());
+						int n = randomGenerator.nextInt(5) == 0 ? 1 : ReikaRandomHelper.getRandomBetween(2, 4, randomGenerator);
+						for (int i = 0; i < n; i++) {
+							Aspect a = li.remove(randomGenerator.nextInt(li.size()));
+							al.add(a, ReikaRandomHelper.getRandomBetween(15, 60, randomGenerator));
+						}
+						n = randomGenerator.nextInt(4) == 0 ? 0 : ReikaRandomHelper.getRandomBetween(1, 2, randomGenerator);
+						for (int i = 0; i < n; i++) {
+							al.add(aspectTable.getRandomEntry(), ReikaRandomHelper.getRandomBetween(10, 30, randomGenerator));
+						}
+						((INode)te).setNodeType(nt);
+						((INode)te).setNodeModifier(nm);
+						((INode)te).setAspects(al);
+					}
+					currentWorld.markBlockForUpdate(x, y, z);
+					currentWorld.func_147451_t(dx, y, dz);
+				}
+			}
+		}
 		/*
 		if (randomGenerator.nextInt(12) == 0) { //G/Y/P = 75%/20%/5%
 			int tier = 0;

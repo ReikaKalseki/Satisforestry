@@ -126,7 +126,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		TileEntity te = iba.getTileEntity(x, y, z);
 		if (te instanceof TileFrackingNode) {
 			TileFrackingNode tf = (TileFrackingNode)te;
-			Fluid f = tf.resource.getFluid();
+			Fluid f = tf.resource.getFluid();/*
 			int temp = f.getTemperature();
 			if (temp >= SourceType.LAVA.approxTemperature)
 				return SourceType.LAVA;
@@ -137,7 +137,8 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 			else if (temp <= SourceType.ICY.approxTemperature)
 				return SourceType.ICY;
 			else if (temp <= SourceType.WATER.approxTemperature)
-				return SourceType.WATER;
+				return SourceType.WATER;*/
+			return f == null ? SourceType.AMBIENT : SourceType.getByTemperature(f.getTemperature());
 		}
 		return SourceType.AMBIENT;
 	}

@@ -18,7 +18,6 @@ import java.util.List;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiScreen;
@@ -27,14 +26,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.IIcon;
 import net.minecraftforge.fluids.Fluid;
-import net.minecraftforge.fluids.FluidContainerRegistry;
-import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
 import Reika.DragonAPI.DragonAPICore;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
+import Reika.DragonAPI.Libraries.ReikaFluidHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaGLHelper.BlendMode;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
@@ -183,15 +181,7 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 	}
 
 	private Collection<ResourceEntry> getEntriesForItem(ItemStack is) {
-		FluidStack fs = FluidContainerRegistry.getFluidForFilledItem(is);
-		if (fs == null) {
-			Block b = Block.getBlockFromItem(is.getItem());
-			if (b != null) {
-				Fluid f = FluidRegistry.lookupFluidForBlock(b);
-				if (f != null)
-					fs = new FluidStack(f, 1000);
-			}
-		}
+		FluidStack fs = ReikaFluidHelper.getFluidForItem(is);
 		ArrayList<ResourceEntry> li = new ArrayList();
 		if (fs == null)
 			return li;
@@ -232,7 +222,7 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 			ResourceEntry re = (ResourceEntry)r;
 			ResourceFluid wc = re.item;
 			Minecraft mc = Minecraft.getMinecraft();
-			if (GuiScreen.isCtrlKeyDown())
+			if (GuiScreen.isCtrlKeyDown() && DragonAPICore.isReikasComputer())
 				renderer = null;
 			NBTTagCompound tag = new NBTTagCompound();
 			tileDelegate.writeToNBT(tag);
@@ -272,7 +262,7 @@ public class FluidNodeHandler extends TemplateRecipeHandler {
 				double sc = 0.75;
 				//GL11.glTranslated(-23, 55, -100);
 				//GL11.glTranslated(-gc.guiLeft, -gc.guiTop, 0);
-				GL11.glTranslated(-80D, 5D, 0);
+				GL11.glTranslated(-80D-8*(gsc-2), 5D-4*(gsc-2), 0);
 				GL11.glScaled(sc, sc, sc);
 				FrackingNodeAuxRenderer.renderDelegateMaster = tileDelegate;
 				SFClient.fracking.setRenderPass(0);

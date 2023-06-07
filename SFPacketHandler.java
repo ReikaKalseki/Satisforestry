@@ -28,9 +28,11 @@ import Reika.DragonAPI.Interfaces.PacketHandler;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper.DataPacket;
 import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper.PacketObj;
+import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.Satisforestry.Blocks.BlockCrashSite.TileCrashSite;
 import Reika.Satisforestry.Entity.EntitySpitter;
 import Reika.Satisforestry.Entity.EntitySpitterFireball;
+import Reika.Satisforestry.Registry.SFSounds;
 
 public class SFPacketHandler implements PacketHandler {
 
@@ -197,6 +199,11 @@ public class SFPacketHandler implements PacketHandler {
 						TileCrashSite.reactToLockGuiStatus(data[0] > 0);
 					}
 					break;
+				case ALTRECIPEUNLOCK:
+					if (world.isRemote) {
+						ReikaSoundHelper.playClientSound(SFSounds.ALTRECIPE, ep, 1, 1);
+					}
+					break;
 			}
 		}
 		catch (NullPointerException e) {
@@ -213,6 +220,7 @@ public class SFPacketHandler implements PacketHandler {
 		SPITTERBLAST(1),
 		CRASHUNLOCK(0),
 		CRASHUNLOCKRETURN(1),
+		ALTRECIPEUNLOCK(0),
 		;
 
 		public final int numInts;

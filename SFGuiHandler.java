@@ -41,6 +41,8 @@ public class SFGuiHandler implements IGuiHandler {
 
 	@Override
 	public Object getClientGuiElement(int ID, EntityPlayer player, World world, int x, int y, int z) {
+		if (ID == 1)
+			return new GuiSFBlueprint(player, x);
 		TileEntity te = world.getTileEntity(x, y, z);
 		if (te instanceof TileNodeHarvester) {
 			return new GuiSFMiner(player, (TileNodeHarvester)te);

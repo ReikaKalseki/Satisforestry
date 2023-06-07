@@ -122,8 +122,9 @@ public class ResourceNodeHandler extends TemplateRecipeHandler {
 	{
 		GL11.glColor4f(1, 1, 1, 1);
 		//ReikaTextureHelper.bindTexture(RotaryCraft.class, this.getGuiTexture());
+		//Minecraft.getMinecraft().renderEngine.bindTexture(new ResourceLocation("NotEnoughItems", "textures/gui/recipebg"));
 		GL11.glDisable(GL11.GL_DEPTH_TEST);
-		ReikaGuiAPI.instance.drawTexturedModalRectWithDepth(0, 1, 5, 11, 166, 70, ReikaGuiAPI.NEI_DEPTH);
+		//ReikaGuiAPI.instance.drawTexturedModalRectWithDepth(0, 1, 5, 11, 166, 70, ReikaGuiAPI.NEI_DEPTH);
 	}
 
 	@Override

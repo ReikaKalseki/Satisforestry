@@ -29,7 +29,6 @@ import Reika.DragonAPI.Libraries.IO.ReikaPacketHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaVectorHelper;
-import Reika.ReactorCraft.API.RadiationHandler;
 import Reika.Satisforestry.SFPacketHandler.SFPackets;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Registry.SFEntities;
@@ -92,7 +91,7 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 
 		if (!worldObj.isRemote) {
 			if (entityToAttack != null && poisonGasTick == 0 && poisonGasCooldown == 0 && rand.nextInt(150) == 0) {
-				this.startPoisonCloud();
+				this.startPoisonCloud(ReikaRandomHelper.getRandomBetween(1.5, 2));
 			}
 
 			Vec3 vec = this.getLookVec();
@@ -103,17 +102,12 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 			if (poisonGasTick > 0) {
 				rotationPitch = 0;
 				rotationYawHead = rotationYaw;
-				double r = 9*(1F-poisonGasTick/(float)POISON_DURATION);
-				this.doGasAttack(r);
-				//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.chicken.plop", 0.7F, 0.2F);
-				///ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.magmacube.jump", 0.7F, 2F);
 			}
 		}
 
 		if (worldObj.isRemote) {
 			poisonGasTick = dataWatcher.getWatchableObjectInt(20);
 			if (poisonGasTick > 0) {
-				this.doCloudFX(1);
 				rotationPitch = 0;
 				rotationYawHead = rotationYaw;
 			}
@@ -125,20 +119,9 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 	public void onDeath(DamageSource src) {
 		super.onDeath(src);
 
-		if (worldObj.isRemote)
-			this.doCloudFX(80);
-		else
-			this.doGasAttack(12);
+		if (!worldObj.isRemote)
+			this.startPoisonCloud(2);
 		SFSounds.STINGERGAS.playSound(this);
-	}
-
-	private void doGasAttack(double r) {
-		AxisAlignedBB box = ReikaAABBHelper.getEntityCenteredAABB(this, r);
-		List<EntityPlayer> li = worldObj.getEntitiesWithinAABB(EntityPlayer.class, box);
-		for (EntityPlayer ep : li) {
-			if (!ep.isPotionActive(Potion.poison) && !RadiationHandler.hasHazmatSuit(ep))
-				ep.addPotionEffect(new PotionEffect(Potion.poison.id, 40, 0));
-		}
 	}
 
 	/*
@@ -237,28 +220,14 @@ public class EntityEliteStinger extends EntitySpider implements SpawnPointEntity
 		}
 	}
 
-	private void startPoisonCloud() {
+	private void startPoisonCloud(double lenFactor) {
 		poisonGasTick = POISON_DURATION;
 		poisonGasCooldown = POISON_MAX_RATE;
 		//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.chicken.plop", 2F, 0.8F);
 		//ReikaSoundHelper.playSoundAtEntity(worldObj, this, "mob.cat.hiss", 2, 0.5F);
 		SFSounds.STINGERGAS.playSound(this);
-	}
-
-	@SideOnly(Side.CLIENT)
-	public void doCloudFX(int n) {
-		for (int i = 0; i < n; i++) {
-			double dx = ReikaRandomHelper.getRandomPlusMinus(0, 2);
-			double dz = ReikaRandomHelper.getRandomPlusMinus(0, 2);
-			double dy = ReikaRandomHelper.getRandomPlusMinus(0, 0.125);
-			double v = ReikaRandomHelper.getRandomBetween(0.05, 0.12);
-			double vy = ReikaRandomHelper.getRandomBetween(0, v);
-			EntityBlurFX fx = new EntityBlurFX(worldObj, posX+dx, posY+dy, posZ+dz, dx*v/2, vy, dz*v/2, IconPrefabs.FADE_GENTLE.getIcon());
-			int l = ReikaRandomHelper.getRandomBetween(100, 1200);
-			float s = (float)ReikaRandomHelper.getRandomBetween(8F, 15F);
-			fx.setColor(0xA4DB00).setScale(s).setRapidExpand().setAlphaFading().setLife(l).setColliding();
-			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
-		}
+		EntityStingerPoison e = new EntityStingerPoison(this, (int)(POISON_DURATION*lenFactor));
+		worldObj.spawnEntityInWorld(e);
 	}
 
 	@Override

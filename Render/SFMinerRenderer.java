@@ -10,14 +10,17 @@ import net.minecraftforge.common.util.ForgeDirection;
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Base.TileEntityRenderBase;
+import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaGLHelper.BlendMode;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
+import Reika.Satisforestry.GuiSFBlueprint;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Miner.TileNodeHarvester;
+import Reika.Satisforestry.Miner.TileResourceHarvesterBase;
 
 
 public class SFMinerRenderer extends TileEntityRenderBase {
@@ -31,24 +34,27 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 		GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
 		GL11.glPushMatrix();
 		GL11.glTranslated(par2, par4, par6);
-		if (te.isInWorld()) {
+		if (te.isInWorld() || te.forceRenderer) {
 			GL11.glTranslated(4, 0, 0);
 			GL11.glRotated(180, 0, 1, 0);
 			if (this.doRenderModel(te)) {
-				if (MinecraftForgeClient.getRenderPass() == 0) {
+				if (MinecraftForgeClient.getRenderPass() == 0 || te.forceRenderer) {
 					this.renderModel(te);
 				}
 				GL11.glPopMatrix();
-				if (MinecraftForgeClient.getRenderPass() == 1) {
+				if (MinecraftForgeClient.getRenderPass() == 1 || te.forceRenderer) {
 					GL11.glPushMatrix();
 					ReikaRenderHelper.disableEntityLighting();
 					ReikaRenderHelper.disableLighting();
 					GL11.glEnable(GL11.GL_BLEND);
 					BlendMode.DEFAULT.apply();
 					AxisAlignedBB box = te.getRenderBoundingBox();
+					GL11.glDepthMask(false);
 					ReikaAABBHelper.renderAABB(box, par2, par4, par6, te.xCoord, te.yCoord, te.zCoord, 255, 64, 64, 32, true);
 
 					ForgeDirection dir = te.getDirection();
+					if (dir == null)
+						dir = ForgeDirection.EAST;
 
 					GL11.glDepthMask(false);
 					GL11.glTranslated(par2, par4, par6);
@@ -97,6 +103,8 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 		ReikaTextureHelper.bindTexture(Satisforestry.class, "Textures/miner.png");
 		GL11.glPushMatrix();
 		ForgeDirection dir = te.getDirection();
+		if (dir == null)
+			dir = ForgeDirection.EAST;
 		switch(dir) {
 			case EAST:
 				break;
@@ -136,7 +144,10 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 
 	@Override
 	protected boolean doRenderModel(TileEntityBase te) {
-		return te.isInWorld() && ((TileNodeHarvester)te).hasStructure();
+		((TileResourceHarvesterBase)te).forceRenderer = StructureRenderer.isRenderingTiles() && GuiSFBlueprint.renderTESR;
+		if (((TileResourceHarvesterBase)te).forceRenderer)
+			return true;
+		return (te.isInWorld() && ((TileNodeHarvester)te).hasStructure());
 	}
 
 	@Override

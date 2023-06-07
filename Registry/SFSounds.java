@@ -64,6 +64,9 @@ public enum SFSounds implements CustomDistanceSound {
 	FRACKHISS("frackhiss"),
 	CRASHOPEN("crashopen"),
 	CRASHFAIL("crashfail"),
+	ALTRECIPE("altrecipe"),
+	GUISEL("guihover"),
+	GUICLICK("guiclick"),
 	;
 
 	public static final String PREFIX = "Reika/Satisforestry/";
