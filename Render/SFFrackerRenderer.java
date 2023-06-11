@@ -2,30 +2,25 @@ package Reika.Satisforestry.Render;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraftforge.client.MinecraftForgeClient;
 
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Base.TileEntityRenderBase;
 import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
-import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
-import Reika.DragonAPI.Libraries.Java.ReikaGLHelper.BlendMode;
-import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
-import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.Satisforestry.GuiSFBlueprint;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Miner.TileFrackingPressurizer;
 import Reika.Satisforestry.Miner.TileResourceHarvesterBase;
+import Reika.Satisforestry.Miner.TileResourceHarvesterBase.MachineState;
 
 
 public class SFFrackerRenderer extends TileEntityRenderBase {
 
-	//private final ModelSFFracker model = new ModelSFMiner("Render/ModelFracker.obj");
+	private final ModelSFFracker model = new ModelSFFracker("Render/ModelFracker.obj");
 
 	@Override
 	public void renderTileEntityAt(TileEntity tile, double par2, double par4, double par6, float ptick) {
@@ -39,7 +34,7 @@ public class SFFrackerRenderer extends TileEntityRenderBase {
 				if (MinecraftForgeClient.getRenderPass() == 0 || te.forceRenderer) {
 					this.renderModel(te);
 				}
-				GL11.glPopMatrix();
+				GL11.glPopMatrix();/*
 				if (MinecraftForgeClient.getRenderPass() == 1 || te.forceRenderer) {
 					GL11.glPushMatrix();
 					Tessellator.instance.setBrightness(240);
@@ -69,7 +64,7 @@ public class SFFrackerRenderer extends TileEntityRenderBase {
 					}
 
 					GL11.glPopMatrix();
-				}
+				}*/
 			}
 			else {
 				GL11.glPopMatrix();
@@ -86,30 +81,23 @@ public class SFFrackerRenderer extends TileEntityRenderBase {
 
 	@SuppressWarnings("incomplete-switch")
 	private void renderModel(TileFrackingPressurizer te) {
-		ReikaTextureHelper.bindTexture(Satisforestry.class, "Textures/fracker.png");
+		ReikaTextureHelper.bindTexture(Satisforestry.class, "Textures/FrackerTex.png");
 		GL11.glPushMatrix();
-		//model.drawChassis();
+		GL11.glTranslated(0.5, 0, 0.5);
+		model.drawChassis(te.ventExtension);
 		if (te.isInWorld()) {
-			GL11.glPushMatrix();
-			GL11.glTranslated(0, -te.thumper1.getPosition(), 0);
-			//model.drawThumper1();
-			GL11.glTranslated(0, te.thumper1.getPosition()-te.thumper2.getPosition(), 0);
-			//model.drawThumper2();
-			GL11.glTranslated(0, te.thumper2.getPosition()-te.thumper3.getPosition(), 0);
-			//model.drawThumper3();
-			GL11.glTranslated(0, te.thumper3.getPosition()-te.thumper4.getPosition(), 0);
-			//model.drawThumper4();
-			GL11.glTranslated(0, te.thumper4.getPosition(), 0);
-			GL11.glPopMatrix();
+			model.drawThumper(te.thumper1);
+			model.drawThumper(te.thumper2);
+			model.drawThumper(te.thumper3);
+			model.drawThumper(te.thumper4);
 			GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
 			ReikaRenderHelper.disableLighting();
 			ReikaRenderHelper.disableEntityLighting();
 			int c = te.getState().color;
-			if (te.getOverclockingStep(true) > 0) {
-				float f = 0.5F+(float)(0.5*Math.sin(te.getTicksExisted()*0.004));
-				c = ReikaColorAPI.mixColors(c, 0xffffff, f);
+			if (te.getState() == MachineState.OPERATING && te.getOverclockingStep(true) > 0) {
+				c = 0xb0d0ff;
 			}
-			//model.drawLightbar(c);
+			model.drawLightbar(c);
 			GL11.glPopAttrib();
 		}
 		GL11.glPopMatrix();

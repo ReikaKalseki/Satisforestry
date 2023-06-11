@@ -63,6 +63,8 @@ import Reika.Satisforestry.Biome.BiomePinkForest;
 import Reika.Satisforestry.Biome.CaveNightvisionHandler;
 import Reika.Satisforestry.Biome.Biomewide.PointSpawnSystem;
 import Reika.Satisforestry.Biome.Generator.PinkTreeGeneratorBase.PinkTreeTypes;
+import Reika.Satisforestry.Blocks.BlockFrackerMulti.FrackerBlocks;
+import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Blocks.BlockPinkLeaves;
 import Reika.Satisforestry.Blocks.BlockPinkLog;
 import Reika.Satisforestry.Config.BiomeConfig;
@@ -323,6 +325,9 @@ public class Satisforestry extends DragonAPIMod {
 		OreDictionary.registerOre("logWood", SFBlocks.LOG.getAnyMetaStack());
 		OreDictionary.registerOre("treeLeaves", SFBlocks.LEAVES.getAnyMetaStack());
 		OreDictionary.registerOre("treeSapling", SFBlocks.SAPLING.getAnyMetaStack());
+
+		GameRegistry.addShapelessRecipe(new ItemStack(multiblockPage, 1, 0), Items.paper, Items.paper, Items.paper, SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.ORANGE.ordinal()));
+		GameRegistry.addShapelessRecipe(new ItemStack(multiblockPage, 1, 1), Items.paper, Items.paper, Items.paper, SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.ORANGE.ordinal()));
 
 		SFMachineRecipes.instance.addRecipes();
 	}

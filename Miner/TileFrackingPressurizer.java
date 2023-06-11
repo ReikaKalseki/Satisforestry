@@ -3,6 +3,7 @@ package Reika.Satisforestry.Miner;
 import java.util.ArrayList;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -16,13 +17,16 @@ import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Exception.RegistrationException;
+import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.HybridTank;
+import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.IO.ReikaSoundHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaEngLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.DragonAPI.ModInteract.Power.ReikaEUHelper;
@@ -41,6 +45,8 @@ import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFSounds;
 
 import cofh.api.energy.IEnergyReceiver;
+import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 import ic2.api.energy.tile.IEnergySink;
 
 
@@ -51,9 +57,12 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	private final HybridTank inputFluid = new HybridTank("frackingin", 4000);
 
 	public final Thumper thumper1 = new Thumper(0);
-	public final Thumper thumper2 = new Thumper(0.0333);
-	public final Thumper thumper3 = new Thumper(0.0667);
-	public final Thumper thumper4 = new Thumper(0.1);
+	public final Thumper thumper2 = new Thumper(1);
+	public final Thumper thumper3 = new Thumper(2);
+	public final Thumper thumper4 = new Thumper(3);
+
+	private boolean activeState;
+	public double ventExtension = 0;
 
 	public TileFrackingPressurizer() {
 		super();
@@ -68,35 +77,93 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	public void updateEntity(World world, int x, int y, int z, int meta) {
 		super.updateEntity(world, x, y, z, meta);
 		if (world.isRemote) {
-			boolean active = this.hasStructure() && this.getState() == MachineState.OPERATING;
-			thumper1.update(active);
-			thumper2.update(active);
-			thumper3.update(active);
-			thumper4.update(active);
+			boolean recover = thumper1.update(activeState) == ThumperStage.RECOVERING;
+			recover |= thumper2.update(activeState) == ThumperStage.RECOVERING;
+			recover |= thumper3.update(activeState) == ThumperStage.RECOVERING;
+			recover |= thumper4.update(activeState) == ThumperStage.RECOVERING;
+			if (recover && activeState) {
+				ventExtension = Math.min(ventExtension+0.2, 1);
+				this.spawnVentParticles();
+			}
+			else {
+				ventExtension = Math.max(ventExtension-0.1, 0);
+			}
+		}
+		else {
+			activeState = this.hasStructure() && this.getState() == MachineState.OPERATING;
 		}
 	}
 
-	public class Thumper {
+	@SideOnly(Side.CLIENT)
+	private void spawnVentParticles() {
+		double vv = 0.0625;
+		double r = 4.25;
+		for (int i = 0; i < 2; i++) {
+			double vx = 0;
+			double vy = vv;
+			double vz = 0;
+			double px = 0;
+			double py = 5.25;
+			double pz = 0;
+			switch(rand.nextInt(4)) {
+				case 0:
+					px = r;
+					vx = vv;
+					break;
+				case 1:
+					px = -r;
+					vx = -vv;
+					break;
+				case 2:
+					pz = r;
+					vz = vv;
+					break;
+				case 3:
+					pz = -r;
+					vz = -vv;
+					break;
+			}
+			vx = ReikaRandomHelper.getRandomPlusMinus(vx, 0.015);
+			vy = ReikaRandomHelper.getRandomPlusMinus(vy, 0.015);
+			vz = ReikaRandomHelper.getRandomPlusMinus(vz, 0.015);
+			px = ReikaRandomHelper.getRandomPlusMinus(px, 0.125);
+			py = ReikaRandomHelper.getRandomPlusMinus(py, 0.125);
+			pz = ReikaRandomHelper.getRandomPlusMinus(pz, 0.125);
+			EntityBlurFX fx = new EntityBlurFX(worldObj, px+xCoord+0.5, py+yCoord+0.5, pz+zCoord+0.5, vx, vy, vz, IconPrefabs.FADE_BASICBLEND.getIcon());
+			fx.setBasicBlend().setAlphaFading();
+			TileFrackingNode tf = this.getResourceNode();
+			if (tf != null)
+				fx.setColor(ReikaColorAPI.mixColors(tf.getResource().color, 0xffffff, rand.nextFloat()));
+			fx.setLife(ReikaRandomHelper.getRandomBetween(20, 80)).setScale((float)ReikaRandomHelper.getRandomBetween(5D, 12D));
+			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
+		}
+	}
+
+	public class Thumper { //worth noting that SF fracker has a lot of random in the "wait" times
 
 		public static final double CYCLE_TIME = 100; //5s
 
+		public final int index;
 		public final double phaseOffset;
 
 		private double position;
+		private double lastPosition;
 
 		private long tick;
 
 		private ThumperStage stage = ThumperStage.RISING;
 
-		private Thumper(double d) {
-			phaseOffset = d;
+		private Thumper(int idx) {
+			index = idx;
+			phaseOffset = 0.0333*idx;
 		}
 
-		private void update(boolean active) {
+		private ThumperStage update(boolean active) {
+			lastPosition = position;
 			if (!active) {
 				tick = 0;
 				position = Math.max(0, position-0.04);
-				return;
+				return ThumperStage.RECOVERING;
 			}
 			tick++;
 			double frac = (phaseOffset+(tick%CYCLE_TIME)/CYCLE_TIME)%1D;
@@ -105,6 +172,19 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 			if (put != stage) {
 				this.setStage(put);
 			}
+			switch(stage) {
+				case RISING:
+					position += 0.01667;
+					break;
+				case DROPPING:
+					position -= 0.2;
+					break;
+				case PAUSE:
+					break;
+				case RECOVERING:
+					break;
+			}
+			return put;
 		}
 
 		private void setStage(ThumperStage put) {
@@ -112,18 +192,23 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 			switch(stage) {
 				case RISING: {
 					float p = (float)ReikaRandomHelper.getRandomBetween(0.75, 1.25);
-					ReikaSoundHelper.playClientSound(SFSounds.FRACKHISS, TileFrackingPressurizer.this, 0.8F, p);
+					float v = (float)ReikaRandomHelper.getRandomBetween(0.5F, 0.67F);
+					if (Minecraft.getMinecraft().thePlayer.getDistanceSq(xCoord, yCoord, zCoord) <= 2000)
+						ReikaSoundHelper.playClientSound(SFSounds.FRACKHISS, TileFrackingPressurizer.this, v, p, false);
 					break;
 				}
 				case PAUSE:
+					position = 1;
 					break;
 				case DROPPING:
 					break;
 				case RECOVERING:
 					float p = (float)ReikaRandomHelper.getRandomBetween(0.95, 1.03);
 					float v = (float)ReikaRandomHelper.getRandomBetween(0.8, 1.5);
-					ReikaSoundHelper.playClientSound(SFSounds.FRACKTHUMP, TileFrackingPressurizer.this, v, p);
+					if (Minecraft.getMinecraft().thePlayer.getDistanceSq(xCoord, yCoord, zCoord) <= 2000)
+						ReikaSoundHelper.playClientSound(SFSounds.FRACKTHUMP, TileFrackingPressurizer.this, v, p, false);
 					ReikaRenderHelper.rockScreen(20);
+					position = 0;
 					break;
 			}
 		}
@@ -143,8 +228,8 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 			}
 		}
 
-		public double getPosition() {
-			return position;
+		public double getRenderPosition() {
+			return ReikaMathLibrary.linterpolate(ReikaRenderHelper.getPartialTickTime(), 0, 1, lastPosition, position);
 		}
 	}
 
@@ -211,6 +296,7 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 		super.writeSyncTag(NBT);
 
 		NBT.setBoolean("struct", structure);
+		NBT.setBoolean("active", activeState);
 
 		inputFluid.writeToNBT(NBT);
 	}
@@ -220,6 +306,7 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 		super.readSyncTag(NBT);
 
 		structure = NBT.getBoolean("struct");
+		activeState = NBT.getBoolean("active");
 
 		inputFluid.readFromNBT(NBT);
 	}
