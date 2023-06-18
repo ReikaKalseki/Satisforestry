@@ -7,10 +7,13 @@ import java.util.List;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
+import org.lwjgl.opengl.GL12;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
@@ -296,7 +299,7 @@ public class GuiSFBlueprint extends GuiScreen implements CustomSoundGui {
 
 	private void drawSlice(int j, int k) {
 		boolean miner = title.equals("Miner");
-		render.drawSlice(miner ? j : j-3, k+(miner ? 21 : 24), fontRendererObj, miner ? 1 : 0.6);
+		render.drawSlice(miner ? j : j-3, k+(miner ? 21 : 25), fontRendererObj, miner ? 1 : 0.5);
 	}
 
 	private void drawTally(int j, int k) {
@@ -343,6 +346,15 @@ public class GuiSFBlueprint extends GuiScreen implements CustomSoundGui {
 
 	private void draw3d(int j, int k, float ptick) {
 		renderTESR = mode == 2;
+		if (renderTESR) {
+			RenderHelper.enableGUIStandardItemLighting();
+			GL11.glColor4f(1, 1, 1, 1);
+			GL11.glEnable(GL12.GL_RESCALE_NORMAL);
+			int i1 = 240;
+			int k1 = 240;
+			OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, i1 / 1.0F, k1 / 1.0F);
+			GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+		}
 		if (Mouse.isButtonDown(0) && tick > 2) {
 			render.rotate(0.25*Mouse.getDY(), 0.25*Mouse.getDX(), 0);
 		}

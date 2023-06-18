@@ -17,7 +17,7 @@ public class ModelSFMiner extends WavefrontObject {
 	public ModelSFMiner(String path) throws ModelFormatException {
 		super("SF Miner", Satisforestry.class.getResourceAsStream(path));
 
-		chassis = this.findGroupObject("chassis");
+		chassis = this.findGroupObject("base");
 		drill = this.findGroupObject("drill");
 		lightbar = this.findGroupObject("lightbar");
 	}

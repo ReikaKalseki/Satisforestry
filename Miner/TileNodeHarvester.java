@@ -44,7 +44,7 @@ import ic2.api.energy.tile.IEnergySink;
 
 public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileResourceNode, ForgeDirection> {
 
-	private static final double MAX_DRILL_SPEED = 24;
+	private static final double MAX_DRILL_SPEED = 20;
 
 	private SpoolingStates spoolState = SpoolingStates.IDLE;
 	private int spoolTime;
@@ -52,38 +52,49 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	private ForgeDirection structureDir = null;
 
 	@SideOnly(Side.CLIENT)
-	public double drillSpinAngle;
+	private double lastDrillSpinAngle;
+	@SideOnly(Side.CLIENT)
+	private double drillSpinAngle;
+	@SideOnly(Side.CLIENT)
+	private double lastDrillYPos;
+	@SideOnly(Side.CLIENT)
+	private double drillYPos;
 
 	public static enum SpoolingStates {
 		IDLE(2),
-		LOCKING(20),
-		LOWER1(30),
-		SPINUP(180),
-		LOWER2(50),
+		LOCKING(5),
+		LOWER1(15, 40),
+		SPINUP(160),
+		LOWER2(50, 40),
 		ACTIVE(5);
 
 		public final int duration;
+		public final int durationReverse;
 
 		private static final SpoolingStates[] list = values();
 
 		private SpoolingStates(int d) {
+			this(d, d);
+		}
+
+		private SpoolingStates(int d, int r) {
 			duration = d;
+			durationReverse = r;
 		}
 
 		public void playEntrySound(TileNodeHarvester te, SpoolingStates last) {
 			switch(this) {
+				case LOCKING:
+					break;
 				case LOWER1:
-					if (last == LOCKING) {
-						SFSounds.DRILLLOCK.playSoundAtBlock(te);
-					}
+					if (last == LOCKING)
+						SFSounds.DRILLLOCK.playSoundNoAttenuation(te.worldObj, te.xCoord+0.5, te.yCoord+0.5, te.zCoord+0.5, 1, 1, 64);
 					break;
 				case SPINUP:
-					if (last == LOWER1) {
-						SFSounds.DRILLSPINUP.playSoundAtBlock(te);
-					}
-					else if (last == LOWER2) {
-						SFSounds.DRILLSPINDOWN.playSoundAtBlock(te);
-					}
+					if (last == LOWER1)
+						SFSounds.DRILLSPINUP.playSoundNoAttenuation(te.worldObj, te.xCoord+0.5, te.yCoord+0.5, te.zCoord+0.5, 1, 1, 64);
+					else if (last == LOWER2)
+						SFSounds.DRILLSPINDOWN.playSoundNoAttenuation(te.worldObj, te.xCoord+0.5, te.yCoord+0.5, te.zCoord+0.5, 1, 1, 64);
 					break;
 				default:
 					break;
@@ -102,6 +113,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 
 	private void rampSpool(boolean up) {
 		SpoolingStates last = spoolState;
+		int lastTime = spoolTime;
 		if (up) {
 			spoolTime++;
 			if (spoolTime > spoolState.duration) {
@@ -114,7 +126,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 				}
 			}
 		}
-		else {
+		else if ((spoolState != SpoolingStates.ACTIVE && spoolState != SpoolingStates.LOWER2) || runSoundTick < 50) {
 			spoolTime--;
 			if (spoolTime < 0) {
 				if (spoolState == SpoolingStates.IDLE) {
@@ -122,20 +134,25 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 				}
 				else {
 					spoolState = SpoolingStates.list[last.ordinal()-1];
-					spoolTime = spoolState.duration;
+					spoolTime = spoolState.durationReverse;
 				}
 			}
 		}
 
 		if (last != spoolState)
 			spoolState.playEntrySound(this, last);
+		if (last != spoolState || lastTime != spoolTime)
+			this.syncAllData(false);
 	}
 
 	@Override
 	public void updateEntity(World world, int x, int y, int z, int meta) {
 		super.updateEntity(world, x, y, z, meta);
 		if (world.isRemote) {
-			drillSpinAngle += this.getDrillSpeed(MAX_DRILL_SPEED);
+			lastDrillSpinAngle = drillSpinAngle;
+			drillSpinAngle -= this.getDrillSpeed(MAX_DRILL_SPEED);
+			lastDrillYPos = drillYPos;
+			drillYPos = this.getDrillVerticalOffsetScale(0.75, 2, !isActiveThisTick);
 		}
 		else {
 			if (spoolState.ordinal() > SpoolingStates.SPINUP.ordinal()) {
@@ -143,8 +160,8 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 					runSoundTick--;
 				}
 				else {
-					SFSounds.DRILLRUN.playSoundAtBlock(this);
-					runSoundTick = 56;
+					SFSounds.DRILLRUN.playSoundNoAttenuation(worldObj, xCoord+0.5, yCoord+0.5, zCoord+0.5, 1, 1, 64);
+					runSoundTick = 148;
 				}
 			}
 			else {
@@ -182,7 +199,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	}
 
 	@SideOnly(Side.CLIENT)
-	public double getDrillVerticalOffsetScale(double phase1L, double phase2L) {
+	private double getDrillVerticalOffsetScale(double phase1L, double phase2L, boolean rev) {
 		if (!this.isInWorld())
 			return 0;
 		switch(spoolState) {
@@ -190,11 +207,11 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 			case LOCKING:
 				return 0;
 			case LOWER1:
-				return phase1L*spoolTime/spoolState.duration;
+				return phase1L*spoolTime/(rev ? spoolState.durationReverse : spoolState.duration);
 			case SPINUP:
 				return phase1L;
 			case LOWER2:
-				return phase1L+phase2L*spoolTime/spoolState.duration;
+				return phase1L+phase2L*spoolTime/(rev ? spoolState.durationReverse : spoolState.duration);
 			case ACTIVE:
 				return phase1L+phase2L;
 		}
@@ -202,7 +219,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	}
 
 	@SideOnly(Side.CLIENT)
-	public double getDrillSpeed(double max) {
+	private double getDrillSpeed(double max) {
 		if (spoolState.ordinal() < SpoolingStates.SPINUP.ordinal()) {
 			return 0;
 		}
@@ -215,6 +232,16 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 		else {
 			throw new IllegalStateException("Spoolstate was neither less, equal, or greater than spinup?!");
 		}
+	}
+
+	@SideOnly(Side.CLIENT)
+	public double getDrillHeight(float ptick) {
+		return ReikaMathLibrary.linterpolate(ptick, 0, 1, lastDrillYPos, drillYPos);
+	}
+
+	@SideOnly(Side.CLIENT)
+	public double getDrillAngle(float ptick) {
+		return ReikaMathLibrary.linterpolate(ptick, 0, 1, lastDrillSpinAngle, drillSpinAngle);
 	}
 
 	@Override
@@ -431,7 +458,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	public static class TileNodeHarvesterRF extends TileNodeHarvesterBasicEnergy implements IEnergyReceiver {
 
 		public TileNodeHarvesterRF() {
-			super(20000, 600000, 2500, 100);
+			super(2000, 600000, 2500, 100);
 		}
 
 		@Override
@@ -485,7 +512,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	public static class TileNodeHarvesterEU extends TileNodeHarvesterBasicEnergy implements IEnergySink {
 
 		public TileNodeHarvesterEU() {
-			super(1536, 6144, 256, 4);
+			super(384, 6144, 512, 4);
 		}
 
 		@Override

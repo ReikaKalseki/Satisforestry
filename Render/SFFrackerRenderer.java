@@ -15,7 +15,6 @@ import Reika.Satisforestry.GuiSFBlueprint;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Miner.TileFrackingPressurizer;
 import Reika.Satisforestry.Miner.TileResourceHarvesterBase;
-import Reika.Satisforestry.Miner.TileResourceHarvesterBase.MachineState;
 
 
 public class SFFrackerRenderer extends TileEntityRenderBase {
@@ -71,7 +70,7 @@ public class SFFrackerRenderer extends TileEntityRenderBase {
 			}
 		}
 		else {
-			GL11.glTranslated(-0.6, -0.6, 0);
+			GL11.glTranslated(0, -0.5, 0);
 			GL11.glScaled(0.1, 0.1, 0.1);
 			this.renderModel(te);
 			GL11.glPopMatrix();
@@ -85,7 +84,7 @@ public class SFFrackerRenderer extends TileEntityRenderBase {
 		GL11.glPushMatrix();
 		GL11.glTranslated(0.5, 0, 0.5);
 		model.drawChassis(te.ventExtension);
-		if (te.isInWorld()) {
+		if (te.isInWorld() || StructureRenderer.isRenderingTiles()) {
 			model.drawThumper(te.thumper1);
 			model.drawThumper(te.thumper2);
 			model.drawThumper(te.thumper3);
@@ -93,12 +92,12 @@ public class SFFrackerRenderer extends TileEntityRenderBase {
 			GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
 			ReikaRenderHelper.disableLighting();
 			ReikaRenderHelper.disableEntityLighting();
-			int c = te.getState().color;
-			if (te.getState() == MachineState.OPERATING && te.getOverclockingStep(true) > 0) {
-				c = 0xb0d0ff;
-			}
-			model.drawLightbar(c);
+			model.drawLightbar(te.getLightbarColorForRender());
 			GL11.glPopAttrib();
+		}
+		else {
+			GL11.glTranslated(0, -2, 0);
+			model.renderThumpers();
 		}
 		GL11.glPopMatrix();
 	}

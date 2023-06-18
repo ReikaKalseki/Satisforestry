@@ -10,6 +10,7 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Auxiliary.ChunkManager;
 import Reika.DragonAPI.Base.TileEntityBase;
+import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
 import Reika.DragonAPI.Interfaces.TileEntity.ChunkLoadingTile;
 import Reika.Satisforestry.Blocks.BlockResourceNode.ResourceNode;
 import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileMinerConnection;
@@ -18,6 +19,7 @@ import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileShaftConnection;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
+import cpw.mods.fml.relauncher.SideOnly;
 
 
 public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> extends TileEntityBase implements ChunkLoadingTile {
@@ -61,6 +63,21 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 
 	public final MachineState getState() {
 		return state;
+	}
+
+	@SideOnly(Side.CLIENT)
+	public final int getLightbarColorForRender() {
+		if (StructureRenderer.isRenderingTiles()) {
+			int idx = (int)((System.currentTimeMillis()/1000)%(MachineState.list.length+1));
+			return idx == MachineState.list.length ? 0xb0d0ff : MachineState.list[idx].color;
+		}
+		int c = state.color;
+		if (state == MachineState.OPERATING && this.getOverclockingStep(true) > 0) {
+			//float f = 0.5F+(float)(0.5*Math.sin(this.getTicksExisted()*0.004));
+			//c = ReikaColorAPI.mixColors(c, 0xffffff, f);
+			c = 0xb0d0ff;
+		}
+		return c;
 	}
 
 	@Override
@@ -208,6 +225,8 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 
 		NBT.setInteger("state", state.ordinal());
 
+		NBT.setBoolean("activeThisTick", this.isActiveThisTick);
+
 		overclock.writeToNBT(NBT, "overclock");
 	}
 
@@ -220,6 +239,8 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 		int struct = NBT.getInteger("structure");
 
 		overclock.readFromNBT(NBT, "overclock");
+
+		isActiveThisTick = NBT.getBoolean("activeThisTick");
 
 		state = MachineState.list[NBT.getInteger("state")];
 	}

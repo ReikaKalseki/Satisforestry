@@ -72,6 +72,11 @@ public class ModelSFFracker extends WavefrontObject {
 		GL11.glPopMatrix();
 	}
 
+	public void renderThumpers() {
+		for (GroupObject go : thumpers)
+			go.render();
+	}
+
 	public void drawLightbar(int c) {
 		if (lightbar == null)
 			return;

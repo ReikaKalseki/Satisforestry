@@ -527,11 +527,6 @@ return li.get(0);
 		}
 
 		@Override
-		public void complete(World world) {
-			this.complete(world);
-		}
-
-		@Override
 		protected ArrayList<Coordinate> getNextSearchCoordsFor(World world, Coordinate c) {
 			highestY = Math.max(DecoratorPinkForest.getAverageHeight(world, c.xCoord, c.zCoord, 2, (w, x, y, z) -> w.getBlock(x, y, z) == Blocks.sand && Satisforestry.isPinkForest(w, x, z)), highestY);
 			ArrayList<Coordinate> ret = new ArrayList();

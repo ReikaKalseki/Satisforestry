@@ -9,6 +9,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -20,6 +21,7 @@ import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Base.BlockMultiBlock;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.StructuredBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
 import Reika.Satisforestry.Satisforestry;
@@ -89,6 +91,35 @@ public abstract class BlockSFMultiBase<S> extends BlockMultiBlock<S> {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public final void setBlockBoundsBasedOnState(IBlockAccess iba, int x, int y, int z) {
+		if (this.shouldTurnToSlab(iba.getBlockMetadata(x, y, z))) {
+			if (iba.getBlock(x, y+1, z).isAir(iba, x, y+1, z) && iba.getBlock(x, y-1, z) != this) {
+				if (!this.match(iba, x, y, z, x, y+1, z+1) && !this.match(iba, x, y, z, x, y+1, z-1) && !this.match(iba, x, y, z, x+1, y+1, z) && !this.match(iba, x, y, z, x-1, y+1, z)) {
+					this.setBlockBounds(0, 0, 0, 1, 0.625F, 1);
+					return;
+				}
+			}
+		}
+		this.setBlockBounds(0, 0, 0, 1, 1, 1);
+	}
+
+	@Override
+	public void setBlockBoundsForItemRender() {
+		this.setBlockBounds(0, 0, 0, 1, 1, 1);
+	}
+
+	@Override
+	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
+		return ReikaAABBHelper.getBlockAABB(x, y, z);
+	}
+
+	protected abstract boolean shouldTurnToSlab(int meta);
+
+	public final boolean match(IBlockAccess iba, int x, int y, int z, int dx, int dy, int dz) {
+		return iba.getBlock(dx, dy, dz) == this && iba.getBlockMetadata(dx, dy, dz) == iba.getBlockMetadata(x, y, z);
 	}
 
 	protected abstract int getBlockSearchXZ();

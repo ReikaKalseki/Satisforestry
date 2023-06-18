@@ -45,6 +45,11 @@ public class BlockFrackerMulti extends BlockSFMultiBase<Boolean> {
 	}
 
 	@Override
+	protected boolean shouldTurnToSlab(int meta) {
+		return FrackerBlocks.list[meta&7] == FrackerBlocks.DARK;
+	}
+
+	@Override
 	public TileEntity createTileEntity(World world, int meta) {
 		if (meta < 8)
 			return null;

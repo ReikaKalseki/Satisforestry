@@ -47,6 +47,11 @@ public class BlockMinerMulti extends BlockSFMultiBase<ForgeDirection> {
 	}
 
 	@Override
+	protected boolean shouldTurnToSlab(int meta) {
+		return MinerBlocks.list[meta&7] == MinerBlocks.DARK;
+	}
+
+	@Override
 	public TileEntity createTileEntity(World world, int meta) {
 		if (meta < 8)
 			return null;

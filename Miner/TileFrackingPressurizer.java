@@ -253,7 +253,7 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	@Override
 	protected boolean isReady(TileFrackingNode te) {
 		ResourceFluid rf = te.getResource();
-		return rf.requiredInput == null || rf.requiredInputAmount <= inputFluid.getLevel() && rf.requiredInput == inputFluid.getActualFluid();
+		return rf.requiredInput == null || (rf.requiredInputAmount <= inputFluid.getLevel() && rf.requiredInput == inputFluid.getActualFluid());
 	}
 
 	@Override
