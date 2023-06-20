@@ -1,5 +1,7 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.Locale;
+
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
@@ -11,12 +13,20 @@ import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 
 import Reika.DragonAPI.ModList;
+import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray.BlockMatchFailCallback;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.DragonAPI.ModInteract.ItemHandlers.BCPipeHandler;
+import Reika.DragonAPI.ModInteract.ItemHandlers.ThermalDuctHandler;
 import Reika.Satisforestry.Miner.MinerStructure;
 import Reika.Satisforestry.Miner.TileNodeHarvester;
 import Reika.Satisforestry.Registry.SFBlocks;
+
+import buildcraft.transport.Pipe;
+import buildcraft.transport.TileGenericPipe;
+import buildcraft.transport.pipes.PipeItemsWood;
+import cofh.api.transport.IItemDuct;
 
 public class BlockMinerMulti extends BlockSFMultiBase<ForgeDirection> {
 
@@ -80,7 +90,6 @@ public class BlockMinerMulti extends BlockSFMultiBase<ForgeDirection> {
 	@Override
 	public ForgeDirection checkForFullMultiBlock(World world, int x, int y, int z, ForgeDirection placeDir, BlockMatchFailCallback call) {
 		TileEntity te = this.getTileEntityForPosition(world, x, y, z);
-		//ReikaJavaLibrary.pConsole(te);
 		if (te instanceof TileNodeHarvester) {
 			return MinerStructure.getStructureDirection(world, te.xCoord, te.yCoord, te.zCoord, call);
 		}
@@ -98,7 +107,7 @@ public class BlockMinerMulti extends BlockSFMultiBase<ForgeDirection> {
 
 		@Override
 		public boolean canUpdate() {
-			return ModList.IMMERSIVEENG.isLoaded();
+			return true;
 		}
 
 		@Override
@@ -112,20 +121,35 @@ public class BlockMinerMulti extends BlockSFMultiBase<ForgeDirection> {
 			if (dir == null)
 				return;
 			TileEntity te = worldObj.getTileEntity(xCoord+dir.offsetX, yCoord, zCoord+dir.offsetZ);
-			if (te instanceof IInventory) {
+			if (te instanceof IInventory && this.canAutoEject(te))
 				this.tryAddToInv((IInventory)te);
-			}
+			else if (ModList.BCTRANSPORT.isLoaded() && worldObj.getBlock(xCoord+dir.offsetX, yCoord, zCoord+dir.offsetZ) == BCPipeHandler.getInstance().pipeID)
+				this.handlePipeTransport(dir, te);
+			else if (ModList.THERMALDYNAMICS.isLoaded() && ThermalDuctHandler.getInstance().isDuct(worldObj.getBlock(xCoord+dir.offsetX, yCoord, zCoord+dir.offsetZ)))
+				this.handleTDDuctTransport(dir, te);
+		}
+
+		private boolean canAutoEject(TileEntity te) {
+			String n = te.getClass().getName().toLowerCase(Locale.ENGLISH);
+			if (n.equals("blusunrize.immersiveengineering.common.blocks.metal.TileEntityConveyorBelt"))
+				return true;
+			return false;
+		}
+
+		@ModDependent(ModList.BCTRANSPORT)
+		private void handlePipeTransport(ForgeDirection dir, TileEntity te) {
+			Pipe p = ((TileGenericPipe)te).pipe;
+			if (p instanceof PipeItemsWood)
+				((PipeItemsWood)p).receiveEnergy(dir.getOpposite(), 100, false);
+		}
+
+		@ModDependent(ModList.THERMALDYNAMICS)
+		private void handleTDDuctTransport(ForgeDirection dir, TileEntity te) {
+			if (te instanceof IItemDuct)
+				currentSlot = ((IItemDuct)te).insertItem(dir, currentSlot);
 		}
 
 		private void tryAddToInv(IInventory te) {
-			/*
-			if (ReikaInventoryHelper.addToIInv(currentSlot, te)) {
-				this.currentSlot = null;
-			}
-			else {
-
-			}
-			 */
 			ItemStack is = ReikaItemHelper.getSizedItemStack(currentSlot, 1);
 			if (ReikaInventoryHelper.addToIInv(is, te)) {
 				currentSlot.stackSize--;

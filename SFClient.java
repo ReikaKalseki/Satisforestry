@@ -32,6 +32,7 @@ import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFEntities;
 import Reika.Satisforestry.Registry.SFShaders;
 import Reika.Satisforestry.Render.DecorationRenderer;
+import Reika.Satisforestry.Render.EntityMinerFX;
 import Reika.Satisforestry.Render.FrackingNodeAuxRenderer;
 import Reika.Satisforestry.Render.FrackingNodeRenderer;
 import Reika.Satisforestry.Render.PinkGrassRenderer;
@@ -135,7 +136,9 @@ public class SFClient extends SFCommon {
 
 			@Override
 			protected void registerClasses() {
+				//ThrottleableEffectRenderer.getRegisteredInstance().registerDelegateRenderer(EntitySlugStreakFX.class, this); //commented because render() noop
 				ThrottleableEffectRenderer.getRegisteredInstance().registerDelegateRenderer(SpitterFireParticle.class, this);
+				ThrottleableEffectRenderer.getRegisteredInstance().registerDelegateRenderer(EntityMinerFX.class, this);
 			}
 		};
 

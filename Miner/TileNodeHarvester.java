@@ -3,6 +3,7 @@ package Reika.Satisforestry.Miner;
 import java.util.ArrayList;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -18,8 +19,10 @@ import Reika.DragonAPI.Exception.UnreachableCodeException;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaEngLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
+import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.ModInteract.ItemHandlers.IC2Handler;
 import Reika.DragonAPI.ModInteract.Power.ReikaEUHelper;
@@ -35,6 +38,7 @@ import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileShaftConnection;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Registry.SFBlocks;
 import Reika.Satisforestry.Registry.SFSounds;
+import Reika.Satisforestry.Render.EntityMinerFX;
 
 import cofh.api.energy.IEnergyReceiver;
 import cpw.mods.fml.relauncher.Side;
@@ -153,6 +157,9 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 			drillSpinAngle -= this.getDrillSpeed(MAX_DRILL_SPEED);
 			lastDrillYPos = drillYPos;
 			drillYPos = this.getDrillVerticalOffsetScale(0.75, 2, !isActiveThisTick);
+			if (isActiveThisTick && spoolState == SpoolingStates.ACTIVE) {
+				this.spawnMiningFX(world, x, y, z);
+			}
 		}
 		else {
 			if (spoolState.ordinal() > SpoolingStates.SPINUP.ordinal()) {
@@ -168,6 +175,21 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 				runSoundTick = 0;
 			}
 			this.rampSpool(isActiveThisTick);
+		}
+	}
+
+	private void spawnMiningFX(World world, int x, int y, int z) {
+		double r = 0.675;
+		for (int i = 0; i < 5; i++) {
+			double phi = rand.nextDouble()*360;
+			double ang = Math.toRadians(phi);
+			double px = x+0.5+r*Math.cos(ang);
+			double py = y;
+			double pz = z+0.5+r*Math.sin(ang);
+			double[] xyz = ReikaPhysicsHelper.polarToCartesianFast(0.15, ReikaRandomHelper.getRandomBetween(45, 72), phi);
+			EntityMinerFX fx = new EntityMinerFX(world, px, py, pz, xyz[0], xyz[1]+0.04, xyz[2]);
+			fx.setScale(1.25F+0.75F*rand.nextFloat()).setGravity(0.25F).setLife(30);
+			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 		}
 	}
 
