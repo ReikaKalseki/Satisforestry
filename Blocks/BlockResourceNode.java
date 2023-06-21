@@ -17,6 +17,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.EnumDifficulty;
+import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
@@ -30,6 +31,7 @@ import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
+import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockCaveSpawner.TileCaveSpawner;
@@ -249,6 +251,19 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 			resource = resourceSet.getRandomEntry();
 			purity = resource.getRandomPurity(rand);
 			this.initSpawner(purity == Purity.PURE ? 2 : 1);
+		}
+
+		public int getOverlayColor() {
+			ResourceItem r = this.getResource();
+			if (r == null)
+				return 0xffffff;
+			float l = Math.max(worldObj.getSavedLightValue(EnumSkyBlock.Block, xCoord, yCoord+1, zCoord), worldObj.getSavedLightValue(EnumSkyBlock.Sky, xCoord, yCoord+1, zCoord)*worldObj.getSunBrightnessFactor(0));
+			float a = 1-l/24F;
+			int c = r.color;
+			if (a < 1) {
+				c = ReikaColorAPI.mixColors(c, 0xffffff, a*0.5F+0.5F);
+			}
+			return (c & 0xffffff) | ((int)Math.min(255, a*255) << 24);
 		}
 
 		@Override

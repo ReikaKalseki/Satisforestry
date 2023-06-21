@@ -12,13 +12,10 @@ package Reika.Satisforestry.Render;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.block.Block;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.util.IIcon;
-import net.minecraft.world.EnumSkyBlock;
 import net.minecraft.world.IBlockAccess;
-import net.minecraft.world.World;
 
 import Reika.DragonAPI.Base.ISBRH;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
@@ -27,7 +24,6 @@ import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.Satisforestry.Blocks.BlockResourceNode;
 import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
-import Reika.Satisforestry.Config.ResourceItem;
 
 
 public class ResourceNodeRenderer extends ISBRH {
@@ -77,23 +73,14 @@ public class ResourceNodeRenderer extends ISBRH {
 	public boolean renderWorldBlock(IBlockAccess world, int x, int y, int z, Block block, int modelId, RenderBlocks renderer) {
 		Tessellator v5 = Tessellator.instance;
 		TileResourceNode te = (TileResourceNode)world.getTileEntity(x, y, z);
-		ResourceItem ri = te.getResource();
-		int c = ri == null ? 0xffffff : ri.color;
+		int c = te.getOverlayColor();
 		if (renderPass == 0) {
 			v5.setColorOpaque_I(0xffffff);
 			renderer.renderStandardBlockWithAmbientOcclusion(block, x, y, z, 1, 1, 1);
 		}
 		if (renderPass == 1) {
 			v5.setBrightness(240);
-
-			World w = Minecraft.getMinecraft().theWorld;
-			float l = Math.max(w.getSavedLightValue(EnumSkyBlock.Block, x, y+1, z), w.getSavedLightValue(EnumSkyBlock.Sky, x, y+1, z)*w.getSunBrightnessFactor(0));
-			float a = 1-l/24F;
-			if (a < 1) {
-				c = ReikaColorAPI.mixColors(c, 0xffffff, a*0.5F+0.5F);
-			}
-
-			v5.setColorRGBA_I(c, (int)(a*255));
+			v5.setColorRGBA_I(c & 0xffffff, ReikaColorAPI.getAlpha(c));
 		}
 
 		rand.setSeed(this.calcSeed(x, y, z));
@@ -209,7 +196,7 @@ public class ResourceNodeRenderer extends ISBRH {
 		}
 
 		if (renderPass == 1) {
-			v5.setColorOpaque_I(c);
+			v5.setColorOpaque_I(c & 0xffffff);
 			ico = BlockResourceNode.getCrystal();
 
 			SimplexNoiseGenerator gen = (SimplexNoiseGenerator)new SimplexNoiseGenerator(rand.nextLong()).setFrequency(12);

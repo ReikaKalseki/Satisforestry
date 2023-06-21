@@ -13,8 +13,10 @@ import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.Satisforestry.GuiSFBlueprint;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockFrackerMulti.FrackerBlocks;
 import Reika.Satisforestry.Miner.TileFrackingPressurizer;
 import Reika.Satisforestry.Miner.TileResourceHarvesterBase;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 
 public class SFFrackerRenderer extends TileEntityRenderBase {
@@ -66,6 +68,7 @@ public class SFFrackerRenderer extends TileEntityRenderBase {
 				}*/
 			}
 			else {
+				SFMinerRenderer.renderOverlaidCube(te, SFBlocks.FRACKERMULTI.getBlockInstance().getIcon(1, FrackerBlocks.TUBE.ordinal()));
 				GL11.glPopMatrix();
 			}
 		}

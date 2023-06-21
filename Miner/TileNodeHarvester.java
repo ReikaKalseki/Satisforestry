@@ -180,6 +180,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 
 	private void spawnMiningFX(World world, int x, int y, int z) {
 		double r = 0.675;
+		TileResourceNode te = this.getResourceNode();
 		for (int i = 0; i < 5; i++) {
 			double phi = rand.nextDouble()*360;
 			double ang = Math.toRadians(phi);
@@ -187,7 +188,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 			double py = y;
 			double pz = z+0.5+r*Math.sin(ang);
 			double[] xyz = ReikaPhysicsHelper.polarToCartesianFast(0.15, ReikaRandomHelper.getRandomBetween(45, 72), phi);
-			EntityMinerFX fx = new EntityMinerFX(world, px, py, pz, xyz[0], xyz[1]+0.04, xyz[2]);
+			EntityMinerFX fx = new EntityMinerFX(world, px, py, pz, xyz[0], xyz[1]+0.04, xyz[2], te);
 			fx.setScale(1.25F+0.75F*rand.nextFloat()).setGravity(0.25F).setLife(30);
 			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 		}

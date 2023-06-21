@@ -2,10 +2,13 @@ package Reika.Satisforestry.Render;
 
 import org.lwjgl.opengl.GL11;
 
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.IIcon;
 import net.minecraftforge.client.MinecraftForgeClient;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.DragonAPI.Base.BaseBlockRenderer;
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Base.TileEntityRenderBase;
@@ -14,8 +17,10 @@ import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
 import Reika.Satisforestry.GuiSFBlueprint;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Miner.TileNodeHarvester;
 import Reika.Satisforestry.Miner.TileResourceHarvesterBase;
+import Reika.Satisforestry.Registry.SFBlocks;
 
 
 public class SFMinerRenderer extends TileEntityRenderBase {
@@ -39,6 +44,9 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 				GL11.glPopMatrix();
 			}
 			else {
+				Tessellator.instance.addTranslation(3, 0, -1);
+				renderOverlaidCube(te, SFBlocks.MINERMULTI.getBlockInstance().getIcon(1, MinerBlocks.DRILL.ordinal()));
+				Tessellator.instance.addTranslation(-3, 0, 1);
 				GL11.glPopMatrix();
 			}
 		}
@@ -49,6 +57,67 @@ public class SFMinerRenderer extends TileEntityRenderBase {
 			GL11.glPopMatrix();
 		}
 		GL11.glPopAttrib();
+	}
+
+	public static void renderOverlaidCube(TileResourceHarvesterBase te, IIcon base) {
+		IIcon ico = null;
+		double o = 0;
+		switch(MinecraftForgeClient.getRenderPass()) {
+			case 0:
+				ico = base;
+				break;
+			case 1:
+				GL11.glEnable(GL11.GL_BLEND);
+				o = 0.002;
+				ico = te.getBlockType().getIcon(1, te.worldObj.getBlockMetadata(te.xCoord, te.yCoord, te.zCoord));
+				break;
+		}
+		if (ico != null) {
+			Tessellator v5 = Tessellator.instance;
+			ReikaTextureHelper.bindTerrainTexture();
+			float u = ico.getMinU();
+			float v = ico.getMinV();
+			float du = ico.getMaxU();
+			float dv = ico.getMaxV();
+			v5.startDrawingQuads();
+			v5.setNormal(1F, 1F, 1F);
+			BaseBlockRenderer.faceBrightnessColor(ForgeDirection.UP, v5, 1, 1, 1, te.worldObj, te.xCoord, te.yCoord, te.zCoord, te.getBlockType(), null);
+			v5.addVertexWithUV(0-o, 0-o, 0-o, u, v);
+			v5.addVertexWithUV(1+o, 0-o, 0-o, du, v);
+			v5.addVertexWithUV(1+o, 0-o, 1+o, du, dv);
+			v5.addVertexWithUV(0-o, 0-o, 1+o, u, dv);
+
+			BaseBlockRenderer.faceBrightnessColor(ForgeDirection.DOWN, v5, 1, 1, 1, te.worldObj, te.xCoord, te.yCoord, te.zCoord, te.getBlockType(), null);
+			v5.addVertexWithUV(0-o, 1+o, 1+o, u, dv);
+			v5.addVertexWithUV(1+o, 1+o, 1+o, du, dv);
+			v5.addVertexWithUV(1+o, 1+o, 0-o, du, v);
+			v5.addVertexWithUV(0-o, 1+o, 0-o, u, v);
+
+			BaseBlockRenderer.faceBrightnessColor(ForgeDirection.EAST, v5, 1, 1, 1, te.worldObj, te.xCoord, te.yCoord, te.zCoord, te.getBlockType(), null);
+			v5.addVertexWithUV(1+o, 1+o, 1+o, du, dv);
+			v5.addVertexWithUV(1+o, 0-o, 1+o, du, v);
+			v5.addVertexWithUV(1+o, 0-o, 0-o, u, v);
+			v5.addVertexWithUV(1+o, 1+o, 0-o, u, dv);
+
+			BaseBlockRenderer.faceBrightnessColor(ForgeDirection.SOUTH, v5, 1, 1, 1, te.worldObj, te.xCoord, te.yCoord, te.zCoord, te.getBlockType(), null);
+			v5.addVertexWithUV(0-o, 1+o, 1+o, u, dv);
+			v5.addVertexWithUV(0-o, 0-o, 1+o, u, v);
+			v5.addVertexWithUV(1+o, 0-o, 1+o, du, v);
+			v5.addVertexWithUV(1+o, 1+o, 1+o, du, dv);
+
+			BaseBlockRenderer.faceBrightnessColor(ForgeDirection.NORTH, v5, 1, 1, 1, te.worldObj, te.xCoord, te.yCoord, te.zCoord, te.getBlockType(), null);
+			v5.addVertexWithUV(1+o, 1+o, 0-o, du, dv);
+			v5.addVertexWithUV(1+o, 0-o, 0-o, du, v);
+			v5.addVertexWithUV(0-o, 0-o, 0-o, u, v);
+			v5.addVertexWithUV(0-o, 1+o, 0-o, u, dv);
+
+			BaseBlockRenderer.faceBrightnessColor(ForgeDirection.WEST, v5, 1, 1, 1, te.worldObj, te.xCoord, te.yCoord, te.zCoord, te.getBlockType(), null);
+			v5.addVertexWithUV(0-o, 1+o, 0-o, u, dv);
+			v5.addVertexWithUV(0-o, 0-o, 0-o, u, v);
+			v5.addVertexWithUV(0-o, 0-o, 1+o, du, v);
+			v5.addVertexWithUV(0-o, 1+o, 1+o, du, dv);
+			v5.draw();
+		}
 	}
 
 	@SuppressWarnings("incomplete-switch")

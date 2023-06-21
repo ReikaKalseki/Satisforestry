@@ -6,6 +6,7 @@ import net.minecraft.world.World;
 
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.Satisforestry.Blocks.BlockResourceNode;
+import Reika.Satisforestry.Blocks.BlockResourceNode.TileResourceNode;
 import Reika.Satisforestry.Registry.SFBlocks;
 
 
@@ -15,12 +16,17 @@ public class EntityMinerFX extends EntityBlurFX {
 	private int uIndex;
 	private int vIndex;
 
-	public EntityMinerFX(World world, double x, double y, double z, double vx, double vy, double vz) {
+	public EntityMinerFX(World world, double x, double y, double z, double vx, double vy, double vz, TileResourceNode te) {
 		super(world, x, y, z, vx, vy, vz, null);
 		this.setBasicBlend().setRapidExpand();//.setColliding();
-		iconToUse = rand.nextBoolean() ? BlockResourceNode.getCrystal() : SFBlocks.RESOURCENODE.getBlockInstance().blockIcon;
+		boolean crys = rand.nextBoolean();
+		iconToUse = crys ? BlockResourceNode.getCrystal() : SFBlocks.RESOURCENODE.getBlockInstance().blockIcon;
 		uIndex = rand.nextInt(4)*4;
 		vIndex = rand.nextInt(4)*4;
+		if (crys) {
+			this.setColor(te.getOverlayColor());
+			particleAlpha = 0.6F+0.4F*rand.nextFloat();
+		}
 	}
 
 	@Override

@@ -1,12 +1,7 @@
 package Reika.Satisforestry.Blocks;
 
-import java.util.List;
-
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.world.World;
@@ -16,11 +11,9 @@ import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.FluidTankInfo;
 import net.minecraftforge.fluids.IFluidHandler;
 
-import Reika.DragonAPI.Base.BlockTEBase;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
-import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockFrackerMulti.FrackerBlocks;
 import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
 import Reika.Satisforestry.Miner.TileFrackingPressurizer.TileFrackingPressurizerEU;
@@ -28,30 +21,10 @@ import Reika.Satisforestry.Miner.TileFrackingPressurizer.TileFrackingPressurizer
 import Reika.Satisforestry.Miner.TileFrackingPressurizer.TileFrackingPressurizerRF;
 import Reika.Satisforestry.Registry.SFBlocks;
 
-public class BlockFrackingPressurizer extends BlockTEBase {
+public class BlockFrackingPressurizer extends BlockSFHarvester {
 
 	public BlockFrackingPressurizer(Material mat) {
 		super(mat);
-		this.setCreativeTab(Satisforestry.tabCreative);
-		this.setResistance(30);
-		this.setLightOpacity(0);
-	}
-
-	@Override
-	public void getSubBlocks(Item it, CreativeTabs tab, List li) {
-		for (int i = 0; i < 4; i++) {
-			li.add(new ItemStack(it, 1, i));
-		}
-	}
-
-	@Override
-	public boolean hasTileEntity(int meta) {
-		return meta <= 3;
-	}
-
-	@Override
-	public int damageDropped(int meta) {
-		return meta;
 	}
 
 	@Override
@@ -71,21 +44,9 @@ public class BlockFrackingPressurizer extends BlockTEBase {
 	}
 
 	@Override
-	public boolean isOpaqueCube() {
-		return false;
+	protected int getSurplusVariants() {
+		return 1;
 	}
-
-	@Override
-	public boolean renderAsNormalBlock() {
-		return false;
-	}
-
-	@Override
-	public int getRenderType() {
-		return -1;
-	}
-
-
 
 	public static class TileFrackingExtractor extends TileEntityBase implements IFluidHandler {
 
