@@ -2,8 +2,11 @@ package Reika.Satisforestry.Blocks;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.fluids.Fluid;
@@ -14,6 +17,10 @@ import net.minecraftforge.fluids.IFluidHandler;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Interfaces.TileEntity.BreakAction;
+import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
+import Reika.RotaryCraft.API.Interfaces.RCPipe;
 import Reika.Satisforestry.Blocks.BlockFrackerMulti.FrackerBlocks;
 import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
 import Reika.Satisforestry.Miner.TileFrackingPressurizer.TileFrackingPressurizerEU;
@@ -48,42 +55,71 @@ public class BlockFrackingPressurizer extends BlockSFHarvester {
 		return 1;
 	}
 
-	public static class TileFrackingExtractor extends TileEntityBase implements IFluidHandler {
+	@Override
+	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase e, ItemStack is) {
+		TileFrackingExtractor te = (TileFrackingExtractor)world.getTileEntity(x, y, z);
+		te.facing = ReikaDirectionHelper.getFromLookDirection(e, false).getOpposite();
+	}
+
+	public static class TileFrackingExtractor extends TileEntityBase implements IFluidHandler, BreakAction {
 
 		private boolean isAccessingStructure;
 
 		private boolean structure;
 
+		private ForgeDirection facing;
+
+		@Override
+		protected void onFirstTick(World world, int x, int y, int z) {
+			this.onAdjacentBlockUpdate();
+		}
+
+		public void breakBlock() {
+			this.updateStructureBlocks(false);
+		}
+
 		@Override
 		public void updateEntity(World world, int x, int y, int z, int meta) {
-			if (structure && !world.isRemote) {
-				TileEntity te = worldObj.getTileEntity(x, y+1, z);
-				if (te instanceof IFluidHandler) {
-					IFluidHandler ifl = (IFluidHandler)te;
+			if (!world.isRemote) {
+				if (structure && facing != null) {
+					TileEntity te = this.getAdjacentTileEntity(facing);
 					TileFrackingAux node = this.getNode();
 					if (node != null) {
 						FluidStack max = node.drain(1000, false);
 						if (max != null && max.amount > 0) {
-							int fit = ifl.canFill(ForgeDirection.DOWN, max.getFluid()) ? ifl.fill(ForgeDirection.DOWN, max, false) : 0;
-							if (fit > 0) {
-								FluidStack get = node.drain(fit, true);
-								ifl.fill(ForgeDirection.DOWN, get, true);
+							if (te instanceof IFluidHandler) {
+								IFluidHandler ifl = (IFluidHandler)te;
+								ForgeDirection dir = facing.getOpposite();
+								int fit = ifl.canFill(dir, max.getFluid()) ? ifl.fill(dir, max, false) : 0;
+								if (fit > 0) {
+									FluidStack get = node.drain(fit, true);
+									ifl.fill(dir, get, true);
+								}
+							}
+							else if (te instanceof RCPipe) {
+								RCPipe rc = (RCPipe)te;
+								if (rc.addFluid(max.getFluid(), max.amount))
+									node.drain(max, true);
 							}
 						}
 					}
+				}
+				else if (this.getTicksExisted()%20 == 0) {
+					this.onAdjacentBlockUpdate();
 				}
 			}
 		}
 
 		@Override
 		protected void onAdjacentBlockUpdate() {
-			if (isAccessingStructure)
+			if (isAccessingStructure || worldObj.isRemote)
 				return;
 			isAccessingStructure = true;
 			boolean flag = this.getStructure().matchInWorld();
 			if (flag != structure) {
 				structure = flag;
 				this.updateStructureBlocks(flag);
+				this.syncAllData(false);
 			}
 			isAccessingStructure = false;
 		}
@@ -103,22 +139,22 @@ public class BlockFrackingPressurizer extends BlockSFHarvester {
 		public static FilledBlockArray getStructure(World world, int x, int y, int z) {
 			FilledBlockArray arr = new FilledBlockArray(world);
 			arr.setBlock(x, y-1, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.TUBE.ordinal());
+			arr.setBlock(x, y-2, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.TUBE.ordinal());
 
-			arr.setBlock(x-1, y-1, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
-			arr.setBlock(x+1, y-1, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
-			arr.setBlock(x, y-1, z-1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
-			arr.setBlock(x, y-1, z+1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
+			arr.setBlock(x-1, y-2, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
+			arr.setBlock(x+1, y-2, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
+			arr.setBlock(x, y-2, z-1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
+			arr.setBlock(x, y-2, z+1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.DARK.ordinal());
 
-			arr.setBlock(x-1, y, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
-			arr.setBlock(x+1, y, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
-			arr.setBlock(x, y, z-1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
-			arr.setBlock(x, y, z+1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
+			arr.setBlock(x-1, y-1, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
+			arr.setBlock(x+1, y-1, z, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
+			arr.setBlock(x, y-1, z-1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
+			arr.setBlock(x, y-1, z+1, SFBlocks.FRACKERMULTI.getBlockInstance(), FrackerBlocks.ORANGE.ordinal());
 
 			for (Coordinate c : arr.keySet()) {
 				arr.addBlock(c.xCoord, c.yCoord, c.zCoord, arr.getBlockAt(c.xCoord, c.yCoord, c.zCoord), arr.getMetaAt(c.xCoord, c.yCoord, c.zCoord)+8);
 			}
 
-			//arr.setBlock(x, y+1, z, SFBlocks.MINERMULTI.getBlockInstance(), MinerBlocks.SILVER.ordinal());
 			return arr;
 		}
 
@@ -127,6 +163,7 @@ public class BlockFrackingPressurizer extends BlockSFHarvester {
 			super.writeSyncTag(NBT);
 
 			NBT.setBoolean("struct", structure);
+			NBT.setInteger("dir", facing != null ? facing.ordinal() : -1);
 		}
 
 		@Override
@@ -134,6 +171,8 @@ public class BlockFrackingPressurizer extends BlockSFHarvester {
 			super.readSyncTag(NBT);
 
 			structure = NBT.getBoolean("struct");
+			int dir = NBT.getInteger("dir");
+			facing = dir < 0 ? null : dirs[dir];
 		}
 
 		public boolean hasStructure() {
@@ -141,7 +180,7 @@ public class BlockFrackingPressurizer extends BlockSFHarvester {
 		}
 
 		private TileFrackingAux getNode() {
-			TileEntity te = worldObj.getTileEntity(xCoord, yCoord-2, zCoord);
+			TileEntity te = worldObj.getTileEntity(xCoord, yCoord-3, zCoord);
 			return te instanceof TileFrackingAux ? (TileFrackingAux)te : null;
 		}
 
@@ -206,6 +245,20 @@ public class BlockFrackingPressurizer extends BlockSFHarvester {
 		@Override
 		public boolean shouldRenderInPass(int pass) {
 			return pass == 0;
+		}
+
+		@Override
+		public AxisAlignedBB getRenderBoundingBox() {
+			AxisAlignedBB box = ReikaAABBHelper.getBlockAABB(this);
+			if (this.hasStructure()) {
+				box = box.addCoord(xCoord, yCoord-2, zCoord);
+				box = box.expand(2, 1, 2);
+			}
+			return box;
+		}
+
+		public ForgeDirection getFacing() {
+			return facing != null ? facing : ForgeDirection.EAST;
 		}
 
 	}

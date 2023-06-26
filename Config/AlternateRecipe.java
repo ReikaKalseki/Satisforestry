@@ -218,6 +218,7 @@ public class AlternateRecipe implements AltRecipe {
 	}
 
 	@SideOnly(Side.CLIENT)
+	@ModDependent(ModList.NEI)
 	public CachedRecipe createNEIDelegate() {
 		if (recipe instanceof ShapedRecipes) {
 			ShapedRecipeHandler sr = new ShapedRecipeHandler();

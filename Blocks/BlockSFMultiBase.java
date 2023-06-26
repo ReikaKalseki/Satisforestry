@@ -177,6 +177,8 @@ public abstract class BlockSFMultiBase<S> extends BlockMultiBlock<S> {
 
 	@Override
 	public final int getTextureIndex(IBlockAccess world, int x, int y, int z, int side, int meta) {
+		if (world.getBlock(x, y, z) != this)
+			return 1;
 		return meta >= 8 ? 8 : meta;
 	}
 
