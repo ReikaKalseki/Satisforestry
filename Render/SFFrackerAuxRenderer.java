@@ -12,7 +12,9 @@ import Reika.DragonAPI.Base.BaseBlockRenderer;
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Base.TileEntityRenderBase;
+import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
 import Reika.DragonAPI.Libraries.IO.ReikaTextureHelper;
+import Reika.Satisforestry.GuiSFBlueprint;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockFrackerMulti.FrackerBlocks;
 import Reika.Satisforestry.Blocks.BlockFrackingPressurizer.TileFrackingExtractor;
@@ -61,7 +63,7 @@ public class SFFrackerAuxRenderer extends TileEntityRenderBase {
 			GL11.glPopMatrix();
 		}
 		else {
-			if (MinecraftForgeClient.getRenderPass() == 0) {
+			if (MinecraftForgeClient.getRenderPass() == 0 || StructureRenderer.isRenderingTiles()) {
 				IIcon ico = SFBlocks.FRACKERMULTI.getBlockInstance().getIcon(1, FrackerBlocks.TUBE.ordinal());
 				Tessellator v5 = Tessellator.instance;
 				ReikaTextureHelper.bindTerrainTexture();
@@ -115,6 +117,8 @@ public class SFFrackerAuxRenderer extends TileEntityRenderBase {
 
 	@Override
 	protected boolean doRenderModel(TileEntityBase te) {
+		if (StructureRenderer.isRenderingTiles() && GuiSFBlueprint.renderTESR)
+			return true;
 		return !te.isInWorld() || (MinecraftForgeClient.getRenderPass() == 0 && ((TileFrackingExtractor)te).hasStructure());
 	}
 

@@ -35,6 +35,7 @@ import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaGuiAPI;
 import Reika.DragonAPI.Libraries.Rendering.ReikaRenderHelper;
+import Reika.Satisforestry.Blocks.BlockFrackingPressurizer.TileFrackingExtractor;
 import Reika.Satisforestry.Miner.FrackerStructure;
 import Reika.Satisforestry.Miner.MinerStructure;
 import Reika.Satisforestry.Registry.SFBlocks;
@@ -72,6 +73,8 @@ public class GuiSFBlueprint extends GuiScreen implements CustomSoundGui {
 
 		@Override
 		public ItemStack getBlock(Coordinate pos, ItemStack orig) {
+			if (orig.getItemDamage() > 2)
+				return orig;
 			return new ItemStack(block, 1, (tick/100)%3);
 		}
 
@@ -133,12 +136,17 @@ public class GuiSFBlueprint extends GuiScreen implements CustomSoundGui {
 			case 0:
 				array = MinerStructure.getMinerStructure(ep.worldObj, 0, 0, 0, ForgeDirection.EAST);
 				array.setBlock(0, 0, 0, SFBlocks.HARVESTER.getBlockInstance(), 0);
-				title = "Miner";
+				title = SFBlocks.HARVESTER.getBasicName();
 				break;
 			case 1:
 				array = FrackerStructure.getFrackerStructure(ep.worldObj, 0, 0, 0);
 				array.setBlock(0, 0, 0, SFBlocks.FRACKER.getBlockInstance(), 0);
-				title = "Fracking Pressurizer";
+				title = SFBlocks.FRACKER.getBasicName();
+				break;
+			case 2:
+				array = TileFrackingExtractor.getStructure(ep.worldObj, 0, 0, 0);
+				array.setBlock(0, 0, 0, SFBlocks.FRACKER.getBlockInstance(), 3);
+				title = SFBlocks.FRACKER.getMultiValuedName(3);
 				break;
 			default:
 				throw new UnreachableCodeException();
@@ -298,8 +306,9 @@ public class GuiSFBlueprint extends GuiScreen implements CustomSoundGui {
 	}
 
 	private void drawSlice(int j, int k) {
-		boolean miner = title.equals("Miner");
-		render.drawSlice(miner ? j : j-3, k+(miner ? 21 : 25), fontRendererObj, miner ? 1 : 0.5);
+		boolean miner = title.equals(SFBlocks.HARVESTER.getBasicName());
+		boolean fracker = title.equals(SFBlocks.FRACKER.getBasicName());
+		render.drawSlice(miner ? j : (fracker ? j-3 : j-12), k+(miner ? 21 : (fracker ? 25 : 13)), fontRendererObj, miner ? 1 : (fracker ? 0.5 : 2));
 	}
 
 	private void drawTally(int j, int k) {
@@ -375,7 +384,9 @@ public class GuiSFBlueprint extends GuiScreen implements CustomSoundGui {
 			render.rotate(0.75, 0, 0);
 		}
 
-		render.draw3D(title.equals("Miner") ? -12 : 0, -6, ptick, true, 0.75);
+		boolean miner = title.equals(SFBlocks.HARVESTER.getBasicName());
+		boolean fracker = title.equals(SFBlocks.FRACKER.getBasicName());
+		render.draw3D(miner ? -12 : 0, miner || fracker ? -6 : 0, ptick, true, 0.75);
 	}
 
 	@Override

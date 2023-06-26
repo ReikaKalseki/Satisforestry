@@ -13,6 +13,8 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
+import Reika.Satisforestry.Registry.SFBlocks;
+
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 
@@ -41,16 +43,20 @@ public class ItemMultiblockDisplay extends Item {
 	public final void getSubItems(Item i, CreativeTabs tab, List li) {
 		li.add(new ItemStack(i, 1, 0));
 		li.add(new ItemStack(i, 1, 1));
+		li.add(new ItemStack(i, 1, 2));
 	}
 
 	@Override
 	public void addInformation(ItemStack is, EntityPlayer ep, List li, boolean vb) {
 		switch(is.getItemDamage()) {
 			case 0:
-				li.add("Miner Blueprint");
+				li.add(SFBlocks.HARVESTER.getBasicName()+" Blueprint");
 				break;
 			case 1:
-				li.add("Fracking Pressurizer Blueprint");
+				li.add(SFBlocks.FRACKER.getBasicName()+" Blueprint");
+				break;
+			case 2:
+				li.add(SFBlocks.FRACKER.getMultiValuedName(3)+" Blueprint");
 				break;
 		}
 		if (is.stackTagCompound != null) {
