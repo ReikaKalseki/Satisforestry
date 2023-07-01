@@ -43,7 +43,7 @@ public class SFMachineRecipes {
 	private final Object redblock = this.findItem("ThermalExpansion:Frame:7", Blocks.redstone_block);
 	private final Object energium = this.findItem(IC2Handler.IC2Stacks.ENERGIUM.getItem(), Items.redstone);
 	private final ItemStack alloy = (ItemStack)this.findItem(IC2Handler.IC2Stacks.ADVANCEDALLOY.getItem(), new ItemStack(Items.iron_ingot));
-	private final Object alloy2 = this.findItem("repo_ROTARYCRAFT_springtungsten", ModList.ENDERIO.modLabel+"itemAlloy:6", steelIngot);
+	private final Object alloy2 = this.findItem("repo_ROTARYCRAFT_springtungsten", ModList.ENDERIO.modLabel+":itemAlloy:6", "ore_ingotSteel", Items.iron_ingot);
 	private final Object orange = this.findItem("ore_ingotBronze", ReikaItemHelper.orangeDye);
 
 	private SFMachineRecipes() {
@@ -118,7 +118,7 @@ public class SFMachineRecipes {
 		return this.findItem(li.toArray(new Object[li.size()]));
 	}
 
-	private Object getFrame(boolean highTier) {
+	public Object getFrame(boolean highTier) {
 		List<Object> li = new ArrayList(Arrays.asList(
 				GameRegistry.findItemStack(ModList.THERMALEXPANSION.modLabel, highTier ? "frameMachineHardened" : "frameMachineBasic", 1),
 				ReikaItemHelper.lookupItem(ModList.IMMERSIVEENG.modLabel+":metalDecoration:"+(highTier ? "5" : "7")),
@@ -164,28 +164,33 @@ public class SFMachineRecipes {
 	}
 
 	private Object getItem(Object o) {
-		if (o instanceof ItemStack) {
-			return o;
-		}
-		else if (o instanceof Block) {
-			return new ItemStack((Block)o);
-		}
-		else if (o instanceof Item) {
-			return new ItemStack((Item)o);
-		}
-		else if (o instanceof String) {
-			String s = (String)o;
-			if (s.startsWith("ore_")) {
-				s = s.substring(4);
-				return ReikaItemHelper.oreItemExists(s) ? s : null;
+		try {
+			if (o instanceof ItemStack) {
+				return o;
 			}
-			else if (s.startsWith("repo_")) {
-				String[] parts = s.split("_");
-				return ItemStackRepository.instance.getItem(ModList.valueOf(parts[1].toUpperCase(Locale.ENGLISH)), parts[2]);
+			else if (o instanceof Block) {
+				return new ItemStack((Block)o);
 			}
-			else {
-				return ReikaItemHelper.lookupItem(s);
+			else if (o instanceof Item) {
+				return new ItemStack((Item)o);
 			}
+			else if (o instanceof String) {
+				String s = (String)o;
+				if (s.startsWith("ore_")) {
+					s = s.substring(4);
+					return ReikaItemHelper.oreItemExists(s) ? s : null;
+				}
+				else if (s.startsWith("repo_")) {
+					String[] parts = s.split("_");
+					return ItemStackRepository.instance.getItem(ModList.valueOf(parts[1].toUpperCase(Locale.ENGLISH)), parts[2]);
+				}
+				else {
+					return ReikaItemHelper.lookupItem(s);
+				}
+			}
+		}
+		catch (Exception e) {
+			Satisforestry.logger.logError("Could not parse item fetch: "+(o == null ? "null" : o.getClass().getName()+"="+o));
 		}
 		return null;
 	}

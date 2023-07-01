@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 
 import net.minecraft.block.Block;
@@ -325,23 +326,23 @@ public class BiomeConfig {
 	private void createDefaultFiles(File folder) throws IOException {
 		File f1 = new File(folder, "ores.lua");
 		f1.createNewFile();
-		ReikaFileReader.writeLinesToFile(f1, oreData.getBlock("example").writeToStrings(), true);
+		ReikaFileReader.writeLinesToFile(f1, oreData.getBlock("example").writeToStrings(), true, Charsets.UTF_8);
 
 		File f2 = new File(folder, "resources.lua");
 		f2.createNewFile();
-		ReikaFileReader.writeLinesToFile(f2, itemData.getBlock("example").writeToStrings(), true);
+		ReikaFileReader.writeLinesToFile(f2, itemData.getBlock("example").writeToStrings(), true, Charsets.UTF_8);
 
 		File f4 = new File(folder, "fluids.lua");
 		f4.createNewFile();
-		ReikaFileReader.writeLinesToFile(f4, fluidData.getBlock("example").writeToStrings(), true);
+		ReikaFileReader.writeLinesToFile(f4, fluidData.getBlock("example").writeToStrings(), true, Charsets.UTF_8);
 
 		File f3 = new File(folder, "doggo.lua");
 		f3.createNewFile();
-		ReikaFileReader.writeLinesToFile(f3, doggoData.getBlock("example").writeToStrings(), true);
+		ReikaFileReader.writeLinesToFile(f3, doggoData.getBlock("example").writeToStrings(), true, Charsets.UTF_8);
 
 		File f5 = new File(folder, "recipes.lua");
 		f5.createNewFile();
-		ReikaFileReader.writeLinesToFile(f5, recipeData.getBlock("example").writeToStrings(), true);
+		ReikaFileReader.writeLinesToFile(f5, recipeData.getBlock("example").writeToStrings(), true, Charsets.UTF_8);
 	}
 
 	private void createExampleFile(File f) throws IOException {
@@ -360,7 +361,7 @@ public class BiomeConfig {
 		li.set(li.size()-1, li.get(li.size()-1)+",");
 		li.addAll(recipeData.getBlock("example").writeToStrings());
 
-		ReikaFileReader.writeLinesToFile(out, li, true);
+		ReikaFileReader.writeLinesToFile(out, li, true, Charsets.UTF_8);
 	}
 
 	private void reset() {
@@ -404,7 +405,7 @@ public class BiomeConfig {
 			Satisforestry.logger.logError("No resource config file found! Generating default!");
 			f2 = new File(parent, "resources.lua");
 			f2.createNewFile();
-			ReikaFileReader.writeLinesToFile(f2, itemData.getBlock("example").writeToStrings(), true);
+			ReikaFileReader.writeLinesToFile(f2, itemData.getBlock("example").writeToStrings(), true, Charsets.UTF_8);
 		}
 		itemData.loadFromFile(f2);
 
@@ -412,7 +413,7 @@ public class BiomeConfig {
 			Satisforestry.logger.logError("No fluid config file found! Generating default!");
 			f4 = new File(parent, "fluids.lua");
 			f4.createNewFile();
-			ReikaFileReader.writeLinesToFile(f4, fluidData.getBlock("example").writeToStrings(), true);
+			ReikaFileReader.writeLinesToFile(f4, fluidData.getBlock("example").writeToStrings(), true, Charsets.UTF_8);
 		}
 		fluidData.loadFromFile(f4);
 

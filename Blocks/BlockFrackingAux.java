@@ -229,7 +229,7 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 		}
 
 		public boolean hasExtractor() {
-			TileEntity te = worldObj.getTileEntity(xCoord, yCoord+2, zCoord);
+			TileEntity te = worldObj.getTileEntity(xCoord, yCoord+3, zCoord);
 			return te instanceof TileFrackingExtractor && ((TileFrackingExtractor)te).hasStructure();
 		}
 

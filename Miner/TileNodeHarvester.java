@@ -178,6 +178,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 		}
 	}
 
+	@SideOnly(Side.CLIENT)
 	private void spawnMiningFX(World world, int x, int y, int z) {
 		double r = 0.675;
 		TileResourceNode te = this.getResourceNode();

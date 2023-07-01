@@ -328,6 +328,7 @@ public class Satisforestry extends DragonAPIMod {
 
 		GameRegistry.addShapelessRecipe(new ItemStack(multiblockPage, 1, 0), Items.paper, Items.paper, Items.paper, SFBlocks.MINERMULTI.getStackOfMetadata(MinerBlocks.ORANGE.ordinal()));
 		GameRegistry.addShapelessRecipe(new ItemStack(multiblockPage, 1, 1), Items.paper, Items.paper, Items.paper, SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.ORANGE.ordinal()));
+		GameRegistry.addShapelessRecipe(new ItemStack(multiblockPage, 1, 2), Items.paper, Items.paper, Items.paper, SFBlocks.FRACKERMULTI.getStackOfMetadata(FrackerBlocks.DARK.ordinal()));
 
 		SFMachineRecipes.instance.addRecipes();
 	}

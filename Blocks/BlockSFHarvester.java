@@ -5,6 +5,7 @@ import java.util.List;
 import net.minecraft.block.material.Material;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.IIcon;
@@ -20,6 +21,7 @@ public abstract class BlockSFHarvester extends BlockTEBase {
 	public BlockSFHarvester(Material mat) {
 		super(mat);
 		this.setCreativeTab(Satisforestry.tabCreative);
+		this.setHardness(Blocks.mob_spawner.blockHardness);
 		this.setResistance(30);
 		this.setLightOpacity(0);
 	}
