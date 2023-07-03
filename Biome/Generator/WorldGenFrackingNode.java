@@ -19,6 +19,7 @@ import Reika.Satisforestry.Biome.DecoratorPinkForest;
 import Reika.Satisforestry.Blocks.BlockFrackingAux.TileFrackingAux;
 import Reika.Satisforestry.Blocks.BlockFrackingNode.TileFrackingNode;
 import Reika.Satisforestry.Blocks.BlockTerrain.TerrainType;
+import Reika.Satisforestry.Config.BiomeConfig;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Miner.FrackerStructure;
@@ -34,6 +35,8 @@ public class WorldGenFrackingNode extends WorldGenerator {
 
 	@Override
 	public boolean generate(World world, Random rand, int x, int yUnused, int z) {
+		if (BiomeConfig.instance.getFluidDrops().isEmpty())
+			return false;
 		if (!forceGen && !Satisforestry.isPinkForest(world, x, z))
 			return false;
 		for (int i = 0; i < 6; i++) {
