@@ -11,6 +11,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
+import net.minecraftforge.oredict.OreDictionary;
 
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
@@ -266,7 +267,7 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 		}
 
 		public static PinkTreeTypes getLeafType(int meta) {
-			return PinkTreeTypes.list[meta%4];
+			return meta == OreDictionary.WILDCARD_VALUE ? PinkTreeTypes.TREE : PinkTreeTypes.list[meta%4];
 		}
 
 		public static PinkTreeTypes getLogType(IBlockAccess world, int x, int y, int z) {
@@ -274,7 +275,7 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 		}
 
 		public static PinkTreeTypes getLogType(int meta) {
-			return PinkTreeTypes.list[meta%4];
+			return meta == OreDictionary.WILDCARD_VALUE ? PinkTreeTypes.TREE : PinkTreeTypes.list[meta%4];
 		}
 
 		public int getCharcoalYield() {

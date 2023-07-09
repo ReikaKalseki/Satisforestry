@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map.Entry;
 import java.util.Random;
@@ -59,6 +60,13 @@ public abstract class NodeResource<I> {
 
 	public int maxItemsPerType() {
 		return Integer.MAX_VALUE;
+	}
+
+	public final void addWaila(List<String> li, Purity p) {
+		li.add(this.displayName);
+		for (NodeItem n : items.get(p).getValues()) {
+			li.add(this.getDisplayName(this.getItem(n)));
+		}
 	}
 
 	public final void addItem(Purity p, I is, int weight, int min, int max, LuaBlock data) {
@@ -150,6 +158,7 @@ public abstract class NodeResource<I> {
 
 	public abstract I getItem(NodeItem obj);
 	public abstract boolean matchItem(NodeItem obj, I is);
+	public abstract String getDisplayName(I item);
 
 	public final I getItem(ResourceItemView obj) {
 		return this.getItem(obj.item);

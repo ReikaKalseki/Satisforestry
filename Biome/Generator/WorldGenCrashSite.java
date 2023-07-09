@@ -38,6 +38,9 @@ public class WorldGenCrashSite extends WorldGenerator {
 
 	@Override
 	public boolean generate(World world, Random rand, int x, int y, int z) {
+		int size = ReikaWorldHelper.getBiomeSize(world)-4;
+		if (size > 0 && rand.nextInt(1+size*2) > 0) //50% rate on size 5 and 25% rate on size 6 (large biomes)
+			return false;
 		boolean biome = Satisforestry.isPinkForest(world, x, z);
 		if (biome) {
 			BiomewideFeatureGenerator.instance.initializeWorldData(world);

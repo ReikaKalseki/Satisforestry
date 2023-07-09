@@ -20,6 +20,7 @@ import net.minecraft.network.Packet;
 import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -115,6 +116,22 @@ public class BlockCrashSite extends BlockContainer implements IWailaDataProvider
 	@ModDependent(ModList.WAILA)
 	public final List<String> getWailaBody(ItemStack is, List<String> tip, IWailaDataAccessor acc, IWailaConfigHandler config) {
 		TileEntity te = acc.getTileEntity();
+		if (!(te instanceof TileCrashSite)) {
+			World world = acc.getWorld();
+			MovingObjectPosition pos = acc.getPosition();
+			StructuredBlockArray blocks = new StructuredBlockArray(world);
+			blocks.extraSpread = true;
+			int s = 6;
+			int sy = 6;
+			blocks.recursiveMultiAddWithBounds(world, pos.blockX, pos.blockY, pos.blockZ, pos.blockX-s, pos.blockY-sy, pos.blockZ-s, pos.blockX+s, pos.blockY+sy, pos.blockZ+s, this);
+			for (int i = 0; i < blocks.getSize(); i++) {
+				Coordinate c = blocks.getNthBlock(i);
+				if (c.getBlock(world) == this && c.getBlockMetadata(world) == 0) {
+					te = c.getTileEntity(world);
+					break;
+				}
+			}
+		}
 		if (te instanceof TileCrashSite) {
 			((TileCrashSite)te).addWaila(tip);
 		}

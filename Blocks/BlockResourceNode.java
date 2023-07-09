@@ -1,5 +1,6 @@
 package Reika.Satisforestry.Blocks;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
@@ -29,6 +30,7 @@ import Reika.DragonAPI.Extras.IconPrefabs;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Effects.EntityBlurFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Rendering.ReikaColorAPI;
@@ -165,10 +167,10 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 	@ModDependent(ModList.WAILA)
 	public final List<String> getWailaBody(ItemStack is, List<String> tip, IWailaDataAccessor acc, IWailaConfigHandler config) {
 		TileEntity te = acc.getTileEntity();
-		if (te instanceof TileResourceNode) {
-			tip.add(((TileResourceNode)te).resource.getDisplayName());
-			tip.add(((TileResourceNode)te).purity.getDisplayName());
+		if (te instanceof ResourceNode) {
+			((ResourceNode)te).addWaila(tip);
 		}
+		ReikaJavaLibrary.removeDuplicates(tip);
 		return tip;
 	}
 
@@ -220,6 +222,17 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 
 		public abstract int getHarvestInterval();
 
+		public void addWaila(List<String> li) {
+			li.add(purity.getDisplayName());
+			if (resource != null) {
+				li.add("Resource Data:");
+				List<String> li2 = new ArrayList();
+				resource.addWaila(li2, purity);
+				for (String s : li2)
+					li.add("  "+s);
+			}
+		}
+
 	}
 
 	public static class TileResourceNode extends ResourceNode<ResourceItem> {
@@ -257,7 +270,7 @@ public class BlockResourceNode extends BlockContainer implements PointSpawnBlock
 			ResourceItem r = this.getResource();
 			if (r == null)
 				return 0xffffff;
-			float l = Math.max(worldObj.getSavedLightValue(EnumSkyBlock.Block, xCoord, yCoord+1, zCoord), worldObj.getSavedLightValue(EnumSkyBlock.Sky, xCoord, yCoord+1, zCoord)*worldObj.getSunBrightnessFactor(0));
+			float l = worldObj == null ? 0 : Math.max(worldObj.getSavedLightValue(EnumSkyBlock.Block, xCoord, yCoord+1, zCoord), worldObj.getSavedLightValue(EnumSkyBlock.Sky, xCoord, yCoord+1, zCoord)*worldObj.getSunBrightnessFactor(0));
 			float a = 1-l/24F;
 			int c = r.color;
 			if (a < 1) {

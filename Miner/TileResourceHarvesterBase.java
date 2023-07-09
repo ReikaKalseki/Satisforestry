@@ -2,6 +2,7 @@ package Reika.Satisforestry.Miner;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -12,6 +13,7 @@ import Reika.DragonAPI.Auxiliary.ChunkManager;
 import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
 import Reika.DragonAPI.Interfaces.TileEntity.ChunkLoadingTile;
+import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 import Reika.Satisforestry.Blocks.BlockResourceNode.ResourceNode;
 import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileMinerConnection;
 import Reika.Satisforestry.Blocks.BlockSFMultiBase.TilePowerConnection;
@@ -54,6 +56,10 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 
 		private MachineState(int c) {
 			color = c;
+		}
+
+		public String getDisplayName() {
+			return ReikaStringParser.capFirstChar(this.name());
 		}
 	}
 
@@ -294,5 +300,18 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 	public abstract String getOperationPowerCost(boolean withOverclock);
 
 	public abstract String getPowerType();
+
+	public void addWaila(List<String> tip) {
+		tip.add(this.getState().getDisplayName());
+		tip.add(this.getOverclockingLevel(true)*100+"% Speed");
+		ResourceNode te = this.getResourceNode();
+		if (te != null) {
+			tip.add("Resource Node Data:");
+			List<String> li = new ArrayList();
+			te.addWaila(li);
+			for (String s : li)
+				tip.add("  "+s);
+		}
+	}
 
 }

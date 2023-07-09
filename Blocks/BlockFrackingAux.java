@@ -24,6 +24,7 @@ import Reika.DragonAPI.ASM.APIStripper.Strippable;
 import Reika.DragonAPI.ASM.DependentMethodStripper.ModDependent;
 import Reika.DragonAPI.Instantiable.HybridTank;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.Satisforestry.SFClient;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.Blocks.BlockFrackingNode.TileFrackingNode;
@@ -116,10 +117,10 @@ public class BlockFrackingAux extends BlockContainer implements IWailaDataProvid
 		if (te instanceof TileFrackingAux) {
 			TileFrackingNode te2 = ((TileFrackingAux)te).getMaster();
 			if (te2 != null) {
-				tip.add(te2.getResource().getDisplayName());
-				tip.add(((TileFrackingAux)te).getPurity().getDisplayName());
+				te2.addWaila(tip);
 			}
 		}
+		ReikaJavaLibrary.removeDuplicates(tip);
 		return tip;
 	}
 

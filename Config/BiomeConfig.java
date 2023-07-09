@@ -254,7 +254,7 @@ public class BiomeConfig {
 			pwr.putData("format", "RF");
 			pwr.putData("amount", 6000);
 			pwr.putData("time", 30);
-			pwr.putData("timeUnit", "seconds");
+			pwr.putData("timeUnit", "second");
 
 			AltRecipeLuaBlock req = new AltRecipeLuaBlock("requiredItem", example3, recipeData);
 			req.putData("item", "minecraft:redstone*18");

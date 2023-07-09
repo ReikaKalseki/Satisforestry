@@ -84,7 +84,11 @@ public class AlternateRecipe implements AltRecipe {
 				throw new IllegalArgumentException("Unsupported power type "+type);
 			long amt = power.getLong("amount");
 			long time = power.getLong("time");
-			ReikaTimeHelper unit = power.containsKey("timeUnit") ? ReikaTimeHelper.valueOf(power.getString("timeUnit").toUpperCase(Locale.ENGLISH)) : ReikaTimeHelper.SECOND;
+			ReikaTimeHelper unit = ReikaTimeHelper.SECOND;
+			if (power.containsKey("timeUnit")) {
+				String val = power.getString("timeUnit").toUpperCase(Locale.ENGLISH);
+				unit = val.equals("SECONDS") ? ReikaTimeHelper.SECOND : ReikaTimeHelper.valueOf(val);
+			}
 			unlockPower = new PowerRequirement(type, amt, time*unit.getDuration());
 		}
 		else {

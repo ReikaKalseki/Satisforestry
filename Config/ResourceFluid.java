@@ -52,6 +52,11 @@ public class ResourceFluid extends NodeResource<Fluid> {
 	}
 
 	@Override
+	public String getDisplayName(Fluid item) {
+		return item.getLocalizedName(new FluidStack(item, 1));
+	}
+
+	@Override
 	public boolean matchItem(NodeItem obj, Fluid is) {
 		return is == obj.item;
 	}

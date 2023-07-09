@@ -1,6 +1,7 @@
 package Reika.Satisforestry.Miner;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -137,6 +138,11 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 			fx.setLife(ReikaRandomHelper.getRandomBetween(20, 80)).setScale((float)ReikaRandomHelper.getRandomBetween(5D, 12D));
 			Minecraft.getMinecraft().effectRenderer.addEffect(fx);
 		}
+	}
+
+	@Override
+	public void addWaila(List<String> tip) {
+		super.addWaila(tip);
 	}
 
 	public class Thumper { //worth noting that SF fracker has a lot of random in the "wait" times
@@ -451,6 +457,13 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 			if (withOverclock)
 				amt *= this.getOverclockingPowerFactor(true);
 			return String.format("%.3f k%s", amt/1000D, this.getEnergyUnit());
+		}
+
+		@Override
+		public void addWaila(List<String> tip) {
+			tip.add(String.format("%d/%d %s", energy, maxEnergy, this.getPowerType()));
+			tip.add(String.format("Requires %d %s per cycle", (int)(energyPerCycle*this.getOverclockingPowerFactor(true)), this.getPowerType()));
+			super.addWaila(tip);
 		}
 
 	}

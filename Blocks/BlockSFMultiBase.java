@@ -1,15 +1,19 @@
 package Reika.Satisforestry.Blocks;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
+import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.MovingObjectPosition;
 import net.minecraft.util.StatCollector;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -22,6 +26,7 @@ import Reika.DragonAPI.Base.BlockMultiBlock;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.StructuredBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.RotaryCraft.API.Power.ShaftPowerReceiver;
 import Reika.Satisforestry.Satisforestry;
@@ -32,8 +37,12 @@ import Reika.Satisforestry.Registry.SFBlocks;
 
 import cofh.api.energy.IEnergyReceiver;
 import ic2.api.energy.tile.IEnergySink;
+import mcp.mobius.waila.api.IWailaConfigHandler;
+import mcp.mobius.waila.api.IWailaDataAccessor;
+import mcp.mobius.waila.api.IWailaDataProvider;
 
-public abstract class BlockSFMultiBase<S> extends BlockMultiBlock<S> {
+@Strippable(value = {"mcp.mobius.waila.api.IWailaDataProvider"})
+public abstract class BlockSFMultiBase<S> extends BlockMultiBlock<S> implements IWailaDataProvider {
 
 	public BlockSFMultiBase(Material mat) {
 		super(mat);
@@ -207,6 +216,40 @@ public abstract class BlockSFMultiBase<S> extends BlockMultiBlock<S> {
 				return c.getTileEntity(world);
 		}
 		return null;
+	}
+
+	@Override
+	@ModDependent(ModList.WAILA)
+	public final ItemStack getWailaStack(IWailaDataAccessor acc, IWailaConfigHandler config) {
+		return null;
+	}
+
+	@Override
+	@ModDependent(ModList.WAILA)
+	public final List<String> getWailaHead(ItemStack is, List<String> tip, IWailaDataAccessor acc, IWailaConfigHandler config) {
+		return tip;
+	}
+
+	@Override
+	@ModDependent(ModList.WAILA)
+	public final List<String> getWailaBody(ItemStack is, List<String> tip, IWailaDataAccessor acc, IWailaConfigHandler config) {
+		MovingObjectPosition pos = acc.getPosition();
+		TileEntity te = this.getTileEntityForPosition(acc.getWorld(), pos.blockX, pos.blockY, pos.blockZ);
+		if (te instanceof TileResourceHarvesterBase) {
+			((TileResourceHarvesterBase)te).addWaila(tip);
+		}
+		ReikaJavaLibrary.removeDuplicates(tip);
+		return tip;
+	}
+
+	@ModDependent(ModList.WAILA)
+	public final List<String> getWailaTail(ItemStack itemStack, List<String> currenttip, IWailaDataAccessor acc, IWailaConfigHandler config) {
+		return currenttip;
+	}
+
+	@Override
+	public final NBTTagCompound getNBTData(EntityPlayerMP player, TileEntity te, NBTTagCompound tag, World world, int x, int y, int z) {
+		return tag;
 	}
 
 	public static abstract class TileMinerConnection<T extends TileResourceHarvesterBase> extends TileEntity {

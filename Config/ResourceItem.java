@@ -22,4 +22,9 @@ public class ResourceItem extends NodeResource<ItemStack> {
 		return ReikaItemHelper.matchStacks(is, obj.item);
 	}
 
+	@Override
+	public String getDisplayName(ItemStack item) {
+		return item.getDisplayName();
+	}
+
 }

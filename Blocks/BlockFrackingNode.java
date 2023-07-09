@@ -32,6 +32,7 @@ import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.Immutable.Coordinate;
 import Reika.DragonAPI.Instantiable.Effects.EntityLiquidParticleFX;
 import Reika.DragonAPI.Libraries.ReikaAABBHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaJavaLibrary;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.RotaryCraft.API.Interfaces.EnvironmentalHeatSource;
 import Reika.Satisforestry.SFClient;
@@ -164,9 +165,10 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 	@ModDependent(ModList.WAILA)
 	public final List<String> getWailaBody(ItemStack is, List<String> tip, IWailaDataAccessor acc, IWailaConfigHandler config) {
 		TileEntity te = acc.getTileEntity();
-		if (te instanceof TileFrackingNode) {
-			((TileFrackingNode)te).addWaila(tip);
+		if (te instanceof ResourceNode) {
+			((ResourceNode)te).addWaila(tip);
 		}
+		ReikaJavaLibrary.removeDuplicates(tip);
 		return tip;
 	}
 
@@ -235,7 +237,7 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 		public void updateEntity() {
 			super.updateEntity();
 			if (worldObj.isRemote) {
-				if (worldObj.getBlock(xCoord, yCoord+1, zCoord).isAir(worldObj, xCoord, yCoord+1, zCoord)) {
+				if (resource != null && worldObj.getBlock(xCoord, yCoord+1, zCoord).isAir(worldObj, xCoord, yCoord+1, zCoord)) {
 					fluidFountainParticles(worldObj, xCoord, yCoord, zCoord, System.identityHashCode(this), resource);
 				}
 			}
@@ -332,9 +334,11 @@ public class BlockFrackingNode extends BlockContainer implements PointSpawnBlock
 			return false;
 		}
 
+		@Override
 		public void addWaila(List<String> tip) {
-			tip.add(resource.getDisplayName());
-			tip.add(purity.getDisplayName());
+			super.addWaila(tip);
+			if (resource != null && resource.requiredInput != null)
+				tip.add("  Requires Input: "+resource.getDisplayName(resource.requiredInput)+" x"+resource.requiredInputAmount+"mB");
 			tip.add("Pressurized: "+(this.isPressurized() ? "Yes" : "No"));
 		}
 

@@ -37,6 +37,9 @@ public class WorldGenFrackingNode extends WorldGenerator {
 	public boolean generate(World world, Random rand, int x, int yUnused, int z) {
 		if (BiomeConfig.instance.getFluidDrops().isEmpty())
 			return false;
+		int size = ReikaWorldHelper.getBiomeSize(world)-4;
+		if (size > 0 && rand.nextInt(1+size*2) > 1) //67% rate on size 5 and 40% rate on size 6 (large biomes)
+			return false;
 		if (!forceGen && !Satisforestry.isPinkForest(world, x, z))
 			return false;
 		for (int i = 0; i < 6; i++) {

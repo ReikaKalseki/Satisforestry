@@ -1,6 +1,7 @@
 package Reika.Satisforestry.Miner;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
@@ -20,6 +21,7 @@ import Reika.DragonAPI.Libraries.ReikaAABBHelper;
 import Reika.DragonAPI.Libraries.ReikaDirectionHelper;
 import Reika.DragonAPI.Libraries.ReikaInventoryHelper;
 import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
+import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
 import Reika.DragonAPI.Libraries.MathSci.ReikaEngLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
@@ -102,6 +104,17 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 					break;
 				default:
 					break;
+			}
+		}
+
+		public String getDisplayName() {
+			switch(this) {
+				case LOWER1:
+					return "Lowering";
+				case LOWER2:
+					return "Engaging";
+				default:
+					return ReikaStringParser.capFirstChar(this.name());
 			}
 		}
 	}
@@ -383,6 +396,12 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 		return box;
 	}
 
+	@Override
+	public void addWaila(List<String> tip) {
+		tip.add(tip.indexOf(this.getState().getDisplayName())+1, spoolState.getDisplayName());
+		super.addWaila(tip);
+	}
+
 	private static abstract class TileNodeHarvesterBasicEnergy extends TileNodeHarvester {
 
 		private final long energyPerCycle;
@@ -475,6 +494,13 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 			if (withOverclock)
 				amt *= this.getOverclockingPowerFactor(true);
 			return String.format("%.3f k%s", amt/1000D, this.getEnergyUnit());
+		}
+
+		@Override
+		public void addWaila(List<String> tip) {
+			super.addWaila(tip);
+			tip.add(String.format("%d/%d %s", energy, maxEnergy, this.getPowerType()));
+			tip.add(String.format("Requires %d %s per cycle", (int)(energyPerCycle*this.getOverclockingPowerFactor(true)), this.getPowerType()));
 		}
 
 	}
