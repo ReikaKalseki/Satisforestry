@@ -123,7 +123,7 @@ public class BlockPowerSlug extends BlockContainer implements PointSpawnBlock, S
 	public static int getColor(int tier) {
 		switch(tier) {
 			case 0:
-				return SFOptions.BLUEGREEN.getState() ? 0x5bd7ff : 0x94FF7F;
+				return SFOptions.BLUEGREENSLUGS.getState() ? 0x5bd7ff : 0x94FF7F;
 			case 1:
 				return 0xF2F268;
 			case 2:

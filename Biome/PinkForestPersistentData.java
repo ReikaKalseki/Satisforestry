@@ -24,7 +24,7 @@ public class PinkForestPersistentData extends WorldSavedData {
 	public void readFromNBT(NBTTagCompound NBT) {
 		try {
 			BiomewideFeatureGenerator.instance.readFromNBT(NBT.getCompoundTag("biomewideFeatures"));
-			//TreeGenCache.instance.readFromNBT(NBT.getCompoundTag("treegencache"));
+			//PinkTreeGeneratorBase.blockPlacer.readFromNBT(NBT.getCompoundTag("queuedTreeBlocks"));
 		}
 		catch (Exception e) {
 			Satisforestry.logger.logError("Failed reading persistent NBT data for biome. It is recommended you repair or delete /data/"+IDENTIFIER+".dat");
@@ -38,9 +38,9 @@ public class PinkForestPersistentData extends WorldSavedData {
 		BiomewideFeatureGenerator.instance.writeToNBT(tag);
 		NBT.setTag("biomewideFeatures", tag);
 
-		tag = new NBTTagCompound();
-		//TreeGenCache.instance.writeToNBT(tag);
-		NBT.setTag("treegencache", tag);
+		//tag = new NBTTagCompound();
+		//PinkTreeGeneratorBase.blockPlacer.writeToNBT(tag);
+		//NBT.setTag("queuedTreeBlocks", tag);
 	}
 
 	public static PinkForestPersistentData initNetworkData(World world) {

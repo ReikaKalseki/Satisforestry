@@ -27,6 +27,7 @@ import net.minecraft.world.gen.feature.WorldGenerator;
 
 import Reika.ChromatiCraft.API.Interfaces.DyeTreeBlocker;
 import Reika.ChromatiCraft.API.Interfaces.NonconvertibleBiome;
+import Reika.DragonAPI.Instantiable.Data.Collections.OneWayCollections.OneWayList;
 import Reika.DragonAPI.Instantiable.Math.Noise.NoiseGeneratorBase;
 import Reika.DragonAPI.Instantiable.Math.Noise.Simplex3DGenerator;
 import Reika.DragonAPI.Instantiable.Math.Noise.SimplexNoiseGenerator;
@@ -94,6 +95,13 @@ public class BiomePinkForest extends BiomeGenBase implements DyeTreeBlocker, Non
 		//removed to add dynamically spawnableMonsterList.add(new BiomeGenBase.SpawnListEntry(EntityEliteStinger.class, 15, 1, 2)); //was 50 then 25
 
 		spawnableCreatureList.add(new BiomeGenBase.SpawnListEntry(EntityOcelot.class, 10, 2, 2)); //arachnophobia mode
+
+		spawnableMonsterList = new OneWayList(spawnableMonsterList);
+		spawnableCreatureList = new OneWayList(spawnableCreatureList);
+		spawnableCaveCreatureList = new OneWayList(spawnableCaveCreatureList);
+		//ReikaReflectionHelper.makeFieldFinal(this.getClass(), "spawnableMonsterList", "field_76761_J");
+		//ReikaReflectionHelper.makeFieldFinal(this.getClass(), "spawnableCreatureList", "field_76762_K");
+		//ReikaReflectionHelper.makeFieldFinal(this.getClass(), "spawnableCaveCreatureList", "field_82914_M");
 	}
 
 	@Override

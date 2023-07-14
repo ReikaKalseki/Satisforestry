@@ -20,6 +20,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.material.MapColor;
 import net.minecraft.block.material.Material;
 import net.minecraft.creativetab.CreativeTabs;
+import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
@@ -49,6 +50,7 @@ import Reika.DragonAPI.Auxiliary.Trackers.CommandableUpdateChecker;
 import Reika.DragonAPI.Auxiliary.Trackers.FurnaceFuelRegistry;
 import Reika.DragonAPI.Base.DragonAPIMod;
 import Reika.DragonAPI.Base.DragonAPIMod.LoadProfiler.LoadPhase;
+import Reika.DragonAPI.Exception.ModIntegrityException;
 import Reika.DragonAPI.Instantiable.IO.ControlledConfig;
 import Reika.DragonAPI.Instantiable.IO.ModLogger;
 import Reika.DragonAPI.Libraries.ReikaRecipeHelper;
@@ -360,6 +362,9 @@ public class Satisforestry extends DragonAPIMod {
 				mods.railcraft.api.fuel.FuelManager.addBoilerFuel(turbofuel, mods.railcraft.api.fuel.FuelManager.getBoilerFuelValue(ref)*5/2);
 			}
 		}
+
+		if (pinkforest.getSpawnableList(EnumCreatureType.monster).isEmpty())
+			throw new ModIntegrityException(this, "Biome spawn lists were emptied");
 
 		//((BlockPowerSlug)SFBlocks.SLUG.getBlockInstance()).updateStepSounds();
 

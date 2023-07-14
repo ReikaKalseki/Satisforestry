@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.Random;
 
 import net.minecraft.block.Block;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EnumCreatureType;
 import net.minecraft.entity.monster.EntityCaveSpider;
 import net.minecraft.entity.monster.EntityMob;
@@ -23,6 +24,8 @@ import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase.SpawnListEntry;
 import net.minecraftforge.common.util.ForgeDirection;
 
+import Reika.DragonAPI.Exception.InstallationException;
+import Reika.DragonAPI.Exception.WTFException;
 import Reika.DragonAPI.Instantiable.Data.WeightedRandom;
 import Reika.DragonAPI.Instantiable.Data.BlockStruct.FilledBlockArray;
 import Reika.DragonAPI.Instantiable.Data.Immutable.BlockKey;
@@ -62,9 +65,17 @@ public class UraniumCave {
 	private UraniumCave() {
 		List<SpawnListEntry> li = Satisforestry.pinkforest.getSpawnableList(EnumCreatureType.monster);
 		for (SpawnListEntry e : li) {
+			if (e == null) // because some mods do stupid shit
+				continue;
 			if (EntitySpider.class.isAssignableFrom(e.entityClass) && e.entityClass != EntityEliteStinger.class) {
 				caveSpawns.addEntry(e, e.itemWeight);
 			}
+		}
+		if (caveSpawns.isEmpty()) {
+			if (EntityList.classToStringMapping.containsKey(EntitySpider.class))
+				throw new WTFException("Some mod removed the entries from the Pink Forest spawn list?!", true);
+			else
+				throw new InstallationException(Satisforestry.instance, "You cannot use Satisforestry without a spider type existing ingame!");
 		}
 	}
 
@@ -130,7 +141,7 @@ public class UraniumCave {
 		}
 		//avg.xCoord /= tunnels.size();
 		//avg.zCoord /= tunnels.size();
-		avg.normalize();
+		avg = avg.normalize();
 
 		HashSet<Coordinate> carveSet = new HashSet();
 		carveSet.addAll(cc.carve.keySet());

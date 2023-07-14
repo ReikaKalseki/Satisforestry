@@ -28,8 +28,9 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, DecimalConfig, St
 	ALTSHADER("Use Alternate Poison Shader", false),
 	MUSIC("Satisfactory OST Folder", ""),
 	BORDERORE("Biome Border Ore Cluster Rate", 1F),
-	BLUEGREEN("Make Green Power Slugs Blue (SF Update 5)", false),
+	BLUEGREENSLUGS("Make Green Power Slugs Blue (SF Update 5)", false),
 	PALEBERRYPOLLEN("Paleberry Butterfly Fertilization Requires Pink Birch Pollen", false),
+	SLOWTREEGEN("Delayed Giant Pink Tree Generation (Only enable if seeing 'State Stack' errors in DecoratorPinkForest and increasing the state stack limit does not work)", false),
 	COMPACTCOALITEM("Compacted Coal Unlock Required Item (Empty for None)", "minecraft:coal*64"),
 	COMPACTCOALPOWER("Compacted Coal Unlock Required Power (power type;amount pertick;ticks to maintain)", "RF;300;600"),
 	TURBOFUELITEM("Turbofuel Unlock Required Item (Empty for None)", ""),
@@ -174,6 +175,7 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, DecimalConfig, St
 		switch(this) {
 			case GLOBALSHADER:
 			case MUSIC:
+			case BLUEGREENSLUGS:
 				return true;
 			default:
 				return false;

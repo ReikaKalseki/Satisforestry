@@ -36,7 +36,7 @@ public class PinkTreeChooser extends WorldGenAbstractTree {
 
 	private PinkTreeGeneratorBase getGenerator(World world, int x, int y, int z, Random rand, BiomeSection b) {
 		if (rand.nextDouble() <= b.largeTreeFraction())
-			return new GiantPinkTreeGenerator(false, true);
+			return new GiantPinkTreeGenerator(false);
 		return rand.nextDouble() <= b.jungleTreeRate() ? new RedJungleTreeGenerator(false) : new PinkTreeGenerator(false);
 	}
 

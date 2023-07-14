@@ -37,6 +37,7 @@ import Reika.Satisforestry.Blocks.BlockFrackingAux;
 import Reika.Satisforestry.Blocks.BlockFrackingNode;
 import Reika.Satisforestry.Blocks.BlockFrackingPressurizer;
 import Reika.Satisforestry.Blocks.BlockGasEmitter;
+import Reika.Satisforestry.Blocks.BlockGiantTreeCache;
 import Reika.Satisforestry.Blocks.BlockMinerMulti;
 import Reika.Satisforestry.Blocks.BlockMinerMulti.MinerBlocks;
 import Reika.Satisforestry.Blocks.BlockNodeHarvester;
@@ -75,6 +76,7 @@ public enum SFBlocks implements BlockEnum {
 	FRACKER(BlockFrackingPressurizer.class, ItemBlockNodeHarvester.class),
 	FRACKERMULTI(BlockFrackerMulti.class, ItemBlockMinerMulti.class),
 	CRASHSITE(BlockCrashSite.class, MetadataItemBlock.class),
+	GIANTTREECACHE(BlockGiantTreeCache.class, null),
 	;
 
 	private final Class blockClass;
@@ -118,11 +120,13 @@ public enum SFBlocks implements BlockEnum {
 	public Material getBlockMaterial() {
 		switch(this) {
 			case GRASS:
+			case SAPLING:
 				return Material.plants;
 			case LEAVES:
 			case BAMBOO:
 				return Material.leaves;
 			case LOG:
+			case GIANTTREECACHE:
 				return Material.wood;
 			case HARVESTER:
 			case MINERMULTI:
@@ -208,7 +212,7 @@ public enum SFBlocks implements BlockEnum {
 				return StatCollector.translateToLocal("multiblock.sffracker."+FrackerBlocks.list[meta&7].name().toLowerCase(Locale.ENGLISH));
 			case SLUG:
 				String type = String.valueOf(meta%3);
-				if ((meta&3) == 0 && SFOptions.BLUEGREEN.getState())
+				if ((meta&3) == 0 && SFOptions.BLUEGREENSLUGS.getState())
 					type = type+"b";
 				return StatCollector.translateToLocal("powerslug."+type)+" "+this.getBasicName();
 			default:

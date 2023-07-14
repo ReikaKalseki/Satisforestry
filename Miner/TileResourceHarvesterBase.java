@@ -266,6 +266,11 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 		return pass <= 1;
 	}
 
+	@Override
+	public final double getMaxRenderDistanceSquared() {
+		return super.getMaxRenderDistanceSquared()*8;
+	}
+
 	public final void setHasStructure(S flag) {
 		//ReikaJavaLibrary.pConsole(flag);
 		this.updateStructureState(flag);

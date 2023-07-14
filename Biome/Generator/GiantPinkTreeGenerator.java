@@ -12,24 +12,25 @@ import Reika.DragonAPI.Libraries.Java.ReikaRandomHelper;
 import Reika.DragonAPI.Libraries.MathSci.ReikaPhysicsHelper;
 import Reika.DragonAPI.Libraries.World.ReikaWorldHelper;
 import Reika.Satisforestry.Satisforestry;
+import Reika.Satisforestry.Blocks.BlockGiantTreeCache.TileGiantTreeCache;
 import Reika.Satisforestry.Blocks.BlockPowerSlug;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFOptions;
 
 public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 
-	private final boolean generateImmediately;
 	private final Random treeRand = new Random();
 
-	private boolean readyToGenerate = false;
 	private long randomSeed = 0;
 
 	private int groundGap;
 
-	public GiantPinkTreeGenerator(boolean force, boolean genImmediate) {
+	private int height1;
+	private int height2;
+
+	public GiantPinkTreeGenerator(boolean force) {
 		super(force, PinkTreeTypes.GIANTTREE);
 		trunkSize = 3;
-		generateImmediately = genImmediate;
-		readyToGenerate = generateImmediately;
 	}
 
 	@Override
@@ -40,112 +41,78 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 		}
 		if (chunkRand != null)
 			randomSeed = chunkRand.nextLong();
-		treeRand.setSeed(randomSeed);
-		treeRand.nextBoolean();
-		if (!readyToGenerate) {
-			readyToGenerate = true;
-			forceGen = true;
-			//TreeGenCache.instance.addTree(world, x, y, z, this);
-			//PinkForestPersistentData.initNetworkData(world).setDirty(true);
-			return true;
-		}
-		int h1 = ReikaRandomHelper.getRandomBetween(10, 18, treeRand); //was 20-30, then 18-25, then 12-24
-		int h2 = ReikaRandomHelper.getRandomBetween(64, 80, treeRand); //was 15-30, then 40-72, then 36-64, then 48-72, then 55-80
-		groundGap = ReikaRandomHelper.getRandomBetween(3, isSaplingGrowth ? 5 : 6, treeRand); //was 2-5, then 3-6
-		/*
-		int y1 = groundGap+h1;
-		int y2 = y1+h2;
-		for (int i = 0; i <= y2; i++) {
-			if (!world.getBlock(x-1, y+i, z-1).isAir(world, x-1, y+i, z-1))
-				return false;
-			if (!world.getBlock(x-1, y+i, z+2).isAir(world, x-1, y+i, z+2))
-				return false;
-			if (!world.getBlock(x+2, y+i, z-1).isAir(world, x+2, y+i, z-1))
-				return false;
-			if (!world.getBlock(x+2, y+i, z+2).isAir(world, x+2, y+i, z+2))
-				return false;
-		}
-		/*
-		for (int i = 0; i < groundGap; i++) {
-			world.setBlock(x+2, y+i, z-1, Satisforestry.log);
-			world.setBlock(x-1, y+i, z-1, Satisforestry.log);
-			world.setBlock(x+2, y+i, z+2, Satisforestry.log);
-			world.setBlock(x-1, y+i, z+2, Satisforestry.log);
-		}
-		 *//*
-		for (int i = groundGap; i < y1; i++) {
-			world.setBlock(x, y+i, z, Satisforestry.log);
-			world.setBlock(x+1, y+i, z, Satisforestry.log);
-			world.setBlock(x, y+i, z+1, Satisforestry.log);
-			world.setBlock(x+1, y+i, z+1, Satisforestry.log);
-		}
-		for (int i = y1; i < y2; i++) {
-			world.setBlock(x, y+i, z, Satisforestry.log);
-			world.setBlock(x+1, y+i, z, Satisforestry.log);
-			world.setBlock(x, y+i, z+1, Satisforestry.log);
-			world.setBlock(x+1, y+i, z+1, Satisforestry.log);
-
-			world.setBlock(x+2, y+i, z, Satisforestry.leaves);
-			world.setBlock(x-1, y+i, z, Satisforestry.leaves);
-			world.setBlock(x, y+i, z+2, Satisforestry.leaves);
-			world.setBlock(x, y+i, z-1, Satisforestry.leaves);
-		}
-		return true;*/
-		leafDistanceLimit = treeRand.nextBoolean() ? 4 : 3;
-		heightLimitLimit = h1+h2;
-		branchSlope = ReikaRandomHelper.getRandomPlusMinus(0, BASE_SLOPE*2.5, treeRand);
-		heightAttenuation = BASE_ATTENUATION*1.1;
-		//minBranchHeight = hl*0+12;
-		minHeight = h1+h2;
-		globalOffset[1] = Math.max(h1+groundGap-4, 0);
-		leafDensity = 0.625F; //was 0.75
-		branchDensity = 0.4F; //was 0.67
-		if (super.generate(world, treeRand, x, y, z)) {
-			for (int dy = groundGap; dy < globalOffset[1]; dy++) {
-				for (int i = -1; i <= 1; i++) {
-					for (int k = -1; k <= 1; k++) {
-						if (i == 0 || k == 0)
-							world.setBlock(x+i, y+dy, z+k, Satisforestry.log, 1, 2);
-					}
-				}
-			}
-
-			int n = ReikaRandomHelper.getRandomBetween(5, 8, treeRand); //was 4-8
-			double angsplit = 360D/n;
-			for (int i = 0; i < n; i++) {
-				double dx = x+0.5;
-				double dz = z+0.5;
-				double dy = y+groundGap+0.5;
-				double phi = ReikaRandomHelper.getRandomPlusMinus(angsplit*i, 15, treeRand);//rand.nextDouble()*360;
-				double theta = ReikaRandomHelper.getRandomBetween(-15, 5, treeRand);
-				double[] xyz = ReikaPhysicsHelper.polarToCartesian(1.5, theta, phi);
-				dx += xyz[0];
-				dz += xyz[2];
-				double dt = ReikaRandomHelper.getRandomBetween(5, 20, treeRand);
-				double dp = ReikaRandomHelper.getRandomPlusMinus(0, 12, treeRand);
-				double dpa = ReikaRandomHelper.getRandomPlusMinus(0, 4, treeRand);
-				int ix = MathHelper.floor_double(dx);
-				int iy = MathHelper.floor_double(dy);
-				int iz = MathHelper.floor_double(dz);
-				while (dy >= y-0.5 || ReikaWorldHelper.softBlocks(world, ix, iy-1, iz)|| world.getBlock(ix, iy-1, iz) == Satisforestry.leaves) {
-					ix = MathHelper.floor_double(dx);
-					iy = MathHelper.floor_double(dy);
-					iz = MathHelper.floor_double(dz);
-					world.setBlock(ix, iy, iz, Satisforestry.log, 1, 2);
-					xyz = ReikaPhysicsHelper.polarToCartesian(0.5, theta, phi);
-					dx += xyz[0];
-					dy += xyz[1];
-					dz += xyz[2];
-					theta = Math.max(-90, theta-dt);
-					phi += dp;
-					dp += dpa;
-				}
-			}
+		this.initializeRand();
+		if (SFOptions.SLOWTREEGEN.getState() && !TileGiantTreeCache.isGenerating) {
+			world.setBlock(x, y, z, SFBlocks.GIANTTREECACHE.getBlockInstance());
+			TileGiantTreeCache te = (TileGiantTreeCache)world.getTileEntity(x, y, z);
+			te.setTree(this);
 			return true;
 		}
 		else {
-			return false;
+			if (super.generate(world, treeRand, x, y, z)) {
+				for (int dy = groundGap; dy < globalOffset[1]; dy++) {
+					for (int i = -1; i <= 1; i++) {
+						for (int k = -1; k <= 1; k++) {
+							if (i == 0 || k == 0)
+								world.setBlock(x+i, y+dy, z+k, Satisforestry.log, 1, 2);
+						}
+					}
+				}
+
+				int n = ReikaRandomHelper.getRandomBetween(5, 8, treeRand); //was 4-8
+				double angsplit = 360D/n;
+				for (int i = 0; i < n; i++) {
+					double dx = x+0.5;
+					double dz = z+0.5;
+					double dy = y+groundGap+0.5;
+					double phi = ReikaRandomHelper.getRandomPlusMinus(angsplit*i, 15, treeRand);//rand.nextDouble()*360;
+					double theta = ReikaRandomHelper.getRandomBetween(-15, 5, treeRand);
+					double[] xyz = ReikaPhysicsHelper.polarToCartesian(1.5, theta, phi);
+					dx += xyz[0];
+					dz += xyz[2];
+					double dt = ReikaRandomHelper.getRandomBetween(5, 20, treeRand);
+					double dp = ReikaRandomHelper.getRandomPlusMinus(0, 12, treeRand);
+					double dpa = ReikaRandomHelper.getRandomPlusMinus(0, 4, treeRand);
+					int ix = MathHelper.floor_double(dx);
+					int iy = MathHelper.floor_double(dy);
+					int iz = MathHelper.floor_double(dz);
+					while (dy >= y-0.5 || ReikaWorldHelper.softBlocks(world, ix, iy-1, iz)|| world.getBlock(ix, iy-1, iz) == Satisforestry.leaves) {
+						ix = MathHelper.floor_double(dx);
+						iy = MathHelper.floor_double(dy);
+						iz = MathHelper.floor_double(dz);
+						world.setBlock(ix, iy, iz, Satisforestry.log, 1, 2);
+						xyz = ReikaPhysicsHelper.polarToCartesian(0.5, theta, phi);
+						dx += xyz[0];
+						dy += xyz[1];
+						dz += xyz[2];
+						theta = Math.max(-90, theta-dt);
+						phi += dp;
+						dp += dpa;
+					}
+				}
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
+	}
+
+	private void initializeRand() {
+		treeRand.setSeed(randomSeed);
+		treeRand.nextBoolean();
+		height1 = ReikaRandomHelper.getRandomBetween(10, 18, treeRand); //was 20-30, then 18-25, then 12-24
+		height2 = ReikaRandomHelper.getRandomBetween(64, 80, treeRand); //was 15-30, then 40-72, then 36-64, then 48-72, then 55-80
+		groundGap = ReikaRandomHelper.getRandomBetween(3, isSaplingGrowth ? 5 : 6, treeRand); //was 2-5, then 3-6
+		leafDistanceLimit = treeRand.nextBoolean() ? 4 : 3;
+		heightLimitLimit = height1+height2;
+		branchSlope = ReikaRandomHelper.getRandomPlusMinus(0, BASE_SLOPE*2.5, treeRand);
+		heightAttenuation = BASE_ATTENUATION*1.1;
+		//minBranchHeight = hl*0+12;
+		minHeight = height1+height2;
+		globalOffset[1] = Math.max(height1+groundGap-4, 0);
+		leafDensity = 0.625F; //was 0.75
+		branchDensity = 0.4F; //was 0.67
 	}
 
 	@Override
@@ -184,10 +151,9 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 	}
 
 	public static GiantPinkTreeGenerator readNBT(NBTTagCompound tag) {
-		GiantPinkTreeGenerator gen = new GiantPinkTreeGenerator(false, false);
-		gen.forceGen = tag.getBoolean("force");
+		GiantPinkTreeGenerator gen = new GiantPinkTreeGenerator(tag.getBoolean("force"));
 		gen.randomSeed = tag.getLong("seed");
-		gen.readyToGenerate = tag.getBoolean("ready");
+		gen.initializeRand();
 		return gen;
 	}
 
@@ -195,7 +161,6 @@ public class GiantPinkTreeGenerator extends PinkTreeGeneratorBase {
 		NBTTagCompound tag = new NBTTagCompound();
 		tag.setBoolean("force", forceGen);
 		tag.setLong("seed", randomSeed);
-		tag.setBoolean("ready", readyToGenerate);
 		return tag;
 	}
 

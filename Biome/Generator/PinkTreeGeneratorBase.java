@@ -30,6 +30,8 @@ import cpw.mods.fml.relauncher.SideOnly;
 
 public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 
+	//public static final SpillingGenerationDelegationSystem blockPlacer = new SpillingGenerationDelegationSystem();
+
 	protected boolean forceGen;
 	public final PinkTreeTypes type;
 
@@ -80,56 +82,60 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 	}
 
 	protected void postGenerate(World world, Random rand, int x, int y, int z) {
-		if (!allowSlugs)
-			return;
-		ArrayList<Entry<Coordinate, Integer>> set = null;
-		for (int n = 0; n < this.getTreeTopSlugAttemptCount(); n++) {
-			if (rand.nextFloat() < this.getTreeTopSlugChance()) {
-				TilePowerSlug te = null;
-				if (set == null)
-					set = new ArrayList(leavesTop.entrySet());
-				while (te == null && !set.isEmpty()) {
-					int i = rand.nextInt(set.size());
-					Entry<Coordinate, Integer> e = set.remove(i);
-					Coordinate c = e.getKey();
-					int dy = e.getValue()+1;
-					int ddy = dy-generationOriginY;
-					int tier = this.getSlugByHeight(dy, ddy, rand);
-					te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, tier, false, this.getDifficultyByHeight(dy, ddy, rand), this.canSpawnLeaftopMobs(), 3, ForgeDirection.DOWN);
+		if (allowSlugs) {
+			ArrayList<Entry<Coordinate, Integer>> set = null;
+			for (int n = 0; n < this.getTreeTopSlugAttemptCount(); n++) {
+				if (rand.nextFloat() < this.getTreeTopSlugChance()) {
+					TilePowerSlug te = null;
+					if (set == null)
+						set = new ArrayList(leavesTop.entrySet());
+					while (te == null && !set.isEmpty()) {
+						int i = rand.nextInt(set.size());
+						Entry<Coordinate, Integer> e = set.remove(i);
+						Coordinate c = e.getKey();
+						//blockPlacer.placeChunkBlockCoords(world, c.xCoord, c.zCoord);
+						int dy = e.getValue()+1;
+						int ddy = dy-generationOriginY;
+						int tier = this.getSlugByHeight(dy, ddy, rand);
+						te = BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, dy, c.zCoord, rand, tier, false, this.getDifficultyByHeight(dy, ddy, rand), this.canSpawnLeaftopMobs(), 3, ForgeDirection.DOWN);
+					}
 				}
 			}
-		}
-		for (Entry<Coordinate, Integer> e : logs.entrySet()) {
-			if (e.getValue() < 4) {
-				Coordinate c = e.getKey();
-				if (c.yCoord >= trunkBottom && c.yCoord <= Math.min(trunkTop, bottomLeaf-1)) {
-					if (rand.nextFloat() < this.getTrunkSlugChancePerBlock()) {
-						ArrayList<ForgeDirection> li = ReikaDirectionHelper.getRandomOrderedDirections(false);
-						for (ForgeDirection dir : li) {
-							Coordinate c2 = c.offset(dir, -1);
-							int dy = c2.yCoord-generationOriginY;
-							int tier = this.getSlugByHeight(c2.yCoord, dy, rand);
-							TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c2.xCoord, c2.yCoord, c2.zCoord, rand, tier, false, this.getDifficultyByHeight(c2.yCoord-generationOriginY, dy, rand), false, 1, dir);
-							if (te != null) {
-								te.setNoSpawns();
-								break;
+			for (Entry<Coordinate, Integer> e : logs.entrySet()) {
+				if (e.getValue() < 4) {
+					Coordinate c = e.getKey();
+					if (c.yCoord >= trunkBottom && c.yCoord <= Math.min(trunkTop, bottomLeaf-1)) {
+						if (rand.nextFloat() < this.getTrunkSlugChancePerBlock()) {
+							//blockPlacer.placeChunkBlockCoords(world, c.xCoord, c.zCoord);
+							ArrayList<ForgeDirection> li = ReikaDirectionHelper.getRandomOrderedDirections(false);
+							for (ForgeDirection dir : li) {
+								Coordinate c2 = c.offset(dir, -1);
+								int dy = c2.yCoord-generationOriginY;
+								int tier = this.getSlugByHeight(c2.yCoord, dy, rand);
+								TilePowerSlug te = BlockPowerSlug.generatePowerSlugAt(world, c2.xCoord, c2.yCoord, c2.zCoord, rand, tier, false, this.getDifficultyByHeight(c2.yCoord-generationOriginY, dy, rand), false, 1, dir);
+								if (te != null) {
+									te.setNoSpawns();
+									break;
+								}
 							}
 						}
 					}
 				}
-			}
-			else if (rand.nextFloat() < this.getBranchSlugChancePerBlock()) {
-				Coordinate c = e.getKey().offset(0, 1, 0);
-				if (c.isEmpty(world)) {
-					int dy = c.yCoord-generationOriginY;
-					int tier = this.getSlugByHeight(c.yCoord, dy, rand);
-					if (rand.nextFloat() <= 0.4)
-						tier = Math.min(2, tier+1); //+1 since hard to find
-					int diff = this.getDifficultyByHeight(c.yCoord-generationOriginY, dy, rand)+1; //+1 since hard to find
-					BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, c.yCoord, c.zCoord, rand, tier, false, diff, false);
+				else if (rand.nextFloat() < this.getBranchSlugChancePerBlock()) {
+					Coordinate c = e.getKey().offset(0, 1, 0);
+					//blockPlacer.placeChunkBlockCoords(world, c.xCoord, c.zCoord);
+					if (c.isEmpty(world)) {
+						int dy = c.yCoord-generationOriginY;
+						int tier = this.getSlugByHeight(c.yCoord, dy, rand);
+						if (rand.nextFloat() <= 0.4)
+							tier = Math.min(2, tier+1); //+1 since hard to find
+						int diff = this.getDifficultyByHeight(c.yCoord-generationOriginY, dy, rand)+1; //+1 since hard to find
+						BlockPowerSlug.generatePowerSlugAt(world, c.xCoord, c.yCoord, c.zCoord, rand, tier, false, diff, false);
+					}
 				}
 			}
 		}
+		//PinkForestPersistentData.initNetworkData(world).setDirty(true);
 	}
 
 	protected int getTreeTopSlugAttemptCount() {
@@ -155,6 +161,8 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 					return;
 			}
 		}
+		//blockPlacer.setCurrentBlockCoords(generationOriginX, generationOriginZ);
+		//blockPlacer.setBlock((WorldServer)world, x+globalOffset[0], y+globalOffset[1], z+globalOffset[2], b, meta, doUpdates ? 3 : 2);
 		super.setBlockAndNotifyAdequately(world, x, y, z, b, meta);
 		if (log) {
 			logs.put(new Coordinate(x+globalOffset[0], y+globalOffset[1], z+globalOffset[2]), meta);
@@ -205,7 +213,7 @@ public abstract class PinkTreeGeneratorBase extends ModifiableBigTree {
 				case TREE:
 					return new PinkTreeGenerator(true);
 				case GIANTTREE:
-					return new GiantPinkTreeGenerator(true, true);
+					return new GiantPinkTreeGenerator(true);
 				case JUNGLE:
 					return new RedJungleTreeGenerator(true);
 			}
