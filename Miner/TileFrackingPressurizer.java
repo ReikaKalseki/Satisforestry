@@ -269,12 +269,12 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 
 	@Override
 	protected final TilePowerConnection getWirePowerConnection() {
-		return this.hasStructure() ? (TilePowerConnection)worldObj.getTileEntity(xCoord-2, yCoord+11, zCoord-2) : null;
+		return this.hasStructure() ? (TilePowerConnection)worldObj.getTileEntity(xCoord, yCoord+10, zCoord-3) : null;
 	}
 
 	@Override
 	protected final TileShaftConnection getShaftPowerConnection() {
-		return this.hasStructure() ? (TileShaftConnection)worldObj.getTileEntity(xCoord+1, yCoord+9, zCoord+1) : null;
+		return this.hasStructure() ? (TileShaftConnection)worldObj.getTileEntity(xCoord, yCoord+8, zCoord+2) : null;
 	}
 
 	protected final TileFrackerFluidPort[] getInputs() {

@@ -28,9 +28,9 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, DecimalConfig, St
 	ALTSHADER("Use Alternate Poison Shader", false),
 	MUSIC("Satisfactory OST Folder", ""),
 	BORDERORE("Biome Border Ore Cluster Rate", 1F),
-	BLUEGREENSLUGS("Make Green Power Slugs Blue (SF Update 5)", false),
-	PALEBERRYPOLLEN("Paleberry Butterfly Fertilization Requires Pink Birch Pollen", false),
-	SLOWTREEGEN("Delayed Giant Pink Tree Generation (Only enable if seeing 'State Stack' errors in DecoratorPinkForest and increasing the state stack limit does not work)", false),
+	BLUEGREENSLUGS("Make Green Power Slugs Blue", false), //In Update 5, Satisfactory changed green power slugs to blue. Enable this to also apply that change
+	PALEBERRYPOLLEN("Paleberry Butterfly Fertilization Requires Pink Birch Pollen", false), //Whether the ability of the Paleberry Sucker butterfly to fertilize paleberries depends on having a pink birch tree in range
+	SLOWTREEGEN("Delayed Giant Pink Tree Generation", false), //This will queue giant pink tree generation until after chunks are finished generating, in an effort to reduce cascading chunkgen. This may not be a 1:1 replacement for normal generation, so only enable this if you are seeing 'State Stack too large, skipping' log warnings from DecoratorPinkForest, and increasing the state stack limit does not work. To increase the state stack limit, use the <code>-DragonAPI_DecoratorStackLimit=N</code> JVM arg, where N is the new limit (default 250). You will probably also wish to add the <code>-Xss</code> JVM argument to allocate more stack memory, but be careful not to set that too large; <code>-Xss10m</code> is about the safe limit, and less is better if you can get away with it
 	COMPACTCOALITEM("Compacted Coal Unlock Required Item (Empty for None)", "minecraft:coal*64"),
 	COMPACTCOALPOWER("Compacted Coal Unlock Required Power (power type;amount pertick;ticks to maintain)", "RF;300;600"),
 	TURBOFUELITEM("Turbofuel Unlock Required Item (Empty for None)", ""),

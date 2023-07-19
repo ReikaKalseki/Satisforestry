@@ -153,6 +153,7 @@ public class BiomeConfig {
 			item.putData("effectType", "potion");
 			item.putData("potionID", Potion.weakness.id);
 			item.putData("level", 1);
+			item.putData("duration", 20);
 			example2.setComment("minCount", "min yield per harvest cycle");
 			example2.setComment("maxCount", "max yield per harvest cycle");
 			levels.setComment(null, "purity level distribution");

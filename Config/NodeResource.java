@@ -441,7 +441,7 @@ public abstract class NodeResource<I> {
 				case POTION:
 					Potion p = Potion.potionTypes[(int)data.get("potionID")];
 					if (!ep.isPotionActive(p))
-						ep.addPotionEffect(new PotionEffect(p.id, 20, (int)data.get("level")-1));
+						ep.addPotionEffect(new PotionEffect(p.id, (int)data.get("duration"), (int)data.get("level")-1));
 					break;
 				case REFLECTIVE:
 					try {

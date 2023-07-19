@@ -57,8 +57,10 @@ public class BlockFrackingPressurizer extends BlockSFHarvester {
 
 	@Override
 	public void onBlockPlacedBy(World world, int x, int y, int z, EntityLivingBase e, ItemStack is) {
-		TileFrackingExtractor te = (TileFrackingExtractor)world.getTileEntity(x, y, z);
-		te.facing = ReikaDirectionHelper.getFromLookDirection(e, false).getOpposite();
+		if (world.getBlockMetadata(x, y, z) == 3) {
+			TileFrackingExtractor te = (TileFrackingExtractor)world.getTileEntity(x, y, z);
+			te.facing = ReikaDirectionHelper.getFromLookDirection(e, false).getOpposite();
+		}
 	}
 
 	public static class TileFrackingExtractor extends TileEntityBase implements IFluidHandler, BreakAction {
