@@ -14,10 +14,12 @@ import Reika.DragonAPI.Base.TileEntityBase;
 import Reika.DragonAPI.Instantiable.Rendering.StructureRenderer;
 import Reika.DragonAPI.Interfaces.TileEntity.ChunkLoadingTile;
 import Reika.DragonAPI.Libraries.Java.ReikaStringParser;
+import Reika.DragonAPI.Libraries.MathSci.ReikaMathLibrary;
 import Reika.Satisforestry.Blocks.BlockResourceNode.ResourceNode;
 import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileMinerConnection;
 import Reika.Satisforestry.Blocks.BlockSFMultiBase.TilePowerConnection;
 import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileShaftConnection;
+import Reika.Satisforestry.Registry.SFOptions;
 
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.relauncher.Side;
@@ -316,6 +318,20 @@ public abstract class TileResourceHarvesterBase<N extends ResourceNode, S> exten
 			te.addWaila(li);
 			for (String s : li)
 				tip.add("  "+s);
+		}
+	}
+
+	protected static int adjustRFCost(int base) {
+		switch(SFOptions.RFCOST.getValue()) {
+			case 1:
+				return ReikaMathLibrary.roundToNearestX(100, base/12);
+			case 2:
+				return ReikaMathLibrary.roundToNearestX(100, base/3);
+			case 3:
+			default:
+				return base;
+			case 4:
+				return base*4;
 		}
 	}
 

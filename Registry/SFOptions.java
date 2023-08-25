@@ -30,11 +30,13 @@ public enum SFOptions implements BooleanConfig, IntegerConfig, DecimalConfig, St
 	BORDERORE("Biome Border Ore Cluster Rate", 1F),
 	BLUEGREENSLUGS("Make Green Power Slugs Blue", false), //In Update 5, Satisfactory changed green power slugs to blue. Enable this to also apply that change
 	PALEBERRYPOLLEN("Paleberry Butterfly Fertilization Requires Pink Birch Pollen", false), //Whether the ability of the Paleberry Sucker butterfly to fertilize paleberries depends on having a pink birch tree in range
-	SLOWTREEGEN("Delayed Giant Pink Tree Generation", false), //This will queue giant pink tree generation until after chunks are finished generating, in an effort to reduce cascading chunkgen. This may not be a 1:1 replacement for normal generation, so only enable this if you are seeing 'State Stack too large, skipping' log warnings from DecoratorPinkForest, and increasing the state stack limit does not work. To increase the state stack limit, use the <code>-DragonAPI_DecoratorStackLimit=N</code> JVM arg, where N is the new limit (default 250). You will probably also wish to add the <code>-Xss</code> JVM argument to allocate more stack memory, but be careful not to set that too large; <code>-Xss10m</code> is about the safe limit, and less is better if you can get away with it
+	SLOWTREEGEN("Delayed Giant Pink Tree Generation", false), //Whether to engage delayed pink tree gen as described above
 	COMPACTCOALITEM("Compacted Coal Unlock Required Item (Empty for None)", "minecraft:coal*64"),
 	COMPACTCOALPOWER("Compacted Coal Unlock Required Power (power type;amount pertick;ticks to maintain)", "RF;300;600"),
 	TURBOFUELITEM("Turbofuel Unlock Required Item (Empty for None)", ""),
 	TURBOFUELPOWER("Turbofuel Unlock Required Power (power type;amount pertick;ticks to maintain)", "RF;2400;600"),
+	DOGGOCLUSTERS("Lizard Doggo Ore Yield Type", "ore"), //This option allows you to choose what kind of item ('ore' for ore blocks, 'dust' for the dust form of the resource, 'products' for whatever the usual smelted result is, 'cluster' for ThaumCraft native clusters) doggos will find when told to find X kind of ore. If the type chosen has no mapping for the ore in question (eg native clusters without TC installed), the ore block will be used as a fallback.
+	RFCOST("Machinery RF Cost Tier", 3), //1-4, with 1 being the cheapest RF costs, suitable for packs where the most powerful generators are 60-100RF/t, 2 being for packs with generator caps around 2500RF/t, and 3 being for packs with caps around 30000RF/t per generator, and 4 for packs with anything capable of significantly exceeding that. Does not affect EU or RC versions of the machines, and will subtract 10% efficiency for each "step down" from 50% at max cost.
 	;
 
 	private String label;

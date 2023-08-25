@@ -43,6 +43,7 @@ import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileShaftConnection;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Config.ResourceFluid;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFOptions;
 import Reika.Satisforestry.Registry.SFSounds;
 
 import cofh.api.energy.IEnergyReceiver;
@@ -471,11 +472,11 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 	public static class TileFrackingPressurizerRF extends TileFrackingPressurizerBasicEnergy implements IEnergyReceiver {
 
 		public TileFrackingPressurizerRF() {
-			super(12000, 600000, 16000, 300);
+			super(adjustRFCost(12000), adjustRFCost(600000), adjustRFCost(16000), adjustRFCost(300));
 		}
 
 		@Override
-		protected String getTEName() {
+		public String getTEName() {
 			return "Fracking Node Pressurizer (RF)";
 		}
 
@@ -501,7 +502,7 @@ public abstract class TileFrackingPressurizer extends TileResourceHarvesterBase<
 
 		@Override
 		public float getSpeedFactor() {
-			return 0.4F;
+			return Math.min(0.5F, 0.1F*(1+SFOptions.RFCOST.getValue()));
 		}
 
 		@Override

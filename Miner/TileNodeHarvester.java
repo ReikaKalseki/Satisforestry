@@ -39,6 +39,7 @@ import Reika.Satisforestry.Blocks.BlockSFMultiBase.TilePowerConnection;
 import Reika.Satisforestry.Blocks.BlockSFMultiBase.TileShaftConnection;
 import Reika.Satisforestry.Config.NodeResource.Purity;
 import Reika.Satisforestry.Registry.SFBlocks;
+import Reika.Satisforestry.Registry.SFOptions;
 import Reika.Satisforestry.Registry.SFSounds;
 import Reika.Satisforestry.Render.EntityMinerFX;
 
@@ -508,7 +509,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 	public static class TileNodeHarvesterRF extends TileNodeHarvesterBasicEnergy implements IEnergyReceiver {
 
 		public TileNodeHarvesterRF() {
-			super(2000, 600000, 2500, 100);
+			super(adjustRFCost(2000), adjustRFCost(600000), adjustRFCost(2500), adjustRFCost(100));
 		}
 
 		@Override
@@ -538,7 +539,7 @@ public abstract class TileNodeHarvester extends TileResourceHarvesterBase<TileRe
 
 		@Override
 		public float getSpeedFactor() {
-			return 0.4F;
+			return Math.min(0.5F, 0.1F*(1+SFOptions.RFCOST.getValue()));
 		}
 
 		@Override

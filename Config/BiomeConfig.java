@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map.Entry;
@@ -29,8 +30,10 @@ import net.minecraft.potion.Potion;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.oredict.OreDictionary;
 import net.minecraftforge.oredict.ShapelessOreRecipe;
 
+import Reika.DragonAPI.ModList;
 import Reika.DragonAPI.Exception.InstallationException;
 import Reika.DragonAPI.Exception.RegistrationException;
 import Reika.DragonAPI.Exception.UserErrorException;
@@ -48,6 +51,7 @@ import Reika.DragonAPI.Libraries.Registry.ReikaItemHelper;
 import Reika.DragonAPI.Libraries.Registry.ReikaOreHelper;
 import Reika.DragonAPI.ModInteract.DeepInteract.SensitiveFluidRegistry;
 import Reika.DragonAPI.ModInteract.DeepInteract.SensitiveItemRegistry;
+import Reika.DragonAPI.ModInteract.ItemHandlers.ThaumItemHelper;
 import Reika.DragonAPI.ModRegistry.ModOreList;
 import Reika.Satisforestry.Satisforestry;
 import Reika.Satisforestry.API.AltRecipe;
@@ -159,6 +163,7 @@ public class BiomeConfig {
 			levels.setComment(null, "purity level distribution");
 			effects.setComment(null, "optional, ambient AoE effects around the node");
 			item.setComment("potionID", "weakness");
+			item.setComment("duration", "ticks");
 			itemData.addBlock("example", example2);
 		}
 
@@ -577,7 +582,7 @@ public class BiomeConfig {
 						amtMax = 1;
 						break;
 				}
-				doggoEntries.add(new DoggoDrop(ore.getFirstOreBlock(), 1, amtMax, e.getValue()));
+				doggoEntries.add(new DoggoDrop(this.getDoggoOreItem(ore), 1, amtMax, e.getValue()));
 			}
 		}
 
@@ -616,10 +621,39 @@ public class BiomeConfig {
 					this.addAlternateRecipe(TURBOFUEL_ID, "Turbofuel", 25, AltRecipe.defaultDummyRecipe, in, parts[0], Long.parseLong(parts[1]), Long.parseLong(parts[2]));
 				}
 				catch (Exception e) {
-					throw new InstallationException(Satisforestry.instance, "Invalid compacted coal alternate recipe parameters specified", e);
+					throw new InstallationException(Satisforestry.instance, "Invalid turbofuel alternate recipe parameters specified", e);
 				}
 			}
 		}
+	}
+
+	private ItemStack getDoggoOreItem(OreType ore) {
+		ArrayList<ItemStack> li = new ArrayList();
+		switch(SFOptions.DOGGOCLUSTERS.getString()) {
+			case "ore":
+			default:
+				break;
+			case "cluster":
+				if (!ModList.THAUMCRAFT.isLoaded())
+					break;
+				ItemStack is = ThaumItemHelper.getNativeCluster(ore);
+				if (is != null)
+					return is;
+				break;
+			case "product":
+				li.addAll(OreDictionary.getOres(ore.getProductOreDictName()));
+				break;
+			case "dust":
+				for (String s : ore.getOreDictNames())
+					li.addAll(OreDictionary.getOres(s.replace("ore", "dust")));
+				break;
+		}
+		ItemStack is = ore.getFirstOreBlock();
+		if (!li.isEmpty()) {
+			Collections.sort(li, ReikaItemHelper.comparator);
+			is = li.get(0);
+		}
+		return is;
 	}
 
 	public AlternateRecipe addAlternateRecipe(String id, String disp, int wt, IRecipe rec, ItemStack need, String powerType, long powerAmount, long ticksFor) {
@@ -838,6 +872,10 @@ public class BiomeConfig {
 			ItemStack is = CustomRecipeList.parseItemString(s.getString("key"), s.getChild("nbt"), true);
 			if (is == null) {
 				Satisforestry.logger.logError("Could not load item type '"+s+"' for doggo drop '"+type+"'; skipping.");
+				continue;
+			}
+			if (SensitiveItemRegistry.instance.contains(is)) {
+				Satisforestry.logger.logError("Could not load item type '"+s+"' for doggo drop '"+type+"' - is not allowed. Skipping.");
 				continue;
 			}
 			KeyedItemStack ks = new KeyedItemStack(is).setIgnoreMetadata(false).setIgnoreNBT(false).setSized(false).setSimpleHash(true);
